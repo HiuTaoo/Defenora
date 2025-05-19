@@ -24,6 +24,7 @@ public class TileItem : MonoBehaviour
                 child.gameObject.SetActive(true);
             }
         }
+        MenuTilesController.Instance.TogglePlaceTileMode();
     }
 
 
