@@ -19,18 +19,16 @@ public class MenuTilesController : MonoBehaviour
     public GameObject mouseIndicator;
 
     [Header("Camera")]
-    [SerializeField] 
-    private Vector3Int offset = Vector3Int.zero;
     [SerializeField]
     private Camera sceneCamera;
 
     private bool isDragging = false;
     public bool editMode = true;
     public bool isDeleteTile = false;
+    public bool canPlaceTile = false;
 
     private Vector3Int lastPlacedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
     private Vector3Int lastErasedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
-    
     
 
     private void Awake()
@@ -47,6 +45,7 @@ public class MenuTilesController : MonoBehaviour
     private void Update()
     {
         HandleMouseInput();
+        CheckCanPlaceTile();
     }
 
     private void HandleMouseInput()
@@ -58,7 +57,7 @@ public class MenuTilesController : MonoBehaviour
             return;
 
         Vector3 mouseWorldPos = sceneCamera.ScreenToWorldPoint(Input.mousePosition);
-        Vector3Int cellPosition = targetTilemap.WorldToCell(mouseWorldPos) + offset;
+        Vector3Int cellPosition = targetTilemap.WorldToCell(mouseWorldPos);
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -70,7 +69,8 @@ public class MenuTilesController : MonoBehaviour
             else
             {
                 if (selectedTile == null) return;
-                PlaceTile(cellPosition);
+                if(canPlaceTile)
+                    PlaceTile(cellPosition);
             }
         }
         else if (Input.GetMouseButton(0) && isDragging)
@@ -81,7 +81,8 @@ public class MenuTilesController : MonoBehaviour
             }
             else
             {
-                PlaceTile(cellPosition);
+                if (canPlaceTile)
+                    PlaceTile(cellPosition);
             }
         }
         else if (Input.GetMouseButtonUp(0))
@@ -118,5 +119,9 @@ public class MenuTilesController : MonoBehaviour
         isDeleteTile = false;
     }
 
+    public void CheckCanPlaceTile()
+    {
+        canPlaceTile = TilemapHover.Instance.canPlace;
+    }
 
 }
