@@ -8,6 +8,8 @@ public class TileItem : MonoBehaviour
 {
     [SerializeField] private Tilemap tilemap;
     [SerializeField] private TileBase tileBase;
+    [SerializeField] private Image img;
+
 
     public void SelectTileItem()
     {
@@ -25,6 +27,7 @@ public class TileItem : MonoBehaviour
             }
         }
         MenuTilesController.Instance.TogglePlaceTileMode();
+        MenuTilesController.Instance.mouseIndicator.GetComponent<Image>().sprite = img.sprite;
     }
 
 

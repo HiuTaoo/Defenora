@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class MenuTilesController : MonoBehaviour
 {
@@ -12,8 +13,10 @@ public class MenuTilesController : MonoBehaviour
     [SerializeField] private Tilemap[] tilemap;
     [SerializeField] private TileBase[] tiles;
 
+    [Header("Variable")]
     public Tilemap targetTilemap;
     public TileBase selectedTile;
+    public GameObject mouseIndicator;
 
     [Header("Camera")]
     [SerializeField] 
@@ -27,7 +30,7 @@ public class MenuTilesController : MonoBehaviour
 
     private Vector3Int lastPlacedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
     private Vector3Int lastErasedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
-
+    
     
 
     private void Awake()
@@ -114,4 +117,6 @@ public class MenuTilesController : MonoBehaviour
     {
         isDeleteTile = false;
     }
+
+
 }

@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class CameraController : MonoBehaviour
 {
@@ -18,6 +20,8 @@ public class CameraController : MonoBehaviour
     {
         CameraDragging();
         CameraZoom();
+        MouseIndicator();
+
     }
 
     public void CameraDragging()
@@ -49,6 +53,27 @@ public class CameraController : MonoBehaviour
         {
             float targetSize = sceneCamera.orthographicSize - scroll * zoomSpeed;
             sceneCamera.orthographicSize = Mathf.Clamp(targetSize, minZoom, maxZoom);
+        }
+    }
+
+    private void MouseIndicator()
+    {
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            MenuTilesController.Instance.mouseIndicator.SetActive(false);
+        }
+        else
+        {
+            if (MenuTilesController.Instance.mouseIndicator.GetComponent<Image>().sprite != null)
+            {
+                MenuTilesController.Instance.mouseIndicator.SetActive(true);
+                Vector3 offsetPosition = Input.mousePosition + new Vector3(0.5f, -0.5f, 0f);
+                MenuTilesController.Instance.mouseIndicator.transform.position = offsetPosition;
+            }
+            else
+            {
+                MenuTilesController.Instance.mouseIndicator.SetActive(false);
+            }
         }
     }
 }
