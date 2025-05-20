@@ -28,6 +28,8 @@ public class TileItem : MonoBehaviour
         }
         MenuTilesController.Instance.TogglePlaceTileMode();
         MenuTilesController.Instance.mouseIndicator.GetComponent<Image>().sprite = img.sprite;
+
+        Debug.Log(MenuTilesController.Instance.targetTilemap.ToString());
     }
 
 

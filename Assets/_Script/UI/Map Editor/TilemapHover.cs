@@ -44,6 +44,9 @@ public class TilemapHover : MonoBehaviour
 
     public void MouseMovement()
     {
+        if (MenuTilesController.Instance.targetTilemap == null || MenuTilesController.Instance.selectedTile == null)
+            return;
+
         mouseWorldPos = camera.ScreenToWorldPoint(Input.mousePosition);
         cellPosition = emptyTilemap.WorldToCell(mouseWorldPos);
 
@@ -55,8 +58,27 @@ public class TilemapHover : MonoBehaviour
     private void PlaceTile(Vector3Int cellPosition)
     {
         mouseWorldPos = camera.ScreenToWorldPoint(Input.mousePosition);
-        
-        foreach (var tilemap in tilemaps)
+        TileBase currentTile = MenuTilesController.Instance.targetTilemap.GetTile(cellPosition);
+
+        if (!MenuTilesController.Instance.CanPlaceOnThisLayer(cellPosition) ||
+            currentTile != null
+            && currentTile == MenuTilesController.Instance.selectedTile)
+        {
+                EraseTile(lastCell);
+                emptyTilemap.SetTile(cellPosition, redTileBase);
+                lastCell = cellPosition;
+                canPlace = false;
+                return;
+            
+        }
+        else
+        {
+            EraseTile(lastCell);
+            emptyTilemap.SetTile(cellPosition, greenTileBase);
+            lastCell = cellPosition;
+            canPlace = true;
+        }
+        /*foreach (var tilemap in tilemaps)
         {
             cellPosition = tilemap.WorldToCell(mouseWorldPos);
             if (tilemap.HasTile(cellPosition))
@@ -74,7 +96,7 @@ public class TilemapHover : MonoBehaviour
                 lastCell = cellPosition;
                 canPlace = true;
             }
-        }
+        }*/
     }
 
     private void EraseTile(Vector3Int cellPosition)
