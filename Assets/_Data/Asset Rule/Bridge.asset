@@ -16,3 +16,7 @@ MonoBehaviour:
   requiredBaseTilemapNames:
   - Sand
   - Grass
+  - Ocean
+  banTilebaseNames:
+  - Elevation
+  - Rule Tile Wall

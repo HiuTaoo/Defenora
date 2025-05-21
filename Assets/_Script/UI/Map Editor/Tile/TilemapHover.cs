@@ -25,7 +25,6 @@ public class TilemapHover : MonoBehaviour
     Vector3Int cellPosition;
     public bool canPlace = true;
 
-
     private void Awake()
     {
         if(Instance == null)
@@ -78,25 +77,6 @@ public class TilemapHover : MonoBehaviour
             lastCell = cellPosition;
             canPlace = true;
         }
-        /*foreach (var tilemap in tilemaps)
-        {
-            cellPosition = tilemap.WorldToCell(mouseWorldPos);
-            if (tilemap.HasTile(cellPosition))
-            {
-                EraseTile(lastCell);
-                emptyTilemap.SetTile(cellPosition, redTileBase);
-                lastCell = cellPosition;
-                canPlace = false;
-                return;
-            }
-            else
-            {
-                EraseTile(lastCell);
-                emptyTilemap.SetTile(cellPosition, greenTileBase);
-                lastCell = cellPosition;
-                canPlace = true;
-            }
-        }*/
     }
 
     private void EraseTile(Vector3Int cellPosition)

@@ -2,6 +2,7 @@
 using UnityEngine.Tilemaps;
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.WSA;
 
 public class MenuTilesController : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class MenuTilesController : MonoBehaviour
     [Header("Variable")]
     public Tilemap targetTilemap;
     public TileBase selectedTile;
+    public TileBase emptyTile;
     public GameObject mouseIndicator;
 
     [Header("Camera")]
@@ -27,18 +29,16 @@ public class MenuTilesController : MonoBehaviour
     public bool isDeleteTile = false;
     public bool canPlaceTile = false;
 
+    private HashSet<Vector3Int> positionSet = new HashSet<Vector3Int>();
+ 
+
     private Vector3Int lastPlacedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
     private Vector3Int lastErasedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
 
-
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-            Destroy(gameObject);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     private void Update()
@@ -52,8 +52,7 @@ public class MenuTilesController : MonoBehaviour
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
-        if (targetTilemap == null)
-            return;
+        if (targetTilemap == null) return;
 
         Vector3 mouseWorldPos = sceneCamera.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int cellPosition = targetTilemap.WorldToCell(mouseWorldPos);
@@ -64,18 +63,35 @@ public class MenuTilesController : MonoBehaviour
             if (isDeleteTile)
                 EraseTile(cellPosition);
             else
+            {
                 TryPlaceTile(cellPosition);
+                positionSet.Add(cellPosition);
+            }
+                
         }
         else if (Input.GetMouseButton(0) && isDragging)
         {
             if (isDeleteTile)
                 EraseTile(cellPosition);
             else
+            {
                 TryPlaceTile(cellPosition);
+
+                // Nếu chưa có thì thêm vào
+                if (!positionSet.Contains(cellPosition))
+                {
+                    positionSet.Add(cellPosition);
+                }
+            }
         }
         else if (Input.GetMouseButtonUp(0))
         {
             isDragging = false;
+            foreach (var cell in positionSet)
+            {
+                PlaceLinkTile(cell);
+            }
+            positionSet.Clear();
         }
     }
 
@@ -85,7 +101,6 @@ public class MenuTilesController : MonoBehaviour
             return;
 
         TileBase currentTile = targetTilemap.GetTile(cellPosition);
-
         if (currentTile != null && currentTile == selectedTile)
             return;
 
@@ -93,18 +108,22 @@ public class MenuTilesController : MonoBehaviour
         {
             PlaceTile(cellPosition);
         }
-        else
-        {
-            Debug.Log("Can't place on this tile");
-        }
     }
-
 
     private void PlaceTile(Vector3Int cellPosition)
     {
         targetTilemap.SetTile(cellPosition, selectedTile);
         lastPlacedCell = cellPosition;
-        Debug.Log("Place tile at: " + cellPosition);
+
+    }
+
+    public void PlaceLinkTile(Vector3Int cellPosition)
+    {
+        var link = TileLinkManager.Instance.GetLink(selectedTile, targetTilemap);
+        if (link != null && link.linkedTile != null && link.linkedTilemap != null)
+        {
+            link.linkedTilemap.SetTile(cellPosition, link.linkedTile);
+        }
     }
 
     private void EraseTile(Vector3Int cellPosition)
@@ -112,18 +131,62 @@ public class MenuTilesController : MonoBehaviour
         if (cellPosition == lastErasedCell)
             return;
 
-        targetTilemap.SetTile(cellPosition, null);
-        lastErasedCell = cellPosition;
+        bool foundTile = false;
+        int startIndex = -1;
+
+        for (int i = 0; i < tilemap.Length; i++)
+        {
+            if (tilemap[i] == targetTilemap)
+            {
+                startIndex = i;
+                break;
+            }
+        }
+
+        if (startIndex == -1)
+        {
+            Debug.LogWarning("Target Tilemap không nằm trong danh sách tilemap.");
+            return;
+        }
+
+        // Xóa từ targetTilemap đến các tilemap cao hơn
+        for (int i = startIndex; i < tilemap.Length; i++)
+        {
+            Tilemap map = tilemap[i];
+            if (map.GetTile(cellPosition) != null)
+            {
+                map.SetTile(cellPosition, null);
+                foundTile = true;
+            }
+        }
+
+        if (foundTile)
+        {
+            lastErasedCell = cellPosition;
+        }
+
+        TileBase tile = targetTilemap.GetTile(cellPosition);
+ 
+        var link = TileLinkManager.Instance.GetLink(tile, targetTilemap);
+        if (link != null && link.linkedTilemap != null)
+        {
+            link.linkedTilemap.SetTile(cellPosition, null);
+        }
     }
+
 
     public void ToggleDeleteTileMode()
     {
         isDeleteTile = !isDeleteTile;
+        lastPlacedCell = Vector3Int.zero;
+        lastErasedCell = Vector3Int.zero;
     }
 
     public void TogglePlaceTileMode()
     {
         isDeleteTile = false;
+        lastPlacedCell = Vector3Int.zero;
+        lastErasedCell = Vector3Int.zero;
     }
 
     public void CheckCanPlaceTile()
@@ -154,7 +217,6 @@ public class MenuTilesController : MonoBehaviour
         return false;
     }
 
-
     private TilePlacementRule GetRuleForTile(TileBase tile)
     {
         foreach (var rule in tileRules)
@@ -165,4 +227,5 @@ public class MenuTilesController : MonoBehaviour
         return null;
     }
 
+   
 }

@@ -10,12 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0fd4ba7d839808c49bd4f383688c8188, type: 3}
-  m_Name: Elevation
+  m_Name: Grass
   m_EditorClassIdentifier: 
-  tile: {fileID: 11400000, guid: 5c3a8074d6946f34bbaf288f06b2e148, type: 2}
+  tile: {fileID: 11400000, guid: 96cf1c57f81e5cf459c38ab8b1173c9c, type: 2}
   requiredBaseTilemapNames:
   - Sand
   - Ground
-  - Grass
-  banTilebaseNames:
-  - Bridge
+  banTilemapNames: []
