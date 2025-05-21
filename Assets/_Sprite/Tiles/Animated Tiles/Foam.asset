@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 13b75c95f34a00d4e8c04f76b73312e6, type: 3}
-  m_Name: Floating Tiles
+  m_Name: Foam
   m_EditorClassIdentifier: 
   m_AnimatedSprites:
   - {fileID: -2976244341682480788, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}

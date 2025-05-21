@@ -32,7 +32,7 @@ public class TilemapHover : MonoBehaviour
             Instance = this;
         }
         else
-            Destroy(Instance);
+            Destroy(gameObject);
         camera = Camera.main;
     }
 

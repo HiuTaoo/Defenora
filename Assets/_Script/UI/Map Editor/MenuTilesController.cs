@@ -2,20 +2,18 @@
 using UnityEngine.Tilemaps;
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.WSA;
 
 public class MenuTilesController : MonoBehaviour
 {
     public static MenuTilesController Instance;
 
+    [Header("Tilemap Layers")]
+    [SerializeField] public List<TileLayerEntry> tileLayers;
+
     [Header("List Tile")]
-    [SerializeField] private Tilemap[] tilemap;
     [SerializeField] private TileBase[] tiles;
 
-    [Header("Variable")]
-    public Tilemap targetTilemap;
-    public TileBase selectedTile;
-    public TileBase emptyTile;
+    [Header("mouseIndicator")]
     public GameObject mouseIndicator;
 
     [Header("Camera")]
@@ -24,13 +22,18 @@ public class MenuTilesController : MonoBehaviour
     [Header("Tile Rules")]
     public List<TilePlacementRule> tileRules;
 
+    [Header("Variable")]
+    public Tilemap targetTilemap;
+    public TileBase selectedTile;
+    public int selectedLayerIndex = 0;
+    public TileBase emptyTile;
+
     private bool isDragging = false;
     public bool editMode = true;
     public bool isDeleteTile = false;
     public bool canPlaceTile = false;
 
     private HashSet<Vector3Int> positionSet = new HashSet<Vector3Int>();
- 
 
     private Vector3Int lastPlacedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
     private Vector3Int lastErasedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
@@ -67,7 +70,6 @@ public class MenuTilesController : MonoBehaviour
                 TryPlaceTile(cellPosition);
                 positionSet.Add(cellPosition);
             }
-                
         }
         else if (Input.GetMouseButton(0) && isDragging)
         {
@@ -76,12 +78,7 @@ public class MenuTilesController : MonoBehaviour
             else
             {
                 TryPlaceTile(cellPosition);
-
-                // Nếu chưa có thì thêm vào
-                if (!positionSet.Contains(cellPosition))
-                {
-                    positionSet.Add(cellPosition);
-                }
+                positionSet.Add(cellPosition);
             }
         }
         else if (Input.GetMouseButtonUp(0))
@@ -114,7 +111,6 @@ public class MenuTilesController : MonoBehaviour
     {
         targetTilemap.SetTile(cellPosition, selectedTile);
         lastPlacedCell = cellPosition;
-
     }
 
     public void PlaceLinkTile(Vector3Int cellPosition)
@@ -131,49 +127,34 @@ public class MenuTilesController : MonoBehaviour
         if (cellPosition == lastErasedCell)
             return;
 
-        bool foundTile = false;
-        int startIndex = -1;
-
-        for (int i = 0; i < tilemap.Length; i++)
-        {
-            if (tilemap[i] == targetTilemap)
-            {
-                startIndex = i;
-                break;
-            }
-        }
-
+        // Tìm index của targetTilemap trong danh sách
+        int startIndex = tileLayers.FindIndex(e => e.tilemap == targetTilemap);
         if (startIndex == -1)
         {
-            Debug.LogWarning("Target Tilemap không nằm trong danh sách tilemap.");
+            Debug.LogWarning("Target Tilemap không nằm trong danh sách tileLayers.");
             return;
         }
 
-        // Xóa từ targetTilemap đến các tilemap cao hơn
-        for (int i = startIndex; i < tilemap.Length; i++)
+        // Xóa từ tầng hiện tại trở lên
+        for (int i = startIndex; i < tileLayers.Count; i++)
         {
-            Tilemap map = tilemap[i];
+            Tilemap map = tileLayers[i].tilemap;
             if (map.GetTile(cellPosition) != null)
             {
                 map.SetTile(cellPosition, null);
-                foundTile = true;
             }
         }
 
-        if (foundTile)
-        {
-            lastErasedCell = cellPosition;
-        }
+        lastErasedCell = cellPosition;
 
+        // Xóa tile liên kết nếu có
         TileBase tile = targetTilemap.GetTile(cellPosition);
- 
         var link = TileLinkManager.Instance.GetLink(tile, targetTilemap);
         if (link != null && link.linkedTilemap != null)
         {
             link.linkedTilemap.SetTile(cellPosition, null);
         }
     }
-
 
     public void ToggleDeleteTileMode()
     {
@@ -203,11 +184,11 @@ public class MenuTilesController : MonoBehaviour
         if (rule == null || rule.requiredBaseTilemapNames.Count == 0)
             return true;
 
-        foreach (var tilemap in this.tilemap)
+        foreach (var layer in tileLayers)
         {
-            if (rule.requiredBaseTilemapNames.Contains(tilemap.name))
+            if (rule.requiredBaseTilemapNames.Contains(layer.tilemap.name))
             {
-                if (tilemap.GetTile(cellPos) != null)
+                if (layer.tilemap.GetTile(cellPos) != null)
                 {
                     return true;
                 }
@@ -227,5 +208,18 @@ public class MenuTilesController : MonoBehaviour
         return null;
     }
 
-   
+    public void UpdateTilemapLayer()
+    {
+        foreach (var layer in tileLayers)
+        {
+            if(selectedTile != null)
+            {
+                if (layer.layerIndex == selectedLayerIndex && layer.tileType == selectedTile.name)
+                {
+                    targetTilemap = layer.tilemap;
+                    return;
+                }
+            }
+        }
+    }
 }

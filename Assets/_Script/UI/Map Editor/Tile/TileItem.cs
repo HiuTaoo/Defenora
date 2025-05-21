@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class TileItem : MonoBehaviour
 {
-    [SerializeField] private Tilemap tilemap;
     [SerializeField] private TileBase tileBase;
     [SerializeField] private Image img;
 
@@ -14,7 +13,6 @@ public class TileItem : MonoBehaviour
     public void SelectTileItem()
     {
         DeSelectAllTileItem();
-        MenuTilesController.Instance.targetTilemap = tilemap;
         MenuTilesController.Instance.selectedTile = tileBase;
 
         Transform[] children = GetComponentsInChildren<Transform>(true); 
@@ -29,7 +27,6 @@ public class TileItem : MonoBehaviour
         MenuTilesController.Instance.TogglePlaceTileMode();
         MenuTilesController.Instance.mouseIndicator.GetComponent<Image>().sprite = img.sprite;
 
-        Debug.Log(MenuTilesController.Instance.targetTilemap.ToString());
     }
 
 

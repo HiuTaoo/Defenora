@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d1514134bc4fbd41bb739b1b9a49231, type: 3}
-  m_Name: Bridge Rule Tile
+  m_Name: Bridge
   m_EditorClassIdentifier: 
   m_DefaultSprite: {fileID: -552856318, guid: 6354ff714e598bb46b69464eef377641, type: 3}
   m_DefaultGameObject: {fileID: 0}
