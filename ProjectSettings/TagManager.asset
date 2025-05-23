@@ -14,7 +14,7 @@ TagManager:
   - Terrain 1
   - Terrain 2
   - Terrain 3
-  - 
+  - Player
   - 
   - 
   - 
@@ -49,4 +49,7 @@ TagManager:
     locked: 0
   - name: Terrain 3
     uniqueID: 2425651459
+    locked: 0
+  - name: Player
+    uniqueID: 3935277223
     locked: 0
