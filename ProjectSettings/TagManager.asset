@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Elevation
   layers:
   - Default
   - TransparentFX
@@ -11,9 +12,9 @@ TagManager:
   - 
   - Water
   - UI
-  - Terrain 1
-  - Terrain 2
-  - Terrain 3
+  - Stair
+  - 
+  - 
   - Player
   - 
   - 
@@ -41,14 +42,14 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Terrain 1
-    uniqueID: 4189426099
+  - name: Layer 1
+    uniqueID: 1518052433
     locked: 0
-  - name: Terrain 2
-    uniqueID: 4250941897
+  - name: Layer 2
+    uniqueID: 385756155
     locked: 0
-  - name: Terrain 3
-    uniqueID: 2425651459
+  - name: Layer 3
+    uniqueID: 1061770637
     locked: 0
   - name: Player
     uniqueID: 3935277223

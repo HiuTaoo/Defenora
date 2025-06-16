@@ -1,5 +1,6 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class WalkState : IState
@@ -30,7 +31,7 @@ public class WalkState : IState
         }
     }
 
-    public void FixedUpdate()
+    /*public void FixedUpdate()
     {
         pawn.rb.velocity = pawn.MovementInput * pawn.moveSpeed;
 
@@ -51,6 +52,52 @@ public class WalkState : IState
                 pawn.transform.localScale = scale;
             }
         }
+    }*/
+
+    public void FixedUpdate()
+    {
+        Vector2 input = pawn.MovementInput;
+        if (input.sqrMagnitude < 0.01f)
+        {
+            pawn.rb.velocity = Vector2.zero;
+            return;
+        }
+
+        // Kiểm tra có vật cản phía trước không bằng AgentPhysics2D
+        Vector2 currentPosition = pawn.rb.position;
+        Vector2 direction = input.normalized;
+        float moveDistance = pawn.moveSpeed * Time.fixedDeltaTime;
+
+
+        // Raycast kiểm tra trước khi di chuyển
+        bool isBlocked = pawn.agentPhysics2D.IsBlocked(currentPosition, direction, moveDistance + 0.05f, pawn.collider2D);
+
+        if (!isBlocked)
+        {
+            Vector2 newPosition = currentPosition + direction * moveDistance;
+            pawn.rb.MovePosition(newPosition);
+        }
+        else
+        {
+            pawn.rb.velocity = Vector2.zero;
+        }
+
+        // Flip hướng dựa theo input.x
+        if (input.x < -0.1f)
+        {
+            Vector3 scale = pawn.transform.localScale;
+            scale.x = -Mathf.Abs(scale.x);
+            pawn.transform.localScale = scale;
+        }
+        else if (input.x > 0.1f)
+        {
+            Vector3 scale = pawn.transform.localScale;
+            scale.x = Mathf.Abs(scale.x);
+            pawn.transform.localScale = scale;
+        }
     }
+
+    
+
 
 }

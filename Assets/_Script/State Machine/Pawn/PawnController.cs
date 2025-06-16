@@ -8,6 +8,8 @@ public class PawnController : MonoBehaviour
     public float moveSpeed = 3.5f;
     public Rigidbody2D rb;
     public Animator animator;
+    public AgentPhysics2D agentPhysics2D;
+    public CircleCollider2D collider2D;
 
     public Vector2 MovementInput { get; private set; }
 
@@ -16,6 +18,8 @@ public class PawnController : MonoBehaviour
     private void Awake()
     {
         StateMachine = new StateMachine();
+        agentPhysics2D = GetComponentInChildren<AgentPhysics2D>();
+        collider2D = GetComponent<CircleCollider2D>();
     }
 
     private void Start()
