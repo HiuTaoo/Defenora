@@ -70,7 +70,7 @@ public class WalkState : IState
 
 
         // Raycast kiểm tra trước khi di chuyển
-        bool isBlocked = pawn.agentPhysics2D.IsBlocked(currentPosition, direction, moveDistance + 0.05f, pawn.collider2D);
+        bool isBlocked = pawn.agentPhysics2D.IsBlocked(currentPosition, direction,pawn.moveSpeed, moveDistance + 0.05f, pawn.collider2D);
 
         if (!isBlocked)
         {

@@ -6,7 +6,7 @@ public class FloorManager : MonoBehaviour
 {
     public static FloorManager Instance { get; private set; }
 
-    [SerializeField] private List<FloorDefinition> floors = new List<FloorDefinition>();
+    [SerializeField] public List<FloorDefinition> floors = new List<FloorDefinition>();
 
     // Dictionary để track agents theo floor
     private Dictionary<int, HashSet<FloorAgent>> agentsByFloor = new Dictionary<int, HashSet<FloorAgent>>();

@@ -5,14 +5,27 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class FloorAgent : MonoBehaviour
 {
-    [SerializeField] private int _currentFloorIndex = 0;
+    public int _currentFloorIndex
+    {
+        get;
+        private set;
+    }
 
     // Properties
     public int currentFloorIndex
     {
         get => _currentFloorIndex;
-        private set => _currentFloorIndex = value;
+        private set
+        {
+            if (value > 2)
+            {
+                return;
+            }
+
+            _currentFloorIndex = value;
+        }
     }
+
 
     public LayerMask CurrentCollisionMask
     {
@@ -29,6 +42,7 @@ public class FloorAgent : MonoBehaviour
     private void Awake()
     {
         _collider = GetComponent<Collider2D>();
+        _currentFloorIndex = 0;
     }
 
     private void Start()
@@ -63,7 +77,23 @@ public class FloorAgent : MonoBehaviour
         UpdateVisualElements();
     }
 
-    private void UpdateVisualElements()
+    public void NextFloor() { 
+        if(currentFloorIndex == FloorManager.Instance.floors.Count - 1)
+            return;
+
+        _currentFloorIndex++;
+        MoveToFloor(currentFloorIndex);
+    }
+
+    public void PreviousFloor() { 
+        if( currentFloorIndex == 0)
+            return;
+
+        _currentFloorIndex--;
+        MoveToFloor(currentFloorIndex);
+    }
+
+    public void UpdateVisualElements()
     {
         var floorDef = FloorManager.Instance.GetFloorDefinition(currentFloorIndex);
         if (floorDef != null)
