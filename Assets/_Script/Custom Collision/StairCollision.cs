@@ -48,7 +48,7 @@ public class StairCollision : MonoBehaviour
         return hit != null;
     }
 
-    private void OnDrawGizmos()
+    /*private void OnDrawGizmos()
     {
         if (circleCollider == null) return;
 
@@ -58,5 +58,5 @@ public class StairCollision : MonoBehaviour
         Gizmos.color = IsOnStair ? new Color(0, 1, 0, 0.3f) : new Color(1, 0, 0, 0.3f);
         Gizmos.DrawWireSphere(transform.position, radius);
         Gizmos.DrawSphere(transform.position, 0.5f); // chấm tâm
-    }
+    }*/
 }
