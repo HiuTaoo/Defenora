@@ -180,8 +180,8 @@ public class GraphNode : MonoBehaviour
         graph.layerIndex = layerData.layerIndex;
 
         Vector3Int[] directions = {
-            Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right
-        };
+        Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right
+    };
 
         foreach (var kvp in graph.nodes)
         {
@@ -191,15 +191,43 @@ public class GraphNode : MonoBehaviour
             {
                 Vector3Int neighborPos = node.position + direction;
 
-                if (graph.nodes.ContainsKey(neighborPos))
+                if (!graph.nodes.ContainsKey(neighborPos))
+                    continue;
+
+                Node neighbor = graph.nodes[neighborPos];
+
+                if (node.isStair)
                 {
-                    node.neighbors.Add(graph.nodes[neighborPos]);
+                    // Nếu stair thì luôn có thể link với stair khác
+                    if (neighbor.isStair)
+                    {
+                        node.neighbors.Add(neighbor);
+                    }
+                    else if ((direction == Vector3Int.up || direction == Vector3Int.down) && !neighbor.isStair)
+                    {
+                        // Link với node thường chỉ khi ở trên hoặc dưới
+                        node.neighbors.Add(neighbor);
+                    }
+                }
+                else
+                {
+                    // Nếu node thường thì chỉ được link với stair nếu stair ở trên hoặc dưới
+                    if (neighbor.isStair && (direction == Vector3Int.up || direction == Vector3Int.down))
+                    {
+                        node.neighbors.Add(neighbor);
+                    }
+                    else if (!neighbor.isStair)
+                    {
+                        // Node thường link với thường như bình thường
+                        node.neighbors.Add(neighbor);
+                    }
                 }
             }
         }
 
         //Debug.Log($"Built graph for layer {layerData.layerIndex} with {graph.nodes.Count} nodes");
     }
+
 
     #endregion
 
