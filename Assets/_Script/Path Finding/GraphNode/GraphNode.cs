@@ -1,45 +1,42 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class Pathfinding : MonoBehaviour
+public class GraphNode : MonoBehaviour
 {
     [SerializeField] private LayerData[] layerDatas;
-    private Dictionary<int, PathfindingGraph> layerGraphs = new Dictionary<int, PathfindingGraph>();
+    public Dictionary<int, PathfindingGraph> layerGraphs = new Dictionary<int, PathfindingGraph>();
 
     private bool isGraphBuilt = false;
 
     private void Awake()
     {
         BuildAllLayerGraphs();
-        //PrintNodeInfo(new Vector3Int(-21,8,0), 1);
+        //PrintNodeInfo(new Vector3Int(-19, -8, 0), 2);
     }
+
     #region Build Path Graph
+
     public void BuildAllLayerGraphs()
     {
         foreach (LayerData layerData in layerDatas)
         {
             BuildSingleLayerGraph(layerData);
         }
-        foreach(LayerData layerData1 in layerDatas)
-        {
 
+        foreach (LayerData layerData1 in layerDatas)
+        {
             CreateStairConnection(layerData1);
         }
-        isGraphBuilt = true;
 
+        isGraphBuilt = true;
     }
 
     public void BuildSingleLayerGraph(LayerData layerData)
     {
         PathfindingGraph graph = new PathfindingGraph();
 
-        //Duyệt qua từng tilemap để tạo graph node 
         CreateNodeGraph(layerData, graph);
-
-        //Kết nối Neighbors 
         LinkNeighBor(layerData, graph);
 
         layerGraphs[layerData.layerIndex] = graph;
@@ -60,13 +57,10 @@ public class Pathfinding : MonoBehaviour
                     Vector3Int position = new Vector3Int(x, y, 0);
 
                     //Kiểm tra xem ở vị trí đó đã có node chưa
-                    if (graph.nodes.ContainsKey(position))
-                        continue;
+                    if (graph.nodes.ContainsKey(position)) continue;
 
-                    // Kiểm tra có tile walkable không
                     if (tileMap.HasTile(position))
                     {
-                        // Kiểm tra không bị obstacle block
                         bool isBlocked = false;
 
                         if (layerData.obstacleTilemap != null)
@@ -81,7 +75,6 @@ public class Pathfinding : MonoBehaviour
                             }
                         }
 
-                        // Chỉ tạo node khi KHÔNG bị block bởi bất kỳ obstacle nào
                         if (!isBlocked)
                         {
                             Node node = new Node
@@ -90,7 +83,7 @@ public class Pathfinding : MonoBehaviour
                                 layerIndex = layerData.layerIndex,
                                 isWalkable = true,
                                 isStair = layerData.stairTilemap != null &&
-                                         layerData.stairTilemap.HasTile(position),
+                                          layerData.stairTilemap.HasTile(position),
                             };
 
                             Debug.Log($"Node tại {position}, tầng {layerData.layerIndex}, isStair: {node.isStair}");
@@ -100,6 +93,8 @@ public class Pathfinding : MonoBehaviour
                 }
             }
         }
+
+        Debug.Log($"Tầng {layerData.layerIndex} có tổng {graph.nodes.Count} nodes");
     }
 
     private void CreateStairConnection(LayerData layerData)
@@ -112,7 +107,6 @@ public class Pathfinding : MonoBehaviour
         /*Debug.Log($"=== Tạo kết nối cầu thang: Tầng {currentLayerIndex} -> Tầng {targetLayerIndex} ===");
         Debug.Log($"Graph tầng {currentLayerIndex} có {graph.nodes.Count} nodes");*/
 
-        // Kiểm tra xem tầng target có tồn tại không
         if (!layerGraphs.TryGetValue(targetLayerIndex, out PathfindingGraph targetGraph))
         {
             Debug.LogWarning($"Không tìm thấy graph tầng {targetLayerIndex} để tạo liên kết cầu thang.");
@@ -135,7 +129,6 @@ public class Pathfinding : MonoBehaviour
                 currentStairNodes++;
                 //Debug.Log($"Tìm thấy stair node tại {position} ở tầng {currentLayerIndex}");
 
-                // Lấy node ở tầng kế tiếp tại cùng vị trí, nếu đã có node thì gán stairTargetNode 
                 if (targetGraph.nodes.TryGetValue(position, out Node targetNode))
                 {
                     targetStairNodes++;
@@ -148,11 +141,11 @@ public class Pathfinding : MonoBehaviour
 
                     //Debug.Log($"[StairLink] Đã tạo kết nối: {position} tầng {currentLayerIndex} <--> tầng {targetLayerIndex}");
                 }
-                //Nếu chưa có node thì tạo node mới
                 else
                 {
                     /*Debug.Log($"Không tìm thấy node tại {position} ở tầng {targetLayerIndex}");
                     Debug.Log($"Tạo stair node tại {position} ở tầng {targetLayerIndex}");*/
+
                     Node node = new Node
                     {
                         position = position,
@@ -162,16 +155,21 @@ public class Pathfinding : MonoBehaviour
                         stairTargetNode = currentNode,
                         stairDirection = StairDirection.Down,
                     };
+
+                    LinkNeighBor(layerData, graph);
+                    LinkNeighBor(layerDatas[targetLayerIndex], targetGraph);
+
                     targetGraph.nodes[position] = node;
                     currentNode.stairTargetNode = node;
                     currentNode.stairDirection = StairDirection.Up;
                     stairConnectionCount++;
+
                     //Debug.Log($"[StairLink] Đã tạo kết nối: {position} tầng {currentLayerIndex} <--> tầng {targetLayerIndex}");
                 }
             }
         }
 
-       /* Debug.Log($"=== KẾT QUẢ ===");
+        /*Debug.Log($"=== KẾT QUẢ ===");
         Debug.Log($"Stair nodes tầng {currentLayerIndex}: {currentStairNodes}");
         Debug.Log($"Stair nodes tầng {targetLayerIndex}: {targetStairNodes}");
         Debug.Log($"Tổng kết nối cầu thang được tạo: {stairConnectionCount}");*/
@@ -200,9 +198,12 @@ public class Pathfinding : MonoBehaviour
             }
         }
 
-
         //Debug.Log($"Built graph for layer {layerData.layerIndex} with {graph.nodes.Count} nodes");
     }
+
+    #endregion
+
+    #region Access & Utility
 
     public Node GetNode(Vector3Int position, int layerIndex)
     {
@@ -212,40 +213,39 @@ public class Pathfinding : MonoBehaviour
             return null;
         }
 
-        if (layerGraphs.ContainsKey(layerIndex))
+        if (layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
         {
-            var graph = layerGraphs[layerIndex];
-            if (graph.nodes.ContainsKey(position))
+            if (graph.nodes.TryGetValue(position, out Node node))
             {
-                return graph.nodes[position];
+                return node;
             }
         }
+
         return null;
     }
 
     public void PrintNodeInfo(Vector3Int position, int layerIndex)
     {
-        if (!layerGraphs.ContainsKey(layerIndex))
+        if (!layerGraphs.TryGetValue(layerIndex, out var graph))
         {
             Debug.LogWarning($"Không tìm thấy layerIndex {layerIndex}");
             return;
         }
 
-        var graph = layerGraphs[layerIndex];
-        if (!graph.nodes.ContainsKey(position))
+        if (!graph.nodes.TryGetValue(position, out var node))
         {
             Debug.LogWarning($"Không tìm thấy node tại vị trí {position} ở layer {layerIndex}");
             return;
         }
 
-        Node node = graph.nodes[position];
+        Pathfinding.Instance.HoverPath(position);
 
         Debug.Log($"--- THÔNG TIN NODE ---");
         Debug.Log($"Vị trí: {node.position}");
         Debug.Log($"Layer: {node.layerIndex}");
         Debug.Log($"Walkable: {node.isWalkable}");
         Debug.Log($"Stair: {node.isStair}");
-        Debug.Log($"StairTargetNode: {(node.stairTargetNode != null ? node.stairTargetNode.position.ToString() + ": " + node.stairTargetNode.layerIndex.ToString() : "null")}");
+        Debug.Log($"StairTargetNode: {(node.stairTargetNode != null ? node.stairTargetNode.position + ": " + node.stairTargetNode.layerIndex : "null")}");
         Debug.Log($"Stair Direction: {node.stairDirection}");
 
         Debug.Log($"Neighbors ({node.neighbors.Count}):");
@@ -254,7 +254,6 @@ public class Pathfinding : MonoBehaviour
             Debug.Log($"   - {neighbor.position}");
         }
     }
-    #endregion
 
     public void ResetAllNodes()
     {
@@ -269,4 +268,5 @@ public class Pathfinding : MonoBehaviour
         }
     }
 
+    #endregion
 }
