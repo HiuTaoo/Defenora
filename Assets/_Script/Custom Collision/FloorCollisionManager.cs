@@ -39,7 +39,7 @@ public class FloorCollisionManager : MonoBehaviour
         collidersByFloor[floor].Add(collider);
         colliderFloorCache[collider] = floor;
 
-        Debug.Log($"Registered {collider.name} to floor {floor}");
+        //Debug.Log($"Registered {collider.name} to floor {floor}");
     }
 
     // Hủy đăng ký collider

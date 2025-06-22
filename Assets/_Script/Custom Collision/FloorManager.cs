@@ -51,7 +51,7 @@ public class FloorManager : MonoBehaviour
         // Update collisions với tất cả agents khác
         UpdateAllAgentCollisions();
 
-        Debug.Log($"Registered agent {agent.name} to floor {floor}");
+        //Debug.Log($"Registered agent {agent.name} to floor {floor}");
     }
 
     // Hủy đăng ký agent
@@ -98,7 +98,7 @@ public class FloorManager : MonoBehaviour
         // Update collisions
         UpdateCollisionsForMovedAgent(agent, oldFloor, newFloor);
 
-        Debug.Log($"Moved agent {agent.name} from floor {oldFloor} to floor {newFloor}");
+        //Debug.Log($"Moved agent {agent.name} from floor {oldFloor} to floor {newFloor}");
     }
 
     // Update collisions khi agent chuyển floor

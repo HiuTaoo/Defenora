@@ -1,0 +1,28 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Node
+{
+    public Vector3Int position;
+    public int layerIndex;
+    public bool isWalkable;
+    public bool isStair ;
+    public Node stairTargetNode;
+    public StairDirection stairDirection;
+    public List<Node> neighbors = new List<Node>();
+
+    // Cho A* algorithm
+    public float gCost;
+    public float hCost;
+    public float FCost => gCost + hCost;
+    public Node parent;
+
+
+}
+public enum StairDirection{
+    Up,
+    Down
+}
+
+

@@ -54,7 +54,7 @@ public class TilemapHover : MonoBehaviour
     }
 
 
-    private void PlaceTile(Vector3Int cellPosition)
+    public void PlaceTile(Vector3Int cellPosition)
     {
         mouseWorldPos = camera.ScreenToWorldPoint(Input.mousePosition);
         TileBase currentTile = MenuTilesController.Instance.targetTilemap.GetTile(cellPosition);
@@ -83,5 +83,10 @@ public class TilemapHover : MonoBehaviour
     {
         emptyTilemap.SetTile(cellPosition, null);
         lastCell = cellPosition;
+    }
+
+    public void HighLightTile(Vector3Int cellPosition)
+    {
+        emptyTilemap.SetTile(cellPosition, redTileBase);
     }
 }
