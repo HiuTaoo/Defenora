@@ -6,13 +6,10 @@ public class FloorCollisionManager : MonoBehaviour
 {
     public static FloorCollisionManager Instance { get; private set; }
 
-    // Dictionary để track collision pairs
     private static Dictionary<(int, int), bool> collisionPairs = new Dictionary<(int, int), bool>();
 
-    // Dictionary để track colliders theo floor
     private Dictionary<int, HashSet<Collider2D>> collidersByFloor = new Dictionary<int, HashSet<Collider2D>>();
 
-    // Performance optimization
     private Dictionary<Collider2D, int> colliderFloorCache = new Dictionary<Collider2D, int>();
 
     private void Awake()
@@ -28,7 +25,6 @@ public class FloorCollisionManager : MonoBehaviour
         }
     }
 
-    // Đăng ký collider với floor specific
     public void RegisterCollider(Collider2D collider, int floor)
     {
         if (collider == null) return;
@@ -42,7 +38,6 @@ public class FloorCollisionManager : MonoBehaviour
         //Debug.Log($"Registered {collider.name} to floor {floor}");
     }
 
-    // Hủy đăng ký collider
     public void UnregisterCollider(Collider2D collider)
     {
         if (collider == null) return;
@@ -58,7 +53,6 @@ public class FloorCollisionManager : MonoBehaviour
         }
     }
 
-    // Set collision giữa 2 colliders
     public static void SetCollisionBetween(Collider2D col1, Collider2D col2, bool enabled)
     {
         if (col1 == null || col2 == null) return;
@@ -72,7 +66,6 @@ public class FloorCollisionManager : MonoBehaviour
         Physics2D.IgnoreCollision(col1, col2, !enabled);
     }
 
-    // Kiểm tra xem 2 colliders có nên va chạm không
     public static bool ShouldCollide(Collider2D col1, Collider2D col2)
     {
         if (col1 == null || col2 == null) return false;
@@ -88,7 +81,6 @@ public class FloorCollisionManager : MonoBehaviour
         return true; // Default behavior
     }
 
-    // Update collision cho 1 agent với tất cả objects khác
     public void UpdateCollisionsForAgent(FloorAgent agent)
     {
         if (agent == null) return;
@@ -98,18 +90,14 @@ public class FloorCollisionManager : MonoBehaviour
 
         int agentFloor = agent.currentFloorIndex;
 
-        // Update collision với environment objects
         UpdateEnvironmentCollisions(agentCollider, agentFloor);
 
-        // Update collision với other agents (sẽ được handle bởi FloorManager)
     }
 
-    // Update collision với environment objects
     private void UpdateEnvironmentCollisions(Collider2D agentCollider, int agentFloor)
     {
         LayerMask allowedLayers = FloorManager.Instance.GetLayerMaskForFloor(agentFloor);
 
-        // Disable collision với tất cả floors khác
         foreach (var kvp in collidersByFloor)
         {
             int floor = kvp.Key;
@@ -125,7 +113,6 @@ public class FloorCollisionManager : MonoBehaviour
             }
         }
 
-        // Enable collision với floor hiện tại
         if (collidersByFloor.ContainsKey(agentFloor))
         {
             foreach (var collider in collidersByFloor[agentFloor])
@@ -138,16 +125,14 @@ public class FloorCollisionManager : MonoBehaviour
         }
     }
 
-    // Get floor của collider
     public int GetColliderFloor(Collider2D collider)
     {
         if (colliderFloorCache.ContainsKey(collider))
             return colliderFloorCache[collider];
 
-        return -1; // Invalid floor
+        return -1; 
     }
 
-    // Cleanup null references
     public void CleanupNullReferences()
     {
         List<Collider2D> toRemove = new List<Collider2D>();

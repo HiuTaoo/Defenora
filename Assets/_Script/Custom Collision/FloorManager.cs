@@ -8,10 +8,8 @@ public class FloorManager : MonoBehaviour
 
     [SerializeField] public List<FloorDefinition> floors = new List<FloorDefinition>();
 
-    // Dictionary để track agents theo floor
     private Dictionary<int, HashSet<FloorAgent>> agentsByFloor = new Dictionary<int, HashSet<FloorAgent>>();
 
-    // Events
     public System.Action<FloorAgent, int, int> OnAgentFloorChanged;
 
     private void Awake()
@@ -36,7 +34,6 @@ public class FloorManager : MonoBehaviour
         }
     }
 
-    // Đăng ký agent
     public void RegisterAgent(FloorAgent agent)
     {
         if (agent == null) return;
@@ -48,13 +45,11 @@ public class FloorManager : MonoBehaviour
 
         agentsByFloor[floor].Add(agent);
 
-        // Update collisions với tất cả agents khác
         UpdateAllAgentCollisions();
 
         //Debug.Log($"Registered agent {agent.name} to floor {floor}");
     }
 
-    // Hủy đăng ký agent
     public void UnregisterAgent(FloorAgent agent)
     {
         if (agent == null) return;
@@ -64,7 +59,6 @@ public class FloorManager : MonoBehaviour
             kvp.Value.Remove(agent);
         }
 
-        // Cleanup collisions
         Collider2D agentCollider = agent.GetComponent<Collider2D>();
         if (agentCollider != null)
         {
@@ -72,42 +66,35 @@ public class FloorManager : MonoBehaviour
         }
     }
 
-    // Di chuyển agent sang floor mới
     public void MoveAgentToFloor(FloorAgent agent, int newFloor)
     {
         if (agent == null || newFloor < 0 || newFloor >= floors.Count) return;
 
         int oldFloor = agent.currentFloorIndex;
 
-        // Remove from old floor
         if (agentsByFloor.ContainsKey(oldFloor))
         {
             agentsByFloor[oldFloor].Remove(agent);
         }
 
-        // Add to new floor
         agent.SetCurrentFloorIndex(newFloor);
         if (!agentsByFloor.ContainsKey(newFloor))
             agentsByFloor[newFloor] = new HashSet<FloorAgent>();
 
         agentsByFloor[newFloor].Add(agent);
 
-        // Trigger event
         OnAgentFloorChanged?.Invoke(agent, oldFloor, newFloor);
 
-        // Update collisions
         UpdateCollisionsForMovedAgent(agent, oldFloor, newFloor);
 
         //Debug.Log($"Moved agent {agent.name} from floor {oldFloor} to floor {newFloor}");
     }
 
-    // Update collisions khi agent chuyển floor
     private void UpdateCollisionsForMovedAgent(FloorAgent agent, int oldFloor, int newFloor)
     {
         Collider2D agentCollider = agent.GetComponent<Collider2D>();
         if (agentCollider == null) return;
 
-        // Disable collision với agents ở floor cũ
         if (agentsByFloor.ContainsKey(oldFloor))
         {
             foreach (var otherAgent in agentsByFloor[oldFloor])
@@ -123,7 +110,6 @@ public class FloorManager : MonoBehaviour
             }
         }
 
-        // Enable collision với agents ở floor mới
         if (agentsByFloor.ContainsKey(newFloor))
         {
             foreach (var otherAgent in agentsByFloor[newFloor])
@@ -139,21 +125,17 @@ public class FloorManager : MonoBehaviour
             }
         }
 
-        // Update environment collisions
         FloorCollisionManager.Instance.UpdateCollisionsForAgent(agent);
     }
 
-    // Update collision cho tất cả agents
     private void UpdateAllAgentCollisions()
     {
-        // Disable collision giữa agents ở floors khác nhau
         foreach (var floor1 in agentsByFloor)
         {
             foreach (var floor2 in agentsByFloor)
             {
                 if (floor1.Key != floor2.Key)
                 {
-                    // Disable collision giữa 2 floors khác nhau
                     foreach (var agent1 in floor1.Value)
                     {
                         foreach (var agent2 in floor2.Value)
@@ -173,7 +155,6 @@ public class FloorManager : MonoBehaviour
                 }
                 else
                 {
-                    // Enable collision trong cùng floor
                     foreach (var agent1 in floor1.Value)
                     {
                         foreach (var agent2 in floor1.Value)
@@ -195,7 +176,6 @@ public class FloorManager : MonoBehaviour
         }
     }
 
-    // Get LayerMask cho floor
     public LayerMask GetLayerMaskForFloor(int floorIndex)
     {
         if (floorIndex >= 0 && floorIndex < floors.Count)
@@ -204,7 +184,6 @@ public class FloorManager : MonoBehaviour
         return 0;
     }
 
-    // Get floor definition
     public FloorDefinition GetFloorDefinition(int floorIndex)
     {
         if (floorIndex >= 0 && floorIndex < floors.Count)
@@ -213,7 +192,6 @@ public class FloorManager : MonoBehaviour
         return null;
     }
 
-    // Utility methods
     public string GetFloorName(int index)
     {
         var floor = GetFloorDefinition(index);
@@ -230,7 +208,6 @@ public class FloorManager : MonoBehaviour
         return new List<FloorAgent>();
     }
 
-    // Cleanup null references
     private void Update()
     {
         if (Time.frameCount % 300 == 0) // Every 5 seconds at 60fps
