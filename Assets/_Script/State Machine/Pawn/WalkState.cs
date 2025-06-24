@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Windows;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class WalkState : IState
 {
@@ -21,56 +23,37 @@ public class WalkState : IState
 
     public void Update()
     {
-        if (pawn.MovementInput.sqrMagnitude < 0.1f)
+        if (!pawn.characterMovement.moving && pawn.MovementInput == Vector2.zero)
         {
             pawn.StateMachine.ChangeState(new IdleState(pawn));
         }
-        if (Input.GetMouseButtonDown(0))
-        {
-            pawn.StateMachine.ChangeState(new ChopState(pawn));
-        }
+        /*        if (Input.GetMouseButtonDown(0))
+                {
+                    pawn.StateMachine.ChangeState(new ChopState(pawn));
+                }*/
     }
-
-    /*public void FixedUpdate()
-    {
-        pawn.rb.velocity = pawn.MovementInput * pawn.moveSpeed;
-
-        Vector3 velocity = pawn.rb.velocity;
-
-        if (velocity.sqrMagnitude > 0.01f)
-        {
-            if (velocity.x < 0f)
-            {
-                Vector3 scale = pawn.transform.localScale;
-                scale.x = -Mathf.Abs(scale.x);  
-                pawn.transform.localScale = scale;
-            }
-            else if (velocity.x > 0f)
-            {
-                Vector3 scale = pawn.transform.localScale;
-                scale.x = Mathf.Abs(scale.x);   
-                pawn.transform.localScale = scale;
-            }
-        }
-    }*/
 
     public void FixedUpdate()
     {
+        Move();
+        HandleDirection();
+    }
+
+    public void Move()
+    {
         Vector2 input = pawn.MovementInput;
+
         if (input.sqrMagnitude < 0.01f)
         {
             pawn.rb.velocity = Vector2.zero;
             return;
         }
 
-        // Kiểm tra có vật cản phía trước không bằng AgentPhysics2D
         Vector2 currentPosition = pawn.rb.position;
         Vector2 direction = input.normalized;
         float moveDistance = pawn.moveSpeed * Time.fixedDeltaTime;
 
-
-        // Raycast kiểm tra trước khi di chuyển
-        bool isBlocked = pawn.agentPhysics2D.IsBlock(currentPosition, direction,pawn.moveSpeed, moveDistance + 0.05f, pawn.collider2D);
+        bool isBlocked = pawn.agentPhysics2D.IsBlock(currentPosition, direction, pawn.moveSpeed, moveDistance + 0.05f, pawn.collider2D);
 
         if (!isBlocked)
         {
@@ -81,23 +64,28 @@ public class WalkState : IState
         {
             pawn.rb.velocity = Vector2.zero;
         }
-
-        // Flip hướng dựa theo input.x
-        if (input.x < -0.1f)
-        {
-            Vector3 scale = pawn.transform.localScale;
-            scale.x = -Mathf.Abs(scale.x);
-            pawn.transform.localScale = scale;
-        }
-        else if (input.x > 0.1f)
-        {
-            Vector3 scale = pawn.transform.localScale;
-            scale.x = Mathf.Abs(scale.x);
-            pawn.transform.localScale = scale;
-        }
     }
 
-    
+    public void HandleDirection()
+    {
+        pawn.rb.velocity = pawn.MovementInput * pawn.moveSpeed;
 
+        Vector3 velocity = pawn.rb.velocity;
 
+        if (velocity.sqrMagnitude > 0.01f)
+        {
+            if (velocity.x < 0f)
+            {
+                Vector3 scale = pawn.transform.localScale;
+                scale.x = -Mathf.Abs(scale.x);
+                pawn.transform.localScale = scale;
+            }
+            else if (velocity.x > 0f)
+            {
+                Vector3 scale = pawn.transform.localScale;
+                scale.x = Mathf.Abs(scale.x);
+                pawn.transform.localScale = scale;
+            }
+        }
+    }
 }

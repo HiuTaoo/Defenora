@@ -4,13 +4,20 @@ using UnityEngine.Tilemaps;
 
 public class GraphNode : MonoBehaviour
 {
-    [SerializeField] private LayerData[] layerDatas;
+    public static GraphNode Instance;
+
+    [SerializeField] public LayerData[] layerDatas;
     public Dictionary<int, PathfindingGraph> layerGraphs = new Dictionary<int, PathfindingGraph>();
 
     private bool isGraphBuilt = false;
 
     private void Awake()
     {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+
         BuildAllLayerGraphs();
         //PrintNodeInfo(new Vector3Int(-19, -8, 0), 2);
     }
@@ -86,7 +93,7 @@ public class GraphNode : MonoBehaviour
                                           layerData.stairTilemap.HasTile(position),
                             };
 
-                            Debug.Log($"Node tại {position}, tầng {layerData.layerIndex}, isStair: {node.isStair}");
+                            //Debug.Log($"Node tại {position}, tầng {layerData.layerIndex}, isStair: {node.isStair}");
                             graph.nodes[position] = node;
                         }
                     }
@@ -94,7 +101,7 @@ public class GraphNode : MonoBehaviour
             }
         }
 
-        Debug.Log($"Tầng {layerData.layerIndex} có tổng {graph.nodes.Count} nodes");
+        //Debug.Log($"Tầng {layerData.layerIndex} có tổng {graph.nodes.Count} nodes");
     }
 
     private void CreateStairConnection(LayerData layerData)
@@ -266,7 +273,7 @@ public class GraphNode : MonoBehaviour
             return;
         }
 
-        Pathfinding.Instance.HoverPath(position);
+        PathfindingAlgorithm.Instance.HoverPath(position);
 
         Debug.Log($"--- THÔNG TIN NODE ---");
         Debug.Log($"Vị trí: {node.position}");
