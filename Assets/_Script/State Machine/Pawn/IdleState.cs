@@ -21,15 +21,21 @@ public class IdleState : IState
 
     public void Update()
     {
-        if (pawn.MovementInput.sqrMagnitude > 0.1f)
+        if (pawn.characterMovement.moving)
         {
             pawn.StateMachine.ChangeState(new WalkState(pawn));
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if(pawn.MovementInput != Vector2.zero)
+        {
+            pawn.StateMachine.ChangeState(new WalkState(pawn));
+        }
+
+
+        /*if (Input.GetMouseButtonDown(0))
         {
             pawn.StateMachine.ChangeState(new ChopState(pawn));
-        }
+        }*/
     }
 
     public void FixedUpdate() { }

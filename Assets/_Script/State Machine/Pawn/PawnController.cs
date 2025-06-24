@@ -10,6 +10,7 @@ public class PawnController : MonoBehaviour
     public Animator animator;
     public AgentPhysics2D agentPhysics2D;
     public CircleCollider2D collider2D;
+    public CharacterMovement characterMovement;
 
     public Vector2 MovementInput { get; private set; }
 
@@ -20,6 +21,9 @@ public class PawnController : MonoBehaviour
         StateMachine = new StateMachine();
         agentPhysics2D = GetComponentInChildren<AgentPhysics2D>();
         collider2D = GetComponent<CircleCollider2D>();
+        rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        characterMovement = GetComponentInChildren<CharacterMovement>();
     }
 
     private void Start()

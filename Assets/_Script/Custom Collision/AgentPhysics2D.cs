@@ -10,11 +10,13 @@ public class AgentPhysics2D : MonoBehaviour
 {
     private FloorAgent floorAgent;
     private StairCollision stairDetector;
+    private  CharacterMovement characterMovement;
 
     private void Awake()
     {
         floorAgent = GetComponent<FloorAgent>();
         stairDetector = GetComponent<StairCollision>();
+        characterMovement = GetComponent<CharacterMovement>();
 
         if (stairDetector != null)
         {
@@ -135,13 +137,12 @@ public class AgentPhysics2D : MonoBehaviour
 
     private void HandleEnterStair()
     {
-        Debug.Log("On Stair!");
-        transform.GetComponent<SpriteRenderer>().sortingOrder = 305;
-        //floorAgent.NextFloor();
+        transform.GetComponentInParent<SpriteRenderer>().sortingOrder = 305;
     }
 
     private void HandleExitStair()
     {
+        characterMovement.UpdateLayerIndex();
         floorAgent.UpdateVisualElements();
         Debug.Log(floorAgent.currentFloorIndex);
     }

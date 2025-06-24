@@ -15,7 +15,7 @@ public class StairCollision : MonoBehaviour
 
     private void Awake()
     {
-        circleCollider = GetComponent<CircleCollider2D>();
+        circleCollider = GetComponentInParent<CircleCollider2D>();
     }
 
     private void Update()

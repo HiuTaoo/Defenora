@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
 public class FloorAgent : MonoBehaviour
 {
     public int _currentFloorIndex
@@ -41,7 +40,7 @@ public class FloorAgent : MonoBehaviour
 
     private void Awake()
     {
-        _collider = GetComponent<Collider2D>();
+        _collider = GetComponentInParent<Collider2D>();
         _currentFloorIndex = 0;
     }
 
@@ -99,7 +98,7 @@ public class FloorAgent : MonoBehaviour
         if (floorDef != null)
         {
             // Update sorting order
-            var renderer = GetComponent<SpriteRenderer>();
+            var renderer = GetComponentInParent<SpriteRenderer>();
             if (renderer != null)
             {
                 renderer.sortingOrder = floorDef.sortingOrder;
