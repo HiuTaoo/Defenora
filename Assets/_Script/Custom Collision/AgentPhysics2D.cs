@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-[RequireComponent(typeof(FloorAgent))]
-[RequireComponent(typeof(StairCollision))]
+[RequireComponent (typeof(FloorAgent))]
+[RequireComponent (typeof(StairCollision))]
+[RequireComponent (typeof(CharacterMovement))]
 public class AgentPhysics2D : MonoBehaviour
 {
     private FloorAgent floorAgent;

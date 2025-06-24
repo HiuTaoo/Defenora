@@ -9,7 +9,6 @@ public class Node
     public bool isWalkable;
     public bool isStair ;
     public Node stairTargetNode;
-    public StairDirection stairDirection;
     public List<Node> neighbors = new List<Node>();
 
     // Cho A* algorithm
@@ -19,10 +18,6 @@ public class Node
     public Node parent;
 
 
-}
-public enum StairDirection{
-    Up,
-    Down
 }
 
 

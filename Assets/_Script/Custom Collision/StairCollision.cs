@@ -24,12 +24,10 @@ public class StairCollision : MonoBehaviour
 
         if (!wasOnStair && currentlyOnStair)
         {
-            // Enter stair
             OnEnterStair?.Invoke();
         }
         else if (wasOnStair && !currentlyOnStair)
         {
-            // Exit stair
             OnExitStair?.Invoke();
         }
 

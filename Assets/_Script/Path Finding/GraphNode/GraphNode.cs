@@ -142,8 +142,6 @@ public class GraphNode : MonoBehaviour
                     currentNode.stairTargetNode = targetNode;
                     targetNode.stairTargetNode = currentNode;
                     targetNode.isStair = true;
-                    currentNode.stairDirection = StairDirection.Up;
-                    targetNode.stairDirection = StairDirection.Down;
                     stairConnectionCount++;
 
                     //Debug.Log($"[StairLink] Đã tạo kết nối: {position} tầng {currentLayerIndex} <--> tầng {targetLayerIndex}");
@@ -160,7 +158,6 @@ public class GraphNode : MonoBehaviour
                         isWalkable = true,
                         isStair = true,
                         stairTargetNode = currentNode,
-                        stairDirection = StairDirection.Down,
                     };
 
                     LinkNeighBor(layerData, graph);
@@ -168,7 +165,6 @@ public class GraphNode : MonoBehaviour
 
                     targetGraph.nodes[position] = node;
                     currentNode.stairTargetNode = node;
-                    currentNode.stairDirection = StairDirection.Up;
                     stairConnectionCount++;
 
                     //Debug.Log($"[StairLink] Đã tạo kết nối: {position} tầng {currentLayerIndex} <--> tầng {targetLayerIndex}");
@@ -281,8 +277,6 @@ public class GraphNode : MonoBehaviour
         Debug.Log($"Walkable: {node.isWalkable}");
         Debug.Log($"Stair: {node.isStair}");
         Debug.Log($"StairTargetNode: {(node.stairTargetNode != null ? node.stairTargetNode.position + ": " + node.stairTargetNode.layerIndex : "null")}");
-        Debug.Log($"Stair Direction: {node.stairDirection}");
-
         Debug.Log($"Neighbors ({node.neighbors.Count}):");
         foreach (var neighbor in node.neighbors)
         {
