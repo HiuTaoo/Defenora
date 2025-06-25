@@ -53,7 +53,7 @@ public class WalkState : IState
         Vector2 direction = input.normalized;
         float moveDistance = pawn.moveSpeed * Time.fixedDeltaTime;
 
-        bool isBlocked = pawn.agentPhysics2D.IsBlock(currentPosition, direction, pawn.moveSpeed, moveDistance + 0.05f, pawn.collider2D);
+        bool isBlocked = pawn.agentPhysics2D.IsBlock(currentPosition, direction, moveDistance + 0.05f, pawn.collider2D);
 
         if (!isBlocked)
         {
@@ -68,7 +68,7 @@ public class WalkState : IState
 
     public void HandleDirection()
     {
-        pawn.rb.velocity = pawn.MovementInput * pawn.moveSpeed;
+        //pawn.rb.velocity = pawn.MovementInput * pawn.moveSpeed;
 
         Vector3 velocity = pawn.rb.velocity;
 
