@@ -70,7 +70,7 @@ public class AgentPhysics2D : MonoBehaviour
         return hit.collider != null;
     }
 
-    public bool IsBlock(Vector2 origin, Vector2 direction, float speed, float distance, CircleCollider2D collider)
+    public bool IsBlock(Vector2 origin, Vector2 direction, float distance, CircleCollider2D collider)
     {
         if (collider == null)
             return false;
