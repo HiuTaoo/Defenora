@@ -7,7 +7,7 @@ public class UnitManager : MonoBehaviour
 {
     [Header("Unit Management")]
     public List<Unit> allUnits = new List<Unit>();
-    public List<Station> stations = new List<Station>();
+    public List<Building> stations = new List<Building>();
 
     [Header("Unit Prefabs")]
     public GameObject archerPrefab;
@@ -54,7 +54,7 @@ public class UnitManager : MonoBehaviour
     public void RefreshStationList()
     {
         stations.Clear();
-        Station[] foundStations = FindObjectsOfType<Station>();
+        Building[] foundStations = FindObjectsOfType<Building>();
         stations.AddRange(foundStations);
     }
 
@@ -74,7 +74,7 @@ public class UnitManager : MonoBehaviour
         allUnits.Remove(unit);
 
         // Loại bỏ unit khỏi tất cả stations
-        foreach (Station station in stations)
+        foreach (Building station in stations)
         {
             station.RemoveUnit(unit);
         }
@@ -116,13 +116,13 @@ public class UnitManager : MonoBehaviour
     }
 
     // Điều động unit đến station
-    public bool DeployUnitToStation(Unit unit, Station station)
+    public bool DeployUnitToStation(Unit unit, Building station)
     {
         if (unit == null || station == null)
             return false;
 
         // Loại bỏ unit khỏi station hiện tại (nếu có)
-        foreach (Station currentStation in stations)
+        foreach (Building currentStation in stations)
         {
             currentStation.RemoveUnit(unit);
         }
@@ -136,7 +136,7 @@ public class UnitManager : MonoBehaviour
         if (unit == null)
             return false;
 
-        foreach (Station station in stations)
+        foreach (Building station in stations)
         {
             if (station.RemoveUnit(unit))
             {
@@ -161,12 +161,12 @@ public class UnitManager : MonoBehaviour
     }
 
     // Lấy station gần nhất
-    public Station GetNearestStation(Vector3 position)
+    public Building GetNearestStation(Vector3 position)
     {
-        Station nearest = null;
+        Building nearest = null;
         float minDistance = float.MaxValue;
 
-        foreach (Station station in stations)
+        foreach (Building station in stations)
         {
             float distance = Vector3.Distance(position, station.transform.position);
             if (distance < minDistance)

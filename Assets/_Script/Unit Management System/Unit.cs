@@ -24,6 +24,7 @@ public abstract class Unit : MonoBehaviour
     protected Rigidbody2D rb;
     protected Animator animator;
     protected SpriteRenderer spriteRenderer;
+    protected CharacterMovement characterMovement;
 
     // Events
     public System.Action<Unit> OnUnitDestroyed;
@@ -34,6 +35,7 @@ public abstract class Unit : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        characterMovement = GetComponentInChildren<CharacterMovement>();
 
         if (rb == null)
             rb = gameObject.AddComponent<Rigidbody2D>();
@@ -56,11 +58,13 @@ public abstract class Unit : MonoBehaviour
     }
 
     // Di chuyển đến một Transform cụ thể
-    public virtual void MoveTo(Transform target)
+    public virtual void MoveTo(Vector3Int position, int layer)
     {
-        targetDestination = target;
         currentState = UnitState.Moving;
+
+        characterMovement.MoveToPosition(position, layer);
     }
+
 
     // Dừng di chuyển
     public virtual void StopMovement()
@@ -103,8 +107,8 @@ public abstract class Unit : MonoBehaviour
     {
         if (animator == null) return;
 
-        animator.SetFloat("Speed", rb.velocity.magnitude);
-        animator.SetBool("IsMoving", currentState == UnitState.Moving);
+        /*animator.SetFloat("Speed", rb.velocity.magnitude);
+        animator.SetBool("IsMoving", currentState == UnitState.Moving);*/
 
         // Flip sprite theo hướng di chuyển
         if (rb.velocity.x != 0)
@@ -155,4 +159,7 @@ public abstract class Unit : MonoBehaviour
             position = transform.position
         };
     }
+
+    
+
 }

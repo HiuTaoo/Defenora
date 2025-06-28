@@ -8,11 +8,15 @@ using UnityEngine.Tilemaps;
 public class CharacterMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 3.5f;
-    [SerializeField] private Tilemap tilemap;
 
+    private Tilemap tilemap;
     private FloorAgent floorAgent;
+    private AgentPhysics2D agentPhysics2D;
     private Rigidbody2D rb;
+    private CircleCollider2D circleCollider2D;
     private Camera cam;
+    private PathFinding currentPath = null;
+       
     public bool moving { get; private set; } = false;
     public Vector2 direction { get; private set; } = Vector2.zero;
     public int currentLayer = 0;
@@ -21,7 +25,10 @@ public class CharacterMovement : MonoBehaviour
     {
         rb = GetComponentInParent<Rigidbody2D>();
         floorAgent = GetComponent<FloorAgent>();
-        cam = Camera.main;
+        agentPhysics2D = GetComponent<AgentPhysics2D>();
+        circleCollider2D = GetComponentInParent<CircleCollider2D>();
+        tilemap = GameObject.Find("Tilemap Null").GetComponent<Tilemap>();
+        cam = GameObject.Find("Main Camera").GetComponent<Camera>();
     }
 
     private void Update()
@@ -34,9 +41,13 @@ public class CharacterMovement : MonoBehaviour
 
     public void MoveByMouse()
     {
+        if (!cam.gameObject.activeInHierarchy)
+            return;
+
         Vector3 mouseWorldPos = cam.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos.z = 0;
         Vector3Int targetPosition = Vector3Int.FloorToInt(mouseWorldPos);
+        targetPosition.z = 0;
 
         if (GraphNode.Instance == null)
         {
@@ -77,17 +88,18 @@ public class CharacterMovement : MonoBehaviour
     }
     public void MoveToPosition(Vector3Int position, int layer)
     {
-
         Vector3 worldPosition = transform.position;
         Vector3Int gridPosition = Vector3Int.FloorToInt(worldPosition);
+        gridPosition.z = 0;
 
-        PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(gridPosition, floorAgent.currentFloorIndex, position, layer);
-        
-        path.PrintPath();
+        currentPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(gridPosition, floorAgent.currentFloorIndex, position, layer);
+
+        //currentPath.PrintPath();
 
         StopAllCoroutines();
-        StartCoroutine(FollowPathCoroutine(path));
+        StartCoroutine(FollowPathCoroutine(currentPath));
     }
+
 
     private IEnumerator FollowPathCoroutine(PathFinding path)
     {
@@ -98,6 +110,7 @@ public class CharacterMovement : MonoBehaviour
             foreach (var tilePos in segment.positions)
             {
                 Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
+                targetCenter.z = transform.parent.position.z;
 
                 Vector3 currentPosition = transform.parent.position;
 
@@ -120,9 +133,18 @@ public class CharacterMovement : MonoBehaviour
 
                 while ((transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
                 {
+                    if (agentPhysics2D.IsBuilding(transform.parent.position, direction, 0.01f, moveSpeed, circleCollider2D))
+                    {
+                        Debug.Log("Va chạm công trình! Dừng di chuyển.");
+                        PathfindingAlgorithm.Instance.ClearPath();
+                        moving = false;
+                        yield break;
+                        
+                    }
                     Vector2 nextPosition = Vector2.MoveTowards(rb.position, targetCenter, moveSpeed * Time.fixedDeltaTime);
                     rb.MovePosition(nextPosition);
                     yield return null;
+
                 }
 
                 currentLayer = segment.layerIndex;

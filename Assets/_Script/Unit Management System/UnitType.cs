@@ -4,16 +4,26 @@ using UnityEngine;
 
 public enum UnitType
 {
-    Archer,    // Cung thủ
-    Priest,    // Tu sĩ
-    Warrior,   // Chiến binh
-    Builder    // Thợ xây
+    Archer,    
+    Priest,    
+    Warrior,   
+    Builder, 
+    Lancer,
+    Monk
 }
 
 public enum UnitState
 {
-    Idle,      // Rảnh rỗi
-    Moving,    // Đang di chuyển
-    Stationed, // Được đặt tại một vị trí
-    Working    // Đang làm việc
+    Idle,      
+    Moving,    
+    Stationed, 
+    Working    
+}
+
+
+public enum StationType
+{
+    Watchtower, 
+    Fortress,    
+    Mine      
 }

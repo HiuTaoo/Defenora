@@ -18,7 +18,7 @@ public class TilemapHover : MonoBehaviour
     [SerializeField]
     private Tilemap[] tilemaps;
 
-    private Camera camera;
+    private Camera mainCamera;
 
     private Vector3Int lastCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
     Vector3 mouseWorldPos;
@@ -33,7 +33,7 @@ public class TilemapHover : MonoBehaviour
         }
         else
             Destroy(gameObject);
-        camera = Camera.main;
+        mainCamera = Camera.main;
     }
 
     private void Update()
@@ -46,7 +46,7 @@ public class TilemapHover : MonoBehaviour
         if (MenuTilesController.Instance.targetTilemap == null || MenuTilesController.Instance.selectedTile == null)
             return;
 
-        mouseWorldPos = camera.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         cellPosition = emptyTilemap.WorldToCell(mouseWorldPos);
 
         PlaceTile(cellPosition);
@@ -56,7 +56,7 @@ public class TilemapHover : MonoBehaviour
 
     public void PlaceTile(Vector3Int cellPosition)
     {
-        mouseWorldPos = camera.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         TileBase currentTile = MenuTilesController.Instance.targetTilemap.GetTile(cellPosition);
 
         if (!MenuTilesController.Instance.CanPlaceOnThisLayer(cellPosition) ||
