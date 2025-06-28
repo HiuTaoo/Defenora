@@ -92,7 +92,37 @@ public class AgentPhysics2D : MonoBehaviour
     }
 
 
-    public bool OverlapAll(Vector2 origin, Vector2 direction, float distance, CircleCollider2D collider, LayerMask layerMask)
+public bool IsBuilding(Vector2 origin, Vector2 direction, float distance,float moveSpeed, CircleCollider2D collider)
+{
+    if (collider == null)
+        return false;
+
+    // Tính bán kính thực tế sau khi scale
+    float radius = collider.radius * Mathf.Max(
+        collider.transform.lossyScale.x,
+        collider.transform.lossyScale.y
+    );
+
+    Vector2 nextPosition = origin + direction * moveSpeed * Time.deltaTime;
+
+    // Xác định hướng di chuyển chuẩn hoá
+    Vector2 normalizedDirection = direction.normalized;
+
+    // Thực hiện CircleCast từ vị trí hiện tại, mô phỏng di chuyển
+    RaycastHit2D hit = Physics2D.CircleCast(
+        nextPosition,
+        radius,
+        normalizedDirection,
+        distance,
+        LayerMask.GetMask("Building")
+    );
+
+    return hit.collider != null;
+}
+
+
+
+public bool OverlapAll(Vector2 origin, Vector2 direction, float distance, CircleCollider2D collider, LayerMask layerMask)
     {
         if (collider == null) return false;
 
@@ -145,7 +175,7 @@ public class AgentPhysics2D : MonoBehaviour
     {
         characterMovement.UpdateLayerIndex();
         floorAgent.UpdateVisualElements();
-        Debug.Log(floorAgent.currentFloorIndex);
+        //Debug.Log(floorAgent.currentFloorIndex);
     }
 
 }

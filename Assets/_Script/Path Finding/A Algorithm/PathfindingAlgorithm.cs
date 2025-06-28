@@ -41,6 +41,7 @@ public class PathfindingAlgorithm : MonoBehaviour
 
         if (startNode == null || targetNode == null)
         {
+            Debug.Log($"Đi từ node: {startNode} đến node: {targetNode}");
             Debug.LogWarning("Không thể tìm thấy start hoặc target node!");
             return result;
         }

@@ -19,9 +19,6 @@ public class MenuTilesController : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private Camera sceneCamera;
 
-    [Header("Tile Rules")]
-    public List<TilePlacementRule> tileRules;
-
     [Header("Variable")]
     public Tilemap targetTilemap;
     public TileBase selectedTile;
@@ -84,14 +81,9 @@ public class MenuTilesController : MonoBehaviour
         else if (Input.GetMouseButtonUp(0))
         {
             isDragging = false;
-            foreach (var cell in positionSet)
-            {
-                PlaceLinkTile(cell);
-            }
             positionSet.Clear();
         }
     }
-
     private void TryPlaceTile(Vector3Int cellPosition)
     {
         if (selectedTile == null || cellPosition == lastPlacedCell)
@@ -111,15 +103,6 @@ public class MenuTilesController : MonoBehaviour
     {
         targetTilemap.SetTile(cellPosition, selectedTile);
         lastPlacedCell = cellPosition;
-    }
-
-    public void PlaceLinkTile(Vector3Int cellPosition)
-    {
-        var link = TileLinkManager.Instance.GetLink(selectedTile, targetTilemap);
-        if (link != null && link.linkedTile != null && link.linkedTilemap != null)
-        {
-            link.linkedTilemap.SetTile(cellPosition, link.linkedTile);
-        }
     }
 
     private void EraseTile(Vector3Int cellPosition)
@@ -147,13 +130,6 @@ public class MenuTilesController : MonoBehaviour
 
         lastErasedCell = cellPosition;
 
-        // Xóa tile liên kết nếu có
-        TileBase tile = targetTilemap.GetTile(cellPosition);
-        var link = TileLinkManager.Instance.GetLink(tile, targetTilemap);
-        if (link != null && link.linkedTilemap != null)
-        {
-            link.linkedTilemap.SetTile(cellPosition, null);
-        }
     }
 
     public void ToggleDeleteTileMode()
@@ -180,32 +156,15 @@ public class MenuTilesController : MonoBehaviour
         if (selectedTile == null || targetTilemap == null)
             return false;
 
-        var rule = GetRuleForTile(selectedTile);
-        if (rule == null || rule.requiredBaseTilemapNames.Count == 0)
-            return true;
-
         foreach (var layer in tileLayers)
         {
-            if (rule.requiredBaseTilemapNames.Contains(layer.tilemap.name))
+            if (layer.tilemap.GetTile(cellPos) != null)
             {
-                if (layer.tilemap.GetTile(cellPos) != null)
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
         return false;
-    }
-
-    private TilePlacementRule GetRuleForTile(TileBase tile)
-    {
-        foreach (var rule in tileRules)
-        {
-            if (rule.tile == tile)
-                return rule;
-        }
-        return null;
     }
 
     public void UpdateTilemapLayer()

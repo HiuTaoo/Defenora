@@ -15,11 +15,11 @@ public class PathFinding
             return;
         }
 
-        Debug.Log("=== ĐƯỜNG ĐI ĐA TẦNG ===");
+        //Debug.Log("=== ĐƯỜNG ĐI ĐA TẦNG ===");
         for (int i = 0; i < segments.Count; i++)
         {
             PathSegment segment = segments[i];
-            Debug.Log($"Tầng {segment.layerIndex}: {segment.description}");
+            //Debug.Log($"Tầng {segment.layerIndex}: {segment.description}");
 
             string pathString = "";
             for (int j = 0; j < segment.positions.Count; j++)
