@@ -44,7 +44,8 @@ public class BuilderController : MonoBehaviour
 
     private void HandleInput()
     {
-        MovementInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+        //MovementInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+        MovementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
     }
 
     #region CHOP STATE
