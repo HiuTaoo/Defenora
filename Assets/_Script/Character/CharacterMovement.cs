@@ -7,7 +7,7 @@ using UnityEngine.Tilemaps;
 
 public class CharacterMovement : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 3.5f;
+    [SerializeField] public float moveSpeed = 3.5f;
 
     private Tilemap tilemap;
     private FloorAgent floorAgent;
@@ -33,7 +33,7 @@ public class CharacterMovement : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             MoveByMouse();
         }

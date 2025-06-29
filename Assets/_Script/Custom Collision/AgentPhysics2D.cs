@@ -4,14 +4,15 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-[RequireComponent (typeof(FloorAgent))]
-[RequireComponent (typeof(StairCollision))]
-[RequireComponent (typeof(CharacterMovement))]
+[RequireComponent(typeof(FloorAgent))]
+[RequireComponent(typeof(StairCollision))]
+[RequireComponent(typeof(CharacterMovement))]
 public class AgentPhysics2D : MonoBehaviour
 {
     private FloorAgent floorAgent;
     private StairCollision stairDetector;
-    private  CharacterMovement characterMovement;
+    private CharacterMovement characterMovement;
+    private Vector2 intoStairDirection = Vector2.zero;
 
     private void Awake()
     {
@@ -75,8 +76,11 @@ public class AgentPhysics2D : MonoBehaviour
         if (collider == null)
             return false;
 
-        if (OverlapAll(origin, direction, distance, collider, LayerMask.GetMask("Stair")))
+        if (OverlapAllSixPoint(origin, direction, distance, collider, LayerMask.GetMask("Stair")))
             return false;
+
+        if (OverlapSideMismatchCheck(origin, direction, distance, collider, LayerMask.GetMask("Stair")))
+            return true;
 
         float radius = collider.radius * Mathf.Max(collider.transform.lossyScale.x, collider.transform.lossyScale.y);
         direction = direction.normalized;
@@ -85,44 +89,85 @@ public class AgentPhysics2D : MonoBehaviour
 
         if (hit.collider != null)
         {
-            return floorAgent.CanCollideWith(hit.collider); 
+            return floorAgent.CanCollideWith(hit.collider);
         }
 
         return false;
     }
 
 
-public bool IsBuilding(Vector2 origin, Vector2 direction, float distance,float moveSpeed, CircleCollider2D collider)
-{
-    if (collider == null)
-        return false;
+    public bool IsBuilding(Vector2 origin, Vector2 direction, float distance, float moveSpeed, CircleCollider2D collider)
+    {
+        if (collider == null)
+            return false;
 
-    // Tính bán kính thực tế sau khi scale
-    float radius = collider.radius * Mathf.Max(
-        collider.transform.lossyScale.x,
-        collider.transform.lossyScale.y
-    );
+        // Tính bán kính thực tế sau khi scale
+        float radius = collider.radius * Mathf.Max(
+            collider.transform.lossyScale.x,
+            collider.transform.lossyScale.y
+        );
 
-    Vector2 nextPosition = origin + direction * moveSpeed * Time.deltaTime;
+        Vector2 nextPosition = origin + direction * moveSpeed * Time.deltaTime;
 
-    // Xác định hướng di chuyển chuẩn hoá
-    Vector2 normalizedDirection = direction.normalized;
+        // Xác định hướng di chuyển chuẩn hoá
+        Vector2 normalizedDirection = direction.normalized;
 
-    // Thực hiện CircleCast từ vị trí hiện tại, mô phỏng di chuyển
-    RaycastHit2D hit = Physics2D.CircleCast(
-        nextPosition,
-        radius,
-        normalizedDirection,
-        distance,
-        LayerMask.GetMask("Building")
-    );
+        // Thực hiện CircleCast từ vị trí hiện tại, mô phỏng di chuyển
+        RaycastHit2D hit = Physics2D.CircleCast(
+            nextPosition,
+            radius,
+            normalizedDirection,
+            distance,
+            LayerMask.GetMask("Building")
+        );
 
-    return hit.collider != null;
-}
+        return hit.collider != null;
+    }
+
+    public bool OverlapSideMismatchCheck(Vector2 origin, Vector2 direction, float distance, CircleCollider2D collider, LayerMask layerMask)
+    {
+        if (collider == null) return false;
+
+        float radiusX = collider.radius * collider.transform.lossyScale.x;
+        float radiusY = collider.radius * collider.transform.lossyScale.y;
+
+        float height = radiusY * 2f;
+        float step = height / 3f;
+
+        int hitLeftCount = 0;
+        int hitRightCount = 0;
+
+        for (int i = 0; i <= 2; i++)
+        {
+            float offsetY = -radiusY + i * step;
+            Vector2 start = origin + new Vector2(-radiusX, offsetY);
+            RaycastHit2D hit = Physics2D.Raycast(start, direction.normalized, distance, layerMask);
+            //Debug.DrawRay(start, direction.normalized * distance, Color.red, 0.1f);
+
+            if (hit.collider != null)
+            {
+                hitLeftCount++;
+            }
+        }
+
+        for (int i = 0; i <= 2; i++)
+        {
+            float offsetY = -radiusY + i * step;
+            Vector2 start = origin + new Vector2(radiusX, offsetY);
+            RaycastHit2D hit = Physics2D.Raycast(start, direction.normalized, distance, layerMask);
+            //Debug.DrawRay(start, direction.normalized * distance, Color.blue, 0.1f);
+
+            if (hit.collider != null)
+            {
+                hitRightCount++;
+            }
+        }
+
+        return (hitLeftCount == 0 && hitRightCount > 0) || (hitRightCount == 0 && hitLeftCount > 0);
+    }
 
 
-
-public bool OverlapAll(Vector2 origin, Vector2 direction, float distance, CircleCollider2D collider, LayerMask layerMask)
+    public bool OverlapAllSixPoint(Vector2 origin, Vector2 direction, float distance, CircleCollider2D collider, LayerMask layerMask)
     {
         if (collider == null) return false;
 
@@ -138,7 +183,7 @@ public bool OverlapAll(Vector2 origin, Vector2 direction, float distance, Circle
         for (int i = 0; i <= 2; i++)
         {
             float offsetY = -radiusY + i * step;
-            Vector2 start = origin  + new Vector2(-radiusX, offsetY);
+            Vector2 start = origin + new Vector2(-radiusX, offsetY);
             RaycastHit2D hit = Physics2D.Raycast(start, direction.normalized, distance, layerMask);
             //Debug.DrawRay(start, direction.normalized * distance, Color.green, 0.1f);
 
@@ -169,13 +214,31 @@ public bool OverlapAll(Vector2 origin, Vector2 direction, float distance, Circle
     private void HandleEnterStair()
     {
         transform.GetComponentInParent<SpriteRenderer>().sortingOrder = 305;
+        Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+        if (movementInput.y > 0.1f)
+            intoStairDirection = Vector2.up;
+        if (movementInput.y < -0.1f)
+            intoStairDirection = Vector2.down;
     }
 
     private void HandleExitStair()
     {
         characterMovement.UpdateLayerIndex();
         floorAgent.UpdateVisualElements();
-        //Debug.Log(floorAgent.currentFloorIndex);
+
+        Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+
+        if (movementInput.y > 0.1f && intoStairDirection == Vector2.up)
+        {
+            floorAgent.MoveToFloor(floorAgent.currentFloorIndex + 1);
+
+        }
+        else if (movementInput.y < -0.1f && intoStairDirection == Vector2.down)
+        {
+            floorAgent.MoveToFloor(floorAgent.currentFloorIndex - 1);
+        }
+        characterMovement.currentLayer = floorAgent.currentFloorIndex;
+
     }
 
 }
