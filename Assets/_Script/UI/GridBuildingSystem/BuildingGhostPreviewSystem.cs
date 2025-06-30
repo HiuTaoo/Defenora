@@ -8,15 +8,17 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     public float cellSize = 1f;
 
     public LayerMask placementLayerMask;
+    private SpriteRenderer spriteRenderer;
 
     private GameObject currentGhost;
-    private BuildingFootprint currentFootprint;
 
     private bool canPlace = false;
+    private int currentSelectedLayerIndex = 0;
 
     private GridManager gridManager;
-
+    private LayerManager layerManager;
     public MenuItem menuItem;
+    private BuildingFootprint currentFootprint;
 
     private void Awake()
     {
@@ -29,12 +31,11 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     void Start()
     {
         gridManager = FindObjectOfType<GridManager>();
+        layerManager = FindObjectOfType<LayerManager>();
 
-        if (menuItem != null)
-        {
-            // ✅ Đăng ký delegate đúng cách
-            menuItem.OnMenuItemClicked += HandleGhostPreview;
-        }
+        if (layerManager != null)
+            layerManager.OnLayerIndexChange += HandleLayerIndexChange;
+
     }
 
     void Update()
@@ -73,7 +74,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
             Debug.LogWarning("Prefab null!");
             return;
         }
-
         SpawnGhost(buildingPrefab.gameObject);
     }
 
@@ -83,7 +83,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
         currentGhost = Instantiate(ghostPrefabToSpawn);
         currentFootprint = currentGhost.GetComponent<BuildingFootprint>();
-
+        spriteRenderer = currentGhost.GetComponent<SpriteRenderer>();
         if (currentFootprint == null)
             Debug.LogError("Ghost prefab thiếu BuildingFootprint component.");
     }
@@ -99,25 +99,20 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
     private bool ValidateFootprint(Vector2Int anchorCell)
     {
-        var occupiedCells = currentFootprint.GetAbsoluteGridPositions(anchorCell);
-        foreach (var cell in occupiedCells)
-        {
-            if (gridManager.IsCellOccupied(cell))
-                return false;
-        }
-        return true;
+        return gridManager.CanPlaceFootprint(anchorCell, currentFootprint, currentSelectedLayerIndex);
     }
+
 
     private void PlaceBuilding(Vector2Int anchorCell)
     {
         gridManager.PlaceBuilding(anchorCell, currentFootprint);
         Debug.Log("Placed building at: " + anchorCell);
-        CancelGhost();
+        //CancelGhost();
     }
 
     private void UpdateGhostVisual(bool isValid)
     {
-        Color color = isValid ? new Color(0, 1, 0, 0.5f) : new Color(1, 0, 0, 0.5f);
+        Color color = isValid ? new Color(0, 1, 0, 0.75f) : new Color(1, 0, 0, 0.7f);
         foreach (var renderer in currentGhost.GetComponentsInChildren<SpriteRenderer>())
         {
             renderer.color = color;
@@ -154,4 +149,10 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         item.OnMenuItemClicked += HandleGhostPreview;
     }
 
+    public void HandleLayerIndexChange(int layer)
+    {
+        currentSelectedLayerIndex = layer;
+        if(spriteRenderer != null)
+            spriteRenderer.sortingOrder = (100 * layer) + 1;
+    }
 }
