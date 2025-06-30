@@ -20,18 +20,50 @@ public class LayerManager : MonoBehaviour
         else
             Destroy(gameObject);
 
-        originalPositions = new Vector3[ribbons.Length];
-        for (int i = 0; i < ribbons.Length; i++)
-        {
-            originalPositions[i] = ribbons[i].transform.position;
-        }
-        MoveRibbonToLeft(0);
+    }
+    private void Start()
+    {
+        GetOriginalPosition();
     }
 
     private void Update()
     {
         Show(); 
     }
+
+    /*public void GetOriginalPosition()
+    {
+        originalPositions = new Vector3[ribbons.Length];
+        for (int i = 0; i < ribbons.Length; i++)
+        {
+            originalPositions[i] = ribbons[i].transform.position;
+        }
+        MoveRibbonToLeft(0);
+
+    }*/
+
+    public void GetOriginalPosition()
+    {
+        originalPositions = new Vector3[ribbons.Length];
+
+        for (int i = 0; i < ribbons.Length; i++)
+        {
+            RectTransform rect = ribbons[i].GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                // Lấy vị trí LOCAL trong Canvas Space
+                originalPositions[i] = rect.anchoredPosition3D;
+            }
+            else
+            {
+                // Fallback nếu không phải RectTransform (phòng trường hợp)
+                originalPositions[i] = ribbons[i].transform.localPosition;
+            }
+        }
+
+        MoveRibbonToLeft(0);
+    }
+
 
     public void ChangeLayer()
     {
@@ -63,18 +95,50 @@ public class LayerManager : MonoBehaviour
         }
     }
 
+    /*private void MoveRibbonToLeft(int activeIndex)
+    {
+        for (int i = 0; i < ribbons.Length; i++)
+        {
+            Vector3 original = originalPositions[i];
+
+            if (i == activeIndex)
+            {
+                // Chỉ thay đổi trục X, giữ nguyên Y và Z
+                ribbons[i].transform.position = new Vector3(
+                    original.x - 50f, // sang trái
+                    original.y,
+                    original.z
+                );
+            }
+            else
+            {
+                ribbons[i].transform.position = original;
+            }
+        }
+    }*/
     private void MoveRibbonToLeft(int activeIndex)
     {
         for (int i = 0; i < ribbons.Length; i++)
         {
-            if (i == activeIndex)
+            Vector2 original = originalPositions[i];
+            RectTransform rect = ribbons[i].GetComponent<RectTransform>();
+
+            if (rect != null)
             {
-                ribbons[i].transform.position = originalPositions[i] + new Vector3(-50f, 0f, 0f);
-            }
-            else
-            {
-                ribbons[i].transform.position = originalPositions[i];
+                if (i == activeIndex)
+                {
+                    rect.anchoredPosition = new Vector2(
+                        original.x - 50f, 
+                        original.y      
+                    );
+                }
+                else
+                {
+                    rect.anchoredPosition = original;
+                }
             }
         }
     }
+
+
 }
