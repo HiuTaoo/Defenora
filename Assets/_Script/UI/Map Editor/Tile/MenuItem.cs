@@ -1,23 +1,25 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-using UnityEngine.UI;
 
 public class MenuItem : MonoBehaviour
 {
-    private Image img;
+    [Header("Build Prefab")]
+    public Transform buildingPrefab;
 
-    private void Awake()
+    public System.Action<Transform> OnMenuItemClicked;
+
+    void Start()
     {
-        img = transform.Find("Building").GetComponent<Image>();
+        BuildingGhostPreviewSystem.Instance.RegisterMenuItem(this);
     }
+
 
     public void SelectItem()
     {
         DeSelectAllTileItem();
 
-        Transform[] children = GetComponentsInChildren<Transform>(true); 
+        Transform[] children = GetComponentsInChildren<Transform>(true);
 
         foreach (Transform child in children)
         {
@@ -26,14 +28,14 @@ public class MenuItem : MonoBehaviour
                 child.gameObject.SetActive(true);
             }
         }
-        MenuTilesController.Instance.mouseIndicator.GetComponent<Image>().sprite = img.sprite;
 
+        // Gọi event và truyền prefab
+        OnMenuItemClicked?.Invoke(buildingPrefab);
     }
-
 
     public void DeSelectAllTileItem()
     {
-        GameObject[] allObjects = FindObjectsOfType<GameObject>(true); 
+        GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
         foreach (GameObject obj in allObjects)
         {
             if (obj.name == "Selected")
