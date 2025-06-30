@@ -13,9 +13,6 @@ public class MenuTilesController : MonoBehaviour
     [Header("List Tile")]
     [SerializeField] private TileBase[] tiles;
 
-    [Header("mouseIndicator")]
-    public GameObject mouseIndicator;
-
     [Header("Camera")]
     [SerializeField] private Camera sceneCamera;
 

@@ -6,12 +6,14 @@ public class LayerManager : MonoBehaviour
 {
     public static LayerManager Instance;
 
+    [Header("List ribbon")]
+    [SerializeField] private GameObject[] ribbons;
+
     private int layerIndex = 0;
-
-    [SerializeField]
-    private GameObject[] ribbons;
-
     private Vector3[] originalPositions;
+
+    public System.Action<int> OnLayerIndexChange;
+
 
     private void Awake()
     {
@@ -69,6 +71,7 @@ public class LayerManager : MonoBehaviour
     {
         MenuTilesController.Instance.selectedLayerIndex = layerIndex;
         MenuTilesController.Instance.UpdateTilemapLayer();
+        OnLayerIndexChange?.Invoke(layerIndex);
     }
 
     public void Show()

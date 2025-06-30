@@ -188,6 +188,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  - {x: -1, y: 0}
 --- !u!1 &7552566619195896200
 GameObject:
   m_ObjectHideFlags: 0

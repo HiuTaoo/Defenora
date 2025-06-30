@@ -39,7 +39,6 @@ public class CameraController : MonoBehaviour
         if(GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Editor) {
             CameraDragging();
             CameraZoom();
-            MouseIndicator();
         }
         
 
@@ -77,24 +76,5 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    private void MouseIndicator()
-    {
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            MenuTilesController.Instance.mouseIndicator.SetActive(false);
-        }
-        else
-        {
-            if (MenuTilesController.Instance.mouseIndicator.GetComponent<Image>().sprite != null)
-            {
-                MenuTilesController.Instance.mouseIndicator.SetActive(true);
-                Vector3 offsetPosition = Input.mousePosition + new Vector3(0.5f, -0.5f, 0f);
-                MenuTilesController.Instance.mouseIndicator.transform.position = offsetPosition;
-            }
-            else
-            {
-                MenuTilesController.Instance.mouseIndicator.SetActive(false);
-            }
-        }
-    }
+
 }
