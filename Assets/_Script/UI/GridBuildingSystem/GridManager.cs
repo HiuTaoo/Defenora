@@ -7,6 +7,7 @@ using UnityEngine;
 public class GridManager : MonoBehaviour
 {
     public HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
+    public List<Transform> listBuilding = new List<Transform>();
 
     [SerializeField] private float cellSize = 1f;
 
@@ -39,8 +40,10 @@ public class GridManager : MonoBehaviour
             occupiedCells.Add(cell);
         }
 
+        listBuilding.Add(footprint.transform);
         // Spawn building thật (bạn tự tuỳ biến).
-        Instantiate(footprint.gameObject, CellToWorld(anchorCell), Quaternion.identity);
+        GameObject currentbuilding =  Instantiate(footprint.gameObject, CellToWorld(anchorCell), Quaternion.identity);
+        currentbuilding.transform.SetParent(this.gameObject.transform);
     }
 
     private Vector3 CellToWorld(Vector2Int cellPos)

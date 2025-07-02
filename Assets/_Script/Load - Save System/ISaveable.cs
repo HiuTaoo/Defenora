@@ -1,0 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public interface ISaveable
+{
+    void PopulateSaveData(GameSaveData saveData);
+    void LoadFromSaveData(GameSaveData saveData);
+}
+

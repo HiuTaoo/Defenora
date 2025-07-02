@@ -2,18 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-public class UnitManager : MonoBehaviour
+public class UnitManager : MonoBehaviour, ISaveable
 {
     [Header("Unit Management")]
     public List<Unit> allUnits = new List<Unit>();
-    public List<Building> stations = new List<Building>();
+    public List<Building> buildings = new List<Building>();
 
     [Header("Unit Prefabs")]
     public GameObject archerPrefab;
-    public GameObject priestPrefab;
+    public GameObject monkPrefab;
     public GameObject warriorPrefab;
     public GameObject builderPrefab;
+    public GameObject lancerPrefab;
+
+    [Header("Building Prefab")]
+    public GameObject fortressPrefab;
+    public GameObject watchTowerPrefab;
 
     // Singleton pattern
     public static UnitManager Instance { get; private set; }
@@ -33,11 +39,12 @@ public class UnitManager : MonoBehaviour
 
     private void Start()
     {
-        // Tìm tất cả units và stations trong scene
+        // Tìm tất cả units và building trong scene
         RefreshUnitList();
         RefreshStationList();
     }
 
+    #region UNIT MAGAGER
     // Làm mới danh sách units
     public void RefreshUnitList()
     {
@@ -50,12 +57,12 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    // Làm mới danh sách stations
+    // Làm mới danh sách building
     public void RefreshStationList()
     {
-        stations.Clear();
-        Building[] foundStations = FindObjectsOfType<Building>();
-        stations.AddRange(foundStations);
+        buildings.Clear();
+        Building[] foundbuilding = FindObjectsOfType<Building>();
+        buildings.AddRange(foundbuilding);
     }
 
     // Đăng ký unit mới
@@ -68,13 +75,22 @@ public class UnitManager : MonoBehaviour
         }
     }
 
+    public void RegisterBuilding(Building building)
+    {
+        if (!buildings.Contains(building))
+        {
+            buildings.Add(building);
+
+        }
+    }
+
     // Xử lý khi unit bị phá hủy
     private void OnUnitDestroyed(Unit unit)
     {
         allUnits.Remove(unit);
 
-        // Loại bỏ unit khỏi tất cả stations
-        foreach (Building station in stations)
+        // Loại bỏ unit khỏi tất cả building
+        foreach (Building station in buildings)
         {
             station.RemoveUnit(unit);
         }
@@ -102,15 +118,47 @@ public class UnitManager : MonoBehaviour
         return unit;
     }
 
+    public Building CreateBuilding(BuildingType buildingType, Vector3 position)
+    {
+        GameObject prefab = GetBuildPrefab(buildingType);
+        if (prefab == null)
+        {
+            Debug.LogError($"Không tìm thấy prefab cho {buildingType}");
+            return null;
+        }
+
+        GameObject unitObj = Instantiate(prefab, position, Quaternion.identity);
+        Building building = unitObj.GetComponent<Building>();
+
+        if (building != null)
+        {
+            RegisterBuilding(building);
+            building.name = $"{buildingType}_{allUnits.Count}";
+        }
+
+        return building;
+    }
+
     // Lấy prefab theo loại unit
     private GameObject GetUnitPrefab(UnitType unitType)
     {
         switch (unitType)
         {
             case UnitType.Archer: return archerPrefab;
-            case UnitType.Priest: return priestPrefab;
+            case UnitType.Monk: return monkPrefab;
             case UnitType.Warrior: return warriorPrefab;
             case UnitType.Builder: return builderPrefab;
+            case UnitType.Lancer: return lancerPrefab;
+            default: return null;
+        }
+    }
+
+    private GameObject GetBuildPrefab(BuildingType buildingType)
+    {
+        switch (buildingType)
+        {
+            case BuildingType.Fortress: return fortressPrefab;
+            case BuildingType.WatchTower: return watchTowerPrefab;
             default: return null;
         }
     }
@@ -122,7 +170,7 @@ public class UnitManager : MonoBehaviour
             return false;
 
         // Loại bỏ unit khỏi station hiện tại (nếu có)
-        foreach (Building currentStation in stations)
+        foreach (Building currentStation in buildings)
         {
             currentStation.RemoveUnit(unit);
         }
@@ -136,7 +184,7 @@ public class UnitManager : MonoBehaviour
         if (unit == null)
             return false;
 
-        foreach (Building station in stations)
+        foreach (Building station in buildings)
         {
             if (station.RemoveUnit(unit))
             {
@@ -166,7 +214,7 @@ public class UnitManager : MonoBehaviour
         Building nearest = null;
         float minDistance = float.MaxValue;
 
-        foreach (Building station in stations)
+        foreach (Building station in buildings)
         {
             float distance = Vector3.Distance(position, station.transform.position);
             if (distance < minDistance)
@@ -212,11 +260,87 @@ public class UnitManager : MonoBehaviour
         {
             totalUnits = allUnits.Count,
             archerCount = GetUnitsByType(UnitType.Archer).Count,
-            priestCount = GetUnitsByType(UnitType.Priest).Count,
+            priestCount = GetUnitsByType(UnitType.Monk).Count,
             warriorCount = GetUnitsByType(UnitType.Warrior).Count,
             builderCount = GetUnitsByType(UnitType.Builder).Count,
             idleUnits = GetIdleUnits().Count,
-            totalStations = stations.Count
+            totalBuildings = buildings.Count
         };
     }
+#endregion
+
+    #region Save Game
+    public void PopulateSaveData(GameSaveData saveData)
+    {
+        var unitData = new UnitSaveData();
+        foreach (var unit in allUnits)
+        {
+            unitData.units.Add(new UnitData
+            {
+                unitName = unit.unitName,
+                unitType = unit.unitType,
+                position = unit.transform.position,
+                assignedBuilding = unit.assignedBuilding?.buildingName,
+                currentState = unit.currentState,
+                health = unit.health,
+                maxHealth = unit.maxHealth,
+            });
+        }
+
+        saveData.unitSaveData = unitData;
+
+        var buildingData = new BuildingSaveData();
+        foreach(var building in buildings)
+        {
+            buildingData.buildings.Add(new BuildingData
+            {
+                buildingName = building.name,
+                currentCapacity = building.currentCapacity,
+                maxCapacity = building.maxCapacity,
+                layerIndex = building.layerIndex,
+                archerPositions = building.listArcherPositions,
+                buildingType = building.buildingType,
+                position = building.transform.position,
+                unitNames = building.stationedUnits
+                    .Where(unit => unit != null)
+                    .Select(unit => unit.unitName)
+                    .ToList()
+            }); ;
+        }
+
+        saveData.buildingSaveData = buildingData;
+    }
+
+    public void LoadFromSaveData(GameSaveData saveData)
+    {
+        #region Load Unit
+        var unitData = saveData.unitSaveData;
+
+        foreach (var unit in allUnits)
+            Destroy(unit.gameObject);
+        allUnits.Clear();
+
+        foreach (var unitDatum in unitData.units)
+        {
+            Unit unit = CreateUnit(unitDatum.unitType, unitDatum.position);
+            unit.unitName = unitDatum.unitName;
+        }
+        #endregion
+
+        #region Load Building
+        var buildingData = saveData.buildingSaveData;
+
+        foreach (var building in buildings)
+            Destroy(building.gameObject);
+        buildings.Clear();
+
+        foreach (var buildingDatum in buildingData.buildings)
+        {
+            Building building = CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
+            building.name = buildingDatum.buildingName;
+            building.UpdateRenderSortingOrder(buildingDatum.layerIndex);
+        }
+        #endregion
+    }
+    #endregion
 }

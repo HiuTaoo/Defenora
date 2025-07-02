@@ -25,6 +25,8 @@ public abstract class Unit : MonoBehaviour
     protected Animator animator;
     protected SpriteRenderer spriteRenderer;
     protected CharacterMovement characterMovement;
+    public Building assignedBuilding;
+
 
     // Events
     public System.Action<Unit> OnUnitDestroyed;
@@ -147,9 +149,9 @@ public abstract class Unit : MonoBehaviour
     public abstract void UseSpecialAbility();
 
     // Lấy thông tin nhân vật
-    public virtual UnitInfo GetUnitInfo()
+    public virtual UnitData GetUnitInfo()
     {
-        return new UnitInfo
+        return new UnitData
         {
             unitName = this.unitName,
             unitType = this.unitType,

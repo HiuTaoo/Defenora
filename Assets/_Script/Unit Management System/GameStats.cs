@@ -11,5 +11,5 @@ public struct GameStats
     public int warriorCount;
     public int builderCount;
     public int idleUnits;
-    public int totalStations;
+    public int totalBuildings;
 }

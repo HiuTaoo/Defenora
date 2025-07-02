@@ -167,7 +167,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 102
+  m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 6725cf5fef510df4d98370556d04bdbb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -229,11 +229,14 @@ MonoBehaviour:
   buildingName: Fortress
   maxCapacity: 5
   range: 5
+  currentCapacity: 0
+  buildingType: 0
   stationedUnits: []
-  unitPositions:
-  - {fileID: 4091299198600183057}
-  - {fileID: 463292457007941665}
-  - {fileID: 8404697974518227058}
+  positionSpots:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  listArcherPositions: []
   layerIndex: 1
   archer: {fileID: 0}
 --- !u!114 &1731817293600673060

@@ -149,6 +149,10 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         item.OnMenuItemClicked += HandleGhostPreview;
     }
 
+    public void SaveChange()
+    {
+    }
+
     public void HandleLayerIndexChange(int layer)
     {
         currentSelectedLayerIndex = layer;
