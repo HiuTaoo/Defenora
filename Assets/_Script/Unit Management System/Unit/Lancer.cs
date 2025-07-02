@@ -1,10 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class Warrior : Unit
+public class Lancer : Unit
 {
-    [Header("Warrior Specific")]
+    [Header("Lancer Specific")]
     public float chargeSpeed = 8f;
     public float chargeDuration = 2f;
     public float chargeCooldown = 10f;
@@ -14,8 +15,8 @@ public class Warrior : Unit
     protected override void Awake()
     {
         base.Awake();
-        unitType = UnitType.Warrior;
-        unitName = "Warrior";
+        unitType = UnitType.Lancer;
+        unitName = "Lancer";
     }
 
     public override void UseSpecialAbility()

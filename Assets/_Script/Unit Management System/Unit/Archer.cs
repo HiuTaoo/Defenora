@@ -14,8 +14,7 @@ public class Archer : Unit
     {
         base.Awake();
         unitType = UnitType.Archer;
-        attackRange = 5f;
-        moveSpeed = 4f;
+        unitName = "Archer";
     }
 
     public override void UseSpecialAbility()

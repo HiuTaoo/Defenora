@@ -4,16 +4,19 @@ using UnityEngine;
 
 public class Watchtower : Building
 {
-
+    private void Awake()
+    {
+        buildingType = BuildingType.WatchTower;
+    }
 
 
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        if (unitPositions == null) return;
+        if (positionSpots == null) return;
 
         Gizmos.color = Color.green;
-        foreach (Transform spot in unitPositions)
+        foreach (Transform spot in positionSpots)
         {
             if (spot != null)
                 Gizmos.DrawSphere(spot.position, 0.1f);

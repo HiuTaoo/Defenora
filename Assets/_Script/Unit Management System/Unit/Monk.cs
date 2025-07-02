@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Priest : Unit
+public class Monk : Unit
 {
     [Header("Priest Specific")]
     public float healAmount = 20f;
@@ -13,9 +13,8 @@ public class Priest : Unit
     protected override void Awake()
     {
         base.Awake();
-        unitType = UnitType.Priest;
-        attackRange = 3f;
-        moveSpeed = 3f;
+        unitType = UnitType.Monk;
+        unitName = "Monk";
     }
 
     public override void UseSpecialAbility()

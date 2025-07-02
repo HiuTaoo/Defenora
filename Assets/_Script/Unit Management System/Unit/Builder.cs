@@ -13,9 +13,7 @@ public class Builder : Unit
     {
         base.Awake();
         unitType = UnitType.Builder;
-        moveSpeed = 3f;
-        health = 80f;
-        maxHealth = 80f;
+        unitName = "Builder";
     }
 
     public override void UseSpecialAbility()
