@@ -4,11 +4,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class UnitManager : MonoBehaviour, ISaveable
+public class UnitManager : MonoBehaviour
 {
     [Header("Unit Management")]
     public List<Unit> allUnits = new List<Unit>();
     public List<Building> buildings = new List<Building>();
+    public Dictionary<string, GameObject> buildingPrefabs;
 
     [Header("Unit Prefabs")]
     public GameObject archerPrefab;
@@ -35,6 +36,12 @@ public class UnitManager : MonoBehaviour, ISaveable
         {
             Destroy(gameObject);
         }
+
+        buildingPrefabs = new Dictionary<string, GameObject> {
+        { "Fortress", fortressPrefab },
+        { "WatchTower", watchTowerPrefab }
+    };
+
     }
 
     private void Start()
@@ -253,6 +260,15 @@ public class UnitManager : MonoBehaviour, ISaveable
         }
     }
 
+    public GameObject FindBuildingPrefab(string name)
+    {
+        if (buildingPrefabs.TryGetValue(name, out var prefab))
+        {
+            return prefab;
+        }
+        return null;
+    }
+
     // Lấy thống kê tổng quan
     public GameStats GetGameStats()
     {
@@ -269,78 +285,5 @@ public class UnitManager : MonoBehaviour, ISaveable
     }
 #endregion
 
-    #region Save Game
-    public void PopulateSaveData(GameSaveData saveData)
-    {
-        var unitData = new UnitSaveData();
-        foreach (var unit in allUnits)
-        {
-            unitData.units.Add(new UnitData
-            {
-                unitName = unit.unitName,
-                unitType = unit.unitType,
-                position = unit.transform.position,
-                assignedBuilding = unit.assignedBuilding?.buildingName,
-                currentState = unit.currentState,
-                health = unit.health,
-                maxHealth = unit.maxHealth,
-            });
-        }
-
-        saveData.unitSaveData = unitData;
-
-        var buildingData = new BuildingSaveData();
-        foreach(var building in buildings)
-        {
-            buildingData.buildings.Add(new BuildingData
-            {
-                buildingName = building.name,
-                currentCapacity = building.currentCapacity,
-                maxCapacity = building.maxCapacity,
-                layerIndex = building.layerIndex,
-                archerPositions = building.listArcherPositions,
-                buildingType = building.buildingType,
-                position = building.transform.position,
-                unitNames = building.stationedUnits
-                    .Where(unit => unit != null)
-                    .Select(unit => unit.unitName)
-                    .ToList()
-            }); ;
-        }
-
-        saveData.buildingSaveData = buildingData;
-    }
-
-    public void LoadFromSaveData(GameSaveData saveData)
-    {
-        #region Load Unit
-        var unitData = saveData.unitSaveData;
-
-        foreach (var unit in allUnits)
-            Destroy(unit.gameObject);
-        allUnits.Clear();
-
-        foreach (var unitDatum in unitData.units)
-        {
-            Unit unit = CreateUnit(unitDatum.unitType, unitDatum.position);
-            unit.unitName = unitDatum.unitName;
-        }
-        #endregion
-
-        #region Load Building
-        var buildingData = saveData.buildingSaveData;
-
-        foreach (var building in buildings)
-            Destroy(building.gameObject);
-        buildings.Clear();
-
-        foreach (var buildingDatum in buildingData.buildings)
-        {
-            Building building = CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
-            building.name = buildingDatum.buildingName;
-            building.UpdateRenderSortingOrder(buildingDatum.layerIndex);
-        }
-        #endregion
-    }
-    #endregion
+    
 }

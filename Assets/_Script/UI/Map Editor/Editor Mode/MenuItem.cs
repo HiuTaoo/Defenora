@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class MenuItem : MonoBehaviour
 {
-    [Header("Build Prefab")]
-    public Transform buildingPrefab;
 
-    public System.Action<Transform> OnMenuItemClicked;
+    public System.Action<string> OnMenuItemClicked;
 
     void Start()
     {
@@ -30,7 +28,7 @@ public class MenuItem : MonoBehaviour
         }
 
         // Gọi event và truyền prefab
-        OnMenuItemClicked?.Invoke(buildingPrefab);
+        OnMenuItemClicked?.Invoke(gameObject.name);
     }
 
     public void DeSelectAllTileItem()

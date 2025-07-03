@@ -70,8 +70,22 @@ public class CameraManager
 
         if (virtualCamera != null)
         {
-            virtualCamera.Follow = config.FollowPlayer ? playerTransform : null;
+            if (!config.FollowPlayer)
+            {
+                //virtualCamera.Follow = config.FollowPlayer ? playerTransform : null;
+                virtualCamera.Follow = null;
+                virtualCamera.ForceCameraPosition(
+                    virtualCamera.transform.position,
+                    virtualCamera.transform.rotation);
+                virtualCamera.PreviousStateIsValid = false;
+
+            }
+            if (config.FollowPlayer)
+            {
+                virtualCamera.Follow = playerTransform;
+            }
         }
+        
 
         mainCamera.orthographic = config.IsOrthographic;
 

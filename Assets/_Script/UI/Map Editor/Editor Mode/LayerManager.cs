@@ -9,7 +9,7 @@ public class LayerManager : MonoBehaviour
     [Header("List ribbon")]
     [SerializeField] private GameObject[] ribbons;
 
-    private int layerIndex = 0;
+    public int layerIndex = 0;
     private Vector3[] originalPositions;
 
     public System.Action<int> OnLayerIndexChange;
@@ -69,8 +69,6 @@ public class LayerManager : MonoBehaviour
 
     public void ChangeLayer()
     {
-        MenuTilesController.Instance.selectedLayerIndex = layerIndex;
-        MenuTilesController.Instance.UpdateTilemapLayer();
         OnLayerIndexChange?.Invoke(layerIndex);
     }
 
@@ -98,34 +96,12 @@ public class LayerManager : MonoBehaviour
         }
     }
 
-    /*private void MoveRibbonToLeft(int activeIndex)
-    {
-        for (int i = 0; i < ribbons.Length; i++)
-        {
-            Vector3 original = originalPositions[i];
-
-            if (i == activeIndex)
-            {
-                // Chỉ thay đổi trục X, giữ nguyên Y và Z
-                ribbons[i].transform.position = new Vector3(
-                    original.x - 50f, // sang trái
-                    original.y,
-                    original.z
-                );
-            }
-            else
-            {
-                ribbons[i].transform.position = original;
-            }
-        }
-    }*/
-    private void MoveRibbonToLeft(int activeIndex)
+    public void MoveRibbonToLeft(int activeIndex)
     {
         for (int i = 0; i < ribbons.Length; i++)
         {
             Vector2 original = originalPositions[i];
             RectTransform rect = ribbons[i].GetComponent<RectTransform>();
-
             if (rect != null)
             {
                 if (i == activeIndex)
@@ -134,6 +110,7 @@ public class LayerManager : MonoBehaviour
                         original.x - 50f, 
                         original.y      
                     );
+                    ribbons[i].transform.SetSiblingIndex(ribbons.Length);
                 }
                 else
                 {

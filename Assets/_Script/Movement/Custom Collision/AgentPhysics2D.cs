@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
 [RequireComponent(typeof(FloorAgent))]
 [RequireComponent(typeof(StairCollision))]
@@ -13,6 +14,7 @@ public class AgentPhysics2D : MonoBehaviour
     private StairCollision stairDetector;
     private CharacterMovement characterMovement;
     private Vector2 intoStairDirection = Vector2.zero;
+    private float moveSpeed;
 
     private void Awake()
     {
@@ -27,10 +29,36 @@ public class AgentPhysics2D : MonoBehaviour
         }
     }
 
-
-    public RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance)
+    private void Start()
     {
-        return Physics2D.Raycast(origin, direction.normalized, distance, floorAgent.CurrentCollisionMask);
+        if(moveSpeed == 0)
+            moveSpeed = GetMoveSpeed();
+    }
+
+    public bool PredictRaycast(Vector2 origin, Vector2 direction,float distance, float speed , CircleCollider2D collider, LayerMask layer)
+    {
+        if (collider == null) return false;
+
+        float radius = collider.radius * Mathf.Max(
+            collider.transform.lossyScale.x,
+            collider.transform.lossyScale.y
+        );
+        Vector2 nextPosition = origin + speed * direction *Time.deltaTime;
+
+        RaycastHit2D hit = Physics2D.CircleCast(
+        nextPosition,
+            radius,
+            direction.normalized,
+            distance,
+            LayerMask.GetMask("Building")
+        );
+
+        if (hit.collider != null)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public Collider2D[] OverlapCircle(Vector2 center, float radius, LayerMask layer)
@@ -65,12 +93,6 @@ public class AgentPhysics2D : MonoBehaviour
         return validColliders.ToArray();
     }
 
-    public bool IsBlocked(Vector2 origin, Vector2 direction, float distance)
-    {
-        RaycastHit2D hit = Raycast(origin, direction, distance);
-        return hit.collider != null;
-    }
-
     public bool IsBlock(Vector2 origin, Vector2 direction, float distance, CircleCollider2D collider)
     {
         if (collider == null)
@@ -80,6 +102,9 @@ public class AgentPhysics2D : MonoBehaviour
             return false;
 
         if (OverlapSideMismatchCheck(origin, direction, distance, collider, LayerMask.GetMask("Stair")))
+            return true;
+
+        if(PredictRaycast(origin, direction, distance, moveSpeed, collider, LayerMask.GetMask("Building")))
             return true;
 
         float radius = collider.radius * Mathf.Max(collider.transform.lossyScale.x, collider.transform.lossyScale.y);
@@ -241,4 +266,7 @@ public class AgentPhysics2D : MonoBehaviour
 
     }
 
+    private float GetMoveSpeed() {
+        return GameObject.FindGameObjectWithTag("Player").GetComponentInChildren<CharacterMovement>().moveSpeed;
+    }
 }
