@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class EditorState : IGameState
 {
+    private GameObject player;
+    private MenuItem menuItem;
     public void Enter(GameStateContext context)
     {
         Debug.Log($"Game State: Editor");
 
-        // Sử dụng các managers thông qua context
         context.UIManager.ShowUI(GameStateType.Editor);
         context.CameraManager.ApplyCameraSettings(GameStateType.Editor);
-        //context.AudioManager?.PlayMusic("editor_music");
+        DeSelectAllItem();
+        UpdateCurrentLayerIndexUI();
+        
     }
 
     public void Exit(GameStateContext context)
@@ -40,4 +43,26 @@ public class EditorState : IGameState
             // Save level logic
         }
     }
+
+    private void UpdateCurrentLayerIndexUI()
+    {
+        player = GetPlayer();
+        int layer = player.GetComponentInChildren<FloorAgent>().currentFloorIndex;
+        LayerManager.Instance.layerIndex = layer;
+        BuildingGhostPreviewSystem.Instance.HandleLayerIndexChange(layer);
+        LayerManager.Instance.MoveRibbonToLeft(layer);
+        BuildingGhostPreviewSystem.Instance.HandleLayerIndexChange(layer);
+    }
+
+    private void DeSelectAllItem()
+    {
+        menuItem = GameObject.FindAnyObjectByType<MenuItem>();
+        menuItem.DeSelectAllTileItem();
+    }
+
+    private GameObject GetPlayer()
+    {
+        return GameObject.FindGameObjectWithTag("Player");
+    }
+
 }

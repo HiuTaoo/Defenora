@@ -13,10 +13,9 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     private GameObject currentGhost;
 
     private bool canPlace = false;
-    private int currentSelectedLayerIndex = 0;
 
     private GridManager gridManager;
-    private LayerManager layerManager;
+    public LayerManager layerManager;
     public MenuItem menuItem;
     private BuildingFootprint currentFootprint;
 
@@ -64,19 +63,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Hàm xử lý khi MenuItem click → spawn ghost với prefab nhận được.
-    /// </summary>
-    private void HandleGhostPreview(Transform buildingPrefab)
-    {
-        if (buildingPrefab == null)
-        {
-            Debug.LogWarning("Prefab null!");
-            return;
-        }
-        SpawnGhost(buildingPrefab.gameObject);
-    }
-
     public void SpawnGhost(GameObject ghostPrefabToSpawn)
     {
         CancelGhost();
@@ -99,7 +85,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
     private bool ValidateFootprint(Vector2Int anchorCell)
     {
-        return gridManager.CanPlaceFootprint(anchorCell, currentFootprint, currentSelectedLayerIndex);
+        return gridManager.CanPlaceFootprint(anchorCell, currentFootprint, LayerManager.Instance.layerIndex);
     }
 
 
@@ -118,6 +104,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
             renderer.color = color;
         }
     }
+
 
     private Vector3 GetMouseWorldPosition()
     {
@@ -149,13 +136,22 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         item.OnMenuItemClicked += HandleGhostPreview;
     }
 
+    /// <summary>
+    /// Hàm xử lý khi MenuItem click → spawn ghost với prefab nhận được.
+    /// </summary>
+    private void HandleGhostPreview(string buildingPrefab)
+    {
+        GameObject building = UnitManager.Instance.FindBuildingPrefab(buildingPrefab);
+        SpawnGhost(building);
+    }
+
     public void SaveChange()
     {
     }
 
     public void HandleLayerIndexChange(int layer)
     {
-        currentSelectedLayerIndex = layer;
+        LayerManager.Instance.layerIndex = layer;
         if(spriteRenderer != null)
             spriteRenderer.sortingOrder = (100 * layer) + 1;
     }

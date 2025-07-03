@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Rendering.ShadowCascadeGUI;
 
 /// <summary>
 /// Quản lý grid, cell đã chiếm.
@@ -7,17 +8,24 @@ using UnityEngine;
 public class GridManager : MonoBehaviour
 {
     public HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
-    public List<Transform> listBuilding = new List<Transform>();
+    public List<Building> listBuilding = new List<Building>();
 
     [SerializeField] private float cellSize = 1f;
 
     private GraphNode graphNode;
+    private SaveLoadSystem saveLoadSystem;
 
     private void Awake()
     {
         graphNode = FindObjectOfType<GraphNode>();
+        saveLoadSystem = FindObjectOfType<SaveLoadSystem>();
+
         if (graphNode == null)
             Debug.LogError("GraphNode không tồn tại trên scene!");
+
+        if (saveLoadSystem != null)
+            saveLoadSystem.OnSave += HandleSaveBuilding;
+
 
     }
 
@@ -40,10 +48,16 @@ public class GridManager : MonoBehaviour
             occupiedCells.Add(cell);
         }
 
-        listBuilding.Add(footprint.transform);
         // Spawn building thật (bạn tự tuỳ biến).
         GameObject currentbuilding =  Instantiate(footprint.gameObject, CellToWorld(anchorCell), Quaternion.identity);
         currentbuilding.transform.SetParent(this.gameObject.transform);
+
+        Building building = currentbuilding.GetComponent<Building>();
+        building.layerIndex = BuildingGhostPreviewSystem.Instance.layerManager.layerIndex;
+
+        currentbuilding.transform.name = $"{building.buildingType}: {System.Guid.NewGuid()}";
+        listBuilding.Add(building);
+
     }
 
     private Vector3 CellToWorld(Vector2Int cellPos)
@@ -58,26 +72,6 @@ public class GridManager : MonoBehaviour
         );
     }
 
-    /*public bool CanPlaceFootprint(Vector2Int anchorCell, BuildingFootprint footprint, int layerIndex)
-    {
-        var cells = footprint.GetAbsoluteGridPositions(anchorCell);
-
-        foreach (var cell in cells)
-        {
-            if (occupiedCells.Contains(cell))
-            {
-                return false;
-            }
-
-            Node node = graphNode.GetNode(new Vector3Int(cell.x, cell.y, 0), layerIndex);
-            if (node == null || !node.isWalkable)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }*/
     public bool CanPlaceFootprint(Vector2Int anchorCell, BuildingFootprint footprint, int layerIndex)
     {
         var cells = footprint.GetAbsoluteGridPositions(anchorCell);
@@ -96,7 +90,6 @@ public class GridManager : MonoBehaviour
             bool isLeftEdge = (cell.x == minX);
             bool isRightEdge = (cell.x == maxX);
 
-            // ➜ Anchor & các ô không nằm ở mép
             if (!isLeftEdge && !isRightEdge)
             {
                 if (occupiedCells.Contains(cell))
@@ -108,21 +101,26 @@ public class GridManager : MonoBehaviour
                 // Không có gì phải làm ở đây
             }
 
-            // Luôn kiểm tra node walkable cho mọi ô
             Node node = graphNode.GetNode(new Vector3Int(cell.x, cell.y, 0), layerIndex);
-            if (node == null || !node.isWalkable)
+            if (node == null || !node.isWalkable || node.isStair)
                 return false;
 
-            // Đặc biệt: anchor thì không được occupied
             if (cell == anchorCell && occupiedCells.Contains(cell))
                 return false;
         }
-
         return true;
     }
 
+    public void RollBackBuildingVisual()
+    {
+        foreach(var building in listBuilding) { 
+            building.transform.GetComponent<SpriteRenderer>().color = Color.white;
+        }
+    }
 
-
-
-
+    private void HandleSaveBuilding() {
+        UnitManager.Instance.buildings.AddRange(listBuilding);
+        RollBackBuildingVisual();
+        listBuilding.Clear();
+    }
 }
