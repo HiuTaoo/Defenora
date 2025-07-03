@@ -6,6 +6,7 @@ public class EditorState : IGameState
 {
     private GameObject player;
     private MenuItem menuItem;
+
     public void Enter(GameStateContext context)
     {
         Debug.Log($"Game State: Editor");
