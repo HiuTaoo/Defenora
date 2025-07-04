@@ -5,11 +5,10 @@ using UnityEngine;
 
 public class Fortress : Building
 {
-    public Transform archer;
-
     private void Awake()
     {
         buildingType = BuildingType.Fortress;
+        RegisterSpot();
     }
 
 #if UNITY_EDITOR

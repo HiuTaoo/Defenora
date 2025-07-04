@@ -19,15 +19,19 @@ public abstract class Building : MonoBehaviour
     [Tooltip("Lưu tên unit và vị trí đang đứng nếu đó là tháp canh ")]
     public List<SpotData> listArcherPositions = new List<SpotData>();
     [Header("Tầng mà công trình được đặt")]
-    public int layerIndex = 0;
+    private int layerIndex = 0;
 
     private SpriteRenderer spriteRenderer;
 
-    private void Awake()
-    {
-        spriteRenderer = GetComponent<SpriteRenderer>();
 
-        RegisterSpot();
+    public int LayerIndex
+    {
+        get => layerIndex;
+        set
+        {
+            layerIndex = value;
+
+        }
     }
 
     public void RegisterSpot()
@@ -66,6 +70,7 @@ public abstract class Building : MonoBehaviour
                 if( spot != null )
                 {
                     unit.transform.position = spot;
+                    unit.spriteRenderer.sortingOrder = (100 * unit.floorAgent.currentFloorIndex) + 10;
                     int index = listArcherPositions.FindIndex(s => s.position == spot);
                     if (index >= 0)
                     {
@@ -94,7 +99,6 @@ public abstract class Building : MonoBehaviour
                 }
             }
             unit.currentState = UnitState.Stationed;
-            Debug.Log($"{unit.unitName} đã được đặt tại {buildingName}");
             return true;
         }
 
@@ -107,6 +111,7 @@ public abstract class Building : MonoBehaviour
         {
             stationedUnits.Remove(unit);
             unit.currentState = UnitState.Idle;
+            unit.assignedBuilding = null;
 
             if (unit.unitType == UnitType.Archer)
             {

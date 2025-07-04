@@ -15,10 +15,14 @@ public class CustomRender : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null)
+        if (GameLoop.Instance.StateMachine.CurrentStateType != GameStateType.Editor)
         {
-            collision.gameObject.GetComponent<SpriteRenderer>().sortingOrder = spriteRenderer.sortingOrder - 1;
+            if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null)
+            {
+                collision.gameObject.GetComponent<SpriteRenderer>().sortingOrder = spriteRenderer.sortingOrder - 1;
+            }
         }
+        
     }
 
     private void OnTriggerExit2D(Collider2D collision)

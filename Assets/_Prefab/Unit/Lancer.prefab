@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: 8280558650109143541}
   - component: {fileID: 5895243835817682444}
   - component: {fileID: 7733666581131024601}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: Lancer
   m_TagString: Untagged
   m_Icon: {fileID: 0}

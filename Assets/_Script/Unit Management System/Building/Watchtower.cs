@@ -7,6 +7,7 @@ public class Watchtower : Building
     private void Awake()
     {
         buildingType = BuildingType.WatchTower;
+        RegisterSpot();
     }
 
 

@@ -8,7 +8,7 @@ using static UnityEditor.Rendering.ShadowCascadeGUI;
 public class GridManager : MonoBehaviour
 {
     public HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
-    public List<Building> listBuilding = new List<Building>();
+    public List<Building> listPlacedBuilding = new List<Building>();
 
     [SerializeField] private float cellSize = 1f;
 
@@ -53,10 +53,10 @@ public class GridManager : MonoBehaviour
         currentbuilding.transform.SetParent(this.gameObject.transform);
 
         Building building = currentbuilding.GetComponent<Building>();
-        building.layerIndex = BuildingGhostPreviewSystem.Instance.layerManager.layerIndex;
+        building.LayerIndex = BuildingGhostPreviewSystem.Instance.layerManager.layerIndex;
 
         currentbuilding.transform.name = $"{building.buildingType}: {System.Guid.NewGuid()}";
-        listBuilding.Add(building);
+        listPlacedBuilding.Add(building);
 
     }
 
@@ -113,14 +113,14 @@ public class GridManager : MonoBehaviour
 
     public void RollBackBuildingVisual()
     {
-        foreach(var building in listBuilding) { 
+        foreach(var building in listPlacedBuilding) { 
             building.transform.GetComponent<SpriteRenderer>().color = Color.white;
         }
     }
 
     private void HandleSaveBuilding() {
-        UnitManager.Instance.buildings.AddRange(listBuilding);
+        UnitManager.Instance.buildings.AddRange(listPlacedBuilding);
         RollBackBuildingVisual();
-        listBuilding.Clear();
+        listPlacedBuilding.Clear();
     }
 }

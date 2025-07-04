@@ -89,7 +89,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 buildingName = building.name,
                 currentCapacity = building.currentCapacity,
                 maxCapacity = building.maxCapacity,
-                layerIndex = building.layerIndex,
+                layerIndex = building.LayerIndex,
                 archerPositions = building.listArcherPositions,
                 buildingType = building.buildingType,
                 position = building.transform.position,
