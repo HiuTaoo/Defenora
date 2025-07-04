@@ -262,7 +262,7 @@ public class AgentPhysics2D : MonoBehaviour
         {
             floorAgent.MoveToFloor(floorAgent.currentFloorIndex - 1);
         }
-        characterMovement.currentLayer = floorAgent.currentFloorIndex;
+        characterMovement.CurrentLayer = floorAgent.currentFloorIndex;
 
     }
 

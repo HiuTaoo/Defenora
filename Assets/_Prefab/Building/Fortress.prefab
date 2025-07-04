@@ -237,7 +237,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   listArcherPositions: []
-  layerIndex: 1
   archer: {fileID: 0}
 --- !u!114 &1731817293600673060
 MonoBehaviour:
@@ -268,7 +267,7 @@ GameObject:
   - component: {fileID: 4091299198600183057}
   m_Layer: 0
   m_Name: Spot
-  m_TagString: Untagged
+  m_TagString: Spot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -299,7 +298,7 @@ GameObject:
   - component: {fileID: 8404697974518227058}
   m_Layer: 0
   m_Name: Spot (2)
-  m_TagString: Untagged
+  m_TagString: Spot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -364,7 +363,7 @@ GameObject:
   - component: {fileID: 463292457007941665}
   m_Layer: 0
   m_Name: Spot (1)
-  m_TagString: Untagged
+  m_TagString: Spot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

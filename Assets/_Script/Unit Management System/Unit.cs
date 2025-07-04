@@ -23,9 +23,10 @@ public abstract class Unit : MonoBehaviour
 
     protected Rigidbody2D rb;
     protected Animator animator;
-    protected SpriteRenderer spriteRenderer;
+    public SpriteRenderer spriteRenderer;
     protected CharacterMovement characterMovement;
     public Building assignedBuilding;
+    public FloorAgent floorAgent;
 
 
     // Events
@@ -38,6 +39,7 @@ public abstract class Unit : MonoBehaviour
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         characterMovement = GetComponentInChildren<CharacterMovement>();
+        floorAgent = GetComponentInChildren<FloorAgent>();
 
         if (rb == null)
             rb = gameObject.AddComponent<Rigidbody2D>();

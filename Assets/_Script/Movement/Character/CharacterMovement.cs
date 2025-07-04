@@ -19,8 +19,18 @@ public class CharacterMovement : MonoBehaviour
        
     public bool moving { get; private set; } = false;
     public Vector2 direction { get; private set; } = Vector2.zero;
-    public int currentLayer = 0;
-    
+    private int _currentLayer;
+
+    public int CurrentLayer
+    {
+        get => _currentLayer;
+        set
+        {
+            _currentLayer = value;
+            UpdateLayerIndex();
+        }
+    }
+
     private void Awake()
     {
         rb = GetComponentInParent<Rigidbody2D>();
@@ -66,7 +76,6 @@ public class CharacterMovement : MonoBehaviour
             var graph = GraphNode.Instance.layerGraphs[i];
             if (graph.nodes.TryGetValue(targetPosition, out Node node))
             {
-                //Debug.Log($"Layer {i}, node: {(node != null ? "OK" : "NULL")}, walkable: {node?.isWalkable}");
                 if (node != null && node.isWalkable)
                 {
                     layer = i;
@@ -135,7 +144,6 @@ public class CharacterMovement : MonoBehaviour
                 {
                     if (agentPhysics2D.IsBuilding(transform.parent.position, direction, 0.01f, moveSpeed, circleCollider2D))
                     {
-                        Debug.Log("Va chạm công trình! Dừng di chuyển.");
                         PathfindingAlgorithm.Instance.ClearPath();
                         moving = false;
                         yield break;
@@ -147,7 +155,7 @@ public class CharacterMovement : MonoBehaviour
 
                 }
 
-                currentLayer = segment.layerIndex;
+                CurrentLayer = segment.layerIndex;
             }
         }
 
@@ -172,7 +180,7 @@ public class CharacterMovement : MonoBehaviour
     }
     public void UpdateLayerIndex()
     {
-        if(currentLayer != floorAgent.currentFloorIndex) 
-            floorAgent.MoveToFloor(currentLayer);
+        if(CurrentLayer != floorAgent.currentFloorIndex) 
+            floorAgent.MoveToFloor(CurrentLayer);
     }
 }

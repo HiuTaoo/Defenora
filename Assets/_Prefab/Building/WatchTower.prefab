@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8559164744609574262}
   m_Layer: 0
   m_Name: Spot
-  m_TagString: Untagged
+  m_TagString: Spot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -168,14 +168,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buildingName: WatchTower
-  maxCapacity: 1
+  maxCapacity: 3
   range: 5
   currentCapacity: 0
   buildingType: 1
   stationedUnits: []
   positionSpots: []
   listArcherPositions: []
-  layerIndex: 1
 --- !u!114 &4274527819006447420
 MonoBehaviour:
   m_ObjectHideFlags: 0
