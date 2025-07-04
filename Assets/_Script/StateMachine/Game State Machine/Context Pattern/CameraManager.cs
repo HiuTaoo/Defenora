@@ -12,10 +12,7 @@ public class CameraManager
     private Dictionary<GameStateType, CameraConfig> cameraConfigs;
     private Coroutine currentTransition;
 
-    // Camera follow variables
     private bool isFollowingPlayer = false;
-    private Vector3 followOffset = new Vector3(0, 2, -5);
-    private float followSpeed = 5f;
 
     public CameraManager(Camera camera)
     {
@@ -72,16 +69,22 @@ public class CameraManager
         {
             if (!config.FollowPlayer)
             {
-                //virtualCamera.Follow = config.FollowPlayer ? playerTransform : null;
+                // FIX: Lấy vị trí hiện tại TRƯỚC khi ngắt follow
+                Vector3 currentPosition = mainCamera.transform.position;
+                Quaternion currentRotation = mainCamera.transform.rotation;
+
+                // Ngắt follow
                 virtualCamera.Follow = null;
-                virtualCamera.ForceCameraPosition(
-                    virtualCamera.transform.position,
-                    virtualCamera.transform.rotation);
+
+                // Reset quán tính ngay lập tức
+                virtualCamera.ForceCameraPosition(currentPosition, currentRotation);
                 virtualCamera.PreviousStateIsValid = false;
 
             }
             if (config.FollowPlayer)
             {
+                // Khi bật follow, reset state trước
+                virtualCamera.PreviousStateIsValid = false;
                 virtualCamera.Follow = playerTransform;
             }
         }
@@ -92,10 +95,8 @@ public class CameraManager
         if (config.IsOrthographic)
         {
             mainCamera.orthographicSize = config.OrthographicSize;
+            virtualCamera.m_Lens.OrthographicSize = config.OrthographicSize;
         }
-
-        virtualCamera.m_Lens.OrthographicSize = config.OrthographicSize;
-
     }
 
 
@@ -103,29 +104,22 @@ public class CameraManager
     {
         Debug.Log("CameraManager: Transitioning to config...");
 
-        // Stop follow during transition if needed
-        bool wasFollowing = isFollowingPlayer;
         isFollowingPlayer = false;
 
-        Vector3 startPos, targetPos;
-        Quaternion startRot, targetRot;
+        Vector3 startPos = mainCamera.transform.position;
+        Quaternion startRot = mainCamera.transform.rotation;
 
-        if (virtualCamera != null && virtualCamera.Follow == null)
+        Vector3 targetPos = config.Position;
+        Quaternion targetRot = Quaternion.Euler(config.Rotation);
+
+        if (isFollowingPlayer)
         {
-            startPos = virtualCamera.transform.position;
-            startRot = virtualCamera.transform.rotation;
-
-            targetPos = config.Position;
-            targetRot = Quaternion.Euler(config.Rotation);
+            virtualCamera.Follow = null;
+            virtualCamera.ForceCameraPosition(startPos, startRot);
+            virtualCamera.PreviousStateIsValid = false;
         }
-        else
-        {
-            startPos = mainCamera.transform.position;
-            startRot = mainCamera.transform.rotation;
 
-            targetPos = config.Position;
-            targetRot = Quaternion.Euler(config.Rotation);
-        }
+        isFollowingPlayer = false;
 
         float elapsed = 0f;
         float duration = Mathf.Max(0.01f, config.TransitionDuration);
@@ -154,26 +148,25 @@ public class CameraManager
 
         ApplyConfigImmediate(config);
 
-        // Resume follow if needed
         isFollowingPlayer = config.FollowPlayer;
 
         Debug.Log("CameraManager: Transition completed.");
     }
 
+    private void ForceResetCamera()
+    {
+        if (virtualCamera != null)
+        {
+            virtualCamera.enabled = false;
+            virtualCamera.Follow = null;
+            virtualCamera.PreviousStateIsValid = false;
+            virtualCamera.enabled = true;
+        }
+    }
 
     public void Update()
     {
    
     }
     
-
-    public void SetFollowOffset(Vector3 offset)
-    {
-        followOffset = offset;
-    }
-
-    public void SetFollowSpeed(float speed)
-    {
-        followSpeed = speed;
-    }
 }
