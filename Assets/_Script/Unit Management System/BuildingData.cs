@@ -19,8 +19,8 @@ public struct BuildingData
 [System.Serializable]
 public struct SpotData
 {
-    public Vector3 position;   // vị trí slot
-    public string unitName;    // tên unit đang đứng
+    public Vector3 position;   
+    public string unitName;    
 }
 
 public enum BuildingType

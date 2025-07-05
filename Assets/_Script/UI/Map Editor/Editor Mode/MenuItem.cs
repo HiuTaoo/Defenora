@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class MenuItem : MonoBehaviour
 {
-
     public System.Action<string> OnMenuItemClicked;
 
     void Start()
@@ -28,6 +27,7 @@ public class MenuItem : MonoBehaviour
         }
 
         // Gọi event và truyền prefab
+        SelectUnitSystem.Instance.isPlacing = true;
         OnMenuItemClicked?.Invoke(gameObject.name);
     }
 

@@ -8,6 +8,7 @@ public struct UnitData
     public string unitName;
     public UnitType unitType;
     public UnitState currentState;
+    public int layerIndex;
     public float health;
     public float maxHealth;
     public Vector3 position;

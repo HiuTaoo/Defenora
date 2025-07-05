@@ -33,17 +33,6 @@ public class LayerManager : MonoBehaviour
         Show(); 
     }
 
-    /*public void GetOriginalPosition()
-    {
-        originalPositions = new Vector3[ribbons.Length];
-        for (int i = 0; i < ribbons.Length; i++)
-        {
-            originalPositions[i] = ribbons[i].transform.position;
-        }
-        MoveRibbonToLeft(0);
-
-    }*/
-
     public void GetOriginalPosition()
     {
         originalPositions = new Vector3[ribbons.Length];
@@ -53,12 +42,10 @@ public class LayerManager : MonoBehaviour
             RectTransform rect = ribbons[i].GetComponent<RectTransform>();
             if (rect != null)
             {
-                // Lấy vị trí LOCAL trong Canvas Space
                 originalPositions[i] = rect.anchoredPosition3D;
             }
             else
             {
-                // Fallback nếu không phải RectTransform (phòng trường hợp)
                 originalPositions[i] = ribbons[i].transform.localPosition;
             }
         }
@@ -98,6 +85,8 @@ public class LayerManager : MonoBehaviour
 
     public void MoveRibbonToLeft(int activeIndex)
     {
+        ribbons[activeIndex].transform.SetSiblingIndex(ribbons.Length);
+
         for (int i = 0; i < ribbons.Length; i++)
         {
             Vector2 original = originalPositions[i];
@@ -110,7 +99,6 @@ public class LayerManager : MonoBehaviour
                         original.x - 50f, 
                         original.y      
                     );
-                    ribbons[i].transform.SetSiblingIndex(ribbons.Length);
                 }
                 else
                 {
@@ -118,6 +106,7 @@ public class LayerManager : MonoBehaviour
                 }
             }
         }
+
     }
 
 

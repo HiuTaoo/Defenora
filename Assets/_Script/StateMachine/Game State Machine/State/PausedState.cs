@@ -7,8 +7,8 @@ public class PausedState : IGameState
     public void Enter(GameStateContext context)
     {
         Debug.Log($"Game State: Paused");
-
-        context.UIManager.ShowUI(GameStateType.Paused);
+        context.UIManager.HideAllUIs();
+        context.UIManager.ShowUI(GameStateType.Paused, UINames.PauseMenu);
         // Pause game time
         Time.timeScale = 0f;
 
@@ -18,7 +18,7 @@ public class PausedState : IGameState
 
     public void Exit(GameStateContext context)
     {
-        context.UIManager.HideUI(GameStateType.Paused);
+        context.UIManager.HideUI(GameStateType.Paused, UINames.PauseMenu);
         // Resume game time
         Time.timeScale = 1f;
     }

@@ -48,29 +48,30 @@ public class GridManager : MonoBehaviour
             occupiedCells.Add(cell);
         }
 
-        // Spawn building thật (bạn tự tuỳ biến).
         GameObject currentbuilding =  Instantiate(footprint.gameObject, CellToWorld(anchorCell), Quaternion.identity);
         currentbuilding.transform.SetParent(this.gameObject.transform);
 
         Building building = currentbuilding.GetComponent<Building>();
-        building.LayerIndex = BuildingGhostPreviewSystem.Instance.layerManager.layerIndex;
+        building.LayerIndex = LayerManager.Instance.layerIndex;
 
         currentbuilding.transform.name = $"{building.buildingType}: {System.Guid.NewGuid()}";
         listPlacedBuilding.Add(building);
 
+        building.UpdateRenderSortingOrder(LayerManager.Instance.layerIndex);
+
     }
 
-    private Vector3 CellToWorld(Vector2Int cellPos)
+    public Vector3 CellToWorld(Vector2Int cellPos)
     {
         float cellSize = 1f; 
-        float halfCell = cellSize * 0.5f;
 
         return new Vector3(
-            cellPos.x * cellSize + halfCell,
-            cellPos.y * cellSize + halfCell,
+            (cellPos.x + 0.5f) * cellSize,
+            (cellPos.y + 0.5f) * cellSize,
             0f
         );
     }
+
 
     public bool CanPlaceFootprint(Vector2Int anchorCell, BuildingFootprint footprint, int layerIndex)
     {

@@ -92,7 +92,6 @@ public class FloorAgent : MonoBehaviour
             {
                 renderer.sortingOrder = floorDef.sortingOrder;
             }
-
         }
     }
 
