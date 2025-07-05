@@ -5,14 +5,14 @@ using UnityEngine;
 
 public class CameraManager
 {
-    private Camera mainCamera;
-    private CinemachineVirtualCamera virtualCamera;
+    public Camera mainCamera;
+    public CinemachineVirtualCamera virtualCamera;
 
     private Transform playerTransform;
     private Dictionary<GameStateType, CameraConfig> cameraConfigs;
-    private Coroutine currentTransition;
+    public Coroutine currentTransition;
 
-    private bool isFollowingPlayer = false;
+    public bool isFollowingPlayer = false;
 
     public CameraManager(Camera camera)
     {
@@ -21,16 +21,7 @@ public class CameraManager
         cameraConfigs = new Dictionary<GameStateType, CameraConfig>();
     }
 
-    public void RegisterCameraConfig(GameStateType stateType, CameraConfig config)
-    {
-        cameraConfigs[stateType] = config;
-    }
-
-    public void SetPlayerTransform(Transform player)
-    {
-        playerTransform = player;
-    }
-
+    #region ApplyCameraSettings
     public void ApplyCameraSettings(GameStateType stateType)
     {
         Debug.Log($"CameraManager: Applying camera settings for {stateType}");
@@ -69,21 +60,17 @@ public class CameraManager
         {
             if (!config.FollowPlayer)
             {
-                // FIX: Lấy vị trí hiện tại TRƯỚC khi ngắt follow
                 Vector3 currentPosition = mainCamera.transform.position;
                 Quaternion currentRotation = mainCamera.transform.rotation;
 
-                // Ngắt follow
                 virtualCamera.Follow = null;
 
-                // Reset quán tính ngay lập tức
                 virtualCamera.ForceCameraPosition(currentPosition, currentRotation);
                 virtualCamera.PreviousStateIsValid = false;
 
             }
             if (config.FollowPlayer)
             {
-                // Khi bật follow, reset state trước
                 virtualCamera.PreviousStateIsValid = false;
                 virtualCamera.Follow = playerTransform;
             }
@@ -152,21 +139,23 @@ public class CameraManager
 
         Debug.Log("CameraManager: Transition completed.");
     }
+    #endregion
 
-    private void ForceResetCamera()
+    #region Camera Method
+    public void RegisterCameraConfig(GameStateType stateType, CameraConfig config)
     {
-        if (virtualCamera != null)
-        {
-            virtualCamera.enabled = false;
-            virtualCamera.Follow = null;
-            virtualCamera.PreviousStateIsValid = false;
-            virtualCamera.enabled = true;
-        }
+        cameraConfigs[stateType] = config;
     }
 
-    public void Update()
+    public void SetPlayerTransform(Transform player)
     {
-   
+        playerTransform = player;
     }
-    
+
+    public void LerpToPosition(Vector3 position)
+    {
+
+    }
+
+    #endregion
 }

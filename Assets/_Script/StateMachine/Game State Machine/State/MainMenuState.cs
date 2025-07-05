@@ -8,13 +8,13 @@ public class MainMenuState : IGameState
     {
         Debug.Log($"Game State: MainMenu");
 
-        context.UIManager.ShowUI(GameStateType.MainMenu);
+        context.UIManager.ShowUI(GameStateType.MainMenu, UINames.MainMenu);
 
     }
 
     public void Exit(GameStateContext context)
     {
-        context.UIManager.HideUI(GameStateType.End);
+        context.UIManager.HideUI(GameStateType.End, UINames.MainMenu);
 
     }
 

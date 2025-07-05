@@ -28,8 +28,6 @@ public abstract class Unit : MonoBehaviour
     public Building assignedBuilding;
     public FloorAgent floorAgent;
 
-
-    // Events
     public System.Action<Unit> OnUnitDestroyed;
     public System.Action<Unit> OnDestinationReached;
 
@@ -49,11 +47,9 @@ public abstract class Unit : MonoBehaviour
 
     protected virtual void Update()
     {
-        HandleMovement();
         UpdateAnimations();
     }
 
-    // Di chuyển đến vị trí đích
     public virtual void MoveTo(Vector3 destination)
     {
         targetDestination = new GameObject($"{unitName}_Target").transform;
@@ -61,7 +57,6 @@ public abstract class Unit : MonoBehaviour
         currentState = UnitState.Moving;
     }
 
-    // Di chuyển đến một Transform cụ thể
     public virtual void MoveTo(Vector3Int position, int layer)
     {
         currentState = UnitState.Moving;
@@ -70,7 +65,6 @@ public abstract class Unit : MonoBehaviour
     }
 
 
-    // Dừng di chuyển
     public virtual void StopMovement()
     {
         targetDestination = null;
@@ -78,7 +72,6 @@ public abstract class Unit : MonoBehaviour
         currentState = UnitState.Idle;
     }
 
-    // Xử lý di chuyển
     protected virtual void HandleMovement()
     {
         if (targetDestination == null || currentState != UnitState.Moving)
@@ -96,7 +89,6 @@ public abstract class Unit : MonoBehaviour
             currentState = UnitState.Stationed;
             OnDestinationReached?.Invoke(this);
 
-            // Xóa target tạm thời nếu có
             if (targetDestination.name.Contains("_Target"))
                 Destroy(targetDestination.gameObject);
         }
@@ -106,22 +98,16 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
-    // Cập nhật animations
     protected virtual void UpdateAnimations()
     {
         if (animator == null) return;
 
-        /*animator.SetFloat("Speed", rb.velocity.magnitude);
-        animator.SetBool("IsMoving", currentState == UnitState.Moving);*/
-
-        // Flip sprite theo hướng di chuyển
         if (rb.velocity.x != 0)
         {
             spriteRenderer.flipX = rb.velocity.x < 0;
         }
     }
 
-    // Nhận damage
     public virtual void TakeDamage(float damage)
     {
         health -= damage;
@@ -133,24 +119,20 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
-    // Hồi máu
     public virtual void Heal(float amount)
     {
         health += amount;
         health = Mathf.Clamp(health, 0, maxHealth);
     }
 
-    // Chết
     protected virtual void Die()
     {
         OnUnitDestroyed?.Invoke(this);
         Destroy(gameObject);
     }
 
-    // Khả năng đặc biệt của từng loại nhân vật
     public abstract void UseSpecialAbility();
 
-    // Lấy thông tin nhân vật
     public virtual UnitData GetUnitInfo()
     {
         return new UnitData

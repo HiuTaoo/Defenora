@@ -14,15 +14,18 @@ public abstract class Building : MonoBehaviour
 
     [Header("Unit Management")]
     public List<Unit> stationedUnits = new List<Unit>();
+
     [Tooltip("Danh sách những điểm mà cung thủ có thể đứng")]
     public Transform[] positionSpots;
+
     [Tooltip("Lưu tên unit và vị trí đang đứng nếu đó là tháp canh ")]
     public List<SpotData> listArcherPositions = new List<SpotData>();
-    [Header("Tầng mà công trình được đặt")]
+
+    [Tooltip("Tầng mà công trình được đặt")]
     private int layerIndex = 0;
 
     private SpriteRenderer spriteRenderer;
-
+    private BuildingFootprint buildingFootprint;
 
     public int LayerIndex
     {
@@ -30,15 +33,18 @@ public abstract class Building : MonoBehaviour
         set
         {
             layerIndex = value;
-
         }
+    }
+
+    private void Awake()
+    {
+        buildingFootprint = GetComponent<BuildingFootprint>();
     }
 
     public void RegisterSpot()
     {
         List<Transform> spots = new List<Transform>();
 
-        // Quét tất cả con trong Hierarchy
         foreach (Transform child in transform.GetComponentsInChildren<Transform>(true))
         {
             if (child.CompareTag("Spot"))
@@ -53,7 +59,7 @@ public abstract class Building : MonoBehaviour
 
     public virtual bool AddUnit(Unit unit)
     {
-        if (stationedUnits.Count >= maxCapacity)
+        if (currentCapacity >= maxCapacity)
         {
             Debug.Log($"Trạm {buildingName} đã đầy!");
             return false;
@@ -62,32 +68,25 @@ public abstract class Building : MonoBehaviour
         if (!stationedUnits.Contains(unit))
         {
             stationedUnits.Add(unit);
-
+            unit.floorAgent.MoveToFloor(LayerIndex);
             unit.assignedBuilding = this;
-            if(unit.unitType == UnitType.Archer)
+            currentCapacity++;
+
+            Debug.Log($"Register {unit.name} to Building: {this.name}");
+
+            if (unit.unitType == UnitType.Archer)
             {
                 Vector3 spot = GetAvailableSpot();
-                if( spot != null )
+                if (spot != null)
                 {
                     unit.transform.position = spot;
-                    unit.spriteRenderer.sortingOrder = (100 * unit.floorAgent.currentFloorIndex) + 10;
-                    int index = listArcherPositions.FindIndex(s => s.position == spot);
-                    if (index >= 0)
-                    {
-                        var updated = listArcherPositions[index];
-                        updated.unitName = unit.unitName;
-                        listArcherPositions[index] = updated;
-                    }
-                    else
-                    {
-                        listArcherPositions.Add(new SpotData
-                        {
-                            position = spot,
-                            unitName = unit.unitName
-                        });
-                    }
+                    unit.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 10;
 
-
+                    listArcherPositions.Add(new SpotData
+                    {
+                        position = spot,
+                        unitName = unit.unitName
+                    });
                 }
             }
             else
@@ -99,9 +98,9 @@ public abstract class Building : MonoBehaviour
                 }
             }
             unit.currentState = UnitState.Stationed;
+            unit.floorAgent.MoveToFloor(LayerIndex);
             return true;
         }
-
         return false;
     }
 
@@ -112,23 +111,19 @@ public abstract class Building : MonoBehaviour
             stationedUnits.Remove(unit);
             unit.currentState = UnitState.Idle;
             unit.assignedBuilding = null;
+            currentCapacity--;
 
             if (unit.unitType == UnitType.Archer)
             {
                 int index = listArcherPositions.FindIndex(s => s.unitName == unit.unitName);
                 if (index >= 0)
                 {
-                    var updated = listArcherPositions[index];
-                    updated.unitName = null; // Đánh dấu slot trống
-                    listArcherPositions[index] = updated;
-                    Debug.Log($"Đã xóa vị trí cung thủ {unit.unitName} khỏi spot {updated.position}");
+                    var removed = listArcherPositions[index];
+                    listArcherPositions.RemoveAt(index);
                 }
             }
-
-            Debug.Log($"{unit.unitName} đã rời khỏi {buildingName}");
             return true;
         }
-
         return false;
     }
 
@@ -145,12 +140,60 @@ public abstract class Building : MonoBehaviour
             }
         }
 
-        // Hết chỗ: fallback random
         return GetRandomPositionAroundBuilding();
     }
 
+    public Vector3 GetRandomPositionAroundBuilding()
+    {
+        const int maxTries = 20;
+        float cellSize = 1f; 
 
-    /// <summary>
+        Vector3 basePosition = transform.position;
+        GraphNode graphNode = GraphNode.Instance;
+
+        for (int i = 0; i < maxTries; i++)
+        {
+            Vector2 randomOffset = Random.insideUnitCircle * range;
+            Vector3 randomWorldPos = new Vector3(
+                basePosition.x + randomOffset.x,
+                basePosition.y + randomOffset.y,
+                0f 
+            );
+
+            Vector2Int cellPos = WorldToCell(randomWorldPos, cellSize);
+
+            Node node = graphNode.GetNode(new Vector3Int(cellPos.x, cellPos.y, 0), LayerIndex);
+
+            if (node != null && node.isWalkable)
+            {
+                Vector3 cellCenter = CellToWorld(cellPos, cellSize);
+                return cellCenter;
+            }
+        }
+
+        Debug.LogWarning($"Không tìm được Node walkable quanh Building. Trả về vị trí Building.");
+        Vector2Int fallbackCell = WorldToCell(basePosition, cellSize);
+        return CellToWorld(fallbackCell, cellSize);
+    }
+
+    private Vector2Int WorldToCell(Vector3 worldPos, float cellSize)
+    {
+        int x = Mathf.FloorToInt(worldPos.x / cellSize);
+        int y = Mathf.FloorToInt(worldPos.y / cellSize);
+        return new Vector2Int(x, y);
+    }
+
+    private Vector3 CellToWorld(Vector2Int cellPos, float cellSize)
+    {
+        return new Vector3(
+            (cellPos.x + 0.5f) * cellSize,
+            (cellPos.y + 0.5f) * cellSize,
+            0f
+        );
+    }
+
+
+    /*/// <summary>
     /// Trả về vị trí ngẫu nhiên trong phạm vi `range` quanh building.
     /// </summary>
     public Vector3 GetRandomPositionAroundBuilding()
@@ -163,20 +206,19 @@ public abstract class Building : MonoBehaviour
             basePosition.y, // hoặc giữ nguyên y
             basePosition.z + randomPoint.y
         );
-    }
+    }*/
 
     public void UpdateRenderSortingOrder(int layerIndex)
     {
-        var sr = GetSpriteRenderer();
-        if (sr != null)
-            sr.sortingOrder = (100 * layerIndex) + 2;
+        GetSpriteRenderer();
+        if (spriteRenderer != null)
+            spriteRenderer.sortingOrder = (100 * layerIndex) + 5;
     }
 
-    private SpriteRenderer GetSpriteRenderer()
+    private void GetSpriteRenderer()
     {
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
-        return spriteRenderer;
     }
 
     public BuildingData GetStationInfo()

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class BuildingGhostPreviewSystem : MonoBehaviour
 {
@@ -10,12 +11,12 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     public LayerMask placementLayerMask;
     private SpriteRenderer spriteRenderer;
 
-    private GameObject currentGhost;
+    public GameObject currentGhost;
 
     private bool canPlace = false;
+    private bool isPlacing = false;
 
     private GridManager gridManager;
-    public LayerManager layerManager;
     public MenuItem menuItem;
     private BuildingFootprint currentFootprint;
 
@@ -30,10 +31,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     void Start()
     {
         gridManager = FindObjectOfType<GridManager>();
-        layerManager = FindObjectOfType<LayerManager>();
 
-        if (layerManager != null)
-            layerManager.OnLayerIndexChange += HandleLayerIndexChange;
 
     }
 
@@ -42,6 +40,13 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         if (currentGhost == null)
             return;
 
+        CheckCanPlace();
+        
+        CheckMouseIsOnUI();
+    }
+
+    private void CheckCanPlace()
+    {
         Vector3 mouseWorldPos = GetMouseWorldPosition();
         Vector2Int anchorCell = WorldToCell(mouseWorldPos);
 
@@ -52,7 +57,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
         UpdateGhostVisual(canPlace);
 
-        if (canPlace && Input.GetMouseButtonDown(0))
+        if (canPlace && Input.GetMouseButtonDown(0) && currentGhost.activeInHierarchy)
         {
             PlaceBuilding(anchorCell);
         }
@@ -114,22 +119,25 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         return world;
     }
 
-    private Vector2Int WorldToCell(Vector3 worldPos)
+    public Vector2Int WorldToCell(Vector3 worldPos)
     {
-        int x = Mathf.RoundToInt(worldPos.x / cellSize);
-        int y = Mathf.RoundToInt(worldPos.y / cellSize);
+        int x = Mathf.FloorToInt(worldPos.x / cellSize);
+        int y = Mathf.FloorToInt(worldPos.y / cellSize);
         return new Vector2Int(x, y);
     }
 
-    private Vector3 CellToWorld(Vector2Int cellPos)
+
+    public Vector3 CellToWorld(Vector2Int cellPos)
     {
-        float halfCell = cellSize * 0.5f;
+        float cellSize = 1f;
+
         return new Vector3(
-            cellPos.x * cellSize + halfCell,
-            cellPos.y * cellSize + halfCell,
+            (cellPos.x + 0.5f) * cellSize,
+            (cellPos.y + 0.5f) * cellSize,
             0f
         );
     }
+
 
     public void RegisterMenuItem(MenuItem item)
     {
@@ -145,14 +153,26 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         SpawnGhost(building);
     }
 
-    public void SaveChange()
+    public void CheckMouseIsOnUI()
     {
+        bool isPointerOverUI = EventSystem.current.IsPointerOverGameObject();
+        if (isPointerOverUI)
+        {
+            currentGhost?.SetActive(false);
+            return;
+        }
+        else
+        {
+            currentGhost?.SetActive(true);
+        }
     }
 
     public void HandleLayerIndexChange(int layer)
     {
         LayerManager.Instance.layerIndex = layer;
-        if(spriteRenderer != null)
-            spriteRenderer.sortingOrder = (100 * layer) + 1;
+        if(currentGhost != null)
+            currentGhost.GetComponent<Building>().UpdateRenderSortingOrder(layer);
     }
+
+
 }

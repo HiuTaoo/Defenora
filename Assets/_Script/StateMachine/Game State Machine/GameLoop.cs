@@ -8,11 +8,20 @@ public class GameLoop : MonoBehaviour
     public static GameLoop Instance;
     public GameStateMachine StateMachine { get; private set; }
 
-    [Header("GUI For GameState")]
+    [Header("GUI For PlayingState")]
     [SerializeField] private GameObject playingGUI;
+
+    [Header("GUI For Pause State")]
     [SerializeField] private GameObject pausedGUI;
+
+    [Header("GUI For Editor State")]
     [SerializeField] private GameObject editorGUI;
+    [SerializeField] private GameObject selectUnitGUI;
+
+    [Header("GUI For Main Menu State")]
     [SerializeField] private GameObject mainMenuGUI;
+
+    [Header("GUI For End State")]
     [SerializeField] private GameObject endGUI;
 
     [Header("Audio Sources")]
@@ -34,6 +43,7 @@ public class GameLoop : MonoBehaviour
     private CameraManager cameraManager;
     private AudioManager audioManager;
     private InputManager inputManager;
+
     public GameStateContext gameContext {  get; private set; }
 
     private void Awake()
@@ -51,8 +61,10 @@ public class GameLoop : MonoBehaviour
 
         InitializeManagers();
         InitializeStateMachine();
-    }
+        InitializeEvent();
 
+    }
+    #region Initialize
     private void InitializeManagers()
     {
         // Initialize managers
@@ -62,9 +74,10 @@ public class GameLoop : MonoBehaviour
         inputManager = new InputManager();
 
         // Set up UI Manager
-        uiManager.RegisterUI(GameStateType.Playing, playingGUI, new UIConfig { FadeIn = true });
-        uiManager.RegisterUI(GameStateType.Paused, pausedGUI, new UIConfig { FadeIn = true });
-        uiManager.RegisterUI(GameStateType.Editor, editorGUI, new UIConfig { Scale = Vector3.one * 0.9f });
+        uiManager.RegisterUI(GameStateType.Playing, UINames.MainMenu ,playingGUI, new UIConfig { FadeIn = true });
+        uiManager.RegisterUI(GameStateType.Paused, UINames.PauseMenu ,pausedGUI, new UIConfig { FadeIn = true });
+        uiManager.RegisterUI(GameStateType.Editor, UINames.EditorMenu, editorGUI, new UIConfig { Scale = Vector3.one * 0.9f });
+        uiManager.RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });
         //uiManager.RegisterUI(GameStateType.MainMenu, mainMenuGUI);
         //uiManager.RegisterUI(GameStateType.End, endGUI);
 
@@ -105,6 +118,7 @@ public class GameLoop : MonoBehaviour
             AudioManager = audioManager,
             InputManager = inputManager
         };
+
     }
 
     private void InitializeStateMachine()
@@ -118,6 +132,13 @@ public class GameLoop : MonoBehaviour
         StateMachine.RegisterState(GameStateType.Editor, new EditorState());
     }
 
+    private void InitializeEvent()
+    {
+        SelectUnitSystem.Instance.OnSelectUnit += HandleSelectUnitUI;
+
+    }
+    #endregion
+                
     private void Start()
     {
         StateMachine.ChangeState(GameStateType.Playing);
@@ -127,14 +148,79 @@ public class GameLoop : MonoBehaviour
     {
         StateMachine.Tick();
 
-        // Update managers that need per-frame updates
-        cameraManager.Update();
     }
 
     private void OnValidate()
     {
-        // Validation trong editor
         if (mainCamera == null)
             mainCamera = Camera.main;
     }
+
+    #region Event
+    private void HandleSelectUnitUI(bool isShowing, bool isAllUI)
+    {
+        uiManager.stateUIs[GameStateType.Editor].TryGetValue(UINames.SelectUnitGUI, out var selectUI);
+        uiManager.stateUIs[GameStateType.Editor].TryGetValue(UINames.EditorMenu, out var editorUI);
+        if (isShowing)
+        {
+            selectUI.SetActive(true);
+            editorUI.SetActive(false);
+        }
+        else
+        {
+            selectUI.SetActive(false);
+            editorUI.SetActive(true);
+        }
+        if(isAllUI)
+        {
+            selectUI.SetActive(false);
+            editorUI.SetActive(false);
+        }
+        SelectUnitSystem.Instance.OnLerpToSelectedUnit += LerpToPosition;
+    }
+
+    public void LerpToPosition(Vector3 targetPosition)
+    {
+        float duration = 1f;
+
+        if (cameraManager.virtualCamera == null)
+        {
+            Debug.LogError("CameraManager: virtualCamera is null");
+            return;
+        }
+
+        if (cameraManager.virtualCamera.Follow != null)
+        {
+            Debug.Log("CameraManager: Disabling Follow to move manually");
+            cameraManager.virtualCamera.Follow = null;
+            cameraManager.isFollowingPlayer = false;
+        }
+
+        if (cameraManager.currentTransition != null)
+        {
+            StopCoroutine(cameraManager.currentTransition);
+        }
+
+        cameraManager.currentTransition = StartCoroutine(LerpPositionCoroutine(targetPosition, duration));
+    }
+
+    private IEnumerator LerpPositionCoroutine(Vector3 targetPosition, float duration)
+    {
+        Vector3 startPos = cameraManager.virtualCamera.transform.position;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            cameraManager.mainCamera.transform.position = Vector3.Lerp(startPos, targetPosition, t);
+            yield return null;
+        }
+
+        cameraManager.mainCamera.transform.position = targetPosition;
+
+        cameraManager.currentTransition = null;
+    }
+
+    #endregion
 }

@@ -75,7 +75,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 assignedBuilding = unit.assignedBuilding?.buildingName,
                 currentState = unit.currentState,
                 health = unit.health,
-                maxHealth = unit.maxHealth,
+                layerIndex = unit.floorAgent.currentFloorIndex,
+                maxHealth = unit.maxHealth
             });
         }
 
@@ -116,6 +117,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             Unit unit = unitManager.CreateUnit(unitDatum.unitType, unitDatum.position);
             unit.unitName = unitDatum.unitName;
+            unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
         }
         #endregion
 
@@ -130,6 +132,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             Building building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
             building.name = buildingDatum.buildingName;
+            building.LayerIndex = buildingDatum.layerIndex;
             building.UpdateRenderSortingOrder(buildingDatum.layerIndex);
         }
         #endregion

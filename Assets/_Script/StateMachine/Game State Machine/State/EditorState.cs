@@ -10,8 +10,8 @@ public class EditorState : IGameState
     public void Enter(GameStateContext context)
     {
         Debug.Log($"Game State: Editor");
-
-        context.UIManager.ShowUI(GameStateType.Editor);
+        context.UIManager.HideAllUIs();
+        context.UIManager.ShowUI(GameStateType.Editor, UINames.EditorMenu);
         context.CameraManager.ApplyCameraSettings(GameStateType.Editor);
         DeSelectAllItem();
         UpdateCurrentLayerIndexUI();
@@ -20,7 +20,7 @@ public class EditorState : IGameState
 
     public void Exit(GameStateContext context)
     {
-        context.UIManager.HideUI(GameStateType.Editor);
+        context.UIManager.HideUI(GameStateType.Editor, UINames.EditorMenu);
     }
 
     public void Tick(GameStateContext context)

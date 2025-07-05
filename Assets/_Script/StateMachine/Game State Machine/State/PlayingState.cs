@@ -7,15 +7,15 @@ public class PlayingState : IGameState
     public void Enter(GameStateContext context)
     {
         Debug.Log($"Game State: Playing");
-
-        context.UIManager.ShowUI(GameStateType.Playing);
+        context.UIManager.HideAllUIs();
+        context.UIManager.ShowUI(GameStateType.Playing, UINames.MainMenu);
         context.CameraManager.ApplyCameraSettings(GameStateType.Playing);
         //context.AudioManager?.PlayMusic("gameplay_music");
     }
 
     public void Exit(GameStateContext context)
     {
-        context.UIManager.HideUI(GameStateType.Playing);
+        context.UIManager.HideUI(GameStateType.Playing, UINames.MainMenu);
     }
 
     public void Tick(GameStateContext context)

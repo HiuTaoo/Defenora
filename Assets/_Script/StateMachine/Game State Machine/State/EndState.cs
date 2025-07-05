@@ -8,13 +8,13 @@ public class EndState : IGameState
     {
         Debug.Log($"Game State: End");
 
-        context.UIManager.ShowUI(GameStateType.End);
+        //context.UIManager.ShowUI(GameStateType.End, UINames.End);
 
     }
 
     public void Exit(GameStateContext context)
     {
-        context.UIManager.HideUI(GameStateType.End);
+        //context.UIManager.HideUI(GameStateType.End);
 
     }
 
