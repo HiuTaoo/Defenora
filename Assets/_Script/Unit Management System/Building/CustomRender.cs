@@ -7,6 +7,8 @@ public class CustomRender : MonoBehaviour
     private BoxCollider2D checkingCollider;
     private SpriteRenderer spriteRenderer;
 
+
+
     private void Awake()
     {
         checkingCollider = GetComponent<BoxCollider2D>();

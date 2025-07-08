@@ -117,6 +117,9 @@ public class SelectUnitSystem : MonoBehaviour
             if (selectedUnit != null && !isDragging && !isPlacing)
                 OnSelectUnit?.Invoke(true, false);
 
+            if(selectedUnit != null)
+                selectedUnit.GetComponentInChildren<FloorAgent>().UpdateVisualElements();
+
             isMouseDown = false;
             isDragging = false;
             canMoveSelectedUnit = false;
@@ -139,8 +142,6 @@ public class SelectUnitSystem : MonoBehaviour
 
         selectedUnit.transform.position = snappedPos;
 
-        if (selectUnitSpriteRenderer != null)
-            selectUnitSpriteRenderer.sortingOrder = 500;
     }
 
 
@@ -244,7 +245,7 @@ public class SelectUnitSystem : MonoBehaviour
             }
         }
 
-        else if (unit.assignedBuilding != null)
+        else if (unit.assignedBuilding != null && unit.assignedBuilding != building)
         {
             unit.assignedBuilding.RemoveUnit(unit);
             if (building.currentCapacity < building.maxCapacity)

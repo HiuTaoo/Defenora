@@ -16,7 +16,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     private bool canPlace = false;
     private bool isPlacing = false;
 
-    private GridManager gridManager;
+    private EditBuildingManager gridManager;
     public MenuItem menuItem;
     private BuildingFootprint currentFootprint;
 
@@ -30,7 +30,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
     void Start()
     {
-        gridManager = FindObjectOfType<GridManager>();
+        gridManager = FindObjectOfType<EditBuildingManager>();
 
 
     }
@@ -97,7 +97,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     private void PlaceBuilding(Vector2Int anchorCell)
     {
         gridManager.PlaceBuilding(anchorCell, currentFootprint);
-        Debug.Log("Placed building at: " + anchorCell);
         //CancelGhost();
     }
 

@@ -5,7 +5,7 @@ using static UnityEditor.Rendering.ShadowCascadeGUI;
 /// <summary>
 /// Quản lý grid, cell đã chiếm.
 /// </summary>
-public class GridManager : MonoBehaviour
+public class EditBuildingManager : MonoBehaviour
 {
     public HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
     public List<Building> listPlacedBuilding = new List<Building>();
@@ -61,18 +61,6 @@ public class GridManager : MonoBehaviour
 
     }
 
-    public Vector3 CellToWorld(Vector2Int cellPos)
-    {
-        float cellSize = 1f; 
-
-        return new Vector3(
-            (cellPos.x + 0.5f) * cellSize,
-            (cellPos.y + 0.5f) * cellSize,
-            0f
-        );
-    }
-
-
     public bool CanPlaceFootprint(Vector2Int anchorCell, BuildingFootprint footprint, int layerIndex)
     {
         var cells = footprint.GetAbsoluteGridPositions(anchorCell);
@@ -111,6 +99,16 @@ public class GridManager : MonoBehaviour
         }
         return true;
     }
+    public Vector3 CellToWorld(Vector2Int cellPos)
+    {
+        float cellSize = 1f;
+
+        return new Vector3(
+            (cellPos.x + 0.5f) * cellSize,
+            (cellPos.y + 0.5f) * cellSize,
+            0f
+        );
+    }
 
     public void RollBackBuildingVisual()
     {
@@ -119,7 +117,24 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    private void UpdateGraphNode()
+    {
+        foreach (var building in listPlacedBuilding)
+        {
+            var foothPrint = building.transform.GetComponent<BuildingFootprint>();
+            var cells = foothPrint.GetAbsoluteGridPositions(building.WorldToCell(building.transform.position, 1f));
+            foreach (var cell in cells)
+            {
+                Node node = GraphNode.Instance.GetNode(new Vector3Int(cell.x, cell.y, 0), building.LayerIndex);
+                if (node.isWalkable)
+                    node.isWalkable = false;
+            }
+        }
+
+    }
+
     private void HandleSaveBuilding() {
+        UpdateGraphNode();
         UnitManager.Instance.buildings.AddRange(listPlacedBuilding);
         RollBackBuildingVisual();
         listPlacedBuilding.Clear();

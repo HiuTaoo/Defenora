@@ -58,6 +58,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             saveable.LoadFromSaveData(saveData);
         }
 
+        UnitManager.Instance.UpdateGraphNodeWhenStart();
+
         Debug.Log($"Game loaded from {saveFilePath}");
     }
 
