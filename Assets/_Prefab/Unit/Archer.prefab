@@ -71,8 +71,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f191a147b968d3438112b9615b3cf78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3.5
-  currentLayer: 0
+  moveSpeed: 3
 --- !u!114 &7759679723960676305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -280,7 +279,9 @@ MonoBehaviour:
   attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
+  spriteRenderer: {fileID: 0}
   assignedBuilding: {fileID: 0}
+  floorAgent: {fileID: 0}
   arrowPrefab: {fileID: 0}
   firePoint: {fileID: 0}
   fireRate: 1

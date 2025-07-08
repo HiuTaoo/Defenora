@@ -146,14 +146,19 @@ public abstract class Building : MonoBehaviour
     public Vector3 GetRandomPositionAroundBuilding()
     {
         const int maxTries = 20;
-        float cellSize = 1f; 
+        float cellSize = 1f;
+
+        if (buildingFootprint == null)
+            GetBuildingFootprinf();
+
+        var cells = buildingFootprint.GetAbsoluteGridPositions(WorldToCell(transform.position, 1f));
 
         Vector3 basePosition = transform.position;
         GraphNode graphNode = GraphNode.Instance;
 
         for (int i = 0; i < maxTries; i++)
         {
-            Vector2 randomOffset = Random.insideUnitCircle * range;
+            Vector2 randomOffset = Random.insideUnitCircle * range/2;
             Vector3 randomWorldPos = new Vector3(
                 basePosition.x + randomOffset.x,
                 basePosition.y + randomOffset.y,
@@ -163,6 +168,12 @@ public abstract class Building : MonoBehaviour
             Vector2Int cellPos = WorldToCell(randomWorldPos, cellSize);
 
             Node node = graphNode.GetNode(new Vector3Int(cellPos.x, cellPos.y, 0), LayerIndex);
+
+            foreach( var cell in cells)
+            {
+                if (cellPos == cell)
+                    continue;
+            }
 
             if (node != null && node.isWalkable)
             {
@@ -176,14 +187,14 @@ public abstract class Building : MonoBehaviour
         return CellToWorld(fallbackCell, cellSize);
     }
 
-    private Vector2Int WorldToCell(Vector3 worldPos, float cellSize)
+    public Vector2Int WorldToCell(Vector3 worldPos, float cellSize)
     {
         int x = Mathf.FloorToInt(worldPos.x / cellSize);
         int y = Mathf.FloorToInt(worldPos.y / cellSize);
         return new Vector2Int(x, y);
     }
 
-    private Vector3 CellToWorld(Vector2Int cellPos, float cellSize)
+    public Vector3 CellToWorld(Vector2Int cellPos, float cellSize)
     {
         return new Vector3(
             (cellPos.x + 0.5f) * cellSize,
@@ -191,22 +202,6 @@ public abstract class Building : MonoBehaviour
             0f
         );
     }
-
-
-    /*/// <summary>
-    /// Trả về vị trí ngẫu nhiên trong phạm vi `range` quanh building.
-    /// </summary>
-    public Vector3 GetRandomPositionAroundBuilding()
-    {
-        Vector2 randomPoint = Random.insideUnitCircle * range;
-        Vector3 basePosition = transform.position;
-
-        return new Vector3(
-            basePosition.x + randomPoint.x,
-            basePosition.y, // hoặc giữ nguyên y
-            basePosition.z + randomPoint.y
-        );
-    }*/
 
     public void UpdateRenderSortingOrder(int layerIndex)
     {
@@ -219,6 +214,12 @@ public abstract class Building : MonoBehaviour
     {
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    private void GetBuildingFootprinf()
+    {
+        if(buildingFootprint == null)
+            buildingFootprint = GetComponent<BuildingFootprint>();
     }
 
     public BuildingData GetStationInfo()

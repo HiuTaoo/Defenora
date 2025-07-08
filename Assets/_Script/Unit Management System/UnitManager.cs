@@ -46,13 +46,11 @@ public class UnitManager : MonoBehaviour
 
     private void Start()
     {
-        // Tìm tất cả units và building trong scene
         RefreshUnitList();
         RefreshStationList();
     }
 
     #region UNIT MAGAGER
-    // Làm mới danh sách units
     public void RefreshUnitList()
     {
         allUnits.Clear();
@@ -64,7 +62,6 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    // Làm mới danh sách building
     public void RefreshStationList()
     {
         buildings.Clear();
@@ -72,7 +69,6 @@ public class UnitManager : MonoBehaviour
         buildings.AddRange(foundbuilding);
     }
 
-    // Đăng ký unit mới
     public void RegisterUnit(Unit unit)
     {
         if (!allUnits.Contains(unit))
@@ -91,19 +87,16 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    // Xử lý khi unit bị phá hủy
     private void OnUnitDestroyed(Unit unit)
     {
         allUnits.Remove(unit);
 
-        // Loại bỏ unit khỏi tất cả building
         foreach (Building station in buildings)
         {
             station.RemoveUnit(unit);
         }
     }
 
-    // Tạo unit mới
     public Unit CreateUnit(UnitType unitType, Vector3 position)
     {
         GameObject prefab = GetUnitPrefab(unitType);
@@ -146,7 +139,6 @@ public class UnitManager : MonoBehaviour
         return building;
     }
 
-    // Lấy prefab theo loại unit
     private GameObject GetUnitPrefab(UnitType unitType)
     {
         switch (unitType)
@@ -170,13 +162,11 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    // Điều động unit đến station
     public bool DeployUnitToStation(Unit unit, Building station)
     {
         if (unit == null || station == null)
             return false;
 
-        // Loại bỏ unit khỏi station hiện tại (nếu có)
         foreach (Building currentStation in buildings)
         {
             currentStation.RemoveUnit(unit);
@@ -185,7 +175,6 @@ public class UnitManager : MonoBehaviour
         return station.AddUnit(unit);
     }
 
-    // Thu hồi unit từ station
     public bool RecallUnit(Unit unit)
     {
         if (unit == null)
@@ -203,19 +192,16 @@ public class UnitManager : MonoBehaviour
         return false;
     }
 
-    // Lấy tất cả units theo loại
     public List<Unit> GetUnitsByType(UnitType unitType)
     {
         return allUnits.Where(u => u.unitType == unitType).ToList();
     }
 
-    // Lấy tất cả units rảnh rỗi
     public List<Unit> GetIdleUnits()
     {
         return allUnits.Where(u => u.currentState == UnitState.Idle).ToList();
     }
 
-    // Lấy station gần nhất
     public Building GetNearestStation(Vector3 position)
     {
         Building nearest = null;
@@ -234,7 +220,6 @@ public class UnitManager : MonoBehaviour
         return nearest;
     }
 
-    // Lệnh di chuyển tất cả units đến một vị trí
     public void MoveAllUnitsTo(Vector3 destination)
     {
         foreach (Unit unit in allUnits)
@@ -246,7 +231,6 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    // Lệnh di chuyển units theo loại
     public void MoveUnitsByTypeTo(UnitType unitType, Vector3 destination)
     {
         List<Unit> targetUnits = GetUnitsByType(unitType);
@@ -269,7 +253,6 @@ public class UnitManager : MonoBehaviour
         return null;
     }
 
-    // Lấy thống kê tổng quan
     public GameStats GetGameStats()
     {
         return new GameStats
@@ -285,5 +268,19 @@ public class UnitManager : MonoBehaviour
     }
 #endregion
 
+    public void UpdateGraphNodeWhenStart()
+    {
+        foreach (var building in buildings)
+        {
+            var foothPrint = building.transform.GetComponent<BuildingFootprint>();
+            var cells = foothPrint.GetAbsoluteGridPositions(building.WorldToCell(building.transform.position, 1f));
+            foreach (var cell in cells)
+            {
+                Node node = GraphNode.Instance.GetNode(new Vector3Int(cell.x, cell.y, 0), building.LayerIndex);
+                if (node.isWalkable)
+                    node.isWalkable = false;
+            }
+        }
+    }
     
 }

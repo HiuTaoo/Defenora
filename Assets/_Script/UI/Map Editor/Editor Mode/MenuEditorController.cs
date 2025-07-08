@@ -32,10 +32,6 @@ public class MenuEditorController : MonoBehaviour
                 item.OnMenuItemClicked += HandleItemClicked;
             }
         }
-
-        cancelEditBuildingMode = GameObject.Find("Cancel");
-        if(cancelEditBuildingMode != null)
-            cancelEditBuildingMode.SetActive(false);
     }
 
     public void HandleItemClicked(string prefab)

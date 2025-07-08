@@ -237,7 +237,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   listArcherPositions: []
-  archer: {fileID: 0}
 --- !u!114 &1731817293600673060
 MonoBehaviour:
   m_ObjectHideFlags: 0
