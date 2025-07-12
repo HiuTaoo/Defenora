@@ -39,4 +39,5 @@ public class MenuEditorController : MonoBehaviour
         if(!cancelEditBuildingMode.activeInHierarchy)
             cancelEditBuildingMode.SetActive(true);
     }
+
 }

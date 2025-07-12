@@ -13,6 +13,7 @@ public struct BuildingData
     public List<SpotData> archerPositions;
     public int layerIndex;
     public BuildingType buildingType;
+    public BuildingState buildingState;
     public Vector3 position;
 }
 
@@ -27,4 +28,12 @@ public enum BuildingType
 {
     Fortress,
     WatchTower
+}
+
+public enum BuildingState
+{
+    Placing, //đang đặt vị trí 
+    UnderConstruction,
+    Completed,
+    Destroyed
 }

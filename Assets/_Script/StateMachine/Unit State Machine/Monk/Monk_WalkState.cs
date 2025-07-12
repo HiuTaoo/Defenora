@@ -27,7 +27,7 @@ public class Monk_WalkState : IUnitState
 
     public void Update()
     {
-        if (!monkController.characterMovement.moving && monkController.MovementInput == Vector2.zero)
+        if (!monkController.characterMovement.moving && monkController.MovementInput == Vector2.zero )
         {
             monkController.StateMachine.ChangeState(new Monk_IdleState(monkController));
         }

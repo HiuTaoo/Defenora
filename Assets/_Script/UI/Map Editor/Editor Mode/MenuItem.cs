@@ -26,8 +26,8 @@ public class MenuItem : MonoBehaviour
             }
         }
 
-        // Gọi event và truyền prefab
         SelectUnitSystem.Instance.isPlacing = true;
+        MenuEditorController.Instance.cancelEditBuildingMode.SetActive(true);
         OnMenuItemClicked?.Invoke(gameObject.name);
     }
 

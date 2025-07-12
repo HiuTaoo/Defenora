@@ -145,26 +145,4 @@ public abstract class Unit : MonoBehaviour
             position = transform.position
         };
     }
-
-    /*private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (GameLoop.Instance.StateMachine.CurrentStateType != GameStateType.Editor)
-        {
-            if (collision != null && collision.gameObject.GetComponent<Building>() != null)
-            {
-                spriteRenderer.sortingOrder = collision.gameObject.GetComponent<SpriteRenderer>().sortingOrder - 1;
-            }
-        }
-
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision != null && collision.gameObject.GetComponent<Building>() != null)
-        {
-            floorAgent.UpdateVisualElements();
-        }
-    }*/
-
-
 }
