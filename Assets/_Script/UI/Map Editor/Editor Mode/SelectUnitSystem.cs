@@ -125,8 +125,10 @@ public class SelectUnitSystem : MonoBehaviour
                 //OnSelectUnit?.Invoke(false, false);
             }
 
-            if (selectedUnit != null && !isDragging && !isPlacing)
+            if (selectedUnit != null && !isDragging && !isPlacing) {
                 OnSelectUnit?.Invoke(selectedUnit);
+                OnLerpToSelectedUnit?.Invoke(selectedUnit.transform.position);
+            }
 
             isMouseDown = false;
             isDragging = false;
@@ -294,7 +296,5 @@ public class SelectUnitSystem : MonoBehaviour
         }
 
     }
-
-
     #endregion
 }
