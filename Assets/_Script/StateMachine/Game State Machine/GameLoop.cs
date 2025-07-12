@@ -189,8 +189,6 @@ public class GameLoop : MonoBehaviour
             selectUnitGUI.SetActive(false);
             editorGUI.SetActive(true);
         }
-
-
         SelectUnitSystem.Instance.OnLerpToSelectedUnit += LerpToPosition;
     }
 
@@ -208,19 +206,11 @@ public class GameLoop : MonoBehaviour
 
     public void LerpToPosition(Vector3 targetPosition)
     {
-        float duration = 1f;
-
+        float duration = 0.5f;
         if (cameraManager.virtualCamera == null)
         {
             Debug.LogError("CameraManager: virtualCamera is null");
             return;
-        }
-
-        if (cameraManager.virtualCamera.Follow != null)
-        {
-            Debug.Log("CameraManager: Disabling Follow to move manually");
-            cameraManager.virtualCamera.Follow = null;
-            cameraManager.isFollowingPlayer = false;
         }
 
         if (cameraManager.currentTransition != null)
@@ -228,26 +218,45 @@ public class GameLoop : MonoBehaviour
             StopCoroutine(cameraManager.currentTransition);
         }
 
-        cameraManager.currentTransition = StartCoroutine(LerpPositionCoroutine(targetPosition, duration));
+        cameraManager.currentTransition = StartCoroutine(LerpPositionWithDisabledVCam(targetPosition, duration));
     }
 
-    private IEnumerator LerpPositionCoroutine(Vector3 targetPosition, float duration)
+    private IEnumerator LerpPositionWithDisabledVCam(Vector3 targetPosition, float duration)
     {
-        Vector3 startPos = cameraManager.virtualCamera.transform.position;
+        bool wasFollowing = cameraManager.virtualCamera.Follow != null;
+        Transform originalFollow = cameraManager.virtualCamera.Follow;
+
+        cameraManager.virtualCamera.gameObject.SetActive(false);
+        cameraManager.isFollowingPlayer = false;
+
+        yield return null;
+
+        Vector3 startPos = cameraManager.mainCamera.transform.position;
         float elapsed = 0f;
+        float originalZ = startPos.z;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            cameraManager.mainCamera.transform.position = Vector3.Lerp(startPos, targetPosition, t);
+            Vector3 lerpedPosition = Vector3.Lerp(startPos, targetPosition, t);
+            lerpedPosition.z = originalZ;
+            cameraManager.mainCamera.transform.position = lerpedPosition;
             yield return null;
         }
 
-        cameraManager.mainCamera.transform.position = targetPosition;
+        Vector3 finalPosition = new Vector3(targetPosition.x, targetPosition.y, originalZ);
+        cameraManager.mainCamera.transform.position = finalPosition;
+
+        cameraManager.virtualCamera.gameObject.SetActive(true);
+
+        if (wasFollowing)
+        {
+            cameraManager.virtualCamera.Follow = originalFollow;
+            cameraManager.isFollowingPlayer = true;
+        }
 
         cameraManager.currentTransition = null;
     }
-
     #endregion
 }
