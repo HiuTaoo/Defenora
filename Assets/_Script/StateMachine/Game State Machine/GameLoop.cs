@@ -135,6 +135,7 @@ public class GameLoop : MonoBehaviour
     private void InitializeEvent()
     {
         SelectUnitSystem.Instance.OnSelectUnit += HandleSelectUnitUI;
+        SelectUnitSystem.Instance.OnDragUnit += HandleDragUnitUI;
 
     }
     #endregion
@@ -157,26 +158,52 @@ public class GameLoop : MonoBehaviour
     }
 
     #region Event
-    private void HandleSelectUnitUI(bool isShowing, bool isAllUI)
+    private void HandleSelectUnitUI(GameObject selectedUnit)
     {
         uiManager.stateUIs[GameStateType.Editor].TryGetValue(UINames.SelectUnitGUI, out var selectUI);
         uiManager.stateUIs[GameStateType.Editor].TryGetValue(UINames.EditorMenu, out var editorUI);
-        if (isShowing)
+
+        if (selectedUnit != null) {
+            var unit = selectedUnit.GetComponent<Unit>();
+            var building = selectedUnit.GetComponent<Building>();
+
+
+            if (unit != null || building != null)
+            {
+                selectUnitGUI.SetActive(true);
+                editorGUI.SetActive(false);
+            }
+
+            var deleteButton = selectUI.transform.Find("Delete Building");
+
+            if (unit == null && building != null)
+            {
+                deleteButton.gameObject.SetActive(true);
+            }
+            else
+            {
+                deleteButton.gameObject.SetActive(false);
+            }
+        } else
         {
-            selectUI.SetActive(true);
-            editorUI.SetActive(false);
+            selectUnitGUI.SetActive(false);
+            editorGUI.SetActive(true);
         }
-        else
-        {
-            selectUI.SetActive(false);
-            editorUI.SetActive(true);
-        }
-        if(isAllUI)
-        {
-            selectUI.SetActive(false);
-            editorUI.SetActive(false);
-        }
+
+
         SelectUnitSystem.Instance.OnLerpToSelectedUnit += LerpToPosition;
+    }
+
+
+    private void HandleDragUnitUI(bool isDrag) {
+        uiManager.stateUIs[GameStateType.Editor].TryGetValue(UINames.SelectUnitGUI, out var selectUI);
+        uiManager.stateUIs[GameStateType.Editor].TryGetValue(UINames.EditorMenu, out var editorUI);
+
+        if (isDrag)
+        {
+            selectUI.SetActive(false);
+            editorUI.SetActive(false);
+        }
     }
 
     public void LerpToPosition(Vector3 targetPosition)

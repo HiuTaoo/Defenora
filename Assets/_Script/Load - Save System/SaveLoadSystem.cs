@@ -96,6 +96,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 archerPositions = building.listArcherPositions,
                 buildingType = building.buildingType,
                 position = building.transform.position,
+                buildingState = building.buildingState,
                 unitNames = building.stationedUnits
                     .Where(unit => unit != null)
                     .Select(unit => unit.unitName)

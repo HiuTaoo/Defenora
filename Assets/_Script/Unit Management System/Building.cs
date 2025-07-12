@@ -11,6 +11,7 @@ public abstract class Building : MonoBehaviour
     public float range = 5f;
     public int currentCapacity = 0;
     public BuildingType buildingType;
+    public BuildingState buildingState;
 
     [Header("Unit Management")]
     public List<Unit> stationedUnits = new List<Unit>();

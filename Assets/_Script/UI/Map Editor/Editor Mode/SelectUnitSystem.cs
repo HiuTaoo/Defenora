@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 
 public class SelectUnitSystem : MonoBehaviour
@@ -28,7 +29,8 @@ public class SelectUnitSystem : MonoBehaviour
     private Vector2 initialUnitPosition;
     private int previousLayerIndex;
 
-    public System.Action<bool, bool> OnSelectUnit;
+    public System.Action<GameObject> OnSelectUnit;
+    public System.Action<bool> OnDragUnit;
     public System.Action<Vector3> OnLerpToSelectedUnit;
 
     private void Awake()
@@ -51,6 +53,12 @@ public class SelectUnitSystem : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            // Kiểm tra nếu click vào UI element
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                return; // Không thực hiện các hàm check nếu click vào UI
+            }
+
             isMouseDown = true;
             isDragging = false;
             initialMousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -62,9 +70,9 @@ public class SelectUnitSystem : MonoBehaviour
                 initialUnitPosition = selectedUnit.transform.position;
                 previousLayerIndex = floorAgent.currentFloorIndex;
             }
-            else
+            else if (selectedUnit == null)
             {
-                OnSelectUnit?.Invoke(false, false);
+                OnSelectUnit?.Invoke(selectedUnit);
             }
         }
 
@@ -83,12 +91,12 @@ public class SelectUnitSystem : MonoBehaviour
             {
                 Vector2 offset = currentMousePosition - initialMousePosition;
                 MoveByCell(initialUnitPosition + offset);
-                OnSelectUnit?.Invoke(false, true);
+                OnDragUnit?.Invoke(true);
             }
 
             if (isDragging && !canMoveSelectedUnit)
             {
-                OnSelectUnit?.Invoke(false, false);
+                OnDragUnit?.Invoke(false);
             }
         }
 
@@ -105,20 +113,20 @@ public class SelectUnitSystem : MonoBehaviour
                     canMoveSelectedUnit = false;
                     isMouseDown = false;
 
-                    OnSelectUnit?.Invoke(false, false);
+                    if (selectedUnit != null)
+                        selectedUnit.GetComponentInChildren<FloorAgent>().UpdateVisualElements();
+
+                    OnDragUnit?.Invoke(false);
                     return;
                 }
 
                 CheckTargetLayer(mousePosition);
                 CheckCanMovePlayerTo(mousePosition);
-                OnSelectUnit?.Invoke(false, false);
+                //OnSelectUnit?.Invoke(false, false);
             }
 
             if (selectedUnit != null && !isDragging && !isPlacing)
-                OnSelectUnit?.Invoke(true, false);
-
-            if(selectedUnit != null)
-                selectedUnit.GetComponentInChildren<FloorAgent>().UpdateVisualElements();
+                OnSelectUnit?.Invoke(selectedUnit);
 
             isMouseDown = false;
             isDragging = false;
@@ -129,7 +137,7 @@ public class SelectUnitSystem : MonoBehaviour
 
     private void MoveByCell(Vector3 worldPos)
     {
-        float cellSize = 1f; // Hoặc giá trị grid của bạn
+        float cellSize = 1f; 
 
         int cellX = Mathf.FloorToInt(worldPos.x / cellSize);
         int cellY = Mathf.FloorToInt(worldPos.y / cellSize);
@@ -143,8 +151,6 @@ public class SelectUnitSystem : MonoBehaviour
         selectedUnit.transform.position = snappedPos;
 
     }
-
-
 
     public GameObject FindTargetUnit(LayerMask targetLayer)
     {
@@ -229,7 +235,7 @@ public class SelectUnitSystem : MonoBehaviour
         if (targetGameObject != null)
             if (CheckCanRegisterUnit(targetGameObject.GetComponent<Building>()))
                 return true;
-        return false;    
+        return false;
     }
 
     private bool CheckCanRegisterUnit(Building building)
@@ -282,13 +288,12 @@ public class SelectUnitSystem : MonoBehaviour
         }
         else
         {
-            selectedUnit.transform.position = initialUnitPosition; 
+            selectedUnit.transform.position = initialUnitPosition;
             floorAgent.MoveToFloor(previousLayerIndex);
             floorAgent.UpdateVisualElements();
         }
 
     }
-
 
 
     #endregion

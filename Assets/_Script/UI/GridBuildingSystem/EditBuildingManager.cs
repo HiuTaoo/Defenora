@@ -7,6 +7,7 @@ using static UnityEditor.Rendering.ShadowCascadeGUI;
 /// </summary>
 public class EditBuildingManager : MonoBehaviour
 {
+    public static EditBuildingManager Instance;
     public HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
     public List<Building> listPlacedBuilding = new List<Building>();
 
@@ -17,6 +18,11 @@ public class EditBuildingManager : MonoBehaviour
 
     private void Awake()
     {
+        if(Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+
         graphNode = FindObjectOfType<GraphNode>();
         saveLoadSystem = FindObjectOfType<SaveLoadSystem>();
 
@@ -53,8 +59,11 @@ public class EditBuildingManager : MonoBehaviour
 
         Building building = currentbuilding.GetComponent<Building>();
         building.LayerIndex = LayerManager.Instance.layerIndex;
+        building.buildingState = BuildingState.Placing;
 
         currentbuilding.transform.name = $"{building.buildingType}: {System.Guid.NewGuid()}";
+        Debug.Log($"Building: {building.name} is in Placing State");
+
         listPlacedBuilding.Add(building);
 
         building.UpdateRenderSortingOrder(LayerManager.Instance.layerIndex);
@@ -133,10 +142,40 @@ public class EditBuildingManager : MonoBehaviour
 
     }
 
+    private void ChangeBuildingState()
+    {
+        if(listPlacedBuilding != null)
+        {
+            foreach(var build in listPlacedBuilding)
+            {
+                build.buildingState = BuildingState.UnderConstruction;
+                Debug.Log($"Building: {build.name} set state: {build.buildingState}");
+            }
+        }
+    }
+
     private void HandleSaveBuilding() {
         UpdateGraphNode();
+        ChangeBuildingState();
         UnitManager.Instance.buildings.AddRange(listPlacedBuilding);
         RollBackBuildingVisual();
         listPlacedBuilding.Clear();
+    }
+
+
+    public bool CheckIsTempBuiling(Building building)
+    {
+        if(listPlacedBuilding.Count > 0)
+        {
+            foreach(var placedBuilding in  listPlacedBuilding)
+            {
+                if (placedBuilding == building)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return false;
     }
 }

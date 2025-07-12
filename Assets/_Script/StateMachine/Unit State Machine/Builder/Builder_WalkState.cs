@@ -55,7 +55,7 @@ public class Builder_WalkState : IUnitState
 
         bool isBlocked = pawn.agentPhysics2D.IsBlock(currentPosition, direction, moveDistance + 0.05f, pawn.GetComponent<CircleCollider2D>());
 
-        if (!isBlocked)
+        if (!isBlocked && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             Vector2 newPosition = currentPosition + direction * moveDistance;
             pawn.rb.MovePosition(newPosition);
