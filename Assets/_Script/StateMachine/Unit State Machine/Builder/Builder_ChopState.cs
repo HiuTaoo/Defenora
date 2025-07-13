@@ -1,10 +1,11 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Builder_ChopState : IUnitState
 {
     private BuilderController pawn;
+    public Tree currentTree;
     private bool isCompleted = false;
 
     public Builder_ChopState(BuilderController pawn)
@@ -26,7 +27,10 @@ public class Builder_ChopState : IUnitState
         {
             pawn.StateMachine.ChangeState(new Builder_IdleState(pawn));
             isCompleted = false;
+            return;
         }
+
+        TryChop();
     }
 
     public void FixedUpdate() { }
@@ -35,4 +39,35 @@ public class Builder_ChopState : IUnitState
     {
         isCompleted = true;
     }
+
+    private void TryChop()
+    {
+        Vector2 facingDir = pawn.transform.right.normalized * pawn.transform.localScale.x;
+
+        Vector2 origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
+
+        Collider2D hit = Physics2D.OverlapBox(origin, pawn.chopBoxSize, 0f, LayerMask.GetMask("Decor"));
+
+        if (hit != null)
+        {
+            currentTree = hit.GetComponent<Tree>();
+
+        }
+        else
+        {
+            currentTree = null;
+        }
+    }
+
+    public void DrawGizmos()
+    {
+        if (pawn == null) return;
+
+        Vector2 facingDir = pawn.transform.right.normalized * pawn.transform.localScale.x;
+        Vector2 origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(origin, pawn.chopBoxSize);
+    }
+
 }
