@@ -127,7 +127,7 @@ public abstract class Building : MonoBehaviour
         }
         return false;
     }
-
+    #region RANDOM POSITION
     public virtual Vector3 GetAvailableSpot()
     {
         foreach (var spot in positionSpots)
@@ -146,41 +146,47 @@ public abstract class Building : MonoBehaviour
 
     public Vector3 GetRandomPositionAroundBuilding()
     {
-        const int maxTries = 20;
+        const int maxTries = 10; 
         float cellSize = 1f;
 
         if (buildingFootprint == null)
             GetBuildingFootprinf();
 
         var cells = buildingFootprint.GetAbsoluteGridPositions(WorldToCell(transform.position, 1f));
-
         Vector3 basePosition = transform.position;
         GraphNode graphNode = GraphNode.Instance;
 
+        List<Vector3> validPositions = new List<Vector3>();
+
         for (int i = 0; i < maxTries; i++)
         {
-            Vector2 randomOffset = Random.insideUnitCircle * range/2;
-            Vector3 randomWorldPos = new Vector3(
-                basePosition.x + randomOffset.x,
-                basePosition.y + randomOffset.y,
-                0f 
-            );
-
+            Vector3 randomWorldPos = GetRandomPositionInRange(basePosition);
             Vector2Int cellPos = WorldToCell(randomWorldPos, cellSize);
 
-            Node node = graphNode.GetNode(new Vector3Int(cellPos.x, cellPos.y, 0), LayerIndex);
-
-            foreach( var cell in cells)
+            bool isInFootprint = false;
+            foreach (var cell in cells)
             {
                 if (cellPos == cell)
-                    continue;
+                {
+                    isInFootprint = true;
+                    break;
+                }
             }
 
+            if (isInFootprint) continue;
+
+            Node node = graphNode.GetNode(new Vector3Int(cellPos.x, cellPos.y, 0), LayerIndex);
             if (node != null && node.isWalkable)
             {
                 Vector3 cellCenter = CellToWorld(cellPos, cellSize);
-                return cellCenter;
+                validPositions.Add(cellCenter);
             }
+        }
+
+        if (validPositions.Count > 0)
+        {
+            int randomIndex = Random.Range(0, validPositions.Count);
+            return validPositions[randomIndex];
         }
 
         Debug.LogWarning($"Không tìm được Node walkable quanh Building. Trả về vị trí Building.");
@@ -188,6 +194,92 @@ public abstract class Building : MonoBehaviour
         return CellToWorld(fallbackCell, cellSize);
     }
 
+    private Vector3 GetRandomPositionInRange_UniformCircle(Vector3 basePosition)
+    {
+        float angle = Random.Range(0f, 2f * Mathf.PI);
+        float radius = Mathf.Sqrt(Random.Range(0f, 1f)) * range / 2;
+
+        Vector2 randomOffset = new Vector2(
+            Mathf.Cos(angle) * radius,
+            Mathf.Sin(angle) * radius
+        );
+
+        return new Vector3(
+            basePosition.x + randomOffset.x,
+            basePosition.y + randomOffset.y,
+            0f
+        );
+    }
+
+    private Vector3 GetRandomPositionInRange_SquareToCircle(Vector3 basePosition)
+    {
+        Vector2 randomOffset;
+        do
+        {
+            randomOffset = new Vector2(
+                Random.Range(-range / 2, range / 2),
+                Random.Range(-range / 2, range / 2)
+            );
+        } while (randomOffset.magnitude > range / 2);
+
+        return new Vector3(
+            basePosition.x + randomOffset.x,
+            basePosition.y + randomOffset.y,
+            0f
+        );
+    }
+
+    private Vector3 GetRandomPositionInRange_GridPattern(Vector3 basePosition)
+    {
+        int gridSize = Mathf.RoundToInt(range);
+        int randomX = Random.Range(-gridSize / 2, gridSize / 2 + 1);
+        int randomY = Random.Range(-gridSize / 2, gridSize / 2 + 1);
+
+        float noiseX = Random.Range(-0.3f, 0.3f);
+        float noiseY = Random.Range(-0.3f, 0.3f);
+
+        return new Vector3(
+            basePosition.x + randomX + noiseX,
+            basePosition.y + randomY + noiseY,
+            0f
+        );
+    }
+
+    private Vector3 GetRandomPositionInRange_WeightedDistance(Vector3 basePosition)
+    {
+        float minDistance = 2f; 
+        float maxDistance = range / 2;
+
+        float angle = Random.Range(0f, 2f * Mathf.PI);
+        float radius = Random.Range(minDistance, maxDistance);
+
+        Vector2 randomOffset = new Vector2(
+            Mathf.Cos(angle) * radius,
+            Mathf.Sin(angle) * radius
+        );
+
+        return new Vector3(
+            basePosition.x + randomOffset.x,
+            basePosition.y + randomOffset.y,
+            0f
+        );
+    }
+
+    private Vector3 GetRandomPositionInRange(Vector3 basePosition)
+    {
+        int method = Random.Range(0, 4);
+
+        switch (method)
+        {
+            case 0: return GetRandomPositionInRange_UniformCircle(basePosition);
+            case 1: return GetRandomPositionInRange_SquareToCircle(basePosition);
+            case 2: return GetRandomPositionInRange_GridPattern(basePosition);
+            case 3: return GetRandomPositionInRange_WeightedDistance(basePosition);
+            default: return GetRandomPositionInRange_UniformCircle(basePosition);
+        }
+    }
+    
+    #endregion
     public Vector2Int WorldToCell(Vector3 worldPos, float cellSize)
     {
         int x = Mathf.FloorToInt(worldPos.x / cellSize);

@@ -53,10 +53,9 @@ public class SelectUnitSystem : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            // Kiểm tra nếu click vào UI element
             if (EventSystem.current.IsPointerOverGameObject())
             {
-                return; // Không thực hiện các hàm check nếu click vào UI
+                return;
             }
 
             isMouseDown = true;

@@ -1,9 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
-using UnityEngine.Windows;
-using static UnityEngine.RuleTile.TilingRuleOutput;
+﻿using UnityEngine;
 
 public class Builder_WalkState : IUnitState
 {
@@ -27,10 +22,10 @@ public class Builder_WalkState : IUnitState
         {
             pawn.StateMachine.ChangeState(new Builder_IdleState(pawn));
         }
-        /*        if (Input.GetMouseButtonDown(0))
-                {
-                    pawn.StateMachine.ChangeState(new ChopState(pawn));
-                }*/
+        if (Input.GetMouseButtonDown(0))
+        {
+            pawn.StateMachine.ChangeState(new Builder_ChopState(pawn));
+        }
     }
 
     public void FixedUpdate()

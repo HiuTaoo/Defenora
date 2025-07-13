@@ -5,7 +5,11 @@ using UnityEngine;
 
 public class BuilderController : MonoBehaviour
 {
+    [Header("Builder Info")]
     public float moveSpeed = 3.5f;
+    public Vector2 chopBoxSize = new Vector2(1f, 1f);
+    public float chopDistance = 1f;
+
     public Rigidbody2D rb;
     public Animator animator;
     public AgentPhysics2D agentPhysics2D;
@@ -56,6 +60,25 @@ public class BuilderController : MonoBehaviour
             chopState.SetCompleted();
         }
     }
+
+    public void Chop()
+    {
+        if (StateMachine.CurrentState is Builder_ChopState chopState)
+        {
+            if (chopState.currentTree != null)
+            {
+                chopState.currentTree.HandleChopTree();
+            }
+        }
+          
+    }
     #endregion
 
+    private void OnDrawGizmos()
+    {
+        /*if (StateMachine.CurrentState is Builder_ChopState chopState)
+        {
+            chopState.DrawGizmos();
+        }*/
+    }
 }

@@ -32,10 +32,10 @@ public class Builder_IdleState : IUnitState
         }
 
 
-        /*if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
-            pawn.StateMachine.ChangeState(new ChopState(pawn));
-        }*/
+            pawn.StateMachine.ChangeState(new Builder_ChopState(pawn));
+        }
     }
 
     public void FixedUpdate() { }
