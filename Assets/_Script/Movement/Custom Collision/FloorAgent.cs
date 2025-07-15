@@ -84,13 +84,13 @@ public class FloorAgent : MonoBehaviour
 
     public void UpdateVisualElements()
     {
-        var floorDef = FloorManager.Instance.GetFloorDefinition(currentFloorIndex);
-        if (floorDef != null)
+        var renderData = RenderManager.Instance.LookUpRenderDataByLayerIndex(RenderManager.Instance.characterRender, currentFloorIndex);
+        if (renderData != null)
         {
             var renderer = GetComponentInParent<SpriteRenderer>();
             if (renderer != null)
             {
-                renderer.sortingOrder = floorDef.sortingOrder;
+                renderer.sortingOrder = renderData.sortingOrder;
             }
         }
     }

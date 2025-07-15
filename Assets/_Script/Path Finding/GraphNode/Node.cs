@@ -8,6 +8,7 @@ public class Node
     public int layerIndex;
     public bool isWalkable;
     public bool isStair ;
+    public bool isBridge;
     public Node stairTargetNode;
     public List<Node> neighbors = new List<Node>();
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -63,7 +64,6 @@ public class GraphNode : MonoBehaviour
                 {
                     Vector3Int position = new Vector3Int(x, y, 0);
 
-                    //Kiểm tra xem ở vị trí đó đã có node chưa
                     if (graph.nodes.ContainsKey(position)) continue;
 
                     if (tileMap.HasTile(position))
@@ -77,7 +77,7 @@ public class GraphNode : MonoBehaviour
                                 if (obstacleTilemap != null && obstacleTilemap.HasTile(position))
                                 {
                                     isBlocked = true;
-                                    break; // Nếu bị block bởi bất kỳ obstacle nào thì dừng
+                                    break; 
                                 }
                             }
                         }
@@ -89,6 +89,7 @@ public class GraphNode : MonoBehaviour
                                 position = position,
                                 layerIndex = layerData.layerIndex,
                                 isWalkable = true,
+                                isBridge = false,
                                 isStair = layerData.stairTilemap != null &&
                                           layerData.stairTilemap.HasTile(position),
                             };
@@ -101,6 +102,7 @@ public class GraphNode : MonoBehaviour
             }
         }
 
+        CreateBridgeNode(layerData, graph);
         //Debug.Log($"Tầng {layerData.layerIndex} có tổng {graph.nodes.Count} nodes");
     }
 
@@ -157,6 +159,7 @@ public class GraphNode : MonoBehaviour
                         layerIndex = targetLayerIndex,
                         isWalkable = true,
                         isStair = true,
+                        isBridge = false,
                         stairTargetNode = currentNode,
                     };
 
@@ -177,11 +180,9 @@ public class GraphNode : MonoBehaviour
         Debug.Log($"Stair nodes tầng {targetLayerIndex}: {targetStairNodes}");
         Debug.Log($"Tổng kết nối cầu thang được tạo: {stairConnectionCount}");*/
     }
-
     private void LinkNeighBor(LayerData layerData, PathfindingGraph graph)
     {
         graph.layerIndex = layerData.layerIndex;
-
         Vector3Int[] directions = {
         Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right
     };
@@ -189,52 +190,122 @@ public class GraphNode : MonoBehaviour
         foreach (var kvp in graph.nodes)
         {
             Node node = kvp.Value;
+            int bridgeNeighborCount = 0;
 
+            // BƯỚC 1: Xử lý connections thông thường
             foreach (Vector3Int direction in directions)
             {
                 Vector3Int neighborPos = node.position + direction;
-
                 if (!graph.nodes.ContainsKey(neighborPos))
                     continue;
 
                 Node neighbor = graph.nodes[neighborPos];
 
+                // Tránh duplicate neighbors
+                if (node.neighbors.Contains(neighbor))
+                    continue;
+
                 if (node.isStair)
                 {
-                    // Nếu stair thì luôn có thể link với stair khác
                     if (neighbor.isStair)
                     {
                         node.neighbors.Add(neighbor);
                     }
                     else if ((direction == Vector3Int.up || direction == Vector3Int.down) && !neighbor.isStair)
                     {
-                        // Link với node thường chỉ khi ở trên hoặc dưới
                         node.neighbors.Add(neighbor);
                     }
                 }
-                else
+                else if (!node.isBridge) // Normal walkable nodes
                 {
-                    // Nếu node thường thì chỉ được link với stair nếu stair ở trên hoặc dưới
                     if (neighbor.isStair && (direction == Vector3Int.up || direction == Vector3Int.down))
                     {
                         node.neighbors.Add(neighbor);
                     }
-                    else if (!neighbor.isStair)
+                    else if (!neighbor.isStair && !neighbor.isBridge)
                     {
-                        // Node thường link với thường như bình thường
                         node.neighbors.Add(neighbor);
+                    }
+                }
+
+                // BƯỚC 2: Xử lý bridge nodes và đếm bridge neighbors
+                if (node.isBridge)
+                {
+                    if (neighbor.isBridge)
+                    {
+                        node.neighbors.Add(neighbor);
+                        bridgeNeighborCount++;
+                        //Debug.Log($"Bridge connection: {node.position} -> {neighbor.position}");
+                    }
+                }
+            }
+
+            // BƯỚC 3: Xử lý đầu cầu (Bridge Endpoint)
+            if (node.isBridge && bridgeNeighborCount == 1)
+            {
+                Debug.Log($"Bridge endpoint detected at {node.position}");
+
+                foreach (Vector3Int direction in directions)
+                {
+                    Vector3Int neighborPos = node.position + direction;
+
+                    // Kiểm tra key existence để tránh crash
+                    if (!graph.nodes.ContainsKey(neighborPos))
+                        continue;
+
+                    Node neighbor = graph.nodes[neighborPos];
+
+                    // Tránh duplicate neighbors
+                    if (node.neighbors.Contains(neighbor))
+                        continue;
+
+                    // Đầu cầu kết nối với walkable nodes (không phải bridge, không phải stair)
+                    if (neighbor.isWalkable && !neighbor.isBridge && !neighbor.isStair)
+                    {
+                        node.neighbors.Add(neighbor);
+                        neighbor.neighbors.Add(node);
+                        Debug.Log($"Bridge endpoint {node.position} connected to walkable {neighbor.position}");
                     }
                 }
             }
         }
 
-        //Debug.Log($"Built graph for layer {layerData.layerIndex} with {graph.nodes.Count} nodes");
+        Debug.Log($"Built graph for layer {layerData.layerIndex} with {graph.nodes.Count} nodes");
     }
+    private void CreateBridgeNode(LayerData layerData, PathfindingGraph graph)
+    {
+        if (layerData.bridgeTilemap == null) return;
 
+        foreach (Vector3Int position in layerData.bridgeTilemap.cellBounds.allPositionsWithin)
+        {
+            if (layerData.bridgeTilemap.HasTile(position))
+            {
+                if (!graph.nodes.ContainsKey(position))
+                {
+                    Node node = new Node
+                    {
+                        position = position,
+                        layerIndex = layerData.layerIndex,
+                        isWalkable = true,
+                        isStair = false,
+                        isBridge = true,
+                    };
+                    graph.nodes[position] = node;
+                    Debug.Log($"Tạo bridge node tại {position} ở layer {layerData.layerIndex}");
+                    continue;
+                }
+                if (graph.nodes.ContainsKey(position))
+                {
+                    graph.nodes[position].isBridge = true;
+                    Debug.Log($"Đã sửa node tại {position} ở layer {layerData.layerIndex} thành bridge");
+                }
+            }
+        }
+    }
 
     #endregion
 
-    #region Access & Utility
+        #region Access & Utility
 
     public Node GetNode(Vector3Int position, int layerIndex)
     {
@@ -283,6 +354,21 @@ public class GraphNode : MonoBehaviour
             Debug.Log($"   - {neighbor.position}");
         }
     }
+
+    public void SetWalkableNode(Vector3Int position, int layerIndex, bool isWalkable)
+    {
+        layerGraphs.TryGetValue(layerIndex, out var layerGraph);
+        if (layerGraph != null && layerGraph.nodes.TryGetValue(position, out var node))
+        {
+            node.isWalkable = isWalkable;
+           // Debug.Log($"✅ Node FOUND: {position} @Layer {layerIndex} -> Walkable: {isWalkable}");
+        }
+        else
+        {
+            //Debug.Log($"⚠️ Node NOT FOUND: {position} @Layer {layerIndex}");
+        }
+    }
+
 
     public void ResetAllNodes()
     {

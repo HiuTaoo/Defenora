@@ -7,7 +7,7 @@ public class Tree : MonoBehaviour
     [Header("Tree Info")]
     public TreeState treeState = TreeState.Idle;
     public int maxChopHit = 5;
-    public int currentLayerIndex = 0;
+    public int layerIndex;
     public int currentChopHit = 0;
 
     private SpriteRenderer spriteRenderer;
