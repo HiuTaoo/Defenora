@@ -91,6 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  layerIndex: -1
 --- !u!60 &7212452886757199008
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -268,8 +269,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.006071083, y: 0.07517964}
-  m_Size: {x: 2.6569564, y: 0.6505782}
+  m_Offset: {x: -0.0060710884, y: 0.028039077}
+  m_Size: {x: 2.6569579, y: 0.74486274}
   m_Direction: 1
 --- !u!114 &7977919660959584953
 MonoBehaviour:

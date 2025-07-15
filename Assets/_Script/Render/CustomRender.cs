@@ -7,10 +7,30 @@ public class CustomRender : MonoBehaviour
     private BoxCollider2D checkingCollider;
     private SpriteRenderer spriteRenderer;
 
+    public int layerIndex = -1;
+
     private void Awake()
     {
         checkingCollider = GetComponent<BoxCollider2D>();
         spriteRenderer = GetComponentInParent<SpriteRenderer>();
+
+    }
+
+    private void LookUpLayerIndex()
+    {
+        if(layerIndex >= 0)
+        {
+            var building = gameObject.GetComponentInParent<Building>();
+            var tree = gameObject.GetComponentInParent<Tree>();
+            if (building != null && tree == null)
+            {
+                layerIndex = building.LayerIndex;
+            }
+            if (tree != null && building == null)
+            {
+                layerIndex = tree.layerIndex;
+            }
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -19,11 +39,16 @@ public class CustomRender : MonoBehaviour
         {
             if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null)
             {
-                collision.gameObject.GetComponent<SpriteRenderer>().sortingOrder = spriteRenderer.sortingOrder - 1;
-
+                var floorAgent = collision.gameObject.GetComponentInChildren<FloorAgent>();
+                LookUpLayerIndex();
+                if (layerIndex == floorAgent.currentFloorIndex)
+                {
+                    collision.gameObject.GetComponent<SpriteRenderer>().sortingOrder = spriteRenderer.sortingOrder - 1;
+                }
                 Color c = spriteRenderer.color;
                 c.a = 0.5f;
                 spriteRenderer.color = c;
+
             }
         }
         

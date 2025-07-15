@@ -152,8 +152,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.00082136283, y: 0.09016725}
-  m_Size: {x: 0.79701024, y: 0.658387}
+  m_Offset: {x: 0.00082135835, y: 0.05202771}
+  m_Size: {x: 0.7970105, y: 0.73466855}
   m_Direction: 1
 --- !u!114 &6580866885181238989
 MonoBehaviour:
@@ -283,6 +283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  layerIndex: -1
 --- !u!60 &2057061004878811590
 PolygonCollider2D:
   m_ObjectHideFlags: 0
