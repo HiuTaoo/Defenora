@@ -7,7 +7,6 @@ using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
 [RequireComponent(typeof(FloorAgent))]
 [RequireComponent(typeof(StairCollision))]
-[RequireComponent(typeof(CharacterMovement))]
 public class AgentPhysics2D : MonoBehaviour
 {
     private FloorAgent floorAgent;
@@ -238,32 +237,68 @@ public class AgentPhysics2D : MonoBehaviour
 
     private void HandleEnterStair()
     {
-        transform.GetComponentInParent<SpriteRenderer>().sortingOrder = 305;
-        Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
-        if (movementInput.y > 0.1f)
-            intoStairDirection = Vector2.up;
-        if (movementInput.y < -0.1f)
-            intoStairDirection = Vector2.down;
+        #region Player Enter Stair
+        if(gameObject.GetComponent<CharacterMovement>() != null)
+        {
+            transform.GetComponentInParent<SpriteRenderer>().sortingOrder = 305;
+            Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+            if (movementInput.y > 0.1f)
+                intoStairDirection = Vector2.up;
+            if (movementInput.y < -0.1f)
+                intoStairDirection = Vector2.down;
+        }
+
+        #endregion
+        #region Sheep Enter Stair
+        if (transform.GetComponentInParent<Sheep>() != null)
+        {
+            transform.GetComponentInParent<SpriteRenderer>().sortingOrder = 305;
+            if (transform.GetComponentInParent<Sheep>().runDirection.y > 0.1f)
+                intoStairDirection = Vector2.up;
+            if (transform.GetComponentInParent<Sheep>().runDirection.y < -0.1f)
+                intoStairDirection = Vector2.down;
+        }
+        #endregion
     }
 
     private void HandleExitStair()
     {
-        characterMovement.UpdateLayerIndex();
-        floorAgent.UpdateVisualElements();
-
-        Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
-
-        if (movementInput.y > 0.1f && intoStairDirection == Vector2.up)
+        #region Character Exit Stair
+        if (characterMovement != null)
         {
-            floorAgent.MoveToFloor(floorAgent.currentFloorIndex + 1);
+            characterMovement.UpdateLayerIndex();
+            floorAgent.UpdateVisualElements();
 
-        }
-        else if (movementInput.y < -0.1f && intoStairDirection == Vector2.down)
-        {
-            floorAgent.MoveToFloor(floorAgent.currentFloorIndex - 1);
-        }
-        characterMovement.CurrentLayer = floorAgent.currentFloorIndex;
+            Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
 
+            if (movementInput.y > 0.1f && intoStairDirection == Vector2.up)
+            {
+                floorAgent.MoveToFloor(floorAgent.currentFloorIndex + 1);
+
+            }
+            else if (movementInput.y < -0.1f && intoStairDirection == Vector2.down)
+            {
+                floorAgent.MoveToFloor(floorAgent.currentFloorIndex - 1);
+            }
+
+            characterMovement.CurrentLayer = floorAgent.currentFloorIndex;
+        }
+        #endregion
+
+        #region Sheep Exit Stair
+        if (transform.GetComponentInParent<Sheep>() != null){
+            var sheep = transform.GetComponentInParent<Sheep>();
+            if(sheep.runDirection.y > 0.1f && intoStairDirection == Vector2.up)
+            {
+                sheep.floorAgent.MoveToFloor(sheep.floorAgent.currentFloorIndex + 1);
+            }
+            else if(sheep.runDirection.y < -0.1f && intoStairDirection == Vector2.down)
+            {
+                sheep.floorAgent.MoveToFloor(sheep.floorAgent.currentFloorIndex - 1);
+            }
+            sheep.layerIndex = sheep.floorAgent.currentFloorIndex;
+        }
+        #endregion
     }
 
     private float GetMoveSpeed() {

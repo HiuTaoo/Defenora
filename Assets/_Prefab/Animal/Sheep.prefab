@@ -1,5 +1,75 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1468675827961842599
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5672944249477562218}
+  - component: {fileID: 2757486972453738309}
+  - component: {fileID: 3586850324935905425}
+  - component: {fileID: 28770275379308268}
+  m_Layer: 10
+  m_Name: Collision
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5672944249477562218
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468675827961842599}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8632038455976222414}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2757486972453738309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468675827961842599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7429e66e3ef26a74886f86c5fdbcb2e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3586850324935905425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468675827961842599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12a4eb86d934e8549a6a938e73cbd124, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &28770275379308268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468675827961842599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9c79e264e334eb43b6e68c699901814, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5795443728063549235
 GameObject:
   m_ObjectHideFlags: 0
@@ -12,7 +82,7 @@ GameObject:
   - component: {fileID: 270826245380467605}
   - component: {fileID: 2985086732796890204}
   - component: {fileID: 5629498111548111137}
-  - component: {fileID: 209180169053053357}
+  - component: {fileID: 6883716771305632206}
   - component: {fileID: 6317733932236137964}
   m_Layer: 10
   m_Name: Sheep
@@ -33,7 +103,8 @@ Transform:
   m_LocalPosition: {x: -16.56, y: -18.46, z: 0.008800436}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5672944249477562218}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &270826245380467605
@@ -136,8 +207,8 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!70 &209180169053053357
-CapsuleCollider2D:
+--- !u!58 &6883716771305632206
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -168,9 +239,9 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.004849546, y: 0.06305611}
-  m_Size: {x: 0.67098904, y: 0.59338206}
-  m_Direction: 1
+  m_Offset: {x: -0.008670807, y: 0.056363106}
+  serializedVersion: 2
+  m_Radius: 0.3193102
 --- !u!114 &6317733932236137964
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,3 +254,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bc4d0cf28af7d2478dc504035a6dd71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  floorAgent: {fileID: 0}
+  layerIndex: 0
+  isDangerous: 0
+  maxDuration: 15
+  runSpeed: 2
+  panicTime: 5
+  runDirection: {x: 0, y: 0}
+  alertDistance: 2.5

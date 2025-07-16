@@ -8,6 +8,8 @@ TagManager:
   - Spot
   - Tree
   - Bush
+  - Sheep
+  - Enemy
   layers:
   - Default
   - TransparentFX
