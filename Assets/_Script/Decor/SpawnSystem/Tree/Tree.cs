@@ -1,6 +1,7 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Tree : MonoBehaviour
 {
@@ -9,9 +10,11 @@ public class Tree : MonoBehaviour
     public int maxChopHit = 5;
     public int layerIndex;
     public int currentChopHit = 0;
+    public Vector3Int positionInGrid;
 
     private SpriteRenderer spriteRenderer;
     private Animator animator;
+    private CapsuleCollider2D collider2D;
 
     private bool isBeingChopped = false;
 
@@ -19,6 +22,7 @@ public class Tree : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+        collider2D = GetComponent<CapsuleCollider2D>();
 
         RegisterState();
     }
@@ -77,6 +81,9 @@ public class Tree : MonoBehaviour
 
         var render = transform.Find("Custom Render Sprite");
         render.gameObject.SetActive(false);
+
+        collider2D.enabled = false;
+        GraphNode.Instance.SetWalkableNode(positionInGrid,layerIndex, true); 
     }
 
 }

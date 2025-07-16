@@ -12,7 +12,7 @@ public class TreeSpawnerDebugger : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (!Application.isPlaying || TreeSpawner.Instance == null) return;
+        if (!Application.isPlaying || ObjectSpawner.Instance == null) return;
 
         if (showClusters)
         {
@@ -34,12 +34,12 @@ public class TreeSpawnerDebugger : MonoBehaviour
     {
         Gizmos.color = clusterColor;
 
-        foreach (var layerClusters in TreeSpawner.Instance.layerClusters)
+        foreach (var layerClusters in ObjectSpawner.Instance.layerClusters)
         {
             foreach (var cluster in layerClusters.Value)
             {
                 Vector3 centerWorld = new Vector3(cluster.centerPosition.x, cluster.centerPosition.y, 0);
-                Gizmos.DrawWireSphere(centerWorld, TreeSpawner.Instance.spawnSettings.clusterRadius);
+                Gizmos.DrawWireSphere(centerWorld, ObjectSpawner.Instance.spawnSettings.clusterRadius);
 
                 // Draw cluster nodes
                 foreach (var nodePos in cluster.nodePositions)
@@ -55,7 +55,7 @@ public class TreeSpawnerDebugger : MonoBehaviour
     {
         Gizmos.color = spawnPointColor;
 
-        foreach (var layerTrees in TreeSpawner.Instance.spawnedTrees)
+        foreach (var layerTrees in ObjectSpawner.Instance.spawnedTrees)
         {
             foreach (var tree in layerTrees.Value)
             {
@@ -81,7 +81,7 @@ public class TreeSpawnerDebugger : MonoBehaviour
                 if (!node.isWalkable) continue;
 
                 float noiseValue = GetNoiseValue(node.position);
-                if (noiseValue > TreeSpawner.Instance.spawnSettings.noiseThreshold)
+                if (noiseValue > ObjectSpawner.Instance.spawnSettings.noiseThreshold)
                 {
                     Vector3 worldPos = new Vector3(node.position.x, node.position.y, 0);
                     Gizmos.color = Color.Lerp(Color.white, noiseColor, noiseValue);
@@ -93,7 +93,7 @@ public class TreeSpawnerDebugger : MonoBehaviour
 
     private float GetNoiseValue(Vector3Int position)
     {
-        var settings = TreeSpawner.Instance.spawnSettings;
+        var settings = ObjectSpawner.Instance.spawnSettings;
         float x = (position.x + settings.noiseOffset.x) * settings.noiseScale;
         float y = (position.y + settings.noiseOffset.y) * settings.noiseScale;
 

@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  layerIndex: -1
 --- !u!60 &2534435472118015756
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -253,5 +254,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   treeState: 0
   maxChopHit: 5
-  currentLayerIndex: 0
+  layerIndex: 0
   currentChopHit: 0
+  positionInGrid: {x: 0, y: 0, z: 0}

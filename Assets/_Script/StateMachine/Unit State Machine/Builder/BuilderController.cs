@@ -52,6 +52,12 @@ public class BuilderController : MonoBehaviour
         MovementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
     }
 
+    public int GetCurrentLayerIndex()
+    {
+        var flootAgent = gameObject.GetComponentInChildren<FloorAgent>();
+        return flootAgent != null ? flootAgent.currentFloorIndex : 0;
+    }
+
     #region CHOP STATE
     public void EndChopAction()
     {

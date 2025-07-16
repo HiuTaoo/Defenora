@@ -11,12 +11,12 @@ public class TreeSpawnerController : MonoBehaviour
     {
         if (Input.GetKeyDown(respawnKey))
         {
-            TreeSpawner.Instance?.SpawnTreesOnAllLayers();
+            ObjectSpawner.Instance?.SpawnTreesOnAllLayers();
         }
 
         if (Input.GetKeyDown(clearKey))
         {
-            TreeSpawner.Instance?.ClearAllTrees();
+            ObjectSpawner.Instance?.ClearAllTrees();
         }
 
 /*        if (Input.GetKeyDown(debugKey))
@@ -27,7 +27,7 @@ public class TreeSpawnerController : MonoBehaviour
 
     private void ShowRuntimeDebugInfo()
     {
-        if (TreeSpawner.Instance == null) return;
+        if (ObjectSpawner.Instance == null) return;
 
         Debug.Log("=== RUNTIME DEBUG INFO ===");
 
@@ -37,8 +37,8 @@ public class TreeSpawnerController : MonoBehaviour
         foreach (var layerGraph in GraphNode.Instance.layerGraphs)
         {
             int layerIndex = layerGraph.Key;
-            var trees = TreeSpawner.Instance.GetTreesOnLayer(layerIndex);
-            var clusters = TreeSpawner.Instance.GetClustersOnLayer(layerIndex);
+            var trees = ObjectSpawner.Instance.GetTreesOnLayer(layerIndex);
+            var clusters = ObjectSpawner.Instance.GetClustersOnLayer(layerIndex);
 
             totalTrees += trees.Count;
             totalClusters += clusters.Count;

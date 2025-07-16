@@ -84,7 +84,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
-  currentLayer: 0
 --- !u!1 &6602815683075122701
 GameObject:
   m_ObjectHideFlags: 0
@@ -279,7 +278,9 @@ MonoBehaviour:
   attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
+  spriteRenderer: {fileID: 0}
   assignedBuilding: {fileID: 0}
+  floorAgent: {fileID: 0}
   healAmount: 20
   healRange: 3
   healCooldown: 5

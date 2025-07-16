@@ -6,8 +6,8 @@ public class GameSaveData
 {
     public UnitSaveData unitSaveData = new UnitSaveData();
     public BuildingSaveData buildingSaveData = new BuildingSaveData();
-    //public InventorySaveData inventorySaveData = new InventorySaveData();
-    // Thêm tuỳ module
+    public ObjectSpawnData objectSpawnData = new ObjectSpawnData();
+
 }
 
 [System.Serializable]
@@ -22,4 +22,17 @@ public class BuildingSaveData
     public List<BuildingData> buildings = new List<BuildingData>();
 }
 
-// Tương tự cho các data khác...
+
+[System.Serializable]
+public class ObjectSpawnData
+{
+    public int version = 1;
+    public List<LayerSpawnData> layerData = new List<LayerSpawnData>();
+    public long saveTimestamp;
+
+    public ObjectSpawnData()
+    {
+        saveTimestamp = System.DateTime.Now.ToBinary();
+    }
+}
+

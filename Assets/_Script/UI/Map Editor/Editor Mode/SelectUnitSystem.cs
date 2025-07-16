@@ -91,6 +91,8 @@ public class SelectUnitSystem : MonoBehaviour
                 Vector2 offset = currentMousePosition - initialMousePosition;
                 MoveByCell(initialUnitPosition + offset);
                 OnDragUnit?.Invoke(true);
+                selectUnitSpriteRenderer.sortingOrder = 100;
+
             }
 
             if (isDragging && !canMoveSelectedUnit)
@@ -113,7 +115,7 @@ public class SelectUnitSystem : MonoBehaviour
                     isMouseDown = false;
 
                     if (selectedUnit != null)
-                        selectedUnit.GetComponentInChildren<FloorAgent>().UpdateVisualElements();
+                        floorAgent.UpdateVisualElements();
 
                     OnDragUnit?.Invoke(false);
                     return;
@@ -128,6 +130,8 @@ public class SelectUnitSystem : MonoBehaviour
                 OnSelectUnit?.Invoke(selectedUnit);
                 OnLerpToSelectedUnit?.Invoke(selectedUnit.transform.position);
             }
+            if(floorAgent != null)
+                floorAgent.UpdateVisualElements();
 
             isMouseDown = false;
             isDragging = false;
