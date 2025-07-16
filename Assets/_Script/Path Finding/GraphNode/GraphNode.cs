@@ -243,7 +243,7 @@ public class GraphNode : MonoBehaviour
             // BƯỚC 3: Xử lý đầu cầu (Bridge Endpoint)
             if (node.isBridge && bridgeNeighborCount == 1)
             {
-                Debug.Log($"Bridge endpoint detected at {node.position}");
+                //Debug.Log($"Bridge endpoint detected at {node.position}");
 
                 foreach (Vector3Int direction in directions)
                 {
@@ -264,13 +264,13 @@ public class GraphNode : MonoBehaviour
                     {
                         node.neighbors.Add(neighbor);
                         neighbor.neighbors.Add(node);
-                        Debug.Log($"Bridge endpoint {node.position} connected to walkable {neighbor.position}");
+                        //Debug.Log($"Bridge endpoint {node.position} connected to walkable {neighbor.position}");
                     }
                 }
             }
         }
 
-        Debug.Log($"Built graph for layer {layerData.layerIndex} with {graph.nodes.Count} nodes");
+        //Debug.Log($"Built graph for layer {layerData.layerIndex} with {graph.nodes.Count} nodes");
     }
     private void CreateBridgeNode(LayerData layerData, PathfindingGraph graph)
     {
@@ -361,7 +361,7 @@ public class GraphNode : MonoBehaviour
         if (layerGraph != null && layerGraph.nodes.TryGetValue(position, out var node))
         {
             node.isWalkable = isWalkable;
-           // Debug.Log($"✅ Node FOUND: {position} @Layer {layerIndex} -> Walkable: {isWalkable}");
+            //Debug.Log($"✅ Node FOUND: {position} @Layer {layerIndex} -> Walkable: {isWalkable}");
         }
         else
         {

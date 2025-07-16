@@ -2,14 +2,14 @@
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(TreeSpawner))]
+[CustomEditor(typeof(ObjectSpawner))]
 public class TreeSpawnerEditor : Editor
 {
-    private TreeSpawner spawner;
+    private ObjectSpawner spawner;
     
     private void OnEnable()
     {
-        spawner = (TreeSpawner)target;
+        spawner = (ObjectSpawner)target;
     }
     
     public override void OnInspectorGUI()

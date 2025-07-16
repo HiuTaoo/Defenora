@@ -46,4 +46,16 @@ public class RenderManager : MonoBehaviour
             }
         }
     }
+
+    public void SetSortingOrderSubtractOneByIndex(List<RenderData> renderData, SpriteRenderer spriteRenderer, int layerIndex)
+    {
+        foreach (var data in renderData)
+        {
+            if (data.layerIndex == layerIndex)
+            {
+                spriteRenderer.sortingOrder = data.sortingOrder - 1;
+                break;
+            }
+        }
+    }
 }

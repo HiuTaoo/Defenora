@@ -45,13 +45,13 @@ public class Builder_ChopState : IUnitState
         Vector2 facingDir = pawn.transform.right.normalized * pawn.transform.localScale.x;
 
         Vector2 origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
+        int layer = LayerMask.GetMask($"Layer {pawn.GetCurrentLayerIndex() + 1}");
 
-        Collider2D hit = Physics2D.OverlapBox(origin, pawn.chopBoxSize, 0f, LayerMask.GetMask("Decor"));
+        Collider2D hit = Physics2D.OverlapBox(origin, pawn.chopBoxSize, 0f, layer);
 
-        if (hit != null)
+        if (hit != null && hit.CompareTag("Tree"))
         {
             currentTree = hit.GetComponent<Tree>();
-
         }
         else
         {

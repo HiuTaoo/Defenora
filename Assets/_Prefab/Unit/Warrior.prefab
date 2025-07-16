@@ -212,7 +212,9 @@ MonoBehaviour:
   attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
+  spriteRenderer: {fileID: 0}
   assignedBuilding: {fileID: 0}
+  floorAgent: {fileID: 0}
   chargeSpeed: 8
   chargeDuration: 2
   chargeCooldown: 10
@@ -288,7 +290,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2.5
-  currentLayer: 0
 --- !u!114 &4281134691819306975
 MonoBehaviour:
   m_ObjectHideFlags: 0

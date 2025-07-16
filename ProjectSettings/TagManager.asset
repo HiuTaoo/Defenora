@@ -7,6 +7,7 @@ TagManager:
   - Elevation
   - Spot
   - Tree
+  - Bush
   layers:
   - Default
   - TransparentFX
@@ -53,6 +54,6 @@ TagManager:
   - name: Layer 3
     uniqueID: 1061770637
     locked: 0
-  - name: Player
-    uniqueID: 3935277223
+  - name: Decor
+    uniqueID: 2542226927
     locked: 0
