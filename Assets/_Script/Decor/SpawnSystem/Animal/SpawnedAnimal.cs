@@ -10,11 +10,11 @@ public class SpawnedAnimal
     public int layerIndex;
     public Animal animalComponent;
 
-    public SpawnedAnimal(GameObject animalObj, Vector3Int gridPos, int layer)
+    public SpawnedAnimal(GameObject animalObj, Vector3Int gridPos)
     {
         animalObject = animalObj;
         gridPosition = gridPos;
-        layerIndex = layer;
         animalComponent = animalObj.GetComponent<Animal>();
+        layerIndex = animalComponent.layerIndex;
     }
 }

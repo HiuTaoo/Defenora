@@ -8,4 +8,6 @@ public class LayerSpawnData
     public List<TreeClusterData> clusters = new List<TreeClusterData>();
     public List<SpawnedTreeData> trees = new List<SpawnedTreeData>();
     public List<SpawnedBushData> bushes = new List<SpawnedBushData>();
+    public List<SpawnedRockData> rocks = new List<SpawnedRockData>();
+    public List<SpawnedAnimalData> animals = new List<SpawnedAnimalData>();
 }

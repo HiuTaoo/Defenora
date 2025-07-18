@@ -12,15 +12,15 @@ public abstract class Animal : MonoBehaviour
 
     [Header("Animal Info")]
     public AnimalType animalType;
-    public int layerIndex = 0;
+    public int layerIndex;
     public bool isDangerous = false;
-    public int maxDuration = 15;
-    public float runSpeed = 5f;
-    public float panicTime = 3f;
     public Vector2 runDirection;
 
     [Header("Animal Settings")]
     public float alertDistance = 5f;
+    public int maxDuration = 15;
+    public float runSpeed = 5f;
+    public float panicTime = 3f;
 
     protected Coroutine panicCoroutine;
     protected System.Random random;
@@ -155,3 +155,4 @@ public enum AnimalType
 {
     Sheep
 }
+

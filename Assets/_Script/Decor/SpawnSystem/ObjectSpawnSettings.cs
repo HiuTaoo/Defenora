@@ -62,7 +62,7 @@ public class ObjectSpawnSettings
     public Vector2 rockNoiseOffset = new Vector2(200f, 200f);
 
     [Header("Animal Settings")]
-    public GameObject[] animalPrefab;
+    public GameObject[] animalPrefabs;
 
     [Header("Animal Spawn Settings")]
     [Range(0f, 1f)]
