@@ -291,13 +291,13 @@ public class GraphNode : MonoBehaviour
                         isBridge = true,
                     };
                     graph.nodes[position] = node;
-                    Debug.Log($"Tạo bridge node tại {position} ở layer {layerData.layerIndex}");
+                    //Debug.Log($"Tạo bridge node tại {position} ở layer {layerData.layerIndex}");
                     continue;
                 }
                 if (graph.nodes.ContainsKey(position))
                 {
                     graph.nodes[position].isBridge = true;
-                    Debug.Log($"Đã sửa node tại {position} ở layer {layerData.layerIndex} thành bridge");
+                    //Debug.Log($"Đã sửa node tại {position} ở layer {layerData.layerIndex} thành bridge");
                 }
             }
         }

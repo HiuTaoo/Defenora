@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5677498787964995631}
   - component: {fileID: 347215634551837432}
   - component: {fileID: 4000456904438927540}
-  m_Layer: 10
+  m_Layer: 11
   m_Name: Sheep
   m_TagString: Sheep
   m_Icon: {fileID: 0}
@@ -188,11 +188,11 @@ MonoBehaviour:
   animalType: 0
   layerIndex: 0
   isDangerous: 0
+  runDirection: {x: 0, y: 0}
+  alertDistance: 2.5
   maxDuration: 15
   runSpeed: 2
   panicTime: 5
-  runDirection: {x: 0, y: 0}
-  alertDistance: 2.5
 --- !u!1 &8140360570584590714
 GameObject:
   m_ObjectHideFlags: 0

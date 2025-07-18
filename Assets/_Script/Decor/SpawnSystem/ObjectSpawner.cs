@@ -700,7 +700,7 @@ public class ObjectSpawner : MonoBehaviour
     #region Spawn Animal
     private List<SpawnedAnimal> SpawnAnimalsOnLayer(int layerIndex, List<SpawnedTree> trees, List<SpawnedBush> bushes, List<SpawnedRock> rocks, List<TreeCluster> clusters)
     {
-        if (spawnSettings.animalPrefab == null || spawnSettings.animalPrefab.Length == 0)
+        if (spawnSettings.animalPrefabs == null || spawnSettings.animalPrefabs.Length == 0)
         {
             return new List<SpawnedAnimal>();
         }
@@ -782,7 +782,7 @@ public class ObjectSpawner : MonoBehaviour
 
     private SpawnedAnimal SpawnAnimalAtPosition(Vector3Int position, int layerIndex)
     {
-        GameObject animalPrefab = spawnSettings.animalPrefab[random.Next(spawnSettings.animalPrefab.Length)];
+        GameObject animalPrefab = spawnSettings.animalPrefabs[random.Next(spawnSettings.animalPrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
         GameObject animalObj = Instantiate(animalPrefab, worldPosition, Quaternion.identity, this.transform);
@@ -803,7 +803,7 @@ public class ObjectSpawner : MonoBehaviour
             RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.characterRender, spriteRenderer, layerIndex);
         }
 
-        return new SpawnedAnimal(animalObj, position, layerIndex);
+        return new SpawnedAnimal(animalObj, position);
     }
     #endregion
 
