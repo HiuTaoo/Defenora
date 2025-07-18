@@ -58,6 +58,7 @@ public abstract class Building : MonoBehaviour
 
     }
 
+    #region Unit Management
     public virtual bool AddUnit(Unit unit)
     {
         if (currentCapacity >= maxCapacity)
@@ -127,6 +128,8 @@ public abstract class Building : MonoBehaviour
         }
         return false;
     }
+    #endregion
+
     #region RANDOM POSITION
     public virtual Vector3 GetAvailableSpot()
     {
@@ -278,8 +281,10 @@ public abstract class Building : MonoBehaviour
             default: return GetRandomPositionInRange_UniformCircle(basePosition);
         }
     }
-    
+
     #endregion
+
+    #region Helper Methods
     public Vector2Int WorldToCell(Vector3 worldPos, float cellSize)
     {
         int x = Mathf.FloorToInt(worldPos.x / cellSize);
@@ -326,7 +331,22 @@ public abstract class Building : MonoBehaviour
             unitNames = stationedUnits.Select(u => u.unitName).ToList()
         };
     }
+    #endregion
 
-    
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (positionSpots == null) return;
+
+        Gizmos.color = Color.green;
+        foreach (Transform spot in positionSpots)
+        {
+            if (spot != null)
+                Gizmos.DrawSphere(spot.position, 0.1f);
+        }
+        Gizmos.DrawWireSphere(transform.position, range);
+    }
+#endif
+
 
 }
