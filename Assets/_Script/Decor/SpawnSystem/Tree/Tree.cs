@@ -14,7 +14,7 @@ public class Tree : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
     private Animator animator;
-    private CapsuleCollider2D collider2D;
+    public CapsuleCollider2D treeCollider;
 
     private bool isBeingChopped = false;
 
@@ -22,7 +22,7 @@ public class Tree : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        collider2D = GetComponent<CapsuleCollider2D>();
+        treeCollider = GetComponent<CapsuleCollider2D>();
 
         RegisterState();
     }
@@ -82,7 +82,7 @@ public class Tree : MonoBehaviour
         var render = transform.Find("Custom Render Sprite");
         render.gameObject.SetActive(false);
 
-        collider2D.enabled = false;
+        treeCollider.enabled = false;
         GraphNode.Instance.SetWalkableNode(positionInGrid,layerIndex, true); 
     }
 

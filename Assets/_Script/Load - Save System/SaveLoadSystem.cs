@@ -5,24 +5,34 @@ using UnityEngine;
 
 public class SaveLoadSystem : MonoBehaviour, ISaveable
 {
+    public static SaveLoadSystem Instance;
     public List<ISaveable> saveables = new List<ISaveable>();
 
     private string saveFilePath => Path.Combine(Application.persistentDataPath, "savegame.json");
 
     private UnitManager unitManager;
-    private ObjectSpawner objectSpawner;
 
     public System.Action OnSave;
 
     [Header("Auto Save Settings")]
     public bool autoSave = true;
-    public float autoSaveInterval = 30f; // seconds
+    public float autoSaveInterval = 30f; 
     private float lastAutoSaveTime = 0f;
 
     private void Awake()
     {
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         unitManager = FindObjectOfType<UnitManager>();
-        objectSpawner = FindObjectOfType<ObjectSpawner>();
     }
 
     void Start()
@@ -379,7 +389,15 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             treeObj.layer = layerIndex;
 
             bool isWalkable = treeComponent.treeState == TreeState.Chopped;
-            GraphNode.Instance.SetWalkableNode(treeData.gridPosition, treeComponent.layerIndex, isWalkable);
+           
+            if(treeComponent.treeState == TreeState.Chopped)
+            {
+                treeObj.transform.Find("Custom Render Sprite").gameObject.SetActive(false);
+                treeComponent.treeCollider.enabled = false;
+            }
+            else
+                GraphNode.Instance.SetWalkableNode(treeData.gridPosition, treeComponent.layerIndex, isWalkable);
+
         }
 
         if (treeObj.transform.Find("Custom Render Sprite") != null)
@@ -423,20 +441,15 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             string layerName = $"Layer {bushData.layerIndex + 1}";
             int layerIndexMask = LayerMask.NameToLayer(layerName);
             bushObj.layer = layerIndexMask;
-
         }
 
         var spriteRenderer = bushObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
-        {
             RenderManager.Instance.SetSortingOrderSubtractOneByIndex(RenderManager.Instance.decorRender, spriteRenderer, bushData.layerIndex);
-        }
 
         TreeCluster parentCluster = null;
         if (bushData.parentClusterIndex >= 0 && bushData.parentClusterIndex < clusters.Count)
-        {
             parentCluster = clusters[bushData.parentClusterIndex];
-        }
 
         return new SpawnedBush(bushObj, bushData.gridPosition, bushData.layerIndex, parentCluster);
     }
@@ -458,7 +471,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             rockComponent.layerIndex = rockData.layerIndex;
             rockComponent.positionInGrid = rockData.gridPosition;
- 
 
             string layerName = $"Layer {rockData.layerIndex + 1}";
             int layerIndexMask = LayerMask.NameToLayer(layerName);
@@ -531,7 +543,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
 
         Debug.LogWarning($"Prefab not found for: {prefabName}");
-        return 0; // Default to first prefab
+        return 0;
     }
 
     public bool HasSaveData()

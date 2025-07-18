@@ -40,8 +40,7 @@ public class EditorState : IGameState
         if (context.InputManager.GetKey(KeyCode.LeftControl) &&
             context.InputManager.GetKeyDown(KeyCode.S))
         {
-            Debug.Log("Editor: Save triggered");
-            // Save level logic
+            SaveLoadSystem.Instance.SaveGame();
         }
     }
 

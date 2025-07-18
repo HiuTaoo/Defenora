@@ -192,7 +192,6 @@ public class GraphNode : MonoBehaviour
             Node node = kvp.Value;
             int bridgeNeighborCount = 0;
 
-            // BƯỚC 1: Xử lý connections thông thường
             foreach (Vector3Int direction in directions)
             {
                 Vector3Int neighborPos = node.position + direction;
@@ -201,7 +200,6 @@ public class GraphNode : MonoBehaviour
 
                 Node neighbor = graph.nodes[neighborPos];
 
-                // Tránh duplicate neighbors
                 if (node.neighbors.Contains(neighbor))
                     continue;
 
@@ -216,7 +214,7 @@ public class GraphNode : MonoBehaviour
                         node.neighbors.Add(neighbor);
                     }
                 }
-                else if (!node.isBridge) // Normal walkable nodes
+                else if (!node.isBridge) 
                 {
                     if (neighbor.isStair && (direction == Vector3Int.up || direction == Vector3Int.down))
                     {
@@ -228,7 +226,6 @@ public class GraphNode : MonoBehaviour
                     }
                 }
 
-                // BƯỚC 2: Xử lý bridge nodes và đếm bridge neighbors
                 if (node.isBridge)
                 {
                     if (neighbor.isBridge)
@@ -240,7 +237,6 @@ public class GraphNode : MonoBehaviour
                 }
             }
 
-            // BƯỚC 3: Xử lý đầu cầu (Bridge Endpoint)
             if (node.isBridge && bridgeNeighborCount == 1)
             {
                 //Debug.Log($"Bridge endpoint detected at {node.position}");
@@ -249,17 +245,14 @@ public class GraphNode : MonoBehaviour
                 {
                     Vector3Int neighborPos = node.position + direction;
 
-                    // Kiểm tra key existence để tránh crash
                     if (!graph.nodes.ContainsKey(neighborPos))
                         continue;
 
                     Node neighbor = graph.nodes[neighborPos];
 
-                    // Tránh duplicate neighbors
                     if (node.neighbors.Contains(neighbor))
                         continue;
 
-                    // Đầu cầu kết nối với walkable nodes (không phải bridge, không phải stair)
                     if (neighbor.isWalkable && !neighbor.isBridge && !neighbor.isStair)
                     {
                         node.neighbors.Add(neighbor);
