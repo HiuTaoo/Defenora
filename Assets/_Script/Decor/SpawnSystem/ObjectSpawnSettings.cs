@@ -30,21 +30,43 @@ public class ObjectSpawnSettings
 
     [Header("Bush Spawn Settings")]
     [Range(0f, 1f)]
-    public float bushSpawnChance = 0.4f; // Chance để spawn bush xung quanh cây
-
+    public float bushSpawnChance = 0.4f;
     [Range(0f, 1f)]
-    public float scatteredBushSpawnChance = 0.1f; // Chance để spawn bush rải rác
-
-    public float bushSpacing = 1f; // Khoảng cách tối thiểu giữa các bush
-    public float bushToTreeMinDistance = 0.8f; // Khoảng cách tối thiểu từ bush đến cây
-    public int bushAroundTreeRadius = 2; // Bán kính spawn bush xung quanh cây
-    public bool bushesBlockMovement = false; // Bush có block movement không
+    public float scatteredBushSpawnChance = 0.1f;
+    public float bushSpacing = 1f;
+    public float bushToTreeMinDistance = 0.8f;
+    public int bushAroundTreeRadius = 2;
+    public bool bushesBlockMovement = false;
 
     [Header("Bush Noise Settings")]
     public float bushNoiseScale = 0.15f;
     public float bushNoiseThreshold = 0.25f;
-    public Vector2 bushNoiseOffset = new Vector2(100f, 100f); 
+    public Vector2 bushNoiseOffset = new Vector2(100f, 100f);
 
-    [Header("Rock Prefabs")]
+    [Header("Rock Settings")]
     public GameObject[] rockPrefabs;
+
+    [Header("Rock Spawn Settings")]
+    [Range(0f, 1f)]
+    public float rockSpawnChance = 0.3f;
+    [Range(0f, 1f)]
+    public float scatteredRockSpawnChance = 0.08f;
+    public float rockSpacing = 1.5f;
+    public int rockAroundTreeRadius = 2;
+    public bool rocksBlockMovement = true;
+    public float rockRespawnDelay = 0.3f;
+
+    [Header("Rock Noise Settings")]
+    public float rockNoiseScale = 0.12f;
+    public float rockNoiseThreshold = 0.4f;
+    public Vector2 rockNoiseOffset = new Vector2(200f, 200f);
+
+    [Header("Animal Settings")]
+    public GameObject[] animalPrefab;
+
+    [Header("Animal Spawn Settings")]
+    [Range(0f, 1f)]
+    public float animalSpawnChance = 0.15f;
+    public float animalMinDistanceFromObstacles = 2f;
+    public float animalMaxDistanceFromVegetation = 5f;
 }
