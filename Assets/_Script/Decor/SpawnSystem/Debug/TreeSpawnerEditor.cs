@@ -18,16 +18,21 @@ public class TreeSpawnerEditor : Editor
         
         GUILayout.Space(10);
         
-        if (GUILayout.Button("Spawn Trees on All Layers"))
+        if (GUILayout.Button("Spawn Objects on All Layers"))
         {
-            spawner.SpawnTreesOnAllLayers();
+            spawner.SpawnObjectsOnAllLayers();
         }
         
-        if (GUILayout.Button("Clear All Trees"))
+        if (GUILayout.Button("Clear All Object"))
         {
-            spawner.ClearAllTrees();
+            spawner.ClearAllObjects();
         }
-        
+
+        if (GUILayout.Button("Respawn All Objects"))
+        {
+            spawner.RespawnAllObjectsOnAllLayers();
+        }
+
         GUILayout.Space(10);
         
         // Layer-specific controls
@@ -43,12 +48,12 @@ public class TreeSpawnerEditor : Editor
                 
                 if (GUILayout.Button($"Spawn Layer {layerIndex}"))
                 {
-                    spawner.SpawnTreesOnLayer(layerIndex);
+                    spawner.SpawnObjectsOnLayer(layerIndex);
                 }
                 
                 if (GUILayout.Button($"Clear Layer {layerIndex}"))
                 {
-                    spawner.ClearTreesOnLayer(layerIndex);
+                    spawner.ClearObjectsOnLayer(layerIndex);
                 }
                 
                 GUILayout.EndHorizontal();

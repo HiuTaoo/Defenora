@@ -4,14 +4,12 @@ using UnityEngine;
 
 public class CustomRender : MonoBehaviour
 {
-    private BoxCollider2D checkingCollider;
     private SpriteRenderer spriteRenderer;
 
     public int layerIndex = -1;
 
     private void Awake()
     {
-        checkingCollider = GetComponent<BoxCollider2D>();
         spriteRenderer = GetComponentInParent<SpriteRenderer>();
 
     }
@@ -41,10 +39,12 @@ public class CustomRender : MonoBehaviour
             {
                 var floorAgent = collision.gameObject.GetComponentInChildren<FloorAgent>();
                 LookUpLayerIndex();
+
                 if (layerIndex == floorAgent.currentFloorIndex)
                 {
                     collision.gameObject.GetComponent<SpriteRenderer>().sortingOrder = spriteRenderer.sortingOrder - 1;
                 }
+
                 if (collision.CompareTag("Player"))
                 {
                     Color c = spriteRenderer.color;

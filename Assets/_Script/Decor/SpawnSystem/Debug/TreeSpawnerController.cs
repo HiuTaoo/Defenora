@@ -11,7 +11,7 @@ public class TreeSpawnerController : MonoBehaviour
     {
         if (Input.GetKeyDown(respawnKey))
         {
-            ObjectSpawner.Instance?.SpawnTreesOnAllLayers();
+            ObjectSpawner.Instance?.SpawnObjectsOnAllLayers();
         }
 
         if (Input.GetKeyDown(clearKey))

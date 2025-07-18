@@ -13,6 +13,8 @@ public class ObjectSpawner : MonoBehaviour
     public Dictionary<int, List<TreeCluster>> layerClusters = new Dictionary<int, List<TreeCluster>>();
     public Dictionary<int, List<SpawnedTree>> spawnedTrees = new Dictionary<int, List<SpawnedTree>>();
     public Dictionary<int, List<SpawnedBush>> spawnedBushes = new Dictionary<int, List<SpawnedBush>>();
+    public Dictionary<int, List<SpawnedRock>> spawnedRocks = new Dictionary<int, List<SpawnedRock>>();
+    public Dictionary<int, List<SpawnedAnimal>> spawnedAnimals = new Dictionary<int, List<SpawnedAnimal>>();
 
     private System.Random random;
 
@@ -40,18 +42,18 @@ public class ObjectSpawner : MonoBehaviour
     private System.Collections.IEnumerator DelayedSpawn()
     {
         yield return new WaitForSeconds(0.1f);
-        SpawnTreesOnAllLayers();
+        SpawnObjectsOnAllLayers();
     }
 
-    public void SpawnTreesOnAllLayers()
+    public void SpawnObjectsOnAllLayers()
     {
         foreach (var layerGraph in GraphNode.Instance.layerGraphs)
         {
-            SpawnTreesOnLayer(layerGraph.Key);
+            SpawnObjectsOnLayer(layerGraph.Key);
         }
     }
 
-    public void SpawnTreesOnLayer(int layerIndex)
+    public void SpawnObjectsOnLayer(int layerIndex)
     {
         if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
         {
@@ -69,13 +71,20 @@ public class ObjectSpawner : MonoBehaviour
 
         List<SpawnedBush> bushes = SpawnBushesOnLayer(layerIndex, trees, clusters);
 
+        List<SpawnedRock> rocks = SpawnRocksOnLayer(layerIndex, trees, clusters);
+
+        List<SpawnedAnimal> animals = SpawnAnimalsOnLayer(layerIndex, trees, bushes, rocks, clusters);
+
         layerClusters[layerIndex] = clusters;
         spawnedTrees[layerIndex] = trees;
         spawnedBushes[layerIndex] = bushes;
+        spawnedRocks[layerIndex] = rocks;
+        spawnedAnimals[layerIndex] = animals;
 
         //Debug.Log($"Đã spawn {trees.Count} cây và {bushes.Count} bụi cỏ trong {clusters.Count} clusters cho layer {layerIndex}");
     }
 
+    #region Spawn Tree
     private List<Vector3Int> GetPotentialSpawnPoints(PathfindingGraph graph)
     {
         List<Vector3Int> spawnPoints = new List<Vector3Int>();
@@ -262,6 +271,11 @@ public class ObjectSpawner : MonoBehaviour
                 RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, treeComponent.layerIndex);
             }
 
+            var renderObj = treeObj.transform.Find("Custom Render Sprite");
+            var renderComponent = renderObj.GetComponent<CustomRender>();
+            if(renderComponent != null)
+                renderComponent.layerIndex = cluster.layerIndex;
+
             SpawnedTree spawnedTree = new SpawnedTree(treeComponent, position, cluster.layerIndex, cluster);
             trees.Add(spawnedTree);
             treesSpawned++;
@@ -269,7 +283,9 @@ public class ObjectSpawner : MonoBehaviour
 
         return trees;
     }
+    #endregion
 
+    #region Spawn Bush
     private bool IsTooCloseToExistingTree(Vector3Int position, List<SpawnedTree> existingTrees)
     {
         foreach (var tree in existingTrees)
@@ -303,7 +319,6 @@ public class ObjectSpawner : MonoBehaviour
             bushes.AddRange(clusterBushes);
         }
 
-        // Spawn scattered bushes outside clusters
         List<SpawnedBush> scatteredBushes = SpawnScatteredBushes(layerIndex, trees, clusters, graph);
         bushes.AddRange(scatteredBushes);
 
@@ -484,6 +499,807 @@ public class ObjectSpawner : MonoBehaviour
 
         return new SpawnedBush(bushObj, position, layerIndex, parentCluster);
     }
+    #endregion
+
+    #region Spawn Rock
+    private List<SpawnedRock> SpawnRocksOnLayer(int layerIndex, List<SpawnedTree> trees, List<TreeCluster> clusters)
+    {
+        if (spawnSettings.rockPrefabs == null || spawnSettings.rockPrefabs.Length == 0)
+        {
+            return new List<SpawnedRock>();
+        }
+
+        List<SpawnedRock> rocks = new List<SpawnedRock>();
+
+        if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
+        {
+            return rocks;
+        }
+
+        // Spawn rocks in clusters (near trees)
+        foreach (var cluster in clusters)
+        {
+            List<SpawnedRock> clusterRocks = SpawnRocksInCluster(cluster, trees, graph);
+            rocks.AddRange(clusterRocks);
+        }
+
+        // Spawn scattered rocks
+        List<SpawnedRock> scatteredRocks = SpawnScatteredRocks(layerIndex, trees, clusters, graph);
+        rocks.AddRange(scatteredRocks);
+
+        return rocks;
+    }
+
+    private List<SpawnedRock> SpawnRocksInCluster(TreeCluster cluster, List<SpawnedTree> trees, PathfindingGraph graph)
+    {
+        List<SpawnedRock> rocks = new List<SpawnedRock>();
+
+        List<SpawnedTree> clusterTrees = trees.Where(t => t.parentCluster == cluster).ToList();
+
+        foreach (var tree in clusterTrees)
+        {
+            if (random.NextDouble() < spawnSettings.rockSpawnChance)
+            {
+                List<Vector3Int> rockPositions = GetRockPositionsAroundTree(tree.gridPosition, graph);
+
+                foreach (var rockPos in rockPositions)
+                {
+                    if (IsTooCloseToTree(rockPos, trees) || IsTooCloseToRock(rockPos, rocks))
+                        continue;
+
+                    if (random.NextDouble() < spawnSettings.rockSpawnChance * 0.5f)
+                    {
+                        SpawnedRock rock = SpawnRockAtPosition(rockPos, cluster.layerIndex, cluster);
+                        if (rock != null)
+                        {
+                            rocks.Add(rock);
+                        }
+                    }
+                }
+            }
+        }
+
+        return rocks;
+    }
+
+    private List<SpawnedRock> SpawnScatteredRocks(int layerIndex, List<SpawnedTree> trees, List<TreeCluster> clusters, PathfindingGraph graph)
+    {
+        List<SpawnedRock> rocks = new List<SpawnedRock>();
+
+        HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
+        foreach (var tree in trees)
+        {
+            occupiedPositions.Add(tree.gridPosition);
+        }
+
+        foreach (var cluster in clusters)
+        {
+            foreach (var pos in cluster.nodePositions)
+            {
+                occupiedPositions.Add(pos);
+            }
+        }
+
+        List<Vector3Int> potentialRockPositions = new List<Vector3Int>();
+        foreach (var kvp in graph.nodes)
+        {
+            Node node = kvp.Value;
+            if (!node.isWalkable || node.isBridge || node.isStair) continue;
+
+            if (occupiedPositions.Contains(node.position)) continue;
+
+            if (spawnSettings.avoidStairs && IsNearStairs(node, graph)) continue;
+
+            if (IsTooCloseToTree(node.position, trees)) continue;
+
+            float rockNoise = GetRockNoiseValue(node.position);
+            if (rockNoise > spawnSettings.rockNoiseThreshold)
+            {
+                potentialRockPositions.Add(node.position);
+            }
+        }
+
+        foreach (var pos in potentialRockPositions)
+        {
+            if (random.NextDouble() < spawnSettings.scatteredRockSpawnChance)
+            {
+                SpawnedRock rock = SpawnRockAtPosition(pos, layerIndex, null);
+                if (rock != null)
+                {
+                    rocks.Add(rock);
+                }
+            }
+        }
+
+        return rocks;
+    }
+
+    private List<Vector3Int> GetRockPositionsAroundTree(Vector3Int treePosition, PathfindingGraph graph)
+    {
+        List<Vector3Int> positions = new List<Vector3Int>();
+
+        for (int x = -spawnSettings.rockAroundTreeRadius; x <= spawnSettings.rockAroundTreeRadius; x++)
+        {
+            for (int y = -spawnSettings.rockAroundTreeRadius; y <= spawnSettings.rockAroundTreeRadius; y++)
+            {
+                if (x == 0 && y == 0) continue;
+
+                Vector3Int checkPos = treePosition + new Vector3Int(x, y, 0);
+
+                if (graph.nodes.TryGetValue(checkPos, out Node node))
+                {
+                    if (node.isWalkable && !node.isBridge && !node.isStair)
+                    {
+                        float distance = Vector3Int.Distance(treePosition, checkPos);
+                        if (distance <= spawnSettings.rockAroundTreeRadius)
+                        {
+                            positions.Add(checkPos);
+                        }
+                    }
+                }
+            }
+        }
+
+        return positions;
+    }
+
+    private float GetRockNoiseValue(Vector3Int position)
+    {
+        float x = (position.x + spawnSettings.rockNoiseOffset.x) * spawnSettings.rockNoiseScale;
+        float y = (position.y + spawnSettings.rockNoiseOffset.y) * spawnSettings.rockNoiseScale;
+
+        return Mathf.PerlinNoise(x, y);
+    }
+
+    private bool IsTooCloseToRock(Vector3Int position, List<SpawnedRock> rocks)
+    {
+        foreach (var rock in rocks)
+        {
+            float distance = Vector3Int.Distance(position, rock.gridPosition);
+            if (distance < spawnSettings.rockSpacing)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private SpawnedRock SpawnRockAtPosition(Vector3Int position, int layerIndex, TreeCluster parentCluster)
+    {
+        GameObject rockPrefab = spawnSettings.rockPrefabs[random.Next(spawnSettings.rockPrefabs.Length)];
+        Vector3 worldPosition = GridToWorld(position);
+
+        GameObject rockObj = Instantiate(rockPrefab, worldPosition, Quaternion.identity, this.transform);
+
+        if (rockObj.TryGetComponent<Rock>(out Rock rockComponent))
+        {
+            rockComponent.layerIndex = layerIndex;
+
+            string layerName = $"Layer {layerIndex + 1}";
+            int layerIndexMask = LayerMask.NameToLayer(layerName);
+            rockObj.layer = layerIndexMask;
+
+            rockComponent.positionInGrid = position;
+
+            if (spawnSettings.rocksBlockMovement)
+            {
+                GraphNode.Instance.SetWalkableNode(position, layerIndex, false);
+            }
+        }
+
+        var spriteRenderer = rockObj.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
+        }
+
+        return new SpawnedRock(rockObj, position, layerIndex, parentCluster);
+    }
+    #endregion
+
+    #region Spawn Animal
+    private List<SpawnedAnimal> SpawnAnimalsOnLayer(int layerIndex, List<SpawnedTree> trees, List<SpawnedBush> bushes, List<SpawnedRock> rocks, List<TreeCluster> clusters)
+    {
+        if (spawnSettings.animalPrefab == null || spawnSettings.animalPrefab.Length == 0)
+        {
+            return new List<SpawnedAnimal>();
+        }
+
+        List<SpawnedAnimal> animals = new List<SpawnedAnimal>();
+
+        if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
+        {
+            return animals;
+        }
+
+        List<Vector3Int> potentialAnimalPositions = GetPotentialAnimalPositions(layerIndex, trees, bushes, rocks, clusters, graph);
+
+        foreach (var pos in potentialAnimalPositions)
+        {
+            if (random.NextDouble() < spawnSettings.animalSpawnChance)
+            {
+                SpawnedAnimal animal = SpawnAnimalAtPosition(pos, layerIndex);
+                if (animal != null)
+                {
+                    animals.Add(animal);
+                }
+            }
+        }
+
+        return animals;
+    }
+
+    private List<Vector3Int> GetPotentialAnimalPositions(int layerIndex, List<SpawnedTree> trees, List<SpawnedBush> bushes, List<SpawnedRock> rocks, List<TreeCluster> clusters, PathfindingGraph graph)
+    {
+        List<Vector3Int> positions = new List<Vector3Int>();
+
+        HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
+
+        foreach (var tree in trees) occupiedPositions.Add(tree.gridPosition);
+        foreach (var bush in bushes) occupiedPositions.Add(bush.gridPosition);
+        foreach (var rock in rocks) occupiedPositions.Add(rock.gridPosition);
+
+        foreach (var kvp in graph.nodes)
+        {
+            Node node = kvp.Value;
+            if (!node.isWalkable || node.isBridge || node.isStair) continue;
+
+            if (occupiedPositions.Contains(node.position)) continue;
+
+            if (spawnSettings.avoidStairs && IsNearStairs(node, graph)) continue;
+
+            if (HasMinimumClearance(node.position, trees, bushes, rocks))
+            {
+                positions.Add(node.position);
+            }
+        }
+
+        return positions;
+    }
+
+    private bool HasMinimumClearance(Vector3Int position, List<SpawnedTree> trees, List<SpawnedBush> bushes, List<SpawnedRock> rocks)
+    {
+        foreach (var tree in trees)
+        {
+            float distance = Vector3Int.Distance(position, tree.gridPosition);
+            if (distance < spawnSettings.animalMinDistanceFromObstacles)
+            {
+                return false;
+            }
+        }
+
+        foreach (var rock in rocks)
+        {
+            float distance = Vector3Int.Distance(position, rock.gridPosition);
+            if (distance < spawnSettings.animalMinDistanceFromObstacles)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private SpawnedAnimal SpawnAnimalAtPosition(Vector3Int position, int layerIndex)
+    {
+        GameObject animalPrefab = spawnSettings.animalPrefab[random.Next(spawnSettings.animalPrefab.Length)];
+        Vector3 worldPosition = GridToWorld(position);
+
+        GameObject animalObj = Instantiate(animalPrefab, worldPosition, Quaternion.identity, this.transform);
+
+        if (animalObj.TryGetComponent<Animal>(out Animal animalComponent))
+        {
+            animalComponent.layerIndex = layerIndex;
+
+            if (animalComponent.floorAgent != null)
+            {
+                animalComponent.floorAgent.MoveToFloor(layerIndex);
+            }
+        }
+
+        var spriteRenderer = animalObj.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.characterRender, spriteRenderer, layerIndex);
+        }
+
+        return new SpawnedAnimal(animalObj, position, layerIndex);
+    }
+    #endregion
+
+    #region Respawn System
+
+    /// <summary>
+    /// Respawn trees trên toàn bộ map cho layer chỉ định
+    /// </summary>
+    public void RespawnTreesOnLayer(int layerIndex, int maxRespawnCount = 5)
+    {
+        if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
+            return;
+
+        List<Vector3Int> validPositions = GetValidTreeRespawnPositions(layerIndex, graph);
+        if (validPositions.Count == 0) return;
+
+        List<SpawnedTree> currentTrees = GetTreesOnLayer(layerIndex);
+        int respawnCount = 0;
+
+        // Shuffle positions để random
+        for (int i = 0; i < validPositions.Count; i++)
+        {
+            Vector3Int temp = validPositions[i];
+            int randomIndex = random.Next(i, validPositions.Count);
+            validPositions[i] = validPositions[randomIndex];
+            validPositions[randomIndex] = temp;
+        }
+
+        foreach (var position in validPositions)
+        {
+            if (respawnCount >= maxRespawnCount) break;
+
+            if (IsTooCloseToExistingTree(position, currentTrees)) continue;
+
+            TreeCluster suitableCluster = FindSuitableCluster(position, layerIndex);
+            if (suitableCluster == null)
+            {
+                float noiseValue = GetNoiseValue(position);
+                suitableCluster = new TreeCluster(position, layerIndex, noiseValue);
+                suitableCluster.nodePositions = new List<Vector3Int> { position };
+                suitableCluster.desiredTreeCount = 1;
+
+                if (!layerClusters.ContainsKey(layerIndex))
+                    layerClusters[layerIndex] = new List<TreeCluster>();
+                layerClusters[layerIndex].Add(suitableCluster);
+            }
+
+            SpawnedTree newTree = SpawnTreeAtPosition(position, layerIndex, suitableCluster);
+            if (newTree != null)
+            {
+                if (!spawnedTrees.ContainsKey(layerIndex))
+                    spawnedTrees[layerIndex] = new List<SpawnedTree>();
+                spawnedTrees[layerIndex].Add(newTree);
+                currentTrees.Add(newTree); // Update current list
+                respawnCount++;
+            }
+        }
+
+        Debug.Log($"Respawned {respawnCount} trees on layer {layerIndex}");
+    }
+
+    /// <summary>
+    /// Respawn bushes trên toàn bộ map cho layer chỉ định
+    /// </summary>
+    public void RespawnBushesOnLayer(int layerIndex, int maxRespawnCount = 10)
+    {
+        if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
+            return;
+
+        List<Vector3Int> validPositions = GetValidBushRespawnPositions(layerIndex, graph);
+        if (validPositions.Count == 0) return;
+
+        List<SpawnedTree> trees = GetTreesOnLayer(layerIndex);
+        List<SpawnedBush> currentBushes = GetBushesOnLayer(layerIndex);
+        int respawnCount = 0;
+
+        // Shuffle positions
+        for (int i = 0; i < validPositions.Count; i++)
+        {
+            Vector3Int temp = validPositions[i];
+            int randomIndex = random.Next(i, validPositions.Count);
+            validPositions[i] = validPositions[randomIndex];
+            validPositions[randomIndex] = temp;
+        }
+
+        foreach (var position in validPositions)
+        {
+            if (respawnCount >= maxRespawnCount) break;
+
+            if (IsTooCloseToTree(position, trees) || IsTooCloseToBush(position, currentBushes))
+                continue;
+
+            if (random.NextDouble() < spawnSettings.bushSpawnChance)
+            {
+                SpawnedBush newBush = SpawnBushAtPosition(position, layerIndex, null);
+                if (newBush != null)
+                {
+                    if (!spawnedBushes.ContainsKey(layerIndex))
+                        spawnedBushes[layerIndex] = new List<SpawnedBush>();
+                    spawnedBushes[layerIndex].Add(newBush);
+                    currentBushes.Add(newBush); // Update current list
+                    respawnCount++;
+                }
+            }
+        }
+
+        Debug.Log($"Respawned {respawnCount} bushes on layer {layerIndex}");
+    }
+
+    /// <summary>
+    /// Respawn rocks trên toàn bộ map cho layer chỉ định
+    /// </summary>
+    public void RespawnRocksOnLayer(int layerIndex, int maxRespawnCount = 8)
+    {
+        if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
+            return;
+
+        List<Vector3Int> validPositions = GetValidRockRespawnPositions(layerIndex, graph);
+        if (validPositions.Count == 0) return;
+
+        List<SpawnedTree> trees = GetTreesOnLayer(layerIndex);
+        List<SpawnedRock> currentRocks = GetRocksOnLayer(layerIndex);
+        int respawnCount = 0;
+
+        // Shuffle positions
+        for (int i = 0; i < validPositions.Count; i++)
+        {
+            Vector3Int temp = validPositions[i];
+            int randomIndex = random.Next(i, validPositions.Count);
+            validPositions[i] = validPositions[randomIndex];
+            validPositions[randomIndex] = temp;
+        }
+
+        foreach (var position in validPositions)
+        {
+            if (respawnCount >= maxRespawnCount) break;
+
+            if (IsTooCloseToTree(position, trees) || IsTooCloseToRock(position, currentRocks))
+                continue;
+
+            if (random.NextDouble() < spawnSettings.rockSpawnChance)
+            {
+                SpawnedRock newRock = SpawnRockAtPosition(position, layerIndex, null);
+                if (newRock != null)
+                {
+                    if (!spawnedRocks.ContainsKey(layerIndex))
+                        spawnedRocks[layerIndex] = new List<SpawnedRock>();
+                    spawnedRocks[layerIndex].Add(newRock);
+                    currentRocks.Add(newRock); 
+                    respawnCount++;
+                }
+            }
+        }
+
+        Debug.Log($"Respawned {respawnCount} rocks on layer {layerIndex}");
+    }
+
+    /// <summary>
+    /// Respawn animals trên toàn bộ map cho layer chỉ định
+    /// </summary>
+    public void RespawnAnimalsOnLayer(int layerIndex, int maxRespawnCount = 3)
+    {
+        if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
+            return;
+
+        List<Vector3Int> validPositions = GetValidAnimalRespawnPositions(layerIndex, graph);
+        if (validPositions.Count == 0) return;
+
+        List<SpawnedAnimal> currentAnimals = GetAnimalsOnLayer(layerIndex);
+        int respawnCount = 0;
+
+        // Shuffle positions
+        for (int i = 0; i < validPositions.Count; i++)
+        {
+            Vector3Int temp = validPositions[i];
+            int randomIndex = random.Next(i, validPositions.Count);
+            validPositions[i] = validPositions[randomIndex];
+            validPositions[randomIndex] = temp;
+        }
+
+        foreach (var position in validPositions)
+        {
+            if (respawnCount >= maxRespawnCount) break;
+
+            if (random.NextDouble() < spawnSettings.animalSpawnChance)
+            {
+                SpawnedAnimal newAnimal = SpawnAnimalAtPosition(position, layerIndex);
+                if (newAnimal != null)
+                {
+                    if (!spawnedAnimals.ContainsKey(layerIndex))
+                        spawnedAnimals[layerIndex] = new List<SpawnedAnimal>();
+                    spawnedAnimals[layerIndex].Add(newAnimal);
+                    currentAnimals.Add(newAnimal); // Update current list
+                    respawnCount++;
+                }
+            }
+        }
+
+        Debug.Log($"Respawned {respawnCount} animals on layer {layerIndex}");
+    }
+
+    /// <summary>
+    /// Respawn all objects trên toàn bộ map cho layer chỉ định
+    /// </summary>
+    public void RespawnAllObjectsOnLayer(int layerIndex)
+    {
+        RespawnTreesOnLayer(layerIndex);
+        RespawnBushesOnLayer(layerIndex);
+        RespawnRocksOnLayer(layerIndex);
+        RespawnAnimalsOnLayer(layerIndex);
+    }
+
+    /// <summary>
+    /// Respawn all objects trên tất cả các layer
+    /// </summary>
+    public void RespawnAllObjectsOnAllLayers()
+    {
+        foreach (var layerGraph in GraphNode.Instance.layerGraphs)
+        {
+            RespawnAllObjectsOnLayer(layerGraph.Key);
+        }
+    }
+
+    private List<Vector3Int> GetValidTreeRespawnPositions(int layerIndex, PathfindingGraph graph)
+    {
+        List<Vector3Int> validPositions = new List<Vector3Int>();
+        HashSet<Vector3Int> occupiedPositions = GetOccupiedPositions(layerIndex);
+
+        foreach (var kvp in graph.nodes)
+        {
+            Node node = kvp.Value;
+            if (!IsValidSpawnNode(node, graph)) continue;
+            if (occupiedPositions.Contains(node.position)) continue;
+
+            float noiseValue = GetNoiseValue(node.position);
+            if (noiseValue > spawnSettings.noiseThreshold)
+            {
+                validPositions.Add(node.position);
+            }
+        }
+
+        return validPositions;
+    }
+
+    private List<Vector3Int> GetValidBushRespawnPositions(int layerIndex, PathfindingGraph graph)
+    {
+        List<Vector3Int> validPositions = new List<Vector3Int>();
+        HashSet<Vector3Int> occupiedPositions = GetOccupiedPositions(layerIndex);
+
+        foreach (var kvp in graph.nodes)
+        {
+            Node node = kvp.Value;
+            if (!IsValidSpawnNode(node, graph)) continue;
+            if (occupiedPositions.Contains(node.position)) continue;
+
+            float bushNoise = GetBushNoiseValue(node.position);
+            if (bushNoise > spawnSettings.bushNoiseThreshold)
+            {
+                validPositions.Add(node.position);
+            }
+        }
+
+        return validPositions;
+    }
+
+    private List<Vector3Int> GetValidRockRespawnPositions(int layerIndex, PathfindingGraph graph)
+    {
+        List<Vector3Int> validPositions = new List<Vector3Int>();
+        HashSet<Vector3Int> occupiedPositions = GetOccupiedPositions(layerIndex);
+
+        foreach (var kvp in graph.nodes)
+        {
+            Node node = kvp.Value;
+            if (!IsValidSpawnNode(node, graph)) continue;
+            if (occupiedPositions.Contains(node.position)) continue;
+
+            float rockNoise = GetRockNoiseValue(node.position);
+            if (rockNoise > spawnSettings.rockNoiseThreshold)
+            {
+                validPositions.Add(node.position);
+            }
+        }
+
+        return validPositions;
+    }
+
+    private List<Vector3Int> GetValidAnimalRespawnPositions(int layerIndex, PathfindingGraph graph)
+    {
+        List<Vector3Int> validPositions = new List<Vector3Int>();
+        HashSet<Vector3Int> occupiedPositions = GetOccupiedPositions(layerIndex);
+
+        List<SpawnedTree> trees = GetTreesOnLayer(layerIndex);
+        List<SpawnedBush> bushes = GetBushesOnLayer(layerIndex);
+        List<SpawnedRock> rocks = GetRocksOnLayer(layerIndex);
+
+        foreach (var kvp in graph.nodes)
+        {
+            Node node = kvp.Value;
+            if (!IsValidSpawnNode(node, graph)) continue;
+            if (occupiedPositions.Contains(node.position)) continue;
+
+            if (HasMinimumClearance(node.position, trees, bushes, rocks))
+            {
+                validPositions.Add(node.position);
+            }
+        }
+
+        return validPositions;
+    }
+
+    private bool IsValidSpawnNode(Node node, PathfindingGraph graph)
+    {
+        if (!node.isWalkable || node.isBridge || node.isStair)
+            return false;
+
+        if (spawnSettings.avoidStairs && IsNearStairs(node, graph))
+            return false;
+
+        return true;
+    }
+
+    private HashSet<Vector3Int> GetOccupiedPositions(int layerIndex)
+    {
+        HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
+
+        List<SpawnedTree> trees = GetTreesOnLayer(layerIndex);
+        foreach (var tree in trees)
+        {
+            occupiedPositions.Add(tree.gridPosition);
+        }
+
+        List<SpawnedBush> bushes = GetBushesOnLayer(layerIndex);
+        foreach (var bush in bushes)
+        {
+            occupiedPositions.Add(bush.gridPosition);
+        }
+
+        List<SpawnedRock> rocks = GetRocksOnLayer(layerIndex);
+        foreach (var rock in rocks)
+        {
+            occupiedPositions.Add(rock.gridPosition);
+        }
+
+        List<SpawnedAnimal> animals = GetAnimalsOnLayer(layerIndex);
+        foreach (var animal in animals)
+        {
+            occupiedPositions.Add(animal.gridPosition);
+        }
+
+        return occupiedPositions;
+    }
+
+    private TreeCluster FindSuitableCluster(Vector3Int position, int layerIndex)
+    {
+        if (!layerClusters.TryGetValue(layerIndex, out List<TreeCluster> clusters))
+            return null;
+
+        foreach (var cluster in clusters)
+        {
+            float distance = Vector3Int.Distance(position, cluster.centerPosition);
+            if (distance <= spawnSettings.clusterRadius)
+            {
+                return cluster;
+            }
+        }
+
+        return null;
+    }
+
+    private SpawnedTree SpawnTreeAtPosition(Vector3Int position, int layerIndex, TreeCluster cluster)
+    {
+        GameObject treePrefab = spawnSettings.treePrefabs[random.Next(spawnSettings.treePrefabs.Length)];
+        Vector3 worldPosition = GridToWorld(position);
+
+        GameObject treeObj = Instantiate(treePrefab, worldPosition, Quaternion.identity, this.transform);
+
+        if (treeObj.TryGetComponent<Tree>(out Tree treeComponent))
+        {
+            treeComponent.layerIndex = layerIndex;
+
+            string layerName = $"Layer {layerIndex + 1}";
+            int layerIndexMask = LayerMask.NameToLayer(layerName);
+            treeObj.layer = layerIndexMask;
+
+            treeComponent.positionInGrid = position;
+            GraphNode.Instance.SetWalkableNode(position, layerIndex, false);
+        }
+
+        var spriteRenderer = treeObj.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
+        }
+
+        return new SpawnedTree(treeComponent, position, layerIndex, cluster);
+    }
+
+    public void RemoveDestroyedObject(Vector3Int position, int layerIndex, RespawnType objectType)
+    {
+        switch (objectType)
+        {
+            case RespawnType.Tree:
+                if (spawnedTrees.TryGetValue(layerIndex, out List<SpawnedTree> trees))
+                {
+                    trees.RemoveAll(t => t.gridPosition == position);
+                }
+                break;
+            case RespawnType.Bush:
+                if (spawnedBushes.TryGetValue(layerIndex, out List<SpawnedBush> bushes))
+                {
+                    bushes.RemoveAll(b => b.gridPosition == position);
+                }
+                break;
+            case RespawnType.Rock:
+                if (spawnedRocks.TryGetValue(layerIndex, out List<SpawnedRock> rocks))
+                {
+                    rocks.RemoveAll(r => r.gridPosition == position);
+                }
+                break;
+            case RespawnType.Animal:
+                if (spawnedAnimals.TryGetValue(layerIndex, out List<SpawnedAnimal> animals))
+                {
+                    animals.RemoveAll(a => a.gridPosition == position);
+                }
+                break;
+        }
+    }
+    #endregion
+
+    #region Clear
+    public void ClearAllObjects()
+    {
+        ClearAllTrees(); 
+
+        foreach (var layerRocks in spawnedRocks.Values)
+        {
+            foreach (var rock in layerRocks)
+            {
+                if (rock.rockObject != null)
+                {
+                    if (spawnSettings.rocksBlockMovement)
+                    {
+                        GraphNode.Instance.SetWalkableNode(rock.gridPosition, rock.layerIndex, true);
+                    }
+                    DestroyImmediate(rock.rockObject);
+                }
+            }
+        }
+
+        foreach (var layerAnimals in spawnedAnimals.Values)
+        {
+            foreach (var animal in layerAnimals)
+            {
+                if (animal.animalObject != null)
+                {
+                    DestroyImmediate(animal.animalObject);
+                }
+            }
+        }
+
+        spawnedRocks.Clear();
+        spawnedAnimals.Clear();
+    }
+
+    public void ClearObjectsOnLayer(int layerIndex)
+    {
+        ClearTreesOnLayer(layerIndex); 
+
+        if (spawnedRocks.TryGetValue(layerIndex, out List<SpawnedRock> rocks))
+        {
+            foreach (var rock in rocks)
+            {
+                if (rock.rockObject != null)
+                {
+                    if (spawnSettings.rocksBlockMovement)
+                    {
+                        GraphNode.Instance.SetWalkableNode(rock.gridPosition, rock.layerIndex, true);
+                    }
+                    DestroyImmediate(rock.rockObject);
+                }
+            }
+            spawnedRocks.Remove(layerIndex);
+        }
+
+        if (spawnedAnimals.TryGetValue(layerIndex, out List<SpawnedAnimal> animals))
+        {
+            foreach (var animal in animals)
+            {
+                if (animal.animalObject != null)
+                {
+                    DestroyImmediate(animal.animalObject);
+                }
+            }
+            spawnedAnimals.Remove(layerIndex);
+        }
+    }
 
     public void ClearAllTrees()
     {
@@ -557,6 +1373,7 @@ public class ObjectSpawner : MonoBehaviour
             layerClusters.Remove(layerIndex);
         }
     }
+    #endregion
 
     public List<SpawnedTree> GetTreesOnLayer(int layerIndex)
     {
@@ -573,10 +1390,28 @@ public class ObjectSpawner : MonoBehaviour
         return layerClusters.TryGetValue(layerIndex, out List<TreeCluster> clusters) ? clusters : new List<TreeCluster>();
     }
 
+    public List<SpawnedRock> GetRocksOnLayer(int layerIndex)
+    {
+        return spawnedRocks.TryGetValue(layerIndex, out List<SpawnedRock> rocks) ? rocks : new List<SpawnedRock>();
+    }
+
+    public List<SpawnedAnimal> GetAnimalsOnLayer(int layerIndex)
+    {
+        return spawnedAnimals.TryGetValue(layerIndex, out List<SpawnedAnimal> animals) ? animals : new List<SpawnedAnimal>();
+    }
+
     public Vector3 GridToWorld(Vector3Int gridPos)
     {
         return new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0);
     }
 
     
+}
+
+public enum RespawnType
+{
+    Tree,
+    Bush,
+    Rock,
+    Animal
 }
