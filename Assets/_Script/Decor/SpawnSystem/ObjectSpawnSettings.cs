@@ -20,6 +20,7 @@ public class ObjectSpawnSettings
     public float spawnDensity = 0.7f;
     public int maxTreesPerLayer = 50;
     public bool avoidStairs = true;
+    public bool avoidBridge = true;
     public float stairAvoidanceRadius = 2f;
 
     [Header("Tree Prefabs")]

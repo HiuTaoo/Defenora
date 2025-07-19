@@ -40,6 +40,7 @@ public abstract class Building : MonoBehaviour
     private void Awake()
     {
         buildingFootprint = GetComponent<BuildingFootprint>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     public void RegisterSpot()
@@ -330,6 +331,13 @@ public abstract class Building : MonoBehaviour
             maxCapacity = this.maxCapacity,
             unitNames = stationedUnits.Select(u => u.unitName).ToList()
         };
+    }
+
+    public SpriteRenderer GetSpriteRendererComponent()
+    {
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        return spriteRenderer;
     }
     #endregion
 

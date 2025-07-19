@@ -65,8 +65,8 @@ public class EditBuildingManager : MonoBehaviour
         Debug.Log($"Building: {building.name} is in Placing State");
 
         listPlacedBuilding.Add(building);
-
-        building.UpdateRenderSortingOrder(LayerManager.Instance.layerIndex);
+        building.GetSpriteRendererComponent().sortingOrder = RenderManager.Instance.decorRenderIndex;
+        //building.UpdateRenderSortingOrder(LayerManager.Instance.layerIndex);
 
     }
 

@@ -16,6 +16,9 @@ public class ObjectSpawner : MonoBehaviour
     public Dictionary<int, List<SpawnedRock>> spawnedRocks = new Dictionary<int, List<SpawnedRock>>();
     public Dictionary<int, List<SpawnedAnimal>> spawnedAnimals = new Dictionary<int, List<SpawnedAnimal>>();
 
+    // Dictionary để track tất cả vị trí đã được occupy trên mỗi layer
+    public Dictionary<int, HashSet<Vector3Int>> occupiedPositions = new Dictionary<int, HashSet<Vector3Int>>();
+
     private System.Random random;
 
     private void Awake()
@@ -61,6 +64,16 @@ public class ObjectSpawner : MonoBehaviour
             return;
         }
 
+        // Initialize occupied positions for this layer
+        if (!occupiedPositions.ContainsKey(layerIndex))
+        {
+            occupiedPositions[layerIndex] = new HashSet<Vector3Int>();
+        }
+        else
+        {
+            occupiedPositions[layerIndex].Clear();
+        }
+
         //Debug.Log($"Bắt đầu spawn cây cho layer {layerIndex}");
 
         List<Vector3Int> potentialSpawnPoints = GetPotentialSpawnPoints(graph);
@@ -69,9 +82,27 @@ public class ObjectSpawner : MonoBehaviour
 
         List<SpawnedTree> trees = SpawnTreesInClusters(clusters);
 
+        // Update occupied positions after spawning trees
+        foreach (var tree in trees)
+        {
+            occupiedPositions[layerIndex].Add(tree.gridPosition);
+        }
+
         List<SpawnedBush> bushes = SpawnBushesOnLayer(layerIndex, trees, clusters);
 
+        // Update occupied positions after spawning bushes
+        foreach (var bush in bushes)
+        {
+            occupiedPositions[layerIndex].Add(bush.gridPosition);
+        }
+
         List<SpawnedRock> rocks = SpawnRocksOnLayer(layerIndex, trees, clusters);
+
+        // Update occupied positions after spawning rocks
+        foreach (var rock in rocks)
+        {
+            occupiedPositions[layerIndex].Add(rock.gridPosition);
+        }
 
         List<SpawnedAnimal> animals = SpawnAnimalsOnLayer(layerIndex, trees, bushes, rocks, clusters);
 
@@ -82,6 +113,16 @@ public class ObjectSpawner : MonoBehaviour
         spawnedAnimals[layerIndex] = animals;
 
         //Debug.Log($"Đã spawn {trees.Count} cây và {bushes.Count} bụi cỏ trong {clusters.Count} clusters cho layer {layerIndex}");
+    }
+
+    // Helper method to check if position is occupied by any object
+    private bool IsPositionOccupied(Vector3Int position, int layerIndex)
+    {
+        if (occupiedPositions.ContainsKey(layerIndex))
+        {
+            return occupiedPositions[layerIndex].Contains(position);
+        }
+        return false;
     }
 
     #region Spawn Tree
@@ -103,6 +144,8 @@ public class ObjectSpawner : MonoBehaviour
 
             if (spawnSettings.avoidStairs && IsNearStairs(node, graph)) continue;
 
+            if(spawnSettings.avoidBridge && IsNearBridges(node, graph)) continue;
+
             float noiseValue = GetNoiseValue(node.position);
 
             if (noiseValue > spawnSettings.noiseThreshold)
@@ -122,6 +165,26 @@ public class ObjectSpawner : MonoBehaviour
         {
             Node otherNode = kvp.Value;
             if (otherNode.isStair)
+            {
+                float distance = Vector3Int.Distance(node.position, otherNode.position);
+                if (distance <= avoidanceRadius)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsNearBridges(Node node, PathfindingGraph graph)
+    {
+        float avoidanceRadius = spawnSettings.stairAvoidanceRadius;
+
+        foreach (var kvp in graph.nodes)
+        {
+            Node otherNode = kvp.Value;
+            if (otherNode.isBridge)
             {
                 float distance = Vector3Int.Distance(node.position, otherNode.position);
                 if (distance <= avoidanceRadius)
@@ -248,6 +311,10 @@ public class ObjectSpawner : MonoBehaviour
             if (IsTooCloseToExistingTree(position, trees))
                 continue;
 
+            // Check if position is already occupied by any object
+            if (IsPositionOccupied(position, cluster.layerIndex))
+                continue;
+
             GameObject treePrefab = spawnSettings.treePrefabs[random.Next(spawnSettings.treePrefabs.Length)];
             Vector3 worldPosition = GridToWorld(position);
 
@@ -268,12 +335,13 @@ public class ObjectSpawner : MonoBehaviour
             var spriteRenderer = treeObj.GetComponent<SpriteRenderer>();
             if (spriteRenderer != null)
             {
-                RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, treeComponent.layerIndex);
+                spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
+                //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, treeComponent.layerIndex);
             }
 
             var renderObj = treeObj.transform.Find("Custom Render Sprite");
             var renderComponent = renderObj.GetComponent<CustomRender>();
-            if(renderComponent != null)
+            if (renderComponent != null)
                 renderComponent.layerIndex = cluster.layerIndex;
 
             SpawnedTree spawnedTree = new SpawnedTree(treeComponent, position, cluster.layerIndex, cluster);
@@ -315,7 +383,7 @@ public class ObjectSpawner : MonoBehaviour
 
         foreach (var cluster in clusters)
         {
-            List<SpawnedBush> clusterBushes = SpawnBushesInCluster(cluster, trees, graph);
+            List<SpawnedBush> clusterBushes = SpawnBushesInCluster(cluster, trees, graph, layerIndex);
             bushes.AddRange(clusterBushes);
         }
 
@@ -325,7 +393,7 @@ public class ObjectSpawner : MonoBehaviour
         return bushes;
     }
 
-    private List<SpawnedBush> SpawnBushesInCluster(TreeCluster cluster, List<SpawnedTree> trees, PathfindingGraph graph)
+    private List<SpawnedBush> SpawnBushesInCluster(TreeCluster cluster, List<SpawnedTree> trees, PathfindingGraph graph, int layerIndex)
     {
         List<SpawnedBush> bushes = new List<SpawnedBush>();
 
@@ -337,6 +405,10 @@ public class ObjectSpawner : MonoBehaviour
 
             foreach (var bushPos in bushPositions)
             {
+                // Check if position is already occupied by any object
+                if (IsPositionOccupied(bushPos, layerIndex))
+                    continue;
+
                 if (IsTooCloseToTree(bushPos, trees) || IsTooCloseToBush(bushPos, bushes))
                     continue;
 
@@ -358,27 +430,14 @@ public class ObjectSpawner : MonoBehaviour
     {
         List<SpawnedBush> bushes = new List<SpawnedBush>();
 
-        HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
-        foreach (var tree in trees)
-        {
-            occupiedPositions.Add(tree.gridPosition);
-        }
-
-        foreach (var cluster in clusters)
-        {
-            foreach (var pos in cluster.nodePositions)
-            {
-                occupiedPositions.Add(pos);
-            }
-        }
-
         List<Vector3Int> potentialBushPositions = new List<Vector3Int>();
         foreach (var kvp in graph.nodes)
         {
             Node node = kvp.Value;
             if (!node.isWalkable || node.isBridge || node.isStair) continue;
 
-            if (occupiedPositions.Contains(node.position)) continue;
+            // Check if position is already occupied by any object
+            if (IsPositionOccupied(node.position, layerIndex)) continue;
 
             if (spawnSettings.avoidStairs && IsNearStairs(node, graph)) continue;
 
@@ -395,7 +454,8 @@ public class ObjectSpawner : MonoBehaviour
         {
             if (random.NextDouble() < spawnSettings.scatteredBushSpawnChance)
             {
-                if (!IsTooCloseToBush(pos, bushes))
+                // Double check if position is still available (might have been occupied by cluster bushes)
+                if (!IsPositionOccupied(pos, layerIndex) && !IsTooCloseToBush(pos, bushes))
                 {
                     SpawnedBush bush = SpawnBushAtPosition(pos, layerIndex, null);
                     if (bush != null)
@@ -417,7 +477,7 @@ public class ObjectSpawner : MonoBehaviour
         {
             for (int y = -spawnSettings.bushAroundTreeRadius; y <= spawnSettings.bushAroundTreeRadius; y++)
             {
-                if (x == 0 && y == 0) continue; 
+                if (x == 0 && y == 0) continue;
 
                 Vector3Int checkPos = treePosition + new Vector3Int(x, y, 0);
 
@@ -494,7 +554,8 @@ public class ObjectSpawner : MonoBehaviour
         var spriteRenderer = bushObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            RenderManager.Instance.SetSortingOrderSubtractOneByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
+            //RenderManager.Instance.SetSortingOrderSubtractOneByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
         }
 
         return new SpawnedBush(bushObj, position, layerIndex, parentCluster);
@@ -519,7 +580,7 @@ public class ObjectSpawner : MonoBehaviour
         // Spawn rocks in clusters (near trees)
         foreach (var cluster in clusters)
         {
-            List<SpawnedRock> clusterRocks = SpawnRocksInCluster(cluster, trees, graph);
+            List<SpawnedRock> clusterRocks = SpawnRocksInCluster(cluster, trees, graph, layerIndex);
             rocks.AddRange(clusterRocks);
         }
 
@@ -530,7 +591,7 @@ public class ObjectSpawner : MonoBehaviour
         return rocks;
     }
 
-    private List<SpawnedRock> SpawnRocksInCluster(TreeCluster cluster, List<SpawnedTree> trees, PathfindingGraph graph)
+    private List<SpawnedRock> SpawnRocksInCluster(TreeCluster cluster, List<SpawnedTree> trees, PathfindingGraph graph, int layerIndex)
     {
         List<SpawnedRock> rocks = new List<SpawnedRock>();
 
@@ -544,6 +605,10 @@ public class ObjectSpawner : MonoBehaviour
 
                 foreach (var rockPos in rockPositions)
                 {
+                    // Check if position is already occupied by any object
+                    if (IsPositionOccupied(rockPos, layerIndex))
+                        continue;
+
                     if (IsTooCloseToTree(rockPos, trees) || IsTooCloseToRock(rockPos, rocks))
                         continue;
 
@@ -566,27 +631,14 @@ public class ObjectSpawner : MonoBehaviour
     {
         List<SpawnedRock> rocks = new List<SpawnedRock>();
 
-        HashSet<Vector3Int> occupiedPositions = new HashSet<Vector3Int>();
-        foreach (var tree in trees)
-        {
-            occupiedPositions.Add(tree.gridPosition);
-        }
-
-        foreach (var cluster in clusters)
-        {
-            foreach (var pos in cluster.nodePositions)
-            {
-                occupiedPositions.Add(pos);
-            }
-        }
-
         List<Vector3Int> potentialRockPositions = new List<Vector3Int>();
         foreach (var kvp in graph.nodes)
         {
             Node node = kvp.Value;
             if (!node.isWalkable || node.isBridge || node.isStair) continue;
 
-            if (occupiedPositions.Contains(node.position)) continue;
+            // Check if position is already occupied by any object
+            if (IsPositionOccupied(node.position, layerIndex)) continue;
 
             if (spawnSettings.avoidStairs && IsNearStairs(node, graph)) continue;
 
@@ -603,10 +655,14 @@ public class ObjectSpawner : MonoBehaviour
         {
             if (random.NextDouble() < spawnSettings.scatteredRockSpawnChance)
             {
-                SpawnedRock rock = SpawnRockAtPosition(pos, layerIndex, null);
-                if (rock != null)
+                // Double check if position is still available
+                if (!IsPositionOccupied(pos, layerIndex))
                 {
-                    rocks.Add(rock);
+                    SpawnedRock rock = SpawnRockAtPosition(pos, layerIndex, null);
+                    if (rock != null)
+                    {
+                        rocks.Add(rock);
+                    }
                 }
             }
         }
@@ -690,7 +746,8 @@ public class ObjectSpawner : MonoBehaviour
         var spriteRenderer = rockObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
+            //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
         }
 
         return new SpawnedRock(rockObj, position, layerIndex, parentCluster);
@@ -800,7 +857,8 @@ public class ObjectSpawner : MonoBehaviour
         var spriteRenderer = animalObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.characterRender, spriteRenderer, layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
+            //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.characterRender, spriteRenderer, layerIndex);
         }
 
         return new SpawnedAnimal(animalObj, position);
@@ -1195,7 +1253,8 @@ public class ObjectSpawner : MonoBehaviour
         var spriteRenderer = treeObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
+            //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
         }
 
         return new SpawnedTree(treeComponent, position, layerIndex, cluster);
@@ -1335,7 +1394,7 @@ public class ObjectSpawner : MonoBehaviour
         layerClusters.Clear();
     }
 
-    public void ClearTreesOnLayer(int layerIndex)
+    private void ClearTreesOnLayer(int layerIndex)
     {
         if (spawnedTrees.TryGetValue(layerIndex, out List<SpawnedTree> trees))
         {
@@ -1368,10 +1427,7 @@ public class ObjectSpawner : MonoBehaviour
             spawnedBushes.Remove(layerIndex);
         }
 
-        if (layerClusters.ContainsKey(layerIndex))
-        {
-            layerClusters.Remove(layerIndex);
-        }
+        layerClusters.Remove(layerIndex);
     }
     #endregion
 
@@ -1380,7 +1436,7 @@ public class ObjectSpawner : MonoBehaviour
         return spawnedTrees.TryGetValue(layerIndex, out List<SpawnedTree> trees) ? trees : new List<SpawnedTree>();
     }
 
-    public List<SpawnedBush> GetBushesOnLayer(int layerIndex)
+    private List<SpawnedBush> GetBushesOnLayer(int layerIndex)
     {
         return spawnedBushes.TryGetValue(layerIndex, out List<SpawnedBush> bushes) ? bushes : new List<SpawnedBush>();
     }
@@ -1390,12 +1446,12 @@ public class ObjectSpawner : MonoBehaviour
         return layerClusters.TryGetValue(layerIndex, out List<TreeCluster> clusters) ? clusters : new List<TreeCluster>();
     }
 
-    public List<SpawnedRock> GetRocksOnLayer(int layerIndex)
+    private List<SpawnedRock> GetRocksOnLayer(int layerIndex)
     {
         return spawnedRocks.TryGetValue(layerIndex, out List<SpawnedRock> rocks) ? rocks : new List<SpawnedRock>();
     }
 
-    public List<SpawnedAnimal> GetAnimalsOnLayer(int layerIndex)
+    private List<SpawnedAnimal> GetAnimalsOnLayer(int layerIndex)
     {
         return spawnedAnimals.TryGetValue(layerIndex, out List<SpawnedAnimal> animals) ? animals : new List<SpawnedAnimal>();
     }

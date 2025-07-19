@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using System.Collections;
+using System.Threading.Tasks;
 
 public class SaveLoadSystem : MonoBehaviour, ISaveable
 {
@@ -16,12 +18,19 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     [Header("Auto Save Settings")]
     public bool autoSave = true;
-    public float autoSaveInterval = 30f; 
+    public float autoSaveInterval = 30f;
     private float lastAutoSaveTime = 0f;
+
+    [Header("Load Optimization")]
+    public int objectsPerFrame = 50; 
+    public bool useObjectPooling = true;
+    public bool loadAsync = true;
+
+    private Dictionary<GameObject, Queue<GameObject>> objectPools = new Dictionary<GameObject, Queue<GameObject>>();
 
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
@@ -33,23 +42,112 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
 
         unitManager = FindObjectOfType<UnitManager>();
+        InitializeObjectPools();
     }
 
     void Start()
     {
         saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
-        LoadGame();
+        PrewarmPools(); 
+
+        if (loadAsync)
+            StartCoroutine(LoadGameAsync());
+        else
+            LoadGame();
+    }
+
+    private void InitializeObjectPools()
+    {
+        if (!useObjectPooling) return;
+
+        var spawnSettings = ObjectSpawner.Instance?.spawnSettings;
+        if (spawnSettings != null)
+        {
+            InitializePool(spawnSettings.treePrefabs);
+            InitializePool(spawnSettings.bushPrefabs);
+            InitializePool(spawnSettings.rockPrefabs);
+            InitializePool(spawnSettings.animalPrefabs);
+        }
+    }
+
+    private void InitializePool(GameObject[] prefabs)
+    {
+        foreach (var prefab in prefabs)
+        {
+            if (prefab != null)
+                objectPools[prefab] = new Queue<GameObject>();
+        }
+    }
+
+    public GameObject GetFromPool(GameObject prefab)
+    {
+        if (!useObjectPooling || !objectPools.ContainsKey(prefab))
+            return Instantiate(prefab);
+
+        var pool = objectPools[prefab];
+        if (pool.Count > 0)
+        {
+            var obj = pool.Dequeue();
+            obj.SetActive(true);
+            return obj;
+        }
+
+        return Instantiate(prefab);
+    }
+
+    public void ReturnToPool(GameObject obj, GameObject prefab)
+    {
+        if (!useObjectPooling || !objectPools.ContainsKey(prefab))
+        {
+            Destroy(obj);
+            return;
+        }
+
+        obj.SetActive(false);
+        objectPools[prefab].Enqueue(obj);
+    }
+
+    private void PrewarmPools()
+    {
+        if (!useObjectPooling) return;
+
+        var spawnSettings = ObjectSpawner.Instance?.spawnSettings;
+        if (spawnSettings != null)
+        {
+            PrewarmPool(spawnSettings.treePrefabs, 20);
+            PrewarmPool(spawnSettings.bushPrefabs, 30);
+            PrewarmPool(spawnSettings.rockPrefabs, 15);
+            PrewarmPool(spawnSettings.animalPrefabs, 5);
+        }
+    }
+
+    private void PrewarmPool(GameObject[] prefabs, int count)
+    {
+        foreach (var prefab in prefabs)
+        {
+            if (prefab != null && objectPools.ContainsKey(prefab))
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    var obj = Instantiate(prefab);
+                    obj.SetActive(false);
+                    objectPools[prefab].Enqueue(obj);
+                }
+            }
+        }
     }
 
     private void LateUpdate()
     {
-        if (autoSave && Time.time - lastAutoSaveTime > autoSaveInterval)
+        if (autoSave && Time.time - lastAutoSaveTime > autoSaveInterval 
+            && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             SaveGame();
             lastAutoSaveTime = Time.time;
             Debug.Log($"Auto-saved game.");
         }
     }
+
     public void SaveGame()
     {
         OnSave?.Invoke();
@@ -67,8 +165,40 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         Debug.Log($"Game saved to {saveFilePath}");
     }
 
+    public IEnumerator LoadGameAsync()
+    {
+        if (!File.Exists(saveFilePath))
+        {
+            Debug.LogWarning("No save file found!");
+            yield break;
+        }
+
+        Debug.Log("Starting async load...");
+
+        string json = File.ReadAllText(saveFilePath);
+        GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
+
+        foreach (var saveable in saveables)
+        {
+            saveable.LoadFromSaveData(saveData);
+            yield return null; 
+        }
+
+        yield return StartCoroutine(LoadSpawnDataOptimized(saveData));
+
+        UnitManager.Instance.UpdateGraphNodeWhenStart();
+
+        Debug.Log($"Game loaded asynchronously from {saveFilePath}");
+    }
+
     public void LoadGame()
     {
+        if (loadAsync)
+        {
+            StartCoroutine(LoadGameAsync());
+            return;
+        }
+
         if (!File.Exists(saveFilePath))
         {
             Debug.LogWarning("No save file found!");
@@ -129,7 +259,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                     .Where(unit => unit != null)
                     .Select(unit => unit.unitName)
                     .ToList()
-            }); ;
+            });
         }
         #endregion
 
@@ -169,7 +299,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             Building building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
             building.name = buildingDatum.buildingName;
             building.LayerIndex = buildingDatum.layerIndex;
-            building.UpdateRenderSortingOrder(buildingDatum.layerIndex);
+            building.GetSpriteRendererComponent().sortingOrder = RenderManager.Instance.decorRenderIndex;
+
             var customRender = building.transform.Find("Custom Render Sprite");
             if (customRender != null)
             {
@@ -177,13 +308,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             }
         }
         #endregion
-
-        #region Load Object Spawn Data
-        LoadSpawnData(saveData);
-        #endregion
     }
 
-    #region SAVE/LOAD Spawn Object
+    #region SAVE/LOAD Spawn Object - Optimized
     public void SaveSpawnData(GameSaveData gameSaveData)
     {
         try
@@ -203,68 +330,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                     layerData.clusters.Add(new TreeClusterData(cluster));
                 }
 
-                #region Save Tree
-                if (ObjectSpawner.Instance.spawnedTrees.TryGetValue(layerIndex, out List<SpawnedTree> trees))
-                {
-                    foreach (var tree in trees)
-                    {
-                        if (tree.treeComponent != null)
-                        {
-                            int prefabIndex = GetPrefabIndex(tree.treeComponent.gameObject, ObjectSpawner.Instance.spawnSettings.treePrefabs);
-                            int clusterIndex = clusters.IndexOf(tree.parentCluster);
-
-                            layerData.trees.Add(new SpawnedTreeData(tree, prefabIndex, clusterIndex));
-                        }
-                    }
-                }
-                #endregion
-
-                #region Save Bush
-                if (ObjectSpawner.Instance.spawnedBushes.TryGetValue(layerIndex, out List<SpawnedBush> bushes))
-                {
-                    foreach (var bush in bushes)
-                    {
-                        if (bush.bushObject != null)
-                        {
-                            int prefabIndex = GetPrefabIndex(bush.bushObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs);
-                            int clusterIndex = bush.parentCluster != null ? clusters.IndexOf(bush.parentCluster) : -1;
-
-                            layerData.bushes.Add(new SpawnedBushData(bush, prefabIndex, clusterIndex));
-                        }
-                    }
-                }
-                #endregion
-
-                #region Save Rocks
-                if (ObjectSpawner.Instance.spawnedRocks.TryGetValue(layerIndex, out List<SpawnedRock> rocks))
-                {
-                    foreach (var rock in rocks)
-                    {
-                        if (rock.rockObject != null)
-                        {
-                            int prefabIndex = GetPrefabIndex(rock.rockObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs);
-                            int clusterIndex = rock.parentCluster != null ? clusters.IndexOf(rock.parentCluster) : -1;
-
-                            layerData.rocks.Add(new SpawnedRockData(rock, prefabIndex, clusterIndex));
-                        }
-                    }
-                }
-                #endregion
-
-                #region Save Animals
-                if (ObjectSpawner.Instance.spawnedAnimals.TryGetValue(layerIndex, out List<SpawnedAnimal> animals))
-                {
-                    foreach (var animal in animals)
-                    {
-                        if (animal.animalObject != null && animal.animalComponent != null)
-                        {
-                            int prefabIndex = GetPrefabIndex(animal.animalObject, ObjectSpawner.Instance.spawnSettings.animalPrefabs);
-
-                            layerData.animals.Add(new SpawnedAnimalData(animal, prefabIndex));
-                        }
-                    }
-                }
-                #endregion
+                SaveObjectsOfType(layerIndex, clusters, layerData);
 
                 saveData.layerData.Add(layerData);
             }
@@ -276,24 +342,193 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
     }
 
+    private void SaveObjectsOfType(int layerIndex, List<TreeCluster> clusters, LayerSpawnData layerData)
+    {
+        if (ObjectSpawner.Instance.spawnedTrees.TryGetValue(layerIndex, out List<SpawnedTree> trees))
+        {
+            foreach (var tree in trees)
+            {
+                if (tree.treeComponent != null)
+                {
+                    int prefabIndex = GetPrefabIndex(tree.treeComponent.gameObject, ObjectSpawner.Instance.spawnSettings.treePrefabs);
+                    int clusterIndex = clusters.IndexOf(tree.parentCluster);
+                    layerData.trees.Add(new SpawnedTreeData(tree, prefabIndex, clusterIndex));
+                }
+            }
+        }
+
+        if (ObjectSpawner.Instance.spawnedBushes.TryGetValue(layerIndex, out List<SpawnedBush> bushes))
+        {
+            foreach (var bush in bushes)
+            {
+                if (bush.bushObject != null)
+                {
+                    int prefabIndex = GetPrefabIndex(bush.bushObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs);
+                    int clusterIndex = bush.parentCluster != null ? clusters.IndexOf(bush.parentCluster) : -1;
+                    layerData.bushes.Add(new SpawnedBushData(bush, prefabIndex, clusterIndex));
+                }
+            }
+        }
+
+        if (ObjectSpawner.Instance.spawnedRocks.TryGetValue(layerIndex, out List<SpawnedRock> rocks))
+        {
+            foreach (var rock in rocks)
+            {
+                if (rock.rockObject != null)
+                {
+                    int prefabIndex = GetPrefabIndex(rock.rockObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs);
+                    int clusterIndex = rock.parentCluster != null ? clusters.IndexOf(rock.parentCluster) : -1;
+                    layerData.rocks.Add(new SpawnedRockData(rock, prefabIndex, clusterIndex));
+                }
+            }
+        }
+
+        if (ObjectSpawner.Instance.spawnedAnimals.TryGetValue(layerIndex, out List<SpawnedAnimal> animals))
+        {
+            foreach (var animal in animals)
+            {
+                if (animal.animalObject != null && animal.animalComponent != null)
+                {
+                    int prefabIndex = GetPrefabIndex(animal.animalObject, ObjectSpawner.Instance.spawnSettings.animalPrefabs);
+                    layerData.animals.Add(new SpawnedAnimalData(animal, prefabIndex));
+                }
+            }
+        }
+    }
+
+    public IEnumerator LoadSpawnDataOptimized(GameSaveData gameSaveData)
+    {
+        if (gameSaveData?.objectSpawnData == null)
+        {
+            Debug.LogError("Failed to load spawn data: objectSpawnData is null");
+            yield break;
+        }
+
+        ObjectSpawnData saveData = gameSaveData.objectSpawnData;
+        ObjectSpawner.Instance.ClearAllObjects();
+
+        int processedCount = 0;
+
+        foreach (var layerData in saveData.layerData)
+        {
+            yield return StartCoroutine(LoadLayerWithErrorHandling(layerData));
+
+            processedCount++;
+            if (processedCount % 2 == 0) 
+                yield return null;
+        }
+    }
+
+    private IEnumerator LoadLayerWithErrorHandling(LayerSpawnData layerData)
+    {
+        bool success = false;
+        try
+        {
+            yield return StartCoroutine(LoadLayerDataOptimized(layerData));
+            success = true;
+        }
+        finally
+        {
+            if (!success)
+            {
+                Debug.LogError($"Failed to load layer data for layer {layerData?.layerIndex}");
+            }
+        }
+    }
+
     public void LoadSpawnData(GameSaveData gameSaveData)
     {
+        if (loadAsync)
+        {
+            StartCoroutine(LoadSpawnDataOptimized(gameSaveData));
+            return;
+        }
+
         try
         {
             ObjectSpawnData saveData = gameSaveData.objectSpawnData;
-
             ObjectSpawner.Instance.ClearAllObjects();
 
             foreach (var layerData in saveData.layerData)
             {
                 LoadLayerData(layerData);
             }
-
         }
         catch (System.Exception e)
         {
             Debug.LogError($"Failed to load spawn data: {e.Message}");
         }
+    }
+
+    private IEnumerator LoadLayerDataOptimized(LayerSpawnData layerData)
+    {
+        int layerIndex = layerData.layerIndex;
+
+        #region Load Clusters
+        List<TreeCluster> clusters = new List<TreeCluster>();
+        foreach (var clusterData in layerData.clusters)
+        {
+            clusters.Add(clusterData.ToTreeCluster());
+        }
+        ObjectSpawner.Instance.layerClusters[layerIndex] = clusters;
+        #endregion
+
+        yield return StartCoroutine(LoadObjectsOptimized<SpawnedTreeData, SpawnedTree>(
+            layerData.trees,
+            (data) => LoadTree(data, clusters),
+            (list) => ObjectSpawner.Instance.spawnedTrees[layerIndex] = list));
+
+        yield return StartCoroutine(LoadObjectsOptimized<SpawnedBushData, SpawnedBush>(
+            layerData.bushes,
+            (data) => LoadBush(data, clusters),
+            (list) => ObjectSpawner.Instance.spawnedBushes[layerIndex] = list));
+
+        yield return StartCoroutine(LoadObjectsOptimized<SpawnedRockData, SpawnedRock>(
+            layerData.rocks,
+            (data) => LoadRock(data, clusters),
+            (list) => ObjectSpawner.Instance.spawnedRocks[layerIndex] = list));
+
+        yield return StartCoroutine(LoadObjectsOptimized<SpawnedAnimalData, SpawnedAnimal>(
+            layerData.animals,
+            (data) => LoadAnimal(data),
+            (list) => ObjectSpawner.Instance.spawnedAnimals[layerIndex] = list));
+    }
+
+    private IEnumerator LoadObjectsOptimized<TData, TObject>(
+        List<TData> dataList,
+        System.Func<TData, TObject> loadFunction,
+        System.Action<List<TObject>> setResult)
+    {
+        List<TObject> objects = new List<TObject>();
+        int processedCount = 0;
+
+        foreach (var data in dataList)
+        {
+            TObject obj = default(TObject);
+            try
+            {
+                obj = loadFunction(data);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to load object: {e.Message}");
+                continue;
+            }
+
+            if (obj != null)
+            {
+                objects.Add(obj);
+            }
+
+            processedCount++;
+            if (processedCount >= objectsPerFrame)
+            {
+                processedCount = 0;
+                yield return null; 
+            }
+        }
+
+        setResult(objects);
     }
 
     private void LoadLayerData(LayerSpawnData layerData)
@@ -374,7 +609,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject treePrefab = ObjectSpawner.Instance.spawnSettings.treePrefabs[treeData.prefabIndex];
         Vector3 worldPosition = ObjectSpawner.Instance.GridToWorld(treeData.gridPosition);
 
-        GameObject treeObj = Instantiate(treePrefab, worldPosition, Quaternion.identity, this.transform);
+        GameObject treeObj = GetFromPool(treePrefab);
+        treeObj.transform.position = worldPosition;
+        treeObj.transform.rotation = Quaternion.identity;
+        treeObj.transform.SetParent(this.transform);
 
         if (treeObj.TryGetComponent<Tree>(out Tree treeComponent))
         {
@@ -389,26 +627,28 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             treeObj.layer = layerIndex;
 
             bool isWalkable = treeComponent.treeState == TreeState.Chopped;
-           
-            if(treeComponent.treeState == TreeState.Chopped)
+
+            if (treeComponent.treeState == TreeState.Chopped)
             {
-                treeObj.transform.Find("Custom Render Sprite").gameObject.SetActive(false);
+                var customRenderSprite = treeObj.transform.Find("Custom Render Sprite");
+                if (customRenderSprite != null)
+                    customRenderSprite.gameObject.SetActive(false);
                 treeComponent.treeCollider.enabled = false;
             }
             else
                 GraphNode.Instance.SetWalkableNode(treeData.gridPosition, treeComponent.layerIndex, isWalkable);
-
         }
 
-        if (treeObj.transform.Find("Custom Render Sprite") != null)
+        var customRender = treeObj.transform.Find("Custom Render Sprite");
+        if (customRender != null)
         {
-            treeObj.transform.Find("Custom Render Sprite").GetComponent<CustomRender>().layerIndex = treeData.layerIndex;
+            customRender.GetComponent<CustomRender>().layerIndex = treeData.layerIndex;
         }
 
         var spriteRenderer = treeObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, treeComponent.layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
         }
 
         TreeCluster parentCluster = null;
@@ -431,7 +671,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject bushPrefab = ObjectSpawner.Instance.spawnSettings.bushPrefabs[bushData.prefabIndex];
         Vector3 worldPosition = ObjectSpawner.Instance.GridToWorld(bushData.gridPosition);
 
-        GameObject bushObj = Instantiate(bushPrefab, worldPosition, Quaternion.identity, this.transform);
+        GameObject bushObj = GetFromPool(bushPrefab);
+        bushObj.transform.position = worldPosition;
+        bushObj.transform.rotation = Quaternion.identity;
+        bushObj.transform.SetParent(this.transform);
 
         if (bushObj.TryGetComponent<Bush>(out Bush bushComponent))
         {
@@ -445,7 +688,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         var spriteRenderer = bushObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
-            RenderManager.Instance.SetSortingOrderSubtractOneByIndex(RenderManager.Instance.decorRender, spriteRenderer, bushData.layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
 
         TreeCluster parentCluster = null;
         if (bushData.parentClusterIndex >= 0 && bushData.parentClusterIndex < clusters.Count)
@@ -465,7 +708,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject rockPrefab = ObjectSpawner.Instance.spawnSettings.rockPrefabs[rockData.prefabIndex];
         Vector3 worldPosition = ObjectSpawner.Instance.GridToWorld(rockData.gridPosition);
 
-        GameObject rockObj = Instantiate(rockPrefab, worldPosition, Quaternion.identity, this.transform);
+        GameObject rockObj = GetFromPool(rockPrefab);
+        rockObj.transform.position = worldPosition;
+        rockObj.transform.rotation = Quaternion.identity;
+        rockObj.transform.SetParent(this.transform);
 
         if (rockObj.TryGetComponent<Rock>(out Rock rockComponent))
         {
@@ -475,19 +721,18 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             string layerName = $"Layer {rockData.layerIndex + 1}";
             int layerIndexMask = LayerMask.NameToLayer(layerName);
             rockObj.layer = layerIndexMask;
-
-            //GraphNode.Instance.SetWalkableNode(rockData.gridPosition, rockData.layerIndex, isWalkable);
         }
 
-        if (rockObj.transform.Find("Custom Render Sprite") != null)
+        var customRender = rockObj.transform.Find("Custom Render Sprite");
+        if (customRender != null)
         {
-            rockObj.transform.Find("Custom Render Sprite").GetComponent<CustomRender>().layerIndex = rockData.layerIndex;
+            customRender.GetComponent<CustomRender>().layerIndex = rockData.layerIndex;
         }
 
         var spriteRenderer = rockObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            RenderManager.Instance.SetSortingOrderSubtractOneByIndex(RenderManager.Instance.decorRender, spriteRenderer, rockData.layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
         }
 
         TreeCluster parentCluster = null;
@@ -508,29 +753,33 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
 
         GameObject animalPrefab = ObjectSpawner.Instance.spawnSettings.animalPrefabs[animalData.prefabIndex];
-        GameObject animalObj = Instantiate(animalPrefab, animalData.currentPosition, Quaternion.identity, this.transform);
+        GameObject animalObj = GetFromPool(animalPrefab);
+        animalObj.transform.position = animalData.currentPosition;
+        animalObj.transform.rotation = Quaternion.identity;
+        animalObj.transform.SetParent(this.transform);
 
         if (animalObj.TryGetComponent<Animal>(out Animal animalComponent))
         {
             animalComponent.layerIndex = animalData.layerIndex;
 
-            if(animalObj.GetComponentInChildren<FloorAgent>() != null)
+            var floorAgent = animalObj.GetComponentInChildren<FloorAgent>();
+            if (floorAgent != null)
             {
-                animalObj.GetComponentInChildren<FloorAgent>().MoveToFloor(animalData.layerIndex);
+                floorAgent.MoveToFloor(animalData.layerIndex);
             }
         }
 
         var spriteRenderer = animalObj.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            RenderManager.Instance.SetSortingOrderSubtractOneByIndex(RenderManager.Instance.decorRender, spriteRenderer, animalData.layerIndex);
+            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
         }
 
         return new SpawnedAnimal(animalObj, Vector3Int.FloorToInt(animalData.currentPosition));
     }
     #endregion
 
-    private int GetPrefabIndex(GameObject gameObject, GameObject[] prefabs)
+    public int GetPrefabIndex(GameObject gameObject, GameObject[] prefabs)
     {
         string prefabName = gameObject.name.Replace("(Clone)", "");
 
@@ -548,18 +797,16 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     public bool HasSaveData()
     {
-        string savePath = Path.Combine(Application.persistentDataPath, saveFilePath);
-        return File.Exists(savePath);
+        return File.Exists(saveFilePath);
     }
 
     public void DeleteSaveData()
     {
         try
         {
-            string savePath = Path.Combine(Application.persistentDataPath, saveFilePath);
-            if (File.Exists(savePath))
+            if (File.Exists(saveFilePath))
             {
-                File.Delete(savePath);
+                File.Delete(saveFilePath);
                 Debug.Log("Save data deleted successfully");
             }
         }
@@ -569,7 +816,23 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
     }
 
-    #endregion
-    #endregion
+    // Cleanup object pools
+    private void OnDestroy()
+    {
+        if (useObjectPooling)
+        {
+            foreach (var pool in objectPools.Values)
+            {
+                while (pool.Count > 0)
+                {
+                    var obj = pool.Dequeue();
+                    if (obj != null) Destroy(obj);
+                }
+            }
+            objectPools.Clear();
+        }
+    }
 
+    #endregion
+    #endregion
 }

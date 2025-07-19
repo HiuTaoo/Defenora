@@ -9,6 +9,7 @@ public class RenderManager : MonoBehaviour
 
     public List<RenderData> decorRender;
     public List<RenderData> characterRender;
+    public int decorRenderIndex;
 
     private void Awake()
     {
