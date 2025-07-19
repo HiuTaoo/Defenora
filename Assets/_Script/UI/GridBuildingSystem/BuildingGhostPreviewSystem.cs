@@ -14,7 +14,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     public GameObject currentGhost;
 
     private bool canPlace = false;
-    private bool isPlacing = false;
 
     private EditBuildingManager gridManager;
     public MenuItem menuItem;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public abstract class Animal : MonoBehaviour
 {
-    protected CircleCollider2D collider2D;
+    protected CircleCollider2D animalCollider2D;
     protected Rigidbody2D rb;
     protected Animator animator;
     protected AgentPhysics2D agentPhysics2D;
@@ -29,7 +29,7 @@ public abstract class Animal : MonoBehaviour
 
     protected virtual void Awake()
     {
-        collider2D = GetComponent<CircleCollider2D>();
+        animalCollider2D = GetComponent<CircleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         agentPhysics2D = GetComponentInChildren<AgentPhysics2D>();
@@ -89,7 +89,7 @@ public abstract class Animal : MonoBehaviour
         Vector2 currentPosition = rb.position;
         float moveDistance = runSpeed * Time.fixedDeltaTime;
 
-        bool isBlocked = agentPhysics2D.IsBlock(currentPosition, runDirection, moveDistance + 0.05f, collider2D);
+        bool isBlocked = agentPhysics2D.IsBlock(currentPosition, runDirection, moveDistance + 0.05f, animalCollider2D);
 
         if (!isBlocked && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
