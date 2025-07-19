@@ -11,8 +11,6 @@ public class EditBuildingManager : MonoBehaviour
     public HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
     public List<Building> listPlacedBuilding = new List<Building>();
 
-    [SerializeField] private float cellSize = 1f;
-
     private GraphNode graphNode;
     private SaveLoadSystem saveLoadSystem;
 

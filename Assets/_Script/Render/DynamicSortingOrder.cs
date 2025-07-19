@@ -3,9 +3,9 @@
 [RequireComponent(typeof(SpriteRenderer))]
 public class DynamicDepthByZ : MonoBehaviour
 {
-    private float zStepPerY = 0.5f;
+    private float zStepPerY = 0.1f;
     private float zStepPerX = 0.001f;
-    private float zStepPerLayer = 2f; 
+    private float zStepPerLayer = 0.15f; 
     private float baseZ = 0.01f;
     private int layerIndex;
     public bool runOnce = false;

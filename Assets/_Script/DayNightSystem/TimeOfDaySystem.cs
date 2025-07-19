@@ -6,6 +6,8 @@ using UnityEngine.Rendering.Universal;
 [System.Serializable]
 public class TimeOfDaySystem : MonoBehaviour
 {
+    public static TimeOfDaySystem Instance;
+
     [Header("Lighting Settings")]
     public Light2D globalLight; 
 
@@ -24,6 +26,14 @@ public class TimeOfDaySystem : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+            Destroy(gameObject);
+
         globalLight = transform.Find("Global Light")?.GetComponent<Light2D>();
 
     }
