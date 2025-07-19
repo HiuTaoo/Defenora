@@ -8,8 +8,13 @@ TagManager:
   - Spot
   - Tree
   - Bush
-  - Sheep
   - Enemy
+  - Timer
+  - Rock
+  - Building
+  - Animal
+  - NPC
+  - Ground
   layers:
   - Default
   - TransparentFX
@@ -23,8 +28,8 @@ TagManager:
   - Player
   - NPC
   - Decor
-  - 
-  - 
+  - World
+  - Player
   - 
   - 
   - 
@@ -56,6 +61,15 @@ TagManager:
   - name: Layer 3
     uniqueID: 1061770637
     locked: 0
+  - name: World
+    uniqueID: 3666042987
+    locked: 0
   - name: Decor
     uniqueID: 2542226927
+    locked: 0
+  - name: NPC
+    uniqueID: 2561894353
+    locked: 0
+  - name: Player
+    uniqueID: 1485704471
     locked: 0
