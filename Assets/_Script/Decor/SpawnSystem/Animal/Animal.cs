@@ -35,6 +35,8 @@ public abstract class Animal : MonoBehaviour
         agentPhysics2D = GetComponentInChildren<AgentPhysics2D>();
         floorAgent = GetComponentInChildren<FloorAgent>();
         random = new System.Random();
+
+        animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
     }
 
     

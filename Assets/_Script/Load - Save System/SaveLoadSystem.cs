@@ -28,6 +28,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     private Dictionary<GameObject, Queue<GameObject>> objectPools = new Dictionary<GameObject, Queue<GameObject>>();
 
+    public System.Action OnLoaded;
+
     private void Awake()
     {
         if (Instance == null)
@@ -56,6 +58,18 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             LoadGame();
     }
 
+    private void LateUpdate()
+    {
+        if (autoSave && Time.time - lastAutoSaveTime > autoSaveInterval 
+            && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+        {
+            SaveGame();
+            lastAutoSaveTime = Time.time;
+            Debug.Log($"Auto-saved game.");
+        }
+    }
+
+    #region Object Pooling
     private void InitializeObjectPools()
     {
         if (!useObjectPooling) return;
@@ -136,17 +150,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             }
         }
     }
-
-    private void LateUpdate()
-    {
-        if (autoSave && Time.time - lastAutoSaveTime > autoSaveInterval 
-            && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
-        {
-            SaveGame();
-            lastAutoSaveTime = Time.time;
-            Debug.Log($"Auto-saved game.");
-        }
-    }
+    #endregion
 
     public void SaveGame()
     {
@@ -189,6 +193,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         UnitManager.Instance.UpdateGraphNodeWhenStart();
 
         Debug.Log($"Game loaded asynchronously from {saveFilePath}");
+        OnLoaded?.Invoke();
     }
 
     public void LoadGame()
@@ -216,6 +221,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         UnitManager.Instance.UpdateGraphNodeWhenStart();
 
         Debug.Log($"Game loaded from {saveFilePath}");
+        OnLoaded?.Invoke();
     }
 
     #region Save/ Load Game

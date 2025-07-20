@@ -24,6 +24,8 @@ public class Tree : MonoBehaviour
         animator = GetComponent<Animator>();
         treeCollider = GetComponent<CapsuleCollider2D>();
 
+        animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+
         RegisterState();
     }
 
@@ -35,20 +37,13 @@ public class Tree : MonoBehaviour
 
     private void Update()
     {
-        if (treeState == TreeState.Idle && currentChopHit == maxChopHit)
+        if (spriteRenderer.isVisible)
         {
-            OnChoppedTree();
+            if (treeState == TreeState.Idle && currentChopHit == maxChopHit)
+            {
+                OnChoppedTree();
+            }
         }
-
-        if(treeState == TreeState.Chopped)
-        {
-            animator.Play("Chopped");
-        }
-        if (treeState == TreeState.Idle)
-        {
-            animator.Play("idle");
-        }
-
     }
 
     public void HandleChopTree()
