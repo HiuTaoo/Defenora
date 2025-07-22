@@ -269,7 +269,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbb3de1c19f72f04dbe1f84f6bc875ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: Archer
+  unitName: 
   unitType: 0
   currentState: 0
   health: 100

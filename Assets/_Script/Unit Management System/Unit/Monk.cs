@@ -14,7 +14,6 @@ public class Monk : Unit
     {
         base.Awake();
         unitType = UnitType.Monk;
-        unitName = "Monk";
     }
 
     public override void UseSpecialAbility()

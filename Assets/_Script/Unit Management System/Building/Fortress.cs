@@ -7,6 +7,7 @@ public class Fortress : Building
 {
     private void Awake()
     {
+        base.Awake();
         buildingType = BuildingType.Fortress;
         RegisterSpot();
     }

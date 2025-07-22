@@ -35,6 +35,10 @@ public class CustomRender : MonoBehaviour
     {
         if (GameLoop.Instance.StateMachine.CurrentStateType != GameStateType.Editor)
         {
+            if (collision.CompareTag("NPC") && 
+                collision.GetComponent<Unit>().unitType == UnitType.Archer)
+                return;
+
             if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null )
             {
                 var floorAgent = collision.gameObject.GetComponentInChildren<FloorAgent>();
@@ -51,8 +55,6 @@ public class CustomRender : MonoBehaviour
                     c.a = 0.5f;
                     spriteRenderer.color = c;
                 }
-                
-
             }
         }
         

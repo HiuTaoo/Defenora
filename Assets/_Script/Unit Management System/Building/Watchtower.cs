@@ -6,6 +6,7 @@ public class Watchtower : Building
 {
     private void Awake()
     {
+        base.Awake();
         buildingType = BuildingType.WatchTower;
         RegisterSpot();
     }

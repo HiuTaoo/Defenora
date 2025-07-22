@@ -236,7 +236,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 unitName = unit.unitName,
                 unitType = unit.unitType,
                 position = unit.transform.position,
-                assignedBuilding = unit.assignedBuilding?.buildingName,
+                assignedBuilding = unit.assignedBuilding?.name,
                 currentState = unit.currentState,
                 health = unit.health,
                 layerIndex = unit.floorAgent.currentFloorIndex,
@@ -261,6 +261,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 buildingType = building.buildingType,
                 position = building.transform.position,
                 buildingState = building.buildingState,
+                maxHealth = building.maxHealth,
+                currentHealth = building.currentHealth,
                 unitNames = building.stationedUnits
                     .Where(unit => unit != null)
                     .Select(unit => unit.unitName)
@@ -278,6 +280,37 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     public void LoadFromSaveData(GameSaveData saveData)
     {
+        #region Load Building
+        var buildingData = saveData.buildingSaveData;
+
+        foreach (var building in unitManager.buildings)
+            Destroy(building.gameObject);
+        unitManager.buildings.Clear();
+
+        foreach (var buildingDatum in buildingData.buildings)
+        {
+            Building building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
+
+            #region Load Data
+            building.name = buildingDatum.buildingName;
+            building.buildingName = buildingDatum.buildingName;
+            building.LayerIndex = buildingDatum.layerIndex;
+            building.buildingState = buildingDatum.buildingState;
+            building.maxCapacity = buildingDatum.maxCapacity;
+            building.currentCapacity = buildingDatum.currentCapacity;
+            building.maxHealth = buildingDatum.maxHealth;
+            building.currentHealth = buildingDatum.currentHealth;
+            building.GetSpriteRendererComponent().sortingOrder = RenderManager.Instance.decorRenderIndex;
+            #endregion
+
+            var customRender = building.transform.Find("Custom Render Sprite");
+            if (customRender != null)
+            {
+                customRender.GetComponent<CustomRender>().layerIndex = building.LayerIndex;
+            }
+        }
+        #endregion
+
         #region Load Unit
         var unitData = saveData.unitSaveData;
 
@@ -289,28 +322,22 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             Unit unit = unitManager.CreateUnit(unitDatum.unitType, unitDatum.position);
             unit.unitName = unitDatum.unitName;
+            unit.gameObject.name = unitDatum.unitName;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
-        }
-        #endregion
+            foreach (var building in unitManager.buildings) {
+                if(building.name == unitDatum.assignedBuilding)
+                {
+                    unit.assignedBuilding = building;
+                    building.stationedUnits.Add(unit);
 
-        #region Load Building
-        var buildingData = saveData.buildingSaveData;
-
-        foreach (var building in unitManager.buildings)
-            Destroy(building.gameObject);
-        unitManager.buildings.Clear();
-
-        foreach (var buildingDatum in buildingData.buildings)
-        {
-            Building building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
-            building.name = buildingDatum.buildingName;
-            building.LayerIndex = buildingDatum.layerIndex;
-            building.GetSpriteRendererComponent().sortingOrder = RenderManager.Instance.decorRenderIndex;
-
-            var customRender = building.transform.Find("Custom Render Sprite");
-            if (customRender != null)
-            {
-                customRender.GetComponent<CustomRender>().layerIndex = building.LayerIndex;
+                    foreach (var spot in building.positionSpots)
+                    {
+                        if(unit.transform.position == spot.position)
+                            building.listArcherPositions.Add(new SpotData { position = spot.position, unitName = unit.unitName });
+                        break;
+                    }
+                    break;
+                }
             }
         }
         #endregion

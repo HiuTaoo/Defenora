@@ -42,12 +42,15 @@ public abstract class Unit : MonoBehaviour
         if (rb == null)
             rb = gameObject.AddComponent<Rigidbody2D>();
 
-        rb.gravityScale = 0f; // Top-down game không cần gravity
+        rb.gravityScale = 0f;
+        unitName = gameObject.name;
+
     }
 
     protected virtual void Update()
     {
         UpdateAnimations();
+
     }
 
     public virtual void MoveTo(Vector3 destination)

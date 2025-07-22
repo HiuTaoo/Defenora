@@ -37,7 +37,7 @@ public class BuilderController : MonoBehaviour
 
     private void Update()
     {
-        HandleInput();
+        //HandleInput();
         StateMachine.Update();
     }
 
@@ -45,12 +45,12 @@ public class BuilderController : MonoBehaviour
     {
         StateMachine.FixedUpdate();
     }
-
+/*
     private void HandleInput()
     {
         //MovementInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
         MovementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
-    }
+    }*/
 
     public int GetCurrentLayerIndex()
     {

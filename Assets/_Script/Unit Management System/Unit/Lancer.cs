@@ -16,7 +16,6 @@ public class Lancer : Unit
     {
         base.Awake();
         unitType = UnitType.Lancer;
-        unitName = "Lancer";
     }
 
     public override void UseSpecialAbility()

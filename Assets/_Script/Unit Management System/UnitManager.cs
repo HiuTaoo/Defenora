@@ -21,6 +21,7 @@ public class UnitManager : MonoBehaviour
     [Header("Building Prefab")]
     public GameObject fortressPrefab;
     public GameObject watchTowerPrefab;
+    public GameObject workShopPrefab;
 
     // Singleton pattern
     public static UnitManager Instance { get; private set; }
@@ -39,7 +40,8 @@ public class UnitManager : MonoBehaviour
 
         buildingPrefabs = new Dictionary<string, GameObject> {
         { "Fortress", fortressPrefab },
-        { "WatchTower", watchTowerPrefab }
+        { "WatchTower", watchTowerPrefab },
+        { "WorkShop", workShopPrefab }
     };
 
     }
@@ -158,6 +160,7 @@ public class UnitManager : MonoBehaviour
         {
             case BuildingType.Fortress: return fortressPrefab;
             case BuildingType.WatchTower: return watchTowerPrefab;
+            case BuildingType.WorkShop: return workShopPrefab;
             default: return null;
         }
     }

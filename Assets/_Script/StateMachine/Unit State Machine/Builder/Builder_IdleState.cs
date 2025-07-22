@@ -26,16 +26,6 @@ public class Builder_IdleState : IUnitState
             pawn.StateMachine.ChangeState(new Builder_WalkState(pawn));
         }
 
-        if(pawn.MovementInput != Vector2.zero)
-        {
-            pawn.StateMachine.ChangeState(new Builder_WalkState(pawn));
-        }
-
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            pawn.StateMachine.ChangeState(new Builder_ChopState(pawn));
-        }
     }
 
     public void FixedUpdate() { }

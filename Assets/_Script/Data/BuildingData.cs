@@ -9,6 +9,8 @@ public struct BuildingData
     public string buildingName;
     public int currentCapacity;
     public int maxCapacity;
+    public float maxHealth;
+    public float currentHealth;
     public List<string> unitNames;
     public List<SpotData> archerPositions;
     public int layerIndex;
@@ -27,7 +29,8 @@ public struct SpotData
 public enum BuildingType
 {
     Fortress,
-    WatchTower
+    WatchTower,
+    WorkShop
 }
 
 public enum BuildingState
