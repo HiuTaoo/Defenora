@@ -120,6 +120,8 @@ public class SelectUnitSystem : MonoBehaviour
                     OnDragUnit?.Invoke(false);
                     return;
                 }
+                else
+                    selectedUnit.transform.position = initialUnitPosition;
 
                 CheckTargetLayer(mousePosition);
                 CheckCanMovePlayerTo(mousePosition);
@@ -249,18 +251,19 @@ public class SelectUnitSystem : MonoBehaviour
 
         if (unit.assignedBuilding == null)
         {
-            if (building.currentCapacity < building.maxCapacity)
+            if (building.CanAddUnit(unit))
             {
                 building.AddUnit(unit);
                 return true;
             }
         }
 
-        else if (unit.assignedBuilding != null && unit.assignedBuilding != building)
+        else if (unit.assignedBuilding != null && unit.assignedBuilding != building 
+            && building.CanAddUnit(unit))
         {
-            unit.assignedBuilding.RemoveUnit(unit);
             if (building.currentCapacity < building.maxCapacity)
             {
+                unit.assignedBuilding.RemoveUnit(unit);
                 building.AddUnit(unit);
                 return true;
             }

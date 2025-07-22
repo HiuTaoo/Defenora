@@ -14,7 +14,9 @@ public class Builder_WalkState : IUnitState
         pawn.animator.Play("Walk");
     }
 
-    public void OnExit() { }
+    public void OnExit() { 
+        pawn.animator.Play("Idle");
+    }
 
     public void Update()
     {
@@ -30,11 +32,11 @@ public class Builder_WalkState : IUnitState
 
     public void FixedUpdate()
     {
-        Move();
-        HandleDirection();
+        /*Move();
+        HandleDirection();*/
     }
 
-    public void Move()
+   /* public void Move()
     {
         Vector2 input = pawn.MovementInput;
 
@@ -80,5 +82,5 @@ public class Builder_WalkState : IUnitState
                 pawn.transform.localScale = scale;
             }
         }
-    }
+    }*/
 }

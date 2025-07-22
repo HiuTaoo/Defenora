@@ -286,7 +286,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5799a8e174bf6084082f48a591dbbac5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: Lanver
+  unitName: 
   unitType: 4
   currentState: 0
   health: 100

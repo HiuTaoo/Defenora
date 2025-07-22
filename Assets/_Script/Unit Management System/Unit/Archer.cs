@@ -14,7 +14,6 @@ public class Archer : Unit
     {
         base.Awake();
         unitType = UnitType.Archer;
-        unitName = "Archer";
     }
 
     public override void UseSpecialAbility()

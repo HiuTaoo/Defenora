@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public abstract class Building : MonoBehaviour
@@ -9,6 +10,8 @@ public abstract class Building : MonoBehaviour
     public string buildingName;
     public int maxCapacity = 5;
     public float range = 5f;
+    public float maxHealth = 10f;
+    public float currentHealth = 10f; 
     public int currentCapacity = 0;
     public BuildingType buildingType;
     public BuildingState buildingState;
@@ -37,10 +40,12 @@ public abstract class Building : MonoBehaviour
         }
     }
 
-    private void Awake()
+    public void Awake()
     {
         buildingFootprint = GetComponent<BuildingFootprint>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        buildingName = gameObject.name;
     }
 
     public void RegisterSpot()
@@ -68,6 +73,9 @@ public abstract class Building : MonoBehaviour
             return false;
         }
 
+        if(unit.unitType == UnitType.Builder && buildingType != BuildingType.WorkShop)
+            return false;
+
         if (!stationedUnits.Contains(unit))
         {
             stationedUnits.Add(unit);
@@ -88,7 +96,7 @@ public abstract class Building : MonoBehaviour
                     listArcherPositions.Add(new SpotData
                     {
                         position = spot,
-                        unitName = unit.unitName
+                        unitName = unit.gameObject.name
                     });
                 }
             }
@@ -128,6 +136,22 @@ public abstract class Building : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    public bool CanAddUnit(Unit unit)
+    {
+        if (currentCapacity >= maxCapacity)
+        {
+            Debug.Log($"Trạm {buildingName} đã đầy!");
+            return false;
+        }
+        if (unit.unitType == UnitType.Builder && buildingType != BuildingType.WorkShop)
+            return false;
+
+        if(unit.unitType != UnitType.Builder && buildingType == BuildingType.WorkShop)
+            return false;
+
+        return !stationedUnits.Contains(unit);
     }
     #endregion
 

@@ -2059,9 +2059,9 @@ RectTransform:
   - {fileID: 371154884}
   m_Father: {fileID: 1610353457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 240, y: -150}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &278025471
@@ -2886,7 +2886,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -20.622524, y: -20.064514, z: -9.237128}
+  m_LocalPosition: {x: -20.822525, y: -19.954514, z: -9.237128}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -7018,6 +7018,8 @@ MonoBehaviour:
     type: 3}
   watchTowerPrefab: {fileID: 6994465110449608766, guid: a15e6f9adbd329b418b4c8cddf5ffd08,
     type: 3}
+  workShopPrefab: {fileID: 4317628030385230672, guid: f3214acee366a224181ad5949e2ddc83,
+    type: 3}
 --- !u!1 &1035878992
 GameObject:
   m_ObjectHideFlags: 0
@@ -8050,11 +8052,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11e9d58d62b14f14f8a32bdfcb78489c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  regionSize: {x: 5, y: 5}
+  regionSize: {x: 10, y: 5}
   mapSize: {x: 100, y: 100}
   mapCenter: {x: 0, y: 0}
   mainCamera: {fileID: 519420031}
-  cullingBuffer: 3
+  cullingBuffer: 4
   showDebugGizmos: 1
   activeRegionColor: {r: 0, g: 1, b: 0, a: 1}
   inactiveRegionColor: {r: 1, g: 0, b: 0, a: 1}
@@ -700075,7 +700077,7 @@ GameObject:
   - component: {fileID: 1475972616}
   - component: {fileID: 1475972617}
   m_Layer: 5
-  m_Name: Builder House
+  m_Name: WorkShop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -700098,9 +700100,9 @@ RectTransform:
   - {fileID: 1270963415}
   m_Father: {fileID: 1610353457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 400, y: -150}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1475972616
@@ -702190,7 +702192,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -17, y: -20, z: 0}
@@ -702775,7 +702777,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 24, y: -19, z: 0}
@@ -703135,7 +703137,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -26, y: -12, z: 0}
@@ -703870,7 +703872,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 24, y: 3, z: 0}
@@ -705680,7 +705682,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 50}
-  m_SizeDelta: {x: 480, y: 300}
+  m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1610353458
 MonoBehaviour:
@@ -717528,7 +717530,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1869540150
 RectTransform:
   m_ObjectHideFlags: 0
@@ -727747,9 +727749,9 @@ RectTransform:
   - {fileID: 1191379674}
   m_Father: {fileID: 1610353457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 80, y: -150}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2143498802
@@ -727964,9 +727966,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.017312203, y: -0.028348142}
+  m_Offset: {x: -0.01731205, y: -0.048732758}
   serializedVersion: 2
-  m_Radius: 0.42354047
+  m_Radius: 0.42705408
 --- !u!4 &3994323704991996043
 Transform:
   m_ObjectHideFlags: 0
@@ -727976,7 +727978,7 @@ Transform:
   m_GameObject: {fileID: 4446480107393125616}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.02, y: -8.85, z: 0}
+  m_LocalPosition: {x: -0.22, y: -8.74, z: 0}
   m_LocalScale: {x: 0.75, y: 0.75, z: 0.75}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -727998,7 +728000,7 @@ GameObject:
   - component: {fileID: 8920342484059651045}
   - component: {fileID: 2426809126599761777}
   m_Layer: 9
-  m_Name: Builder Movement
+  m_Name: Player Movement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -728017,7 +728019,7 @@ GameObject:
   - component: {fileID: 634900016027782955}
   - component: {fileID: 1915212153649766533}
   - component: {fileID: 3884093424339759086}
-  - component: {fileID: 4703880665323059226}
+  - component: {fileID: 4446480107393125617}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -728025,7 +728027,7 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &4703880665323059226
+--- !u!114 &4446480107393125617
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -728034,17 +728036,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 4446480107393125616}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1da4b64bfc25d194980ae3a1100ead20, type: 3}
+  m_Script: {fileID: 11500000, guid: aa7e30546a7dfd048bc94f8a5d9ce369, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 3.5
-  chopBoxSize: {x: 1.15, y: 0.7}
-  chopDistance: 0.3
-  rb: {fileID: 0}
-  animator: {fileID: 0}
-  agentPhysics2D: {fileID: 0}
-  builderCollider: {fileID: 0}
-  characterMovement: {fileID: 0}
+  rb: {fileID: 1915212153649766533}
+  animator: {fileID: 634900016027782955}
+  agentPhysics2D: {fileID: 2426809126599761777}
+  builderCollider: {fileID: 3884093424339759086}
+  characterMovement: {fileID: 6318877641220146007}
 --- !u!114 &6318877641220146007
 MonoBehaviour:
   m_ObjectHideFlags: 0

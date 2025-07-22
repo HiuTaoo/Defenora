@@ -43,7 +43,7 @@ public class CharacterMovement : MonoBehaviour
 
     private void Update()
     {
-        /*if (Input.GetMouseButtonDown(0) && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+       /* if (Input.GetMouseButtonDown(0) && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             MoveByMouse();
         }*/

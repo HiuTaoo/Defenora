@@ -13,7 +13,6 @@ public class Builder : Unit
     {
         base.Awake();
         unitType = UnitType.Builder;
-        unitName = "Builder";
     }
 
     public override void UseSpecialAbility()

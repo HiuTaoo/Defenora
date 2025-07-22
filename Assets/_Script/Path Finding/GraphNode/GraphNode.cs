@@ -20,7 +20,7 @@ public class GraphNode : MonoBehaviour
             Destroy(gameObject);
 
         BuildAllLayerGraphs();
-        //PrintNodeInfo(new Vector3Int(-19, -8, 0), 2);
+        //PrintNodeInfo(new Vector3Int(-11, -11, 0), 2);
     }
 
     #region Build Path Graph
