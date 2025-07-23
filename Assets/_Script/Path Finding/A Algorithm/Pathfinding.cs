@@ -5,6 +5,7 @@ using UnityEngine;
 public class PathFinding
 {
     public List<PathSegment> segments = new List<PathSegment>();
+    public float totalCost = 0;
     public bool isValid = false;
 
     public void PrintPath()
@@ -32,4 +33,6 @@ public class PathFinding
             Debug.Log($"  Path: {pathString}");
         }
     }
+
+    
 }

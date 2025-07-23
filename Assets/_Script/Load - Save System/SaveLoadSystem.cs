@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 public class SaveLoadSystem : MonoBehaviour, ISaveable
 {
     public static SaveLoadSystem Instance;
+
     public List<ISaveable> saveables = new List<ISaveable>();
 
     private string saveFilePath => Path.Combine(Application.persistentDataPath, "savegame.json");
 
     private UnitManager unitManager;
-
-    public System.Action OnSave;
 
     [Header("Auto Save Settings")]
     public bool autoSave = true;
@@ -26,9 +25,11 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     public bool useObjectPooling = true;
     public bool loadAsync = true;
 
+    private Transform decorObjectParent;
     private Dictionary<GameObject, Queue<GameObject>> objectPools = new Dictionary<GameObject, Queue<GameObject>>();
 
     public System.Action OnLoaded;
+    public System.Action OnSave;
 
     private void Awake()
     {
@@ -44,6 +45,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
 
         unitManager = FindObjectOfType<UnitManager>();
+        decorObjectParent = transform.Find("Decor Object");
+
         InitializeObjectPools();
     }
 
@@ -646,6 +649,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         treeObj.transform.position = worldPosition;
         treeObj.transform.rotation = Quaternion.identity;
         treeObj.transform.SetParent(this.transform);
+        treeObj.transform.SetParent(decorObjectParent);
 
         if (treeObj.TryGetComponent<Tree>(out Tree treeComponent))
         {
@@ -708,6 +712,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         bushObj.transform.position = worldPosition;
         bushObj.transform.rotation = Quaternion.identity;
         bushObj.transform.SetParent(this.transform);
+        bushObj.transform.SetParent(decorObjectParent);
 
         if (bushObj.TryGetComponent<Bush>(out Bush bushComponent))
         {
@@ -745,6 +750,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         rockObj.transform.position = worldPosition;
         rockObj.transform.rotation = Quaternion.identity;
         rockObj.transform.SetParent(this.transform);
+        rockObj.transform.SetParent(decorObjectParent);
 
         if (rockObj.TryGetComponent<Rock>(out Rock rockComponent))
         {
@@ -790,6 +796,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         animalObj.transform.position = animalData.currentPosition;
         animalObj.transform.rotation = Quaternion.identity;
         animalObj.transform.SetParent(this.transform);
+        animalObj.transform.SetParent(decorObjectParent);
 
         if (animalObj.TryGetComponent<Animal>(out Animal animalComponent))
         {

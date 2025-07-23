@@ -258,6 +258,9 @@ public static class UINames
     public const string MainMenu = "MainMenu";
     public const string SettingsMenu = "SettingsMenu";
 
+    //Playing UI
+    public const string InteractButton = "InteractButton";
+
     // Common UI
     public const string LoadingScreen = "LoadingScreen";
     public const string DialogPanel = "DialogPanel";

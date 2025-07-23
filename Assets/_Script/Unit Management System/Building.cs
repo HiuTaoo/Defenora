@@ -65,54 +65,63 @@ public abstract class Building : MonoBehaviour
     }
 
     #region Unit Management
-    public virtual bool AddUnit(Unit unit)
+    public bool CanAddUnit(Unit unit)
     {
         if (currentCapacity >= maxCapacity)
         {
             Debug.Log($"Trạm {buildingName} đã đầy!");
             return false;
         }
-
-        if(unit.unitType == UnitType.Builder && buildingType != BuildingType.WorkShop)
+        if (unit.unitType == UnitType.Builder && buildingType != BuildingType.WorkShop)
             return false;
 
-        if (!stationedUnits.Contains(unit))
+        if (unit.unitType != UnitType.Builder && buildingType == BuildingType.WorkShop)
+            return false;
+
+        return !stationedUnits.Contains(unit);
+    }
+
+    public virtual void AddUnit(Unit unit)
+    {
+        stationedUnits.Add(unit);
+        unit.floorAgent.MoveToFloor(LayerIndex);
+        unit.assignedBuilding = this;
+        currentCapacity++;
+
+        Debug.Log($"Register {unit.name} to Building: {this.name}");
+
+        if (GameLoop.Instance.StateMachine.CurrentState is EditorState)
+            RegisterUnitPosition(unit);
+
+        unit.currentState = UnitState.Stationed;
+        //unit.floorAgent.MoveToFloor(LayerIndex);
+    }
+
+    private void RegisterUnitPosition(Unit unit)
+    {
+        if (unit.unitType == UnitType.Archer)
         {
-            stationedUnits.Add(unit);
-            unit.floorAgent.MoveToFloor(LayerIndex);
-            unit.assignedBuilding = this;
-            currentCapacity++;
-
-            Debug.Log($"Register {unit.name} to Building: {this.name}");
-
-            if (unit.unitType == UnitType.Archer)
+            Vector3 spot = GetAvailableSpot();
+            if (spot != null)
             {
-                Vector3 spot = GetAvailableSpot();
-                if (spot != null)
-                {
-                    unit.transform.position = spot;
-                    unit.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 10;
+                unit.transform.position = spot;
+                unit.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 10;
 
-                    listArcherPositions.Add(new SpotData
-                    {
-                        position = spot,
-                        unitName = unit.gameObject.name
-                    });
-                }
-            }
-            else
-            {
-                Vector3 availableSpot = GetRandomPositionAroundBuilding();
-                if (availableSpot != null)
+                listArcherPositions.Add(new SpotData
                 {
-                    unit.transform.position = availableSpot;
-                }
+                    position = spot,
+                    unitName = unit.gameObject.name
+                });
             }
-            unit.currentState = UnitState.Stationed;
-            unit.floorAgent.MoveToFloor(LayerIndex);
-            return true;
         }
-        return false;
+        else
+        {
+            Vector3 availableSpot = GetRandomPositionAroundBuilding();
+            if (availableSpot != null)
+            {
+                unit.transform.position = availableSpot;
+            }
+        }
     }
 
     public virtual bool RemoveUnit(Unit unit)
@@ -138,21 +147,7 @@ public abstract class Building : MonoBehaviour
         return false;
     }
 
-    public bool CanAddUnit(Unit unit)
-    {
-        if (currentCapacity >= maxCapacity)
-        {
-            Debug.Log($"Trạm {buildingName} đã đầy!");
-            return false;
-        }
-        if (unit.unitType == UnitType.Builder && buildingType != BuildingType.WorkShop)
-            return false;
-
-        if(unit.unitType != UnitType.Builder && buildingType == BuildingType.WorkShop)
-            return false;
-
-        return !stationedUnits.Contains(unit);
-    }
+    
     #endregion
 
     #region RANDOM POSITION

@@ -15,6 +15,7 @@ TagManager:
   - Animal
   - NPC
   - Ground
+  - Door
   layers:
   - Default
   - TransparentFX

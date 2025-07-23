@@ -10,15 +10,15 @@ public class WorkShop : Building
         buildingType = BuildingType.WorkShop;
     }
 
-    public override bool AddUnit(Unit unit)
+    /*public override void AddUnit(Unit unit)
     {
         if (unit.unitType != UnitType.Builder)
-            return false;
+            return;
 
         if (currentCapacity >= maxCapacity)
         {
             Debug.Log($"Trạm {buildingName} đã đầy!");
-            return false;
+            return;
         }
 
         if (!stationedUnits.Contains(unit))
@@ -41,5 +41,5 @@ public class WorkShop : Building
             return true;
         }
         return false;
-    }
+    }*/
 }

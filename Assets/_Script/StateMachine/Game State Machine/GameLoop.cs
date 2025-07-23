@@ -10,6 +10,7 @@ public class GameLoop : MonoBehaviour
 
     [Header("GUI For PlayingState")]
     [SerializeField] private GameObject playingGUI;
+    [SerializeField] private GameObject interactButton;
 
     [Header("GUI For Pause State")]
     [SerializeField] private GameObject pausedGUI;
@@ -75,6 +76,7 @@ public class GameLoop : MonoBehaviour
 
         // Set up UI Manager
         uiManager.RegisterUI(GameStateType.Playing, UINames.MainMenu ,playingGUI, new UIConfig { FadeIn = true });
+        uiManager.RegisterUI(GameStateType.Playing, UINames.InteractButton, interactButton, new UIConfig { FadeIn = true });
         uiManager.RegisterUI(GameStateType.Paused, UINames.PauseMenu ,pausedGUI, new UIConfig { FadeIn = true });
         uiManager.RegisterUI(GameStateType.Editor, UINames.EditorMenu, editorGUI, new UIConfig { Scale = Vector3.one * 0.9f });
         uiManager.RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });

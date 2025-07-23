@@ -20,7 +20,6 @@ public class InputManager : MonoBehaviour
         return Input.GetKey(key);
     }
 
-    // Có thể mở rộng để handle input mapping, controller support, etc.
     public Vector2 GetMovementInput()
     {
         if(!isBlockMovementInput)

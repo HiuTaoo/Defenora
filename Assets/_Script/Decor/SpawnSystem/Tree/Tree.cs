@@ -11,6 +11,7 @@ public class Tree : MonoBehaviour
     public int layerIndex;
     public int currentChopHit = 0;
     public Vector3Int positionInGrid;
+    public Task currentTask;
 
     private SpriteRenderer spriteRenderer;
     private Animator animator;
