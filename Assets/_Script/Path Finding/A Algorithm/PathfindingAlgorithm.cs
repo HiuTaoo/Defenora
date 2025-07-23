@@ -30,7 +30,7 @@ public class PathfindingAlgorithm : MonoBehaviour
         result.PrintPath();*/
     }
 
-    #region graphNode Core
+    #region A* Algorithm
 
     public PathFinding FindMultiLayerPath(Vector3Int startPos, int startLayer, Vector3Int targetPos, int targetLayer)
     {
@@ -50,6 +50,7 @@ public class PathfindingAlgorithm : MonoBehaviour
         if (path != null)
         {
             result = ConvertToSegmentedPath(path);
+            result.totalCost = path[^1].gCost;
             result.isValid = true;
         }
 

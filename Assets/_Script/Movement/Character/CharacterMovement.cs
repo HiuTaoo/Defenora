@@ -16,10 +16,12 @@ public class CharacterMovement : MonoBehaviour
     private CircleCollider2D circleCollider2D;
     private Camera cam;
     private PathFinding currentPath = null;
-       
-    public bool moving { get; private set; } = false;
+    public Coroutine moveCoroutine;
+
+    public bool moving = false;
     public Vector2 direction { get; private set; } = Vector2.zero;
     private int _currentLayer;
+    
 
     public int CurrentLayer
     {
@@ -43,7 +45,7 @@ public class CharacterMovement : MonoBehaviour
 
     private void Update()
     {
-       /* if (Input.GetMouseButtonDown(0) && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+        /*if (Input.GetMouseButtonDown(0) && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             MoveByMouse();
         }*/
@@ -95,6 +97,47 @@ public class CharacterMovement : MonoBehaviour
             Debug.LogWarning($"Không tìm thấy vị trí hợp lệ để di chuyển tới: {targetPosition}");
         }
     }
+
+    public void MoveToTaskPosition(Vector3Int position, int layer)
+    {
+        var graph = GraphNode.Instance.layerGraphs[layer];
+
+        Vector3Int closest = position;
+        float minDistance = float.MaxValue;
+
+        foreach (var kvp in graph.nodes)
+        {
+            Vector3Int nodePos = kvp.Key;
+            Node node = kvp.Value;
+
+            if (nodePos.y == position.y && node.isWalkable)
+            {
+                float dist = Mathf.Abs(position.x - nodePos.x);
+                if (dist < minDistance)
+                {
+                    closest = nodePos;
+                    minDistance = dist;
+                }
+            }
+        }
+
+        if (minDistance == float.MaxValue)
+        {
+            Debug.LogWarning("Không tìm được node walkable trên trục X");
+            return;
+        }
+
+        Vector3 worldPosition = transform.position;
+        Vector3Int gridPosition = Vector3Int.FloorToInt(worldPosition);
+        gridPosition.z = 0;
+
+        currentPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(gridPosition, floorAgent.currentFloorIndex, closest, layer);
+
+        StopAllCoroutines();
+        moveCoroutine = StartCoroutine(FollowPathCoroutine(currentPath));
+    }
+
+
     public void MoveToPosition(Vector3Int position, int layer)
     {
         Vector3 worldPosition = transform.position;
@@ -106,7 +149,7 @@ public class CharacterMovement : MonoBehaviour
         //currentPath.PrintPath();
 
         StopAllCoroutines();
-        StartCoroutine(FollowPathCoroutine(currentPath));
+        moveCoroutine = StartCoroutine(FollowPathCoroutine(currentPath));
     }
 
 
@@ -147,14 +190,11 @@ public class CharacterMovement : MonoBehaviour
                         PathfindingAlgorithm.Instance.ClearPath();
                         moving = false;
                         yield break;
-                        
                     }
                     Vector2 nextPosition = Vector2.MoveTowards(rb.position, targetCenter, moveSpeed * Time.fixedDeltaTime);
                     rb.MovePosition(nextPosition);
                     yield return null;
-
                 }
-
                 CurrentLayer = segment.layerIndex;
             }
         }
@@ -162,6 +202,69 @@ public class CharacterMovement : MonoBehaviour
         PathfindingAlgorithm.Instance.ClearPath();
         moving = false;
     }
+
+    public void MoveTo(Vector2 targetPosition)
+    {
+        if (moveCoroutine != null)
+            StopCoroutine(moveCoroutine);
+
+        moveCoroutine = StartCoroutine(MoveToPositionCoroutine(targetPosition));
+    }
+
+    private IEnumerator MoveToPositionCoroutine(Vector2 targetPosition)
+    {
+        moving = true;
+
+        while ((rb.position - targetPosition).sqrMagnitude > 0.01f)
+        {
+            Vector2 direction = (targetPosition - rb.position).normalized;
+            HandleFlip(direction);
+
+            Vector2 nextPosition = Vector2.MoveTowards(rb.position, targetPosition, moveSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(nextPosition);
+
+            yield return new WaitForFixedUpdate();
+        }
+
+        moving = false;
+    }
+
+    private void HandleFlip(Vector2 direction)
+    {
+        if (direction.x < 0)
+        {
+            Vector3 scale = transform.parent.localScale;
+            scale.x = -Mathf.Abs(scale.x);
+            transform.parent.localScale = scale;
+        }
+        else if (direction.x > 0)
+        {
+            Vector3 scale = transform.parent.localScale;
+            scale.x = Mathf.Abs(scale.x);
+            transform.parent.localScale = scale;
+        }
+    }
+
+    public void HandleFlipByPosition(Vector3 targetPosition)
+    {
+        Vector3 currentPosition = transform.parent.position;
+
+        float deltaX = targetPosition.x - currentPosition.x;
+
+        if (Mathf.Abs(deltaX) < 0.01f)
+            return; 
+
+        Vector3 scale = transform.parent.localScale;
+
+        if (deltaX < 0)
+            scale.x = -Mathf.Abs(scale.x);
+        else
+            scale.x = Mathf.Abs(scale.x);
+
+        transform.parent.localScale = scale;
+        Debug.Log($"Flipped character to face: {(deltaX < 0 ? "left" : "right")} | Current Scale: {transform.parent.localScale}");
+    }
+
 
     private void HandleFlip()
     {

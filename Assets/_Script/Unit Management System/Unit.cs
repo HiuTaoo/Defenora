@@ -21,10 +21,13 @@ public abstract class Unit : MonoBehaviour
     public Transform targetDestination;
     public float stoppingDistance = 0.1f;
 
+    [Header("Task")]
+    public Task currentTask = null;
+
     protected Rigidbody2D rb;
     protected Animator animator;
     public SpriteRenderer spriteRenderer;
-    protected CharacterMovement characterMovement;
+    public CharacterMovement characterMovement;
     public Building assignedBuilding;
     public FloorAgent floorAgent;
 
@@ -44,29 +47,31 @@ public abstract class Unit : MonoBehaviour
 
         rb.gravityScale = 0f;
         unitName = gameObject.name;
-
     }
 
     protected virtual void Update()
     {
         UpdateAnimations();
-
+        if(currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
+        {
+            StartCoroutine(ExecuteTask(currentTask));
+        }
     }
 
-    public virtual void MoveTo(Vector3 destination)
-    {
-        targetDestination = new GameObject($"{unitName}_Target").transform;
-        targetDestination.position = destination;
-        currentState = UnitState.Moving;
-    }
-
-    public virtual void MoveTo(Vector3Int position, int layer)
+    public virtual void MoveToTaskPosition(Vector3Int position, int layer)
     {
         currentState = UnitState.Moving;
-
-        characterMovement.MoveToPosition(position, layer);
+        characterMovement.MoveToTaskPosition(position, layer);
     }
 
+    public IEnumerator ExecuteTask(Task task)
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        task.taskStatus = TaskStatus.InProgress;
+        targetDestination = task.targetGameObject.transform;
+        MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
+    }
 
     public virtual void StopMovement()
     {
