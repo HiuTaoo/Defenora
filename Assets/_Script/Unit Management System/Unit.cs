@@ -33,6 +33,7 @@ public abstract class Unit : MonoBehaviour
 
     public System.Action<Unit> OnUnitDestroyed;
     public System.Action<Unit> OnDestinationReached;
+    public System.Action<Unit> OnUnitIdle;
 
     protected virtual void Awake()
     {
@@ -52,25 +53,40 @@ public abstract class Unit : MonoBehaviour
     protected virtual void Update()
     {
         UpdateAnimations();
-        if(currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
+
+        if (currentTask != null && currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
         {
             StartCoroutine(ExecuteTask(currentTask));
         }
     }
 
-    public virtual void MoveToTaskPosition(Vector3Int position, int layer)
+    public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
     {
         currentState = UnitState.Moving;
-        characterMovement.MoveToTaskPosition(position, layer);
+        var canMove = characterMovement.MoveToTaskPosition(position, layer);
+        return canMove;
     }
 
     public IEnumerator ExecuteTask(Task task)
     {
         yield return new WaitForSeconds(0.1f);
 
-        task.taskStatus = TaskStatus.InProgress;
-        targetDestination = task.targetGameObject.transform;
-        MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
+        var canExecuteTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
+        if (!canExecuteTask)
+        {
+            TaskManager.Instance.pendingTask.Enqueue(task);
+            Debug.LogWarning($"Task {task.taskType} cannot be executed by {unitName}. Re-queued to pending tasks.");
+
+            currentTask = null;
+            currentState = UnitState.Idle;
+
+            yield break;
+        }
+        else
+        {
+            task.taskStatus = TaskStatus.InProgress;
+            targetDestination = task.targetGameObject.transform;
+        }
     }
 
     public virtual void StopMovement()

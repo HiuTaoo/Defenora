@@ -8,18 +8,34 @@ public class Builder_ChopState : IUnitState
     public Tree currentTree;
     private bool isCompleted = false;
 
-    public Builder_ChopState(BuilderController pawn)
+    private float chopCooldown = 0.5f;
+    private bool canChop = true;
+
+    private Coroutine cooldownCoroutine;
+
+    public Builder_ChopState(BuilderController pawn, Tree tree)
     {
         this.pawn = pawn;
+        currentTree = tree;
     }
 
     public void OnEnter()
     {
         pawn.animator.Play("Chop");
         pawn.rb.velocity = Vector2.zero;
+
+        currentTree.OnTreeChopped -= HandleCompleteChopTree;
+        currentTree.OnTreeChopped += HandleCompleteChopTree;
     }
 
-    public void OnExit() { }
+    public void OnExit()
+    {
+        if (currentTree != null)
+            currentTree.OnTreeChopped -= HandleCompleteChopTree;
+
+        if (cooldownCoroutine != null)
+            pawn.StopCoroutine(cooldownCoroutine);
+    }
 
     public void Update()
     {
@@ -30,7 +46,8 @@ public class Builder_ChopState : IUnitState
             return;
         }
 
-        TryChop();
+        if (canChop)
+            TryChop();
     }
 
     public void FixedUpdate() { }
@@ -43,7 +60,6 @@ public class Builder_ChopState : IUnitState
     private void TryChop()
     {
         Vector2 facingDir = pawn.transform.right.normalized * pawn.transform.localScale.x;
-
         Vector2 origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
         int layer = LayerMask.GetMask($"Layer {pawn.GetCurrentLayerIndex() + 1}");
 
@@ -59,6 +75,44 @@ public class Builder_ChopState : IUnitState
         }
     }
 
+    public void StartCooldown()
+    {
+        canChop = false;
+        pawn.animator.Play("Idle");
+        cooldownCoroutine = pawn.StartCoroutine(ChopCooldownCoroutine());
+    }
+
+    private IEnumerator ChopCooldownCoroutine()
+    {
+        yield return new WaitForSeconds(chopCooldown);
+        canChop = true;
+        pawn.animator.Play("Chop");
+    }
+
+    private void HandleCompleteChopTree(Tree tree)
+    {
+        if (tree == null) return;
+
+        tree.OnTreeChopped -= HandleCompleteChopTree;
+        SetCompleted();
+
+        Task completedTask = pawn.builderUnit.currentTask;
+
+        if (completedTask != null)
+        {
+            completedTask.taskStatus = TaskStatus.Completed;
+            TaskManager.Instance.CompletedTask(completedTask);
+        }
+
+        pawn.builderUnit.currentState = UnitState.Idle;
+        pawn.builderUnit.currentTask = null;
+
+        pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
+        currentTree = null;
+
+        Debug.Log($"Builder {pawn.builderUnit.unitName} completed chop task and is now idle");
+    }
+
     public void DrawGizmos()
     {
         if (pawn == null) return;
@@ -69,5 +123,4 @@ public class Builder_ChopState : IUnitState
         Gizmos.color = Color.green;
         Gizmos.DrawWireCube(origin, pawn.chopBoxSize);
     }
-
 }

@@ -10,6 +10,8 @@ public class TaskManager : MonoBehaviour
 
     public List<Task> inProgressTask = new List<Task>();
 
+    public Queue<Task> pendingTask = new Queue<Task>();
+
     public System.Action<Task> OnTaskCreated;
 
     public static TaskManager Instance { get; private set; }
@@ -30,15 +32,26 @@ public class TaskManager : MonoBehaviour
     {
         if(unitManager == null)
             GetUnitManager();
-            
+        
     }
 
     public void AddNewTask(Task task)
     {
         if (task == null) return;
+
         newTaskQueue.Enqueue(task);
         Debug.Log($"New task added: {task.taskType}");
         OnTaskCreated?.Invoke(task);
+    }
+
+    public void CompletedTask(Task task)
+    {
+        if (task == null) return;
+        if(task.taskStatus == TaskStatus.Completed)
+        {
+            inProgressTask.Remove(task);
+        }
+            
     }
 
     private void GetUnitManager()

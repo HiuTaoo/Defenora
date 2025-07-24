@@ -45,10 +45,10 @@ public class CharacterMovement : MonoBehaviour
 
     private void Update()
     {
-        /*if (Input.GetMouseButtonDown(0) && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+        if (Input.GetMouseButtonDown(0) && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             MoveByMouse();
-        }*/
+        }
     }
 
     public void MoveByMouse()
@@ -98,7 +98,7 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    public void MoveToTaskPosition(Vector3Int position, int layer)
+    public bool MoveToTaskPosition(Vector3Int position, int layer)
     {
         var graph = GraphNode.Instance.layerGraphs[layer];
 
@@ -112,7 +112,8 @@ public class CharacterMovement : MonoBehaviour
 
             if (nodePos.y == position.y && node.isWalkable)
             {
-                float dist = Mathf.Abs(position.x - nodePos.x);
+                float dist = Vector2.Distance(new Vector2(position.x, position.y), new Vector2(nodePos.x, nodePos.y));
+
                 if (dist < minDistance)
                 {
                     closest = nodePos;
@@ -123,8 +124,8 @@ public class CharacterMovement : MonoBehaviour
 
         if (minDistance == float.MaxValue)
         {
-            Debug.LogWarning("Không tìm được node walkable trên trục X");
-            return;
+            Debug.LogWarning("Không tìm được node walkable trên trục Y");
+            return false;
         }
 
         Vector3 worldPosition = transform.position;
@@ -133,9 +134,19 @@ public class CharacterMovement : MonoBehaviour
 
         currentPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(gridPosition, floorAgent.currentFloorIndex, closest, layer);
 
-        StopAllCoroutines();
-        moveCoroutine = StartCoroutine(FollowPathCoroutine(currentPath));
+        if(currentPath == null || currentPath.segments.Count == 0)
+        {
+            Debug.LogWarning("Không tìm thấy đường đi hợp lệ!");
+            return false;
+        }
+        else
+        {
+            StopAllCoroutines();
+            moveCoroutine = StartCoroutine(FollowPathCoroutine(currentPath));
+            return true;
+        }
     }
+
 
 
     public void MoveToPosition(Vector3Int position, int layer)
@@ -201,6 +212,7 @@ public class CharacterMovement : MonoBehaviour
 
         PathfindingAlgorithm.Instance.ClearPath();
         moving = false;
+        moveCoroutine = null;
     }
 
     public void MoveTo(Vector2 targetPosition)
@@ -227,6 +239,7 @@ public class CharacterMovement : MonoBehaviour
         }
 
         moving = false;
+        moveCoroutine = null;
     }
 
     private void HandleFlip(Vector2 direction)
@@ -262,7 +275,6 @@ public class CharacterMovement : MonoBehaviour
             scale.x = Mathf.Abs(scale.x);
 
         transform.parent.localScale = scale;
-        Debug.Log($"Flipped character to face: {(deltaX < 0 ? "left" : "right")} | Current Scale: {transform.parent.localScale}");
     }
 
 

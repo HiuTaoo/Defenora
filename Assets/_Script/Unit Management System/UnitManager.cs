@@ -43,7 +43,6 @@ public class UnitManager : MonoBehaviour
             Destroy(gameObject);
         }
         Register();
-
     }
 
     private void Start()
@@ -54,8 +53,8 @@ public class UnitManager : MonoBehaviour
         PrewarmPools();
     }
 
-    private void Register() {
-
+    private void Register()
+    {
         buildingPrefabs = new Dictionary<string, GameObject> {
             { "Fortress", fortressPrefab },
             { "WatchTower", watchTowerPrefab },
@@ -64,12 +63,11 @@ public class UnitManager : MonoBehaviour
 
         unitParent = transform.Find("Unit");
         buildingParent = transform.Find("Building");
-
     }
 
     private void Update()
     {
-        if(taskManager == null)
+        if (taskManager == null)
             GetTaskManager();
     }
 
@@ -97,16 +95,21 @@ public class UnitManager : MonoBehaviour
         if (!allUnits.Contains(unit))
         {
             allUnits.Add(unit);
-            unit.OnUnitDestroyed += OnUnitDestroyed;
         }
+
+        unit.OnUnitIdle -= HandlePendingTask;
+        unit.OnUnitIdle += HandlePendingTask;
+
+        unit.OnUnitDestroyed -= OnUnitDestroyed;
+        unit.OnUnitDestroyed += OnUnitDestroyed;
     }
+
 
     public void RegisterBuilding(Building building)
     {
         if (!buildings.Contains(building))
         {
             buildings.Add(building);
-
         }
     }
 
@@ -286,7 +289,7 @@ public class UnitManager : MonoBehaviour
         {
             sortedQueue.Enqueue(entry.builder);
         }
-
+        Debug.Log($"Found {sortedQueue.Count} idle builders for task {task.taskType} at position {task.targetGameObject.transform.position}");
         return sortedQueue;
     }
 
@@ -297,19 +300,50 @@ public class UnitManager : MonoBehaviour
             Debug.LogError("Task or target GameObject is null.");
             return;
         }
+
         Queue<Builder> nearestBuilders = FindNearestBuilderQueue(task);
         if (nearestBuilders.Count == 0)
         {
             Debug.LogWarning("No idle builders available for the task.");
+            TaskManager.Instance.pendingTask.Enqueue(task);
+            Debug.Log($"Task {task.taskType} has been added to pending tasks.");
             return;
         }
+
         Builder assignedBuilder = nearestBuilders.Dequeue();
         assignedBuilder.currentTask = task;
         task.listBuilders.Add(assignedBuilder);
 
-        taskManager.newTaskQueue.Dequeue();
+        if (taskManager.newTaskQueue.Count > 0)
+        {
+            taskManager.newTaskQueue.Dequeue();
+        }
+
         taskManager.inProgressTask.Add(task);
         Debug.Log($"Assigned task {task.taskType} to builder {assignedBuilder.unitName}");
+    }
+
+    public void AssignPendingTaskToBuilder(Task task, Builder builder)
+    {
+        if (task == null || task.targetGameObject == null || builder == null)
+        {
+            Debug.LogError("Task, target GameObject, or builder is null.");
+            return;
+        }
+
+        if (builder.currentState != UnitState.Idle)
+        {
+            Debug.LogWarning($"Builder {builder.unitName} is not idle. Cannot assign pending task.");
+            TaskManager.Instance.pendingTask.Enqueue(task);
+            return;
+        }
+
+        builder.currentTask = task;
+        builder.currentState = UnitState.Working;
+        task.listBuilders.Add(builder);
+        taskManager.inProgressTask.Add(task);
+
+        Debug.Log($"Assigned pending task {task.taskType} to builder {builder.unitName}");
     }
 
     public Unit FindUnitIdleByType(UnitType unitType)
@@ -342,11 +376,67 @@ public class UnitManager : MonoBehaviour
     {
         Debug.Log($"UnitManager received new task: {task.taskType}");
         AssignTaskToBuilder(task);
+    }
 
+    private void HandlePendingTask(Unit unit)
+    {
+        if(unit.currentState != UnitState.Idle)
+        {
+            Debug.LogWarning($"Unit {unit.unitName} is not idle. Current state: {unit.currentState}");
+            return;
+        }
+        // Thêm debug log để trace
+        Debug.Log($"HandlePendingTask called for unit: {unit.unitName}, pendingTask count: {TaskManager.Instance.pendingTask.Count}");
+
+        // Kiểm tra unit trước khi kiểm tra pending tasks
+        if (unit.unitType != UnitType.Builder || unit.currentState != UnitState.Idle || unit.currentTask != null)
+        {
+            Debug.LogWarning($"Unit {unit.unitName} is not available for pending task assignment. Type: {unit.unitType}, State: {unit.currentState}, HasTask: {unit.currentTask != null}");
+            return;
+        }
+
+        // Thread-safe check và dequeue
+        Task pendingTask = null;
+        lock (TaskManager.Instance.pendingTask) 
+        {
+            if (TaskManager.Instance.pendingTask.Count == 0)
+            {
+                Debug.Log($"No pending tasks available when {unit.unitName} became idle.");
+                return;
+            }
+
+            pendingTask = TaskManager.Instance.pendingTask.Dequeue();
+     
+        }
+
+        // Kiểm tra task validity
+        if (pendingTask == null || pendingTask.targetGameObject == null)
+        {
+            Debug.LogError("Dequeued task is null or has null target GameObject.");
+            return;
+        }
+
+        Builder builder = unit as Builder;
+        if (builder != null)
+        {
+            StartCoroutine(DelayAssignPendingTask(pendingTask, builder));
+        }
+        else
+        {
+            Debug.LogError($"Unit {unit.unitName} is marked as Builder but cannot cast to Builder type.");
+            TaskManager.Instance.pendingTask.Enqueue(pendingTask);
+        }
+    }
+
+    private IEnumerator DelayAssignPendingTask(Task pendingTask, Builder builder)
+    {
+        yield return new WaitForSeconds(0.25f);
+        Debug.Log($"Assigning pending task {pendingTask.taskType} to builder {builder.unitName}");
+        AssignPendingTaskToBuilder(pendingTask, builder);
     }
     #endregion
 
-    #region Ultility Methods
+        #region Utility Methods
     public bool DeployUnitToStation(Unit unit, Building station)
     {
         if (unit == null || station == null)
@@ -459,7 +549,6 @@ public class UnitManager : MonoBehaviour
             taskManager = TaskManager.Instance;
             taskManager.OnTaskCreated += HandleTaskCreated;
         }
-            
     }
     #endregion
 
@@ -477,5 +566,4 @@ public class UnitManager : MonoBehaviour
             }
         }
     }
-    
 }

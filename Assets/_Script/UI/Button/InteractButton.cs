@@ -61,8 +61,8 @@ public class InteractButton : MonoBehaviour
                     Debug.Log($"Tree: {treeComponent.name} is in queue. Looking for nearest builder to cut.");
 
                     var task = new Task(obj, TaskType.ChopTree, TaskStatus.NotStarted, 3, treeComponent.layerIndex);
-                    TaskManager.Instance.AddNewTask(task);
                     treeComponent.currentTask = task;
+                    TaskManager.Instance.AddNewTask(task);
                 }
                 break;
             case InteractButtonState.Enter:
