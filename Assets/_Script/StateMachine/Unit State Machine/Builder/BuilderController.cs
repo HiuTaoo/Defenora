@@ -15,6 +15,7 @@ public class BuilderController : MonoBehaviour
     public AgentPhysics2D agentPhysics2D;
     public CircleCollider2D builderCollider;
     public CharacterMovement characterMovement;
+    public Unit builderUnit;
 
     public Vector2 MovementInput { get; private set; }
 
@@ -28,6 +29,7 @@ public class BuilderController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         characterMovement = GetComponentInChildren<CharacterMovement>();
+        builderUnit = GetComponent<Unit>();
     }
 
     private void Start()
@@ -61,9 +63,10 @@ public class BuilderController : MonoBehaviour
     #region CHOP STATE
     public void EndChopAction()
     {
-        if(StateMachine.CurrentState is Builder_ChopState chopState)
+        if (StateMachine.CurrentState is Builder_ChopState chopState)
         {
-            chopState.SetCompleted();
+            //chopState.SetCompleted();
+            chopState.StartCooldown();
         }
     }
 
@@ -76,7 +79,6 @@ public class BuilderController : MonoBehaviour
                 chopState.currentTree.HandleChopTree();
             }
         }
-          
     }
     #endregion
 

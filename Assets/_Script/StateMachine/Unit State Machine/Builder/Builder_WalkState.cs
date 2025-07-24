@@ -24,10 +24,10 @@ public class Builder_WalkState : IUnitState
         {
             pawn.StateMachine.ChangeState(new Builder_IdleState(pawn));
         }
-        if (Input.GetMouseButtonDown(0))
+        /*if (Input.GetMouseButtonDown(0))
         {
             pawn.StateMachine.ChangeState(new Builder_ChopState(pawn));
-        }
+        }*/
     }
 
     public void FixedUpdate()

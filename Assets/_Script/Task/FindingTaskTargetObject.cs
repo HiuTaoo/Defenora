@@ -9,6 +9,7 @@ public class FindingTaskTargetObject : MonoBehaviour
     private Unit transformUnit;
     private CharacterMovement characterMovement;
     private CircleCollider2D checkCollider;
+    private BuilderController builderController;
 
     private void Awake()
     {
@@ -16,6 +17,7 @@ public class FindingTaskTargetObject : MonoBehaviour
         transformCollider = transform.parent.GetComponent<CircleCollider2D>();
         transformUnit = transform.parent.GetComponent<Unit>();
         characterMovement = transformUnit.characterMovement;
+        builderController = transformUnit.GetComponent<BuilderController>();
     }
 
     private void Update()
@@ -26,21 +28,20 @@ public class FindingTaskTargetObject : MonoBehaviour
     private void CheckOverlapAll()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transformCollider.transform.position, checkCollider.radius);
+        Collider2D[] collidersByTransform = Physics2D.OverlapCircleAll(transformCollider.transform.position, transformCollider.radius);
         foreach (Collider2D collider in colliders)
         {
-            if (collider.gameObject == transformUnit.currentTask.targetGameObject &&
-                collider.transform.position.y == transformUnit.transform.position.y)
-            {
-                characterMovement.StopCoroutine(characterMovement.moveCoroutine);
-                characterMovement.moving = false;
-                characterMovement.HandleFlipByPosition(transformUnit.currentTask.targetGameObject.transform.position);
-                Debug.Log($"Đã tìm thấy đối tượng mục tiêu: {collider.gameObject.name}");
-                return;
-            }
-            if(collider.gameObject == transformUnit.currentTask.targetGameObject)
+            if(collider.gameObject == transformUnit.currentTask?.targetGameObject &&
+                characterMovement.moveCoroutine == null &&
+                transformUnit.floorAgent.currentFloorIndex == collider.gameObject.GetComponent<Tree>().layerIndex)
             {
                 characterMovement.HandleFlipByPosition(transformUnit.currentTask.targetGameObject.transform.position);
-                Debug.Log($"Đã tìm thấy đối tượng mục tiêu: {collider.gameObject.name}");
+                if(builderController.StateMachine.CurrentState is Builder_ChopState)
+                {
+                    return;
+                }
+                builderController.StateMachine.ChangeState(new
+                   Builder_ChopState(builderController, transformUnit.currentTask.targetGameObject.GetComponent<Tree>()));
             }
         }
     }

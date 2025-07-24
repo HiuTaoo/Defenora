@@ -18,6 +18,9 @@ public class Tree : MonoBehaviour
     public CapsuleCollider2D treeCollider;
 
     private bool isBeingChopped = false;
+    private bool hasBeenChopped = false;
+
+    public System.Action<Tree> OnTreeChopped;
 
     private void Awake()
     {
@@ -33,14 +36,19 @@ public class Tree : MonoBehaviour
     private void RegisterState()
     {
         treeState = TreeState.Idle;
-        animator.Play("idle");  
+        animator.Play("idle"); 
+
+        
     }
 
     private void Update()
     {
         if (spriteRenderer.isVisible)
         {
-            if (treeState == TreeState.Idle && currentChopHit == maxChopHit)
+            if (treeState == TreeState.Chopped)
+                animator.Play("Chopped");
+
+            if (treeState == TreeState.Idle && currentChopHit == maxChopHit && !hasBeenChopped)
             {
                 OnChoppedTree();
             }
@@ -72,8 +80,11 @@ public class Tree : MonoBehaviour
 
     private void OnChoppedTree()
     {
+        hasBeenChopped = true;
         treeState = TreeState.Chopped;
         animator.Play("Chopped");
+
+        OnTreeChopped?.Invoke(this);
 
         var render = transform.Find("Custom Render Sprite");
         render.gameObject.SetActive(false);

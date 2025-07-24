@@ -159,10 +159,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   treeState: 0
-  maxChopHit: 5
+  maxChopHit: 8
   layerIndex: 0
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
+  currentTask:
+    targetGameObject: {fileID: 0}
+    taskType: 0
+    taskStatus: 0
+    maxBuilders: 0
+    layerIndex: 0
+    listBuilders: []
   treeCollider: {fileID: 0}
 --- !u!114 &8448295130713633013
 MonoBehaviour:
