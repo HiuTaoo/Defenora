@@ -84,6 +84,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2.75
+  moving: 0
 --- !u!1 &4124294002956455345
 GameObject:
   m_ObjectHideFlags: 0
@@ -116,7 +117,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 6.89, y: -10.59, z: 0}
-  m_LocalScale: {x: 0.75, y: 0.75, z: 0.75}
+  m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4961915294824534777}
@@ -296,7 +297,16 @@ MonoBehaviour:
   attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
+  currentTask:
+    targetGameObject: {fileID: 0}
+    taskType: 0
+    taskStatus: 0
+    maxBuilders: 0
+    layerIndex: 0
+    listBuilders: []
+    isInPendingQueue: 0
   spriteRenderer: {fileID: 0}
+  characterMovement: {fileID: 0}
   assignedBuilding: {fileID: 0}
   floorAgent: {fileID: 0}
   chargeSpeed: 8

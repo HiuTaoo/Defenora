@@ -6,7 +6,7 @@ using UnityEngine;
 /// Thường gắn trực tiếp lên prefab.
 /// </summary>
 [DisallowMultipleComponent]
-public class BuildingFootprint : MonoBehaviour
+public class ObjectFootprint : MonoBehaviour
 {
     /// <summary>
     /// Các cell mà công trình chiếm chỗ, tính từ anchor point.

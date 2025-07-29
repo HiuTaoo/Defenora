@@ -19,6 +19,7 @@ public class TaskManager : MonoBehaviour
     public System.Action<Task> OnTaskCreated;
 
     public static TaskManager Instance { get; private set; }
+
     private void Awake()
     {
         if (Instance == null)

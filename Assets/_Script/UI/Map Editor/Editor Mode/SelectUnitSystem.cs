@@ -248,6 +248,16 @@ public class SelectUnitSystem : MonoBehaviour
     private bool CheckCanRegisterUnit(Building building)
     {
         var unit = selectedUnit.GetComponent<Unit>();
+        if(unit == null)
+        {
+            Debug.LogError("Unit is null in CheckCanRegisterUnit");
+            return false;
+        }
+        if (building == null)
+        {
+            Debug.LogError("Building is null in CheckCanRegisterUnit");
+            return false;
+        }
 
         if (unit.assignedBuilding == null)
         {

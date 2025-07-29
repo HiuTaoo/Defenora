@@ -44,7 +44,7 @@ public class EditBuildingManager : MonoBehaviour
     /// <summary>
     /// Đánh dấu ô là đã chiếm.
     /// </summary>
-    public void PlaceBuilding(Vector2Int anchorCell, BuildingFootprint footprint)
+    public void PlaceBuilding(Vector2Int anchorCell, ObjectFootprint footprint)
     {
         var cells = footprint.GetAbsoluteGridPositions(anchorCell);
         foreach (var cell in cells)
@@ -68,7 +68,7 @@ public class EditBuildingManager : MonoBehaviour
 
     }
 
-    public bool CanPlaceFootprint(Vector2Int anchorCell, BuildingFootprint footprint, int layerIndex)
+    public bool CanPlaceFootprint(Vector2Int anchorCell, ObjectFootprint footprint, int layerIndex)
     {
         var cells = footprint.GetAbsoluteGridPositions(anchorCell);
 
@@ -128,7 +128,7 @@ public class EditBuildingManager : MonoBehaviour
     {
         foreach (var building in listPlacedBuilding)
         {
-            var foothPrint = building.transform.GetComponent<BuildingFootprint>();
+            var foothPrint = building.transform.GetComponent<ObjectFootprint>();
             var cells = foothPrint.GetAbsoluteGridPositions(building.WorldToCell(building.transform.position, 1f));
             foreach (var cell in cells)
             {

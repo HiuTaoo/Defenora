@@ -17,7 +17,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
     private EditBuildingManager gridManager;
     public MenuItem menuItem;
-    private BuildingFootprint currentFootprint;
+    private ObjectFootprint currentFootprint;
 
     private void Awake()
     {
@@ -72,7 +72,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         CancelGhost();
 
         currentGhost = Instantiate(ghostPrefabToSpawn);
-        currentFootprint = currentGhost.GetComponent<BuildingFootprint>();
+        currentFootprint = currentGhost.GetComponent<ObjectFootprint>();
         spriteRenderer = currentGhost.GetComponent<SpriteRenderer>();
         if (currentFootprint == null)
             Debug.LogError("Ghost prefab thiếu BuildingFootprint component.");

@@ -35,7 +35,7 @@ public enum BuildingType
 
 public enum BuildingState
 {
-    Placing, //đang đặt vị trí 
+    Placing,
     UnderConstruction,
     Completed,
     Destroyed
