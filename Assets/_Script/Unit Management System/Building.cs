@@ -37,7 +37,6 @@ public abstract class Building : MonoBehaviour
 
     private GameObject customRenderer;
     
-
     public int LayerIndex
     {
         get => layerIndex;

@@ -49,6 +49,7 @@ public class FindingTaskTargetObject : MonoBehaviour
                 if (transformUnit.floorAgent != null)
                 {
                     Tree tree = collider.gameObject.GetComponent<Tree>();
+                    Building building = collider.gameObject.GetComponent<Building>();
                     if (tree != null && transformUnit.floorAgent.currentFloorIndex == tree.layerIndex)
                     {
                         isCheckColliderHit = true;
@@ -58,6 +59,18 @@ public class FindingTaskTargetObject : MonoBehaviour
                         {
                             characterMovement.HandleFlipByPosition(transformUnit.currentTask.targetGameObject.transform.position);
                         }
+                        continue;
+                    }
+                    if(building != null && transformUnit.floorAgent.currentFloorIndex == building.LayerIndex)
+                    {
+                        isCheckColliderHit = true;
+
+                        if (characterMovement != null &&
+                            transformUnit.transform.position.x < transformUnit.currentTask.targetGameObject.transform.position.x)
+                        {
+                            characterMovement.HandleFlipByPosition(transformUnit.currentTask.targetGameObject.transform.position);
+                        }
+                        continue;
                     }
                 }
             }
@@ -77,13 +90,20 @@ public class FindingTaskTargetObject : MonoBehaviour
 
         if (isUnitColliderHit && isCheckColliderHit)
         {
-            if (!(builderController.StateMachine.CurrentState is Builder_ChopState))
+            Tree targetTree = transformUnit.currentTask.targetGameObject.GetComponent<Tree>();
+            Building targetBuilding = transformUnit.currentTask.targetGameObject.GetComponent<Building>();
+
+            characterMovement.rb.velocity = Vector2.zero;
+            characterMovement.moving = false;
+
+            if (!(builderController.StateMachine.CurrentState is Builder_ChopState) && targetTree != null)
             {
-                Tree targetTree = transformUnit.currentTask.targetGameObject.GetComponent<Tree>();
-                if (targetTree != null)
-                {
-                    builderController.StateMachine.ChangeState(new Builder_ChopState(builderController, targetTree));
-                }
+                builderController.StateMachine.ChangeState(new Builder_ChopState(builderController, targetTree));
+            }
+
+            if (!(builderController.StateMachine.CurrentState is Builder_BuildState) && targetBuilding != null)
+            {
+                builderController.StateMachine.ChangeState(new Builder_BuildState(builderController, targetBuilding));
             }
         }
         else if (!isUnitColliderHit && isCheckColliderHit)
@@ -107,10 +127,7 @@ public class FindingTaskTargetObject : MonoBehaviour
         if (Vector3.Distance(currentPosition, targetPosition) > 0.1f)
         {
             rb.velocity = new Vector2(direction.x * moveSpeed, direction.y * moveSpeed);
-        }
-        else
-        {
-            rb.velocity = Vector2.zero;  
+            characterMovement.moving = true;
         }
     }
 }

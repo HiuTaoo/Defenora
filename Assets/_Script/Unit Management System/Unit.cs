@@ -58,7 +58,7 @@ public abstract class Unit : MonoBehaviour
     }
 
     #region Execute Task Logic
-    public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
+    /*public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
     {
         var graph = GraphNode.Instance.layerGraphs[layer];
         List<Vector3Int> neighborOffsets = new List<Vector3Int>
@@ -112,9 +112,9 @@ public abstract class Unit : MonoBehaviour
         StopAllCoroutines();
         characterMovement.moveCoroutine = StartCoroutine(characterMovement.FollowPathCoroutine(bestPath));
         return true;
-    }
+    }*/
 
-    public PathFinding CanMoveToTaskTarget(Task task)
+    /*public PathFinding CanMoveToTaskTarget(Task task)
     {
         var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
         var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
@@ -165,7 +165,191 @@ public abstract class Unit : MonoBehaviour
             return bestPath;
 
         return null;
+    }*/
+    public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
+    {
+        var graph = GraphNode.Instance.layerGraphs[layer];
+        var objectFootprint = currentTask.targetGameObject.GetComponent<ObjectFootprint>();
+
+        List<Vector3Int> neighborOffsets = null;
+
+        if (objectFootprint.occupiedCells.Count > 1)
+        {
+            int leftMostX = int.MaxValue;
+            int rightMostX = int.MinValue;
+
+            foreach (var cell in objectFootprint.occupiedCells)
+            {
+                if (cell.y == 0)
+                {
+                    if (cell.x < leftMostX)
+                        leftMostX = cell.x;
+
+                    if (cell.x > rightMostX)
+                        rightMostX = cell.x;
+                }
+            }
+
+            if (leftMostX != int.MaxValue && rightMostX != int.MinValue)
+            {
+                Vector3Int offsetLeft = new Vector3Int(leftMostX - 1, 0, 0);
+                Vector3Int offsetRight = new Vector3Int(rightMostX + 1, 0, 0);
+
+                neighborOffsets = new List<Vector3Int>
+                {
+                    offsetLeft,
+                    offsetRight
+                };
+            }
+        }
+        else
+        {
+            neighborOffsets = new List<Vector3Int>
+            {
+                new Vector3Int(-1, 0, 0),
+                new Vector3Int(1, 0, 0)
+            };
+        }
+
+        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        currentGridPos.z = 0;
+
+        Vector3Int bestNode = Vector3Int.FloorToInt(currentTask.targetGameObject.transform.position);
+        float shortestDistance = float.MaxValue;
+        PathFinding bestPath = null;
+
+        foreach (var offset in neighborOffsets)
+        {
+            Vector3Int neighborPos = Vector3Int.FloorToInt(currentTask.targetGameObject.transform.position) + offset;
+            neighborPos.z = 0;
+
+            graph.nodes.TryGetValue(neighborPos, out Node node);
+
+            if (node == null)
+                continue;
+
+            if (node.isWalkable)
+            {
+                PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex,
+                    neighborPos, layer);
+
+                if (path.segments.Count == 0)
+                    continue;
+
+                if (path != null && path.totalCost < shortestDistance)
+                {
+                    bestNode = neighborPos;
+                    shortestDistance = path.totalCost;
+                    bestPath = path;
+                }
+            }
+        }
+
+        if (bestPath == null)
+        {
+            Debug.LogWarning($"Không tìm được đường đi hợp lệ đến bất kỳ node lân cận nào quanh {position}");
+            return false;
+        }
+
+        characterMovement.currentPath = bestPath;
+
+        StopAllCoroutines();
+        characterMovement.moveCoroutine = StartCoroutine(characterMovement.FollowPathCoroutine(bestPath));
+        return true;
     }
+    public PathFinding CanMoveToTaskTarget(Task task)
+    {
+        var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
+        var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
+
+        List<Vector3Int> neighborOffsets = null;
+
+        if (objectFootprint.occupiedCells.Count > 1)
+        {
+            int leftMostX = int.MaxValue;
+            int rightMostX = int.MinValue;
+
+            foreach (var cell in objectFootprint.occupiedCells)
+            {
+                if (cell.y == 0)
+                {
+                    if (cell.x < leftMostX)
+                        leftMostX = cell.x;
+
+                    if (cell.x > rightMostX)
+                        rightMostX = cell.x;
+                }
+            }
+
+            if (leftMostX != int.MaxValue && rightMostX != int.MinValue)
+            {
+                Vector3Int offsetLeft = new Vector3Int(leftMostX - 1, 0, 0);
+                Vector3Int offsetRight = new Vector3Int(rightMostX + 1, 0, 0);
+
+                neighborOffsets = new List<Vector3Int>
+            {
+                offsetLeft,
+                offsetRight
+            };
+            }
+            else
+            {
+                neighborOffsets = new List<Vector3Int>
+            {
+                new Vector3Int(-1, 0, 0),
+                new Vector3Int(1, 0, 0)
+            };
+            }
+        }
+        else
+        {
+            neighborOffsets = new List<Vector3Int>
+        {
+            new Vector3Int(-1, 0, 0),
+            new Vector3Int(1, 0, 0)
+        };
+        }
+
+        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        currentGridPos.z = 0;
+
+        Vector3Int bestNode = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
+        float shortestDistance = float.MaxValue;
+        PathFinding bestPath = null;
+
+        foreach (var offset in neighborOffsets)
+        {
+            Vector3Int neighborPos = Vector3Int.FloorToInt(task.targetGameObject.transform.position) + offset;
+            neighborPos.z = 0;
+
+            graph.nodes.TryGetValue(neighborPos, out Node node);
+
+            if (node == null)
+                continue;
+
+            if (node.isWalkable)
+            {
+                PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex,
+                    neighborPos, task.layerIndex);
+
+                if (path.segments.Count == 0)
+                    continue;
+
+                if (path != null && path.totalCost < shortestDistance)
+                {
+                    bestNode = neighborPos;
+                    shortestDistance = path.totalCost;
+                    bestPath = path;
+                }
+            }
+        }
+
+        if (bestPath != null && shortestDistance > 0)
+            return bestPath;
+
+        return null;
+    }
+
 
     public void ExecuteTask()
     {

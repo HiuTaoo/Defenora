@@ -12,7 +12,7 @@ public class CharacterMovement : MonoBehaviour
     private Tilemap tilemap;
     private FloorAgent floorAgent;
     private AgentPhysics2D agentPhysics2D;
-    private Rigidbody2D rb;
+    public Rigidbody2D rb;
     private CircleCollider2D circleCollider2D;
     private Camera cam;
     public PathFinding currentPath = null;

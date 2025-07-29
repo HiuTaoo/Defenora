@@ -305,7 +305,7 @@ public class UnitManager : MonoBehaviour
         Queue<Builder> nearestBuilders = FindNearestBuilderQueue(task);
         if (nearestBuilders.Count == 0)
         {
-            Debug.LogWarning("Không có builder nào rảnh rỗi cho công việc này.");
+            Debug.LogWarning("Không có builder nào thực hiện được công việc này.");
             if (!TaskManager.Instance.pendingTask.Contains(task))
             {
                 TaskManager.Instance.pendingTask.Enqueue(task);
