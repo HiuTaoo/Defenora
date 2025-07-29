@@ -11,6 +11,9 @@ public class Builder_ChopState : IUnitState
     private float chopCooldown = 0.5f;
     private bool canChop = true;
 
+    private Vector2 facingDir;
+    private Vector2 origin;
+
     private Coroutine cooldownCoroutine;
 
     public Builder_ChopState(BuilderController pawn, Tree tree)
@@ -59,10 +62,10 @@ public class Builder_ChopState : IUnitState
 
     private void TryChop()
     {
-        Vector2 facingDir = pawn.transform.right.normalized * pawn.transform.localScale.x;
-        Vector2 origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
-        int layer = LayerMask.GetMask($"Layer {pawn.GetCurrentLayerIndex() + 1}");
+        facingDir = pawn.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+        origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
 
+        int layer = LayerMask.GetMask($"Layer {pawn.GetCurrentLayerIndex() + 1}");
         Collider2D hit = Physics2D.OverlapBox(origin, pawn.chopBoxSize, 0f, layer);
 
         if (hit != null && hit.CompareTag("Tree"))
@@ -110,7 +113,7 @@ public class Builder_ChopState : IUnitState
         pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
         currentTree = null;
 
-        Debug.Log($"Builder {pawn.builderUnit.unitName} completed chop task and is now idle");
+        Debug.Log($"Builder {pawn.builderUnit.unitName} đang hoàn thành task chặt cây và giờ đang rảnh.");
     }
 
     public void DrawGizmos()

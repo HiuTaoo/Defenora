@@ -40,7 +40,7 @@ public abstract class Building : MonoBehaviour
         }
     }
 
-    public void Awake()
+    public virtual void Awake()
     {
         buildingFootprint = GetComponent<BuildingFootprint>();
         spriteRenderer = GetComponent<SpriteRenderer>();

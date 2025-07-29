@@ -288,6 +288,7 @@ MonoBehaviour:
     maxBuilders: 0
     layerIndex: 0
     listBuilders: []
+    isInPendingQueue: 0
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   assignedBuilding: {fileID: 0}
@@ -308,12 +309,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 3.5
   chopBoxSize: {x: 1, y: 1}
-  chopDistance: 1
+  chopDistance: 0.5
   rb: {fileID: 0}
   animator: {fileID: 0}
   agentPhysics2D: {fileID: 0}
   builderCollider: {fileID: 0}
   characterMovement: {fileID: 0}
+  builderUnit: {fileID: 0}
 --- !u!1 &6753680548334571932
 GameObject:
   m_ObjectHideFlags: 0

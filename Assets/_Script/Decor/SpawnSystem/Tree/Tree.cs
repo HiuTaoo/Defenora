@@ -84,13 +84,14 @@ public class Tree : MonoBehaviour
         treeState = TreeState.Chopped;
         animator.Play("Chopped");
 
-        OnTreeChopped?.Invoke(this);
+        GraphNode.Instance.SetWalkableNode(positionInGrid, layerIndex, true);
 
         var render = transform.Find("Custom Render Sprite");
         render.gameObject.SetActive(false);
 
         treeCollider.enabled = false;
-        GraphNode.Instance.SetWalkableNode(positionInGrid,layerIndex, true); 
+
+        OnTreeChopped?.Invoke(this);
     }
 
 }

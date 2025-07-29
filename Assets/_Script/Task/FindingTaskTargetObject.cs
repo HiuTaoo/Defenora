@@ -27,22 +27,90 @@ public class FindingTaskTargetObject : MonoBehaviour
 
     private void CheckOverlapAll()
     {
+        if (transformCollider?.transform == null)
+            return;
+
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transformCollider.transform.position, checkCollider.radius);
         Collider2D[] collidersByTransform = Physics2D.OverlapCircleAll(transformCollider.transform.position, transformCollider.radius);
+
+        bool isUnitColliderHit = false;
+        bool isCheckColliderHit = false;
+
+        if (transformUnit.currentTask?.targetGameObject == null)
+            return;
+
         foreach (Collider2D collider in colliders)
         {
-            if(collider.gameObject == transformUnit.currentTask?.targetGameObject &&
-                characterMovement.moveCoroutine == null &&
-                transformUnit.floorAgent.currentFloorIndex == collider.gameObject.GetComponent<Tree>().layerIndex)
+            if (collider?.gameObject == null)
+                continue;
+
+            if (collider.gameObject == transformUnit.currentTask.targetGameObject)
             {
-                characterMovement.HandleFlipByPosition(transformUnit.currentTask.targetGameObject.transform.position);
-                if(builderController.StateMachine.CurrentState is Builder_ChopState)
+                if (transformUnit.floorAgent != null)
                 {
-                    return;
+                    Tree tree = collider.gameObject.GetComponent<Tree>();
+                    if (tree != null && transformUnit.floorAgent.currentFloorIndex == tree.layerIndex)
+                    {
+                        isCheckColliderHit = true;
+
+                        if (characterMovement != null &&
+                            transformUnit.transform.position.x < transformUnit.currentTask.targetGameObject.transform.position.x)
+                        {
+                            characterMovement.HandleFlipByPosition(transformUnit.currentTask.targetGameObject.transform.position);
+                        }
+                    }
                 }
-                builderController.StateMachine.ChangeState(new
-                   Builder_ChopState(builderController, transformUnit.currentTask.targetGameObject.GetComponent<Tree>()));
             }
+        }
+
+        foreach (var colliderByTransform in collidersByTransform)
+        {
+            if (colliderByTransform?.gameObject != null &&
+                colliderByTransform.gameObject == transformUnit.currentTask.targetGameObject)
+            {
+                isUnitColliderHit = true;
+            }
+        }
+
+        if (builderController == null)
+            return;
+
+        if (isUnitColliderHit && isCheckColliderHit)
+        {
+            if (!(builderController.StateMachine.CurrentState is Builder_ChopState))
+            {
+                Tree targetTree = transformUnit.currentTask.targetGameObject.GetComponent<Tree>();
+                if (targetTree != null)
+                {
+                    builderController.StateMachine.ChangeState(new Builder_ChopState(builderController, targetTree));
+                }
+            }
+        }
+        else if (!isUnitColliderHit && isCheckColliderHit)
+        {
+            if (transformUnit.currentState != UnitState.Moving)
+            {
+                MoveToTargetPosition();
+            }
+        }
+    }
+    private void MoveToTargetPosition()
+    {
+        Vector3 targetPosition = transformUnit.currentTask.targetGameObject.transform.position;
+        Vector3 currentPosition = transformUnit.transform.position;
+
+        Vector3 direction = (targetPosition - currentPosition).normalized;
+
+        Rigidbody2D rb = transformUnit.GetComponent<Rigidbody2D>();
+        float moveSpeed = transformUnit.moveSpeed;
+
+        if (Vector3.Distance(currentPosition, targetPosition) > 0.1f)
+        {
+            rb.velocity = new Vector2(direction.x * moveSpeed, direction.y * moveSpeed);
+        }
+        else
+        {
+            rb.velocity = Vector2.zero;  
         }
     }
 }

@@ -32,7 +32,6 @@ public class RegionManager : MonoBehaviour
         if(Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -91,7 +90,7 @@ public class RegionManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Initialized {regions.Count} regions ({regionsX}x{regionsY})");
+        //Debug.Log($"Initialized {regions.Count} regions ({regionsX}x{regionsY})");
     }
 
     public void RegisterObject(GameObject obj)

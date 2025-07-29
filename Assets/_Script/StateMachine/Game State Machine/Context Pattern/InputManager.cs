@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputManager : MonoBehaviour
+public class InputManager 
 {
     public bool isBlockMovementInput = false;
     public bool GetKeyDown(KeyCode key)

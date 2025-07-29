@@ -15,7 +15,7 @@ public class CharacterMovement : MonoBehaviour
     private Rigidbody2D rb;
     private CircleCollider2D circleCollider2D;
     private Camera cam;
-    private PathFinding currentPath = null;
+    public PathFinding currentPath = null;
     public Coroutine moveCoroutine;
 
     public bool moving = false;
@@ -98,57 +98,6 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    public bool MoveToTaskPosition(Vector3Int position, int layer)
-    {
-        var graph = GraphNode.Instance.layerGraphs[layer];
-
-        Vector3Int closest = position;
-        float minDistance = float.MaxValue;
-
-        foreach (var kvp in graph.nodes)
-        {
-            Vector3Int nodePos = kvp.Key;
-            Node node = kvp.Value;
-
-            if (nodePos.y == position.y && node.isWalkable)
-            {
-                float dist = Vector2.Distance(new Vector2(position.x, position.y), new Vector2(nodePos.x, nodePos.y));
-
-                if (dist < minDistance)
-                {
-                    closest = nodePos;
-                    minDistance = dist;
-                }
-            }
-        }
-
-        if (minDistance == float.MaxValue)
-        {
-            Debug.LogWarning("Không tìm được node walkable trên trục Y");
-            return false;
-        }
-
-        Vector3 worldPosition = transform.position;
-        Vector3Int gridPosition = Vector3Int.FloorToInt(worldPosition);
-        gridPosition.z = 0;
-
-        currentPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(gridPosition, floorAgent.currentFloorIndex, closest, layer);
-
-        if(currentPath == null || currentPath.segments.Count == 0)
-        {
-            Debug.LogWarning("Không tìm thấy đường đi hợp lệ!");
-            return false;
-        }
-        else
-        {
-            StopAllCoroutines();
-            moveCoroutine = StartCoroutine(FollowPathCoroutine(currentPath));
-            return true;
-        }
-    }
-
-
-
     public void MoveToPosition(Vector3Int position, int layer)
     {
         Vector3 worldPosition = transform.position;
@@ -164,7 +113,7 @@ public class CharacterMovement : MonoBehaviour
     }
 
 
-    private IEnumerator FollowPathCoroutine(PathFinding path)
+    public IEnumerator FollowPathCoroutine(PathFinding path)
     {
         moving = true;
 

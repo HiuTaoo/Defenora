@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraConfig : MonoBehaviour
+public class CameraConfig 
 {
     public bool FollowPlayer { get; set; } = false;
     public Vector3 Position { get; set; } = Vector3.zero;

@@ -41,8 +41,7 @@ public class PathfindingAlgorithm : MonoBehaviour
 
         if (startNode == null || targetNode == null)
         {
-            Debug.Log($"Đi từ node: {startNode} đến node: {targetNode}");
-            Debug.LogWarning("Không thể tìm thấy start hoặc target node!");
+            Debug.Log("Không thể tìm thấy start hoặc target node!");
             return result;
         }
 
@@ -97,7 +96,7 @@ public class PathfindingAlgorithm : MonoBehaviour
                 }
                 else if (openSet.Contains(neighborML))
                 {
-                    openSet.Remove(neighborML); // SortedSet requires remove before update
+                    openSet.Remove(neighborML);
                 }
 
                 if (cost < neighborML.gCost)
@@ -112,7 +111,7 @@ public class PathfindingAlgorithm : MonoBehaviour
             }
         }
 
-        Debug.LogWarning("Không tìm thấy đường đi đa tầng!");
+       // Debug.LogWarning("Không tìm thấy đường đi đa tầng!");
         return null;
     }
 

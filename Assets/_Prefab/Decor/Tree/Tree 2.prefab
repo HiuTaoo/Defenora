@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentCollideGameObject: {fileID: 0}
   layerIndex: -1
 --- !u!60 &2534435472118015756
 PolygonCollider2D:
@@ -90,7 +91,7 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0.030607224, y: 3.433137}
+    - - {x: 0.047426224, y: 3.4079056}
       - {x: -0.6450034, y: 0.5385587}
       - {x: -0.20521683, y: 0.30808365}
       - {x: 0.25112498, y: 0.32338738}
@@ -266,6 +267,7 @@ MonoBehaviour:
     maxBuilders: 0
     layerIndex: 0
     listBuilders: []
+    isInPendingQueue: 0
   treeCollider: {fileID: 0}
 --- !u!114 &919691684603789907
 MonoBehaviour:
