@@ -5,6 +5,7 @@ using UnityEngine;
 public class CustomRender : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
+    public GameObject currentCollideGameObject;
 
     public int layerIndex = -1;
 
@@ -31,6 +32,21 @@ public class CustomRender : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        if (currentCollideGameObject != null)
+        {
+            var floorAgent = currentCollideGameObject.GetComponentInChildren<FloorAgent>();
+            if (floorAgent != null)
+            {
+                floorAgent.UpdateVisualElements();
+            }
+
+            currentCollideGameObject = null;
+        }
+    }
+
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (GameLoop.Instance.StateMachine.CurrentStateType != GameStateType.Editor)
@@ -41,6 +57,7 @@ public class CustomRender : MonoBehaviour
 
             if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null )
             {
+                currentCollideGameObject = collision.gameObject;
                 var floorAgent = collision.gameObject.GetComponentInChildren<FloorAgent>();
                 LookUpLayerIndex();
 
@@ -65,6 +82,7 @@ public class CustomRender : MonoBehaviour
         if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null && collision.CompareTag("Player"))
         {
             collision.gameObject.GetComponentInChildren<FloorAgent>().UpdateVisualElements();
+            currentCollideGameObject = null;
 
             if (collision.CompareTag("Player"))
             {

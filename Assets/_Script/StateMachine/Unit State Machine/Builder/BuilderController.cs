@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
@@ -65,7 +65,6 @@ public class BuilderController : MonoBehaviour
     {
         if (StateMachine.CurrentState is Builder_ChopState chopState)
         {
-            //chopState.SetCompleted();
             chopState.StartCooldown();
         }
     }
@@ -84,9 +83,9 @@ public class BuilderController : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        /*if (StateMachine.CurrentState is Builder_ChopState chopState)
+        if (StateMachine.CurrentState is Builder_ChopState chopState)
         {
             chopState.DrawGizmos();
-        }*/
+        }
     }
 }

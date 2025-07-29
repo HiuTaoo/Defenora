@@ -4,9 +4,8 @@ using UnityEngine;
 
 public class WorkShop : Building
 {
-    private void Awake()
+    private void Start()
     {
-        base.Awake();
         buildingType = BuildingType.WorkShop;
     }
 

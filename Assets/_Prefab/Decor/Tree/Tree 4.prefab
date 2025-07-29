@@ -170,6 +170,7 @@ MonoBehaviour:
     maxBuilders: 0
     layerIndex: 0
     listBuilders: []
+    isInPendingQueue: 0
   treeCollider: {fileID: 0}
 --- !u!114 &8448295130713633013
 MonoBehaviour:
@@ -243,6 +244,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentCollideGameObject: {fileID: 0}
   layerIndex: -1
 --- !u!60 &7297935846678267089
 PolygonCollider2D:
@@ -288,9 +290,15 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: -0.025976181, y: 1.8053074}
+    - - {x: 0.23848724, y: 1.5336056}
+      - {x: -0.0052890778, y: 1.7225609}
+      - {x: -0.298954, y: 1.4597492}
+      - {x: -0.3642521, y: 1.3930988}
+      - {x: -0.4262848, y: 1.0917854}
       - {x: -0.60035807, y: 0.88052726}
+      - {x: -0.59573746, y: 0.57458115}
       - {x: -0.39295143, y: 0.29503644}
       - {x: 0.35398638, y: 0.29503655}
+      - {x: 0.5001831, y: 0.58441925}
       - {x: 0.5354128, y: 0.88052744}
   m_UseDelaunayMesh: 0

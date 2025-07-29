@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class UIManager
 {
-    // Cấu trúc dữ liệu chính: State -> UI Name -> GameObject
     public Dictionary<GameStateType, Dictionary<string, GameObject>> stateUIs;
     private Dictionary<GameStateType, UIConfig> stateConfigs;
     private Dictionary<string, UIConfig> individualUIConfigs;
@@ -25,21 +24,17 @@ public class UIManager
     /// <param name="config">Config riêng cho UI này (tùy chọn)</param>
     public void RegisterUI(GameStateType stateType, string uiName, GameObject uiGameObject, UIConfig config = null)
     {
-        // Khởi tạo dictionary cho state nếu chưa có
         if (!stateUIs.ContainsKey(stateType))
             stateUIs[stateType] = new Dictionary<string, GameObject>();
 
-        // Đăng ký UI
         stateUIs[stateType][uiName] = uiGameObject;
 
-        // Lưu config riêng cho UI này nếu có
         if (config != null)
             individualUIConfigs[GetUIKey(stateType, uiName)] = config;
 
-        // Ẩn UI ban đầu
         uiGameObject.SetActive(false);
 
-        Debug.Log($"UIManager: Registered UI '{uiName}' for state {stateType}");
+        //Debug.Log($"UIManager: Registered UI '{uiName}' for state {stateType}");
     }
 
     /// <summary>

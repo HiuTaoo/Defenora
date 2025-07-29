@@ -11,6 +11,7 @@ public class Task
     public int maxBuilders = 3;
     public int layerIndex;
     public List<Builder> listBuilders;
+    public bool isInPendingQueue = false;
 
     public Task(GameObject target, TaskType type, TaskStatus status = TaskStatus.NotStarted, int maxBuilders = 1, int layerIndex = 0)
     {

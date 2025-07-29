@@ -36,7 +36,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -66,9 +65,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         if (autoSave && Time.time - lastAutoSaveTime > autoSaveInterval 
             && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
-            SaveGame();
+            //SaveGame();
             lastAutoSaveTime = Time.time;
-            Debug.Log($"Auto-saved game.");
+            //Debug.Log($"Auto-saved game.");
         }
     }
 

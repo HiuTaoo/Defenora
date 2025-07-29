@@ -12,4 +12,6 @@ public class Fortress : Building
         RegisterSpot();
     }
 
+    
+
 }

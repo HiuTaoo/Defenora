@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.UIElements;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public abstract class Unit : MonoBehaviour
 {
@@ -53,18 +55,117 @@ public abstract class Unit : MonoBehaviour
     protected virtual void Update()
     {
         UpdateAnimations();
-
-        if (currentTask != null && currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
-        {
-            StartCoroutine(ExecuteTask(currentTask));
-        }
     }
 
     public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
     {
-        currentState = UnitState.Moving;
-        var canMove = characterMovement.MoveToTaskPosition(position, layer);
-        return canMove;
+        var graph = GraphNode.Instance.layerGraphs[layer];
+        List<Vector3Int> neighborOffsets = new List<Vector3Int>
+        {
+            new Vector3Int(-1, 0, 0),
+            new Vector3Int(1, 0, 0)
+        };
+
+        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        currentGridPos.z = 0;
+
+        Vector3Int bestNode = position;
+        float shortestDistance = float.MaxValue;
+        PathFinding bestPath = null;
+
+        foreach (var offset in neighborOffsets)
+        {
+            Vector3Int neighborPos = position + offset;
+            neighborPos.z = 0;
+            graph.nodes.TryGetValue(neighborPos, out Node node);
+
+            if(node == null)
+                continue;
+
+            if (node.isWalkable)
+            {
+                PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex, neighborPos, layer);
+
+                if(path.segments.Count == 0)
+                {
+                    continue;
+                }
+
+                if (path.segments.Count != 0 && path.totalCost < shortestDistance)
+                {
+                    bestNode = neighborPos;
+                    shortestDistance = path.totalCost;
+                    bestPath = path;
+                }
+            }
+        }
+
+        if (bestPath == null)
+        {
+            Debug.LogWarning($"Không tìm được đường đi hợp lệ đến bất kỳ node lân cận nào quanh {position}");
+            return false;
+        }
+
+        characterMovement.currentPath = bestPath;
+
+        StopAllCoroutines();
+        characterMovement.moveCoroutine = StartCoroutine(characterMovement.FollowPathCoroutine(bestPath));
+        return true;
+    }
+
+    public PathFinding CanMoveToTaskTarget(Task task)
+    {
+        var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
+        List<Vector3Int> neighborOffsets = new List<Vector3Int>
+        {
+            new Vector3Int(-1, 0, 0),
+            new Vector3Int(1, 0, 0)
+        };
+
+        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        currentGridPos.z = 0;
+
+        Vector3Int bestNode = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
+        float shortestDistance = float.MaxValue;
+        PathFinding bestPath = null;
+
+        foreach (var offset in neighborOffsets)
+        {
+            Vector3Int neighborPos = Vector3Int.FloorToInt(task.targetGameObject.transform.position) + offset;
+            neighborPos.z = 0;
+            graph.nodes.TryGetValue(neighborPos, out Node node);
+
+            if (node == null)
+                continue;
+
+            if (node.isWalkable)
+            {
+                PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex,
+                    neighborPos, task.layerIndex);
+
+                if (path.segments.Count == 0)
+                    continue;
+
+                if (path != null && path.totalCost < shortestDistance)
+                {
+                    bestNode = neighborPos;
+                    shortestDistance = path.totalCost;
+                    bestPath = path;
+                }
+            }
+        }
+        if(bestPath != null && shortestDistance > 0)
+            return bestPath;
+
+        return null;
+    }
+
+    public void ExecuteTask()
+    {
+        if (currentTask != null && currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
+        {
+            StartCoroutine(ExecuteTask(currentTask));
+        }
     }
 
     public IEnumerator ExecuteTask(Task task)
@@ -74,8 +175,24 @@ public abstract class Unit : MonoBehaviour
         var canExecuteTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
         if (!canExecuteTask)
         {
-            TaskManager.Instance.pendingTask.Enqueue(task);
-            Debug.LogWarning($"Task {task.taskType} cannot be executed by {unitName}. Re-queued to pending tasks.");
+            UnitManager.Instance.CleanupTaskFromInProgress(task, this);
+
+            bool taskAlreadyInPending = false;
+            lock (TaskManager.Instance.pendingTask)
+            {
+                var tempList = TaskManager.Instance.pendingTask.ToArray();
+                taskAlreadyInPending = System.Array.Exists(tempList, t => t == task);
+            }
+
+            if (!taskAlreadyInPending)
+            {
+                TaskManager.Instance.pendingTask.Enqueue(task);
+                Debug.Log($"Task {task.taskType} cannot be executed by {unitName}. Added to pending tasks.");
+            }
+            else
+            {
+                Debug.Log($"Task {task.taskType} is already in pending queue. Skipping enqueue.");
+            }
 
             currentTask = null;
             currentState = UnitState.Idle;
@@ -85,6 +202,7 @@ public abstract class Unit : MonoBehaviour
         else
         {
             task.taskStatus = TaskStatus.InProgress;
+            currentState = UnitState.Working;
             targetDestination = task.targetGameObject.transform;
         }
     }
@@ -128,7 +246,14 @@ public abstract class Unit : MonoBehaviour
 
         if (rb.velocity.x != 0)
         {
-            spriteRenderer.flipX = rb.velocity.x < 0;
+            Vector3 scale = transform.localScale;
+
+            if (rb.velocity.x < 0)
+                scale.x = -Mathf.Abs(scale.x);
+            else
+                scale.x = Mathf.Abs(scale.x);
+
+            transform.localScale = scale;
         }
     }
 

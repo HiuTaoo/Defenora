@@ -17,7 +17,6 @@ public class FloorManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
             InitializeFloors();
         }
         else

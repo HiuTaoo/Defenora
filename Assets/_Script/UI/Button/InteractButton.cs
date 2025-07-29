@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -58,9 +58,9 @@ public class InteractButton : MonoBehaviour
             case InteractButtonState.Cut:
                 if (treeComponent != null)
                 {
-                    Debug.Log($"Tree: {treeComponent.name} is in queue. Looking for nearest builder to cut.");
+                    Debug.Log($"Cây: {treeComponent.name} đang trong hàng đợt. Đang tìm kiếm builder để chặt.");
 
-                    var task = new Task(obj, TaskType.ChopTree, TaskStatus.NotStarted, 3, treeComponent.layerIndex);
+                    var task = new Task(obj, TaskType.ChopTree, TaskStatus.NotStarted, 1, treeComponent.layerIndex);
                     treeComponent.currentTask = task;
                     TaskManager.Instance.AddNewTask(task);
                 }

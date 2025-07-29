@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEditor.ObjectChangeEventStream;
 
 public class UnitManager : MonoBehaviour
 {
@@ -36,7 +37,6 @@ public class UnitManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -268,12 +268,13 @@ public class UnitManager : MonoBehaviour
 
         foreach (Builder builder in idleBuilders)
         {
-            PathFinding pathFinding = PathfindingAlgorithm.Instance.FindMultiLayerPath(
+            /*PathFinding pathFinding = PathfindingAlgorithm.Instance.FindMultiLayerPath(
                 Vector3Int.FloorToInt(builder.transform.position),
                 builder.floorAgent.currentFloorIndex,
                 Vector3Int.FloorToInt(task.targetGameObject.transform.position),
                 task.layerIndex
-                );
+                );*/
+            var pathFinding = builder.CanMoveToTaskTarget(task);
             var distance = pathFinding?.totalCost ?? -1;
 
             if (distance < 0)
@@ -289,11 +290,12 @@ public class UnitManager : MonoBehaviour
         {
             sortedQueue.Enqueue(entry.builder);
         }
-        Debug.Log($"Found {sortedQueue.Count} idle builders for task {task.taskType} at position {task.targetGameObject.transform.position}");
+        Debug.Log($"Tìm thấy {sortedQueue.Count} công nhân rảnh rỗi để thực hiện công việc {task.taskType} tại {task.targetGameObject.transform.position}");
         return sortedQueue;
     }
 
-    public void AssignTaskToBuilder(Task task)
+    #region Unit Task Assignment
+    public void AssignNewTaskToBuilder(Task task)
     {
         if (task == null || task.targetGameObject == null)
         {
@@ -301,26 +303,30 @@ public class UnitManager : MonoBehaviour
             return;
         }
 
+        if (taskManager.newTaskQueue.Count > 0)
+        {
+            taskManager.newTaskQueue.Dequeue();
+        }
+
         Queue<Builder> nearestBuilders = FindNearestBuilderQueue(task);
         if (nearestBuilders.Count == 0)
         {
-            Debug.LogWarning("No idle builders available for the task.");
-            TaskManager.Instance.pendingTask.Enqueue(task);
-            Debug.Log($"Task {task.taskType} has been added to pending tasks.");
+            Debug.LogWarning("Không có builder nào rảnh rỗi cho công việc này.");
+            if (!TaskManager.Instance.pendingTask.Contains(task))
+            {
+                TaskManager.Instance.pendingTask.Enqueue(task);
+            }
+            Debug.Log($"Task {task.targetGameObject.name}đang được thêm vào pending tasks.");
             return;
         }
 
         Builder assignedBuilder = nearestBuilders.Dequeue();
         assignedBuilder.currentTask = task;
         task.listBuilders.Add(assignedBuilder);
-
-        if (taskManager.newTaskQueue.Count > 0)
-        {
-            taskManager.newTaskQueue.Dequeue();
-        }
+        assignedBuilder.ExecuteTask();
 
         taskManager.inProgressTask.Add(task);
-        Debug.Log($"Assigned task {task.taskType} to builder {assignedBuilder.unitName}");
+        Debug.Log($"Giao task {task.taskType} cho công nhân {assignedBuilder.unitName}");
     }
 
     public void AssignPendingTaskToBuilder(Task task, Builder builder)
@@ -334,7 +340,10 @@ public class UnitManager : MonoBehaviour
         if (builder.currentState != UnitState.Idle)
         {
             Debug.LogWarning($"Builder {builder.unitName} is not idle. Cannot assign pending task.");
-            TaskManager.Instance.pendingTask.Enqueue(task);
+            if (!TaskManager.Instance.pendingTask.Contains(task))
+            {
+                TaskManager.Instance.pendingTask.Enqueue(task);
+            }
             return;
         }
 
@@ -342,9 +351,75 @@ public class UnitManager : MonoBehaviour
         builder.currentState = UnitState.Working;
         task.listBuilders.Add(builder);
         taskManager.inProgressTask.Add(task);
+        builder.ExecuteTask();
 
         Debug.Log($"Assigned pending task {task.taskType} to builder {builder.unitName}");
     }
+    private IEnumerator DelayAssignPendingTask(Task pendingTask, Builder builder)
+    {
+        yield return new WaitForSeconds(0.25f);
+        AssignPendingTaskToBuilder(pendingTask, builder);
+    }
+
+    /// <summary>
+    /// Kiểm tra xem có thể assign task cho builder hay không
+    /// </summary>
+    /// <param name="task">Task cần kiểm tra</param>
+    /// <param name="builder">Builder cần assign</param>
+    /// <returns>True nếu có thể assign, False nếu không thể</returns>
+    private bool CanAssignTaskToBuilder(Task task, Builder builder)
+    {
+        if (task == null || builder == null)
+            return false;
+
+        if (task.targetGameObject == null)
+            return false;
+
+        if (builder.currentState != UnitState.Idle || builder.currentTask != null)
+            return false;
+
+        PathFinding pathFinding = builder.CanMoveToTaskTarget(task);
+
+        if (pathFinding == null || pathFinding.totalCost < 0)
+        {
+            Debug.LogWarning($"Không có đường đi thích hợp cho {builder.unitName} thực hiện công việc {task.taskType} tại vị trí {task.targetGameObject.transform.position}");
+            return false;
+        }
+/*
+        if (task.listBuilders.Count > 0 && !task.listBuilders.Contains(builder))
+        {
+            Debug.LogWarning($"Công việc {task.taskType} đã được giao cho builder khác.");
+            return false;
+        }*/
+
+        // Có thể thêm các điều kiện khác tùy vào game logic:
+        // - Kiểm tra tool requirements
+        // - Kiểm tra skill requirements
+        // - Kiểm tra distance limits
+        // - Kiểm tra resource availability
+
+        return true;
+    }
+
+    public void CleanupTaskFromInProgress(Task task, Unit unit)
+    {
+        if (task == null || unit == null) return;
+
+        if (taskManager.inProgressTask.Contains(task))
+        {
+            taskManager.inProgressTask.Remove(task);
+            Debug.Log($"Removed task {task.taskType} from inProgressTask");
+        }
+
+        if (task.listBuilders.Contains(unit))
+        {
+            task.listBuilders.Remove(unit as Builder);
+            Debug.Log($"Removed {unit.unitName} from task {task.taskType} builders list");
+        }
+
+        task.taskStatus = TaskStatus.NotStarted;
+    }
+    #endregion
 
     public Unit FindUnitIdleByType(UnitType unitType)
     {
@@ -374,69 +449,83 @@ public class UnitManager : MonoBehaviour
     #region Event Handling
     private void HandleTaskCreated(Task task)
     {
-        Debug.Log($"UnitManager received new task: {task.taskType}");
-        AssignTaskToBuilder(task);
+        Debug.Log($"UnitManager đã nhận task mới: {task.taskType}");
+        AssignNewTaskToBuilder(task);
     }
 
     private void HandlePendingTask(Unit unit)
     {
-        if(unit.currentState != UnitState.Idle)
+        if (unit.currentState != UnitState.Idle)
         {
-            Debug.LogWarning($"Unit {unit.unitName} is not idle. Current state: {unit.currentState}");
+            Debug.LogWarning($"Unit {unit.unitName} đang không rảnh. State hiện tại: {unit.currentState}");
             return;
         }
-        // Thêm debug log để trace
-        Debug.Log($"HandlePendingTask called for unit: {unit.unitName}, pendingTask count: {TaskManager.Instance.pendingTask.Count}");
 
-        // Kiểm tra unit trước khi kiểm tra pending tasks
+        Debug.Log($"Xử lí task trong đang tạm hoãn: {unit.unitName}, số lượng pending task: {TaskManager.Instance.pendingTask.Count}");
+
         if (unit.unitType != UnitType.Builder || unit.currentState != UnitState.Idle || unit.currentTask != null)
         {
-            Debug.LogWarning($"Unit {unit.unitName} is not available for pending task assignment. Type: {unit.unitType}, State: {unit.currentState}, HasTask: {unit.currentTask != null}");
-            return;
-        }
-
-        // Thread-safe check và dequeue
-        Task pendingTask = null;
-        lock (TaskManager.Instance.pendingTask) 
-        {
-            if (TaskManager.Instance.pendingTask.Count == 0)
-            {
-                Debug.Log($"No pending tasks available when {unit.unitName} became idle.");
-                return;
-            }
-
-            pendingTask = TaskManager.Instance.pendingTask.Dequeue();
-     
-        }
-
-        // Kiểm tra task validity
-        if (pendingTask == null || pendingTask.targetGameObject == null)
-        {
-            Debug.LogError("Dequeued task is null or has null target GameObject.");
+            Debug.LogWarning($"Unit {unit.unitName} không phù hợp cho task. Type: {unit.unitType}, State: {unit.currentState}, HasTask: {unit.currentTask != null}");
             return;
         }
 
         Builder builder = unit as Builder;
-        if (builder != null)
+        if (builder == null)
         {
-            StartCoroutine(DelayAssignPendingTask(pendingTask, builder));
+            Debug.LogError($"Unit {unit.unitName} is marked as Builder but cannot cast to Builder type.");
+            return;
+        }
+
+        Task assignableTask = null;
+
+        lock (TaskManager.Instance.pendingTask)
+        {
+            if (TaskManager.Instance.pendingTask.Count == 0)
+            {
+                Debug.Log($"Không có task nào đang tạm hoãn khi unit {unit.unitName} rảnh rỗi.");
+                return;
+            }
+
+            var tempQueue = new Queue<Task>();
+            bool foundAssignableTask = false;
+
+            while (TaskManager.Instance.pendingTask.Count > 0 && !foundAssignableTask)
+            {
+                var task = TaskManager.Instance.pendingTask.Dequeue();
+
+                if (CanAssignTaskToBuilder(task, builder))
+                {
+                    assignableTask = task;
+                    foundAssignableTask = true;
+                    Debug.Log($"Tìm thấy task {task.taskType} được giao cho builder {builder.unitName}");
+                }
+                else
+                {
+                    tempQueue.Enqueue(task);
+                    Debug.Log($"Task {task.taskType} không thể giao cho {builder.unitName}, trả lại hàng đợi");
+                }
+            }
+
+            while (tempQueue.Count > 0)
+            {
+                TaskManager.Instance.pendingTask.Enqueue(tempQueue.Dequeue());
+            }
+        }
+
+        if (assignableTask != null)
+        {
+            StartCoroutine(DelayAssignPendingTask(assignableTask, builder));
         }
         else
         {
-            Debug.LogError($"Unit {unit.unitName} is marked as Builder but cannot cast to Builder type.");
-            TaskManager.Instance.pendingTask.Enqueue(pendingTask);
+            Debug.Log($"Không có pending task nào có thể giao cho {builder.unitName}");
         }
     }
 
-    private IEnumerator DelayAssignPendingTask(Task pendingTask, Builder builder)
-    {
-        yield return new WaitForSeconds(0.25f);
-        Debug.Log($"Assigning pending task {pendingTask.taskType} to builder {builder.unitName}");
-        AssignPendingTaskToBuilder(pendingTask, builder);
-    }
+    
     #endregion
 
-        #region Utility Methods
+    #region Utility Methods
     public bool DeployUnitToStation(Unit unit, Building station)
     {
         if (unit == null || station == null)

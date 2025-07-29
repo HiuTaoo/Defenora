@@ -8,9 +8,13 @@ public class TaskManager : MonoBehaviour
 
     public Queue<Task> newTaskQueue = new Queue<Task>();
 
+    public Queue<Task> pendingTask = new Queue<Task>();
+
+    public List<Task> listTaskInNewTaskQueue = new List<Task>();
+
     public List<Task> inProgressTask = new List<Task>();
 
-    public Queue<Task> pendingTask = new Queue<Task>();
+    public List<Task> listTaskInPendingQueue = new List<Task>();
 
     public System.Action<Task> OnTaskCreated;
 
@@ -20,7 +24,6 @@ public class TaskManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -32,7 +35,8 @@ public class TaskManager : MonoBehaviour
     {
         if(unitManager == null)
             GetUnitManager();
-        
+        listTaskInPendingQueue = new List<Task>(pendingTask);
+        listTaskInNewTaskQueue = new List<Task>(newTaskQueue);
     }
 
     public void AddNewTask(Task task)
@@ -40,7 +44,7 @@ public class TaskManager : MonoBehaviour
         if (task == null) return;
 
         newTaskQueue.Enqueue(task);
-        Debug.Log($"New task added: {task.taskType}");
+        Debug.Log($"New task has been added: {task.taskType}");
         OnTaskCreated?.Invoke(task);
     }
 
