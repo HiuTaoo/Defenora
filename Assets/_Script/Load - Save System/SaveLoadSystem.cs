@@ -326,6 +326,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             unit.unitName = unitDatum.unitName;
             unit.gameObject.name = unitDatum.unitName;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
+            unit.floorAgent.UpdateVisualElements();
             foreach (var building in unitManager.buildings) {
                 if(building.name == unitDatum.assignedBuilding)
                 {

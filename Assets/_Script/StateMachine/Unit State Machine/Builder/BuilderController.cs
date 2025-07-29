@@ -82,6 +82,16 @@ public class BuilderController : MonoBehaviour
     }
     #endregion
 
+    #region BUILD STATE
+    public void EndBuildAction()
+    {
+        if (StateMachine.CurrentState is Builder_BuildState buildState)
+        {
+            buildState.StartCooldown();
+        }
+    }
+    #endregion
+
     private void OnDrawGizmos()
     {
         if (StateMachine.CurrentState is Builder_ChopState chopState)
