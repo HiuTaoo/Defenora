@@ -310,7 +310,7 @@ public class UnitManager : MonoBehaviour
             {
                 TaskManager.Instance.pendingTask.Enqueue(task);
             }
-            Debug.Log($"Task {task.targetGameObject.name}đang được thêm vào pending tasks.");
+            Debug.Log($"Task {task.targetGameObject} đang được thêm vào pending tasks.");
             return;
         }
 
@@ -633,7 +633,7 @@ public class UnitManager : MonoBehaviour
     {
         foreach (var building in buildings)
         {
-            var foothPrint = building.transform.GetComponent<BuildingFootprint>();
+            var foothPrint = building.transform.GetComponent<ObjectFootprint>();
             var cells = foothPrint.GetAbsoluteGridPositions(building.WorldToCell(building.transform.position, 1f));
             foreach (var cell in cells)
             {

@@ -19,6 +19,9 @@ public abstract class Building : MonoBehaviour
     [Header("Unit Management")]
     public List<Unit> stationedUnits = new List<Unit>();
 
+    [Header("Task")]
+    public Task currentTask;
+
     [Tooltip("Danh sách những điểm mà cung thủ có thể đứng")]
     public Transform[] positionSpots;
 
@@ -29,7 +32,11 @@ public abstract class Building : MonoBehaviour
     private int layerIndex = 0;
 
     private SpriteRenderer spriteRenderer;
-    private BuildingFootprint buildingFootprint;
+    private ObjectFootprint buildingFootprint;
+    private Animator animator;
+
+    private GameObject customRenderer;
+    
 
     public int LayerIndex
     {
@@ -42,10 +49,38 @@ public abstract class Building : MonoBehaviour
 
     public virtual void Awake()
     {
-        buildingFootprint = GetComponent<BuildingFootprint>();
+        buildingFootprint = GetComponent<ObjectFootprint>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        animator = GetComponent<Animator>();
+
+        customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
 
         buildingName = gameObject.name;
+    }
+
+    private void Update()
+    {
+        switch (buildingState)
+        {
+            case BuildingState.UnderConstruction:
+                animator.Play("UnderConstruction");
+                customRenderer?.SetActive(false);
+                break;
+            case BuildingState.Completed:
+                animator.Play("Complete");
+                customRenderer?.SetActive(true);
+                break;
+            case BuildingState.Destroyed:
+                animator.Play("Destroyed");
+                customRenderer?.SetActive(false);
+                break;
+        }
+        if (buildingState == BuildingState.UnderConstruction && currentTask.targetGameObject == null)
+        {
+            currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
+            TaskManager.Instance.AddNewTask(currentTask);
+            Debug.Log($"Tạo task xây dựng cho {buildingName} với LayerIndex: {LayerIndex}");
+        }
     }
 
     public void RegisterSpot()
@@ -338,7 +373,7 @@ public abstract class Building : MonoBehaviour
     private void GetBuildingFootprinf()
     {
         if(buildingFootprint == null)
-            buildingFootprint = GetComponent<BuildingFootprint>();
+            buildingFootprint = GetComponent<ObjectFootprint>();
     }
 
     public BuildingData GetStationInfo()

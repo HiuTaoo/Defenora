@@ -57,6 +57,7 @@ public abstract class Unit : MonoBehaviour
         UpdateAnimations();
     }
 
+    #region Execute Task Logic
     public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
     {
         var graph = GraphNode.Instance.layerGraphs[layer];
@@ -116,7 +117,13 @@ public abstract class Unit : MonoBehaviour
     public PathFinding CanMoveToTaskTarget(Task task)
     {
         var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
-        List<Vector3Int> neighborOffsets = new List<Vector3Int>
+        var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
+
+        List<Vector3Int> neighborOffsets = null;
+
+        if (objectFootprint.occupiedCells.Count == 1)
+
+            neighborOffsets = new List<Vector3Int>
         {
             new Vector3Int(-1, 0, 0),
             new Vector3Int(1, 0, 0)
@@ -154,7 +161,7 @@ public abstract class Unit : MonoBehaviour
                 }
             }
         }
-        if(bestPath != null && shortestDistance > 0)
+        if (bestPath != null && shortestDistance > 0)
             return bestPath;
 
         return null;
@@ -206,6 +213,7 @@ public abstract class Unit : MonoBehaviour
             targetDestination = task.targetGameObject.transform;
         }
     }
+    #endregion
 
     public virtual void StopMovement()
     {

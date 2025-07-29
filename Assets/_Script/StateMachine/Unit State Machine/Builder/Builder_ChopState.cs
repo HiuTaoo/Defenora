@@ -7,9 +7,7 @@ public class Builder_ChopState : IUnitState
     private BuilderController pawn;
     public Tree currentTree;
     private bool isCompleted = false;
-
     private float chopCooldown = 0.5f;
-    private bool canChop = true;
 
     private Vector2 facingDir;
     private Vector2 origin;
