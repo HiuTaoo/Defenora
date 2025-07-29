@@ -268,12 +268,6 @@ public class UnitManager : MonoBehaviour
 
         foreach (Builder builder in idleBuilders)
         {
-            /*PathFinding pathFinding = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-                Vector3Int.FloorToInt(builder.transform.position),
-                builder.floorAgent.currentFloorIndex,
-                Vector3Int.FloorToInt(task.targetGameObject.transform.position),
-                task.layerIndex
-                );*/
             var pathFinding = builder.CanMoveToTaskTarget(task);
             var distance = pathFinding?.totalCost ?? -1;
 
@@ -337,7 +331,7 @@ public class UnitManager : MonoBehaviour
             return;
         }
 
-        if (builder.currentState != UnitState.Idle)
+        if (builder.currentState != UnitState.Idle && builder.currentTask.targetGameObject != null)
         {
             Debug.LogWarning($"Builder {builder.unitName} is not idle. Cannot assign pending task.");
             if (!TaskManager.Instance.pendingTask.Contains(task))
@@ -385,12 +379,6 @@ public class UnitManager : MonoBehaviour
             Debug.LogWarning($"Không có đường đi thích hợp cho {builder.unitName} thực hiện công việc {task.taskType} tại vị trí {task.targetGameObject.transform.position}");
             return false;
         }
-/*
-        if (task.listBuilders.Count > 0 && !task.listBuilders.Contains(builder))
-        {
-            Debug.LogWarning($"Công việc {task.taskType} đã được giao cho builder khác.");
-            return false;
-        }*/
 
         // Có thể thêm các điều kiện khác tùy vào game logic:
         // - Kiểm tra tool requirements

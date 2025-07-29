@@ -49,8 +49,8 @@ public class Builder_ChopState : IUnitState
             return;
         }
 
-        if (canChop)
-            TryChop();
+        TryChop();
+
     }
 
     public void FixedUpdate() { }
@@ -66,29 +66,33 @@ public class Builder_ChopState : IUnitState
         origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
 
         int layer = LayerMask.GetMask($"Layer {pawn.GetCurrentLayerIndex() + 1}");
-        Collider2D hit = Physics2D.OverlapBox(origin, pawn.chopBoxSize, 0f, layer);
 
-        if (hit != null && hit.CompareTag("Tree"))
+        Collider2D[] hits = Physics2D.OverlapBoxAll(origin, pawn.chopBoxSize, 0f, layer);
+
+        currentTree = null;
+        foreach (var hit in hits)
         {
-            currentTree = hit.GetComponent<Tree>();
+            if (hit.CompareTag("Tree") && hit.gameObject == pawn.builderUnit.currentTask.targetGameObject)
+            {
+                currentTree = hit.gameObject.GetComponent<Tree>();
+                break; 
+            }
         }
-        else
-        {
-            currentTree = null;
-        }
+
     }
+
 
     public void StartCooldown()
     {
-        canChop = false;
         pawn.animator.Play("Idle");
         cooldownCoroutine = pawn.StartCoroutine(ChopCooldownCoroutine());
+        if (currentTree == null)
+            Debug.LogError("Current Tree null");
     }
 
     private IEnumerator ChopCooldownCoroutine()
     {
         yield return new WaitForSeconds(chopCooldown);
-        canChop = true;
         pawn.animator.Play("Chop");
     }
 
@@ -120,8 +124,8 @@ public class Builder_ChopState : IUnitState
     {
         if (pawn == null) return;
 
-        Vector2 facingDir = pawn.transform.right.normalized * pawn.transform.localScale.x;
-        Vector2 origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
+        facingDir = pawn.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+        origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
 
         Gizmos.color = Color.green;
         Gizmos.DrawWireCube(origin, pawn.chopBoxSize);
