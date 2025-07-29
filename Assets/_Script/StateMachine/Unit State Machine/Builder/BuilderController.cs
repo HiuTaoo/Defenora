@@ -15,6 +15,7 @@ public class BuilderController : MonoBehaviour
     public AgentPhysics2D agentPhysics2D;
     public CircleCollider2D builderCollider;
     public CharacterMovement characterMovement;
+    public FloorAgent floorAgent;
     public Unit builderUnit;
 
     public Vector2 MovementInput { get; private set; }
@@ -29,6 +30,7 @@ public class BuilderController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         characterMovement = GetComponentInChildren<CharacterMovement>();
+        floorAgent = GetComponentInChildren<FloorAgent>();
         builderUnit = GetComponent<Unit>();
     }
 
@@ -56,8 +58,7 @@ public class BuilderController : MonoBehaviour
 
     public int GetCurrentLayerIndex()
     {
-        var flootAgent = gameObject.GetComponentInChildren<FloorAgent>();
-        return flootAgent != null ? flootAgent.currentFloorIndex : 0;
+        return floorAgent != null ? floorAgent.currentFloorIndex : 0;
     }
 
     #region CHOP STATE
