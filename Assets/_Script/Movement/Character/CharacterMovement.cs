@@ -115,6 +115,9 @@ public class CharacterMovement : MonoBehaviour
 
     public IEnumerator FollowPathCoroutine(PathFinding path)
     {
+        if (path.totalCost == 0)
+            yield return null;
+
         moving = true;
 
         foreach (var segment in path.segments)

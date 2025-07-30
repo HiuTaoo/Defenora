@@ -663,17 +663,14 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             int layerIndex = LayerMask.NameToLayer(layerName);
             treeObj.layer = layerIndex;
 
-            bool isWalkable = treeComponent.treeState == TreeState.Chopped;
-
             if (treeComponent.treeState == TreeState.Chopped)
             {
                 var customRenderSprite = treeObj.transform.Find("Custom Render Sprite");
                 if (customRenderSprite != null)
                     customRenderSprite.gameObject.SetActive(false);
-                treeComponent.treeCollider.enabled = false;
+                //treeComponent.treeCollider.enabled = false;
             }
-            else
-                GraphNode.Instance.SetWalkableNode(treeData.gridPosition, treeComponent.layerIndex, isWalkable);
+            GraphNode.Instance.SetWalkableNode(treeData.gridPosition, treeComponent.layerIndex, false);
         }
 
         var customRender = treeObj.transform.Find("Custom Render Sprite");
@@ -719,8 +716,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             bushComponent.layerIndex = bushData.layerIndex;
             bushComponent.positionInGrid = bushData.gridPosition;
 
-            string layerName = $"Layer {bushData.layerIndex + 1}";
-            int layerIndexMask = LayerMask.NameToLayer(layerName);
+            //string layerName = $"Layer {bushData.layerIndex + 1}";
+            int layerIndexMask = LayerMask.NameToLayer("Decor");
             bushObj.layer = layerIndexMask;
         }
 
@@ -757,8 +754,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             rockComponent.layerIndex = rockData.layerIndex;
             rockComponent.positionInGrid = rockData.gridPosition;
 
-            string layerName = $"Layer {rockData.layerIndex + 1}";
-            int layerIndexMask = LayerMask.NameToLayer(layerName);
+            //string layerName = $"Layer {rockData.layerIndex + 1}";
+            int layerIndexMask = LayerMask.NameToLayer("Decor");
             rockObj.layer = layerIndexMask;
         }
 

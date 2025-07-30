@@ -93,18 +93,18 @@ public class FindingTaskTargetObject : MonoBehaviour
             Tree targetTree = transformUnit.currentTask.targetGameObject.GetComponent<Tree>();
             Building targetBuilding = transformUnit.currentTask.targetGameObject.GetComponent<Building>();
 
-            characterMovement.rb.velocity = Vector2.zero;
-            characterMovement.moving = false;
-
-            if (!(builderController.StateMachine.CurrentState is Builder_ChopState) && targetTree != null)
+            if (!(builderController.StateMachine.CurrentState is Builder_ChopState) && targetTree != null && !characterMovement.moving)
             {
                 builderController.StateMachine.ChangeState(new Builder_ChopState(builderController, targetTree));
             }
 
-            if (!(builderController.StateMachine.CurrentState is Builder_BuildState) && targetBuilding != null)
+            if (!(builderController.StateMachine.CurrentState is Builder_BuildState) && targetBuilding != null && !characterMovement.moving)
             {
                 builderController.StateMachine.ChangeState(new Builder_BuildState(builderController, targetBuilding));
             }
+
+            characterMovement.rb.velocity = Vector2.zero;
+            characterMovement.moving = false;
         }
         else if (!isUnitColliderHit && isCheckColliderHit)
         {

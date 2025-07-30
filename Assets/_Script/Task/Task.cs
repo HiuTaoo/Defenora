@@ -11,8 +11,13 @@ public class Task
     public int maxBuilders = 3;
     public int layerIndex;
     public List<Builder> listBuilders;
-    public bool isInPendingQueue = false;
 
+    public Queue<Task> miniTasks = new Queue<Task>();
+    public Task currentMiniTask;
+    public Task parentTask;
+
+    public bool isInPendingQueue = false;
+    
     public Task(GameObject target, TaskType type, TaskStatus status = TaskStatus.NotStarted, int maxBuilders = 1, int layerIndex = 0)
     {
         targetGameObject = target;
@@ -23,24 +28,43 @@ public class Task
         this.layerIndex = layerIndex;
     }
 
-    public void AssignBuilder(Builder builder)
+    public bool IsRootTask => parentTask == null;
+    public bool IsCompleted => taskStatus == TaskStatus.Completed;
+
+    public void AddMiniTask(Task miniTask)
     {
-        if (builder != null && !listBuilders.Contains(builder))
+        miniTask.parentTask = this;
+        miniTasks.Enqueue(miniTask);
+    }
+
+    public void TryAdvanceMiniTask()
+    {
+        if (miniTasks.Count > 0)
         {
-            listBuilders.Add(builder);
-            Debug.Log($"Builder {builder.name} assigned to task: {taskType} for target: {targetGameObject.name}");
+            currentMiniTask = miniTasks.Dequeue();
         }
+        else
+        {
+            currentMiniTask = null;
+            taskStatus = TaskStatus.Completed;
+        }
+    }
+
+    public bool HasUnfinishedMiniTasks()
+    {
+        return currentMiniTask != null || miniTasks.Count > 0;
     }
 }
 
-    public enum TaskType
+public enum TaskType
 {
     ChopTree,
     BuildStructure,
     MineResource,
     CraftItem,
     RepairStructure,
-    TransportItem
+    TransportItem, 
+    CleanUp
 }
 
 public enum TaskStatus

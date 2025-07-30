@@ -36,6 +36,7 @@ public enum BuildingType
 public enum BuildingState
 {
     Placing,
+    Pending,
     UnderConstruction,
     Completed,
     Destroyed

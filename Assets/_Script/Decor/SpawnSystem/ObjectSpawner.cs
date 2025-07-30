@@ -529,8 +529,8 @@ public class ObjectSpawner : MonoBehaviour
         {
             bushComponent.layerIndex = layerIndex;
 
-            string layerName = $"Layer {layerIndex + 1}";
-            int layerIndexMask = LayerMask.NameToLayer(layerName);
+            //string layerName = $"Layer {layerIndex + 1}";
+            int layerIndexMask = LayerMask.NameToLayer("Decor");
             bushObj.layer = layerIndexMask;
 
             bushComponent.positionInGrid = position;
@@ -718,8 +718,8 @@ public class ObjectSpawner : MonoBehaviour
         {
             rockComponent.layerIndex = layerIndex;
 
-            string layerName = $"Layer {layerIndex + 1}";
-            int layerIndexMask = LayerMask.NameToLayer(layerName);
+            //string layerName = $"Layer {layerIndex + 1}";
+            int layerIndexMask = LayerMask.NameToLayer("Decor");
             rockObj.layer = layerIndexMask;
 
             rockComponent.positionInGrid = position;
