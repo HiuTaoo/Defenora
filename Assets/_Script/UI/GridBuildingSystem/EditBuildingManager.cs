@@ -119,8 +119,9 @@ public class EditBuildingManager : MonoBehaviour
 
     public void RollBackBuildingVisual()
     {
-        foreach(var building in listPlacedBuilding) { 
-            building.transform.GetComponent<SpriteRenderer>().color = Color.white;
+        foreach(var building in listPlacedBuilding) {
+            var spriteRenderer = building.transform.GetComponent<SpriteRenderer>();
+            spriteRenderer.color = Color.white;
         }
     }
 

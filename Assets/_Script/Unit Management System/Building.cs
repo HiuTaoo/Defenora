@@ -59,6 +59,16 @@ public abstract class Building : MonoBehaviour
 
     private void Update()
     {
+        UpdateAnimation();
+
+        if (buildingState == BuildingState.UnderConstruction && currentTask.targetGameObject == null)
+        {
+            CreateContructionTask();
+        }
+    }
+
+    private void UpdateAnimation()
+    {
         switch (buildingState)
         {
             case BuildingState.UnderConstruction:
@@ -73,12 +83,23 @@ public abstract class Building : MonoBehaviour
                 animator.Play("Destroyed");
                 customRenderer?.SetActive(false);
                 break;
+            case BuildingState.Pending:
+                animator.Play("Complete");
+
+                break;
         }
-        if (buildingState == BuildingState.UnderConstruction && currentTask.targetGameObject == null)
+
+        if (buildingState == BuildingState.Pending)
         {
-            currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
-            TaskManager.Instance.AddNewTask(currentTask);
-            Debug.Log($"Tạo task xây dựng cho {buildingName} với LayerIndex: {LayerIndex}");
+            Color c = spriteRenderer.color;
+            c.a = 0.5f;
+            spriteRenderer.color = c;
+        }
+        else
+        {
+            Color c = spriteRenderer.color;
+            c.a = 1f;
+            spriteRenderer.color = c;
         }
     }
 
@@ -96,6 +117,13 @@ public abstract class Building : MonoBehaviour
 
         positionSpots = spots.ToArray();
 
+    }
+
+    private void CreateContructionTask()
+    {
+        currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
+        TaskManager.Instance.AddNewTask(currentTask);
+        Debug.Log($"Tạo task xây dựng cho {buildingName} với LayerIndex: {LayerIndex}");
     }
 
     #region Unit Management

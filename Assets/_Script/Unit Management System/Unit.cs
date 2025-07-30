@@ -1,9 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public abstract class Unit : MonoBehaviour
 {
@@ -233,6 +230,14 @@ public abstract class Unit : MonoBehaviour
                 PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex,
                     neighborPos, layer);
 
+                if (neighborPos == currentGridPos)
+                {
+                    bestPath = new PathFinding();
+                    bestPath.totalCost = 0;
+                    shortestDistance = 0;
+                    break;
+                }
+
                 if (path.segments.Count == 0)
                     continue;
 
@@ -322,6 +327,14 @@ public abstract class Unit : MonoBehaviour
             Vector3Int neighborPos = Vector3Int.FloorToInt(task.targetGameObject.transform.position) + offset;
             neighborPos.z = 0;
 
+            if (neighborPos == currentGridPos)
+            {
+                bestPath = new PathFinding();
+                bestPath.totalCost = 0;
+                shortestDistance = 0;
+                break;
+            }
+
             graph.nodes.TryGetValue(neighborPos, out Node node);
 
             if (node == null)
@@ -344,59 +357,109 @@ public abstract class Unit : MonoBehaviour
             }
         }
 
-        if (bestPath != null && shortestDistance > 0)
+        if (bestPath != null )
             return bestPath;
 
         return null;
     }
 
-
     public void ExecuteTask()
     {
-        if (currentTask != null && currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
-        {
-            StartCoroutine(ExecuteTask(currentTask));
-        }
+        if (currentTask == null || currentTask.taskStatus == TaskStatus.Completed)
+            return;
+
+        StartCoroutine(ExecuteTaskRecursive(currentTask));
     }
 
-    public IEnumerator ExecuteTask(Task task)
+    private IEnumerator ExecuteTaskRecursive(Task task)
     {
+        task.TryAdvanceMiniTask();
+
+        Task activeTask = task.currentMiniTask ?? task;
+
         yield return new WaitForSeconds(0.1f);
 
-        var canExecuteTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
-        if (!canExecuteTask)
+        var canExecute = MoveToTaskPosition(Vector3Int.FloorToInt(activeTask.targetGameObject.transform.position), activeTask.layerIndex);
+        if (!canExecute)
         {
-            UnitManager.Instance.CleanupTaskFromInProgress(task, this);
-
-            bool taskAlreadyInPending = false;
-            lock (TaskManager.Instance.pendingTask)
+            if (!activeTask.isInPendingQueue && activeTask == task)
             {
-                var tempList = TaskManager.Instance.pendingTask.ToArray();
-                taskAlreadyInPending = System.Array.Exists(tempList, t => t == task);
+                TaskManager.Instance.pendingTask.Enqueue(activeTask);
+                activeTask.isInPendingQueue = true;
             }
-
-            if (!taskAlreadyInPending)
-            {
-                TaskManager.Instance.pendingTask.Enqueue(task);
-                Debug.Log($"Task {task.taskType} cannot be executed by {unitName}. Added to pending tasks.");
-            }
-            else
-            {
-                Debug.Log($"Task {task.taskType} is already in pending queue. Skipping enqueue.");
-            }
-
             currentTask = null;
             currentState = UnitState.Idle;
-
             yield break;
         }
-        else
+
+        activeTask.taskStatus = TaskStatus.InProgress;
+        currentState = UnitState.Working;
+        targetDestination = activeTask.targetGameObject.transform;
+
+        yield return new WaitForSeconds(1f); 
+
+        activeTask.taskStatus = TaskStatus.Completed;
+        Debug.Log($"[Unit] Completed task step: {activeTask.taskType}");
+
+        if (task.HasUnfinishedMiniTasks())
         {
-            task.taskStatus = TaskStatus.InProgress;
-            currentState = UnitState.Working;
-            targetDestination = task.targetGameObject.transform;
+            StartCoroutine(ExecuteTaskRecursive(task));
+            yield break;
         }
+
+        task.taskStatus = TaskStatus.Completed;
+        currentTask = null;
+        currentState = UnitState.Idle;
+        OnUnitIdle?.Invoke(this);
     }
+
+
+    /* public void ExecuteTask()
+     {
+         if (currentTask != null && currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
+         {
+             StartCoroutine(ExecuteTask(currentTask));
+         }
+     }
+
+     public IEnumerator ExecuteTask(Task task)
+     {
+         yield return new WaitForSeconds(0.1f);
+
+         var canExecuteTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
+         if (!canExecuteTask)
+         {
+             UnitManager.Instance.CleanupTaskFromInProgress(task, this);
+
+             bool taskAlreadyInPending = false;
+             lock (TaskManager.Instance.pendingTask)
+             {
+                 var tempList = TaskManager.Instance.pendingTask.ToArray();
+                 taskAlreadyInPending = System.Array.Exists(tempList, t => t == task);
+             }
+
+             if (!taskAlreadyInPending)
+             {
+                 TaskManager.Instance.pendingTask.Enqueue(task);
+                 Debug.Log($"Task {task.taskType} cannot be executed by {unitName}. Added to pending tasks.");
+             }
+             else
+             {
+                 Debug.Log($"Task {task.taskType} is already in pending queue. Skipping enqueue.");
+             }
+
+             currentTask = null;
+             currentState = UnitState.Idle;
+
+             yield break;
+         }
+         else
+         {
+             task.taskStatus = TaskStatus.InProgress;
+             currentState = UnitState.Working;
+             targetDestination = task.targetGameObject.transform;
+         }
+     }*/
     #endregion
 
     public virtual void StopMovement()

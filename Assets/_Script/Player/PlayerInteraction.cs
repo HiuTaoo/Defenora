@@ -57,12 +57,13 @@ public class PlayerInteraction : MonoBehaviour
         #region Raycast Building
         if(GameLoop.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
             direction = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+
         if (direction != Vector2.zero)
         {
             Vector2 origin = transform.position;
             float rayDistance = interactionCollider.radius * 0.65f;
 
-            RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, rayDistance, LayerMask.GetMask("Building"));
+            RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, rayDistance, LayerMask.GetMask("Default"));
 
             foreach (RaycastHit2D hit in hits)
             {
@@ -100,7 +101,8 @@ public class PlayerInteraction : MonoBehaviour
                             currentObject = interactCollider.gameObject;
                             var tree = currentObject.GetComponent<Tree>();
                             LookUpLayerIndex();
-                            if (layerIndex == playerLayerIndex && tree.currentTask.targetGameObject == null)
+                            if (layerIndex == playerLayerIndex && tree.currentTask.targetGameObject == null 
+                                && tree.treeState != TreeState.Chopped)
                             {
                                 interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
                                 interactButtonState = InteractButtonState.Cut;

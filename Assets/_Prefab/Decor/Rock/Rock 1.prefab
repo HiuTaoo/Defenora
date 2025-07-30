@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7635539786601857596}
   - component: {fileID: 3966451826074970603}
   - component: {fileID: 3933808175357124757}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Rock 1
   m_TagString: Rock
   m_Icon: {fileID: 0}
@@ -112,7 +112,7 @@ CapsuleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5158490374402420867}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -137,8 +137,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.014539786, y: -0.04604261}
-  m_Size: {x: 0.32013214, y: 0.28620803}
+  m_Offset: {x: -0.017374555, y: -0.06305041}
+  m_Size: {x: 0.29745525, y: 0.25219327}
   m_Direction: 1
 --- !u!114 &3966451826074970603
 MonoBehaviour:
