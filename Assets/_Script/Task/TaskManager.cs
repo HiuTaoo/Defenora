@@ -34,7 +34,7 @@ public class TaskManager : MonoBehaviour
 
     private void Update()
     {
-        if(unitManager == null)
+        if (unitManager == null)
             GetUnitManager();
         listTaskInPendingQueue = new List<Task>(pendingTask);
         listTaskInNewTaskQueue = new List<Task>(newTaskQueue);
@@ -52,16 +52,16 @@ public class TaskManager : MonoBehaviour
     public void CompletedTask(Task task)
     {
         if (task == null) return;
-        if(task.taskStatus == TaskStatus.Completed)
+        if (task.taskStatus == TaskStatus.Completed)
         {
             inProgressTask.Remove(task);
         }
-            
+
     }
 
     private void GetUnitManager()
     {
-        if(UnitManager.Instance != null)
+        if (UnitManager.Instance != null)
             unitManager = UnitManager.Instance;
     }
 

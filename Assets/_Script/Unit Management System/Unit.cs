@@ -55,118 +55,16 @@ public abstract class Unit : MonoBehaviour
     }
 
     #region Execute Task Logic
-    /*public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
-    {
-        var graph = GraphNode.Instance.layerGraphs[layer];
-        List<Vector3Int> neighborOffsets = new List<Vector3Int>
-        {
-            new Vector3Int(-1, 0, 0),
-            new Vector3Int(1, 0, 0)
-        };
-
-        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
-        currentGridPos.z = 0;
-
-        Vector3Int bestNode = position;
-        float shortestDistance = float.MaxValue;
-        PathFinding bestPath = null;
-
-        foreach (var offset in neighborOffsets)
-        {
-            Vector3Int neighborPos = position + offset;
-            neighborPos.z = 0;
-            graph.nodes.TryGetValue(neighborPos, out Node node);
-
-            if(node == null)
-                continue;
-
-            if (node.isWalkable)
-            {
-                PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex, neighborPos, layer);
-
-                if(path.segments.Count == 0)
-                {
-                    continue;
-                }
-
-                if (path.segments.Count != 0 && path.totalCost < shortestDistance)
-                {
-                    bestNode = neighborPos;
-                    shortestDistance = path.totalCost;
-                    bestPath = path;
-                }
-            }
-        }
-
-        if (bestPath == null)
-        {
-            Debug.LogWarning($"Không tìm được đường đi hợp lệ đến bất kỳ node lân cận nào quanh {position}");
-            return false;
-        }
-
-        characterMovement.currentPath = bestPath;
-
-        StopAllCoroutines();
-        characterMovement.moveCoroutine = StartCoroutine(characterMovement.FollowPathCoroutine(bestPath));
-        return true;
-    }*/
-
-    /*public PathFinding CanMoveToTaskTarget(Task task)
-    {
-        var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
-        var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
-
-        List<Vector3Int> neighborOffsets = null;
-
-        if (objectFootprint.occupiedCells.Count == 1)
-
-            neighborOffsets = new List<Vector3Int>
-        {
-            new Vector3Int(-1, 0, 0),
-            new Vector3Int(1, 0, 0)
-        };
-
-        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
-        currentGridPos.z = 0;
-
-        Vector3Int bestNode = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
-        float shortestDistance = float.MaxValue;
-        PathFinding bestPath = null;
-
-        foreach (var offset in neighborOffsets)
-        {
-            Vector3Int neighborPos = Vector3Int.FloorToInt(task.targetGameObject.transform.position) + offset;
-            neighborPos.z = 0;
-            graph.nodes.TryGetValue(neighborPos, out Node node);
-
-            if (node == null)
-                continue;
-
-            if (node.isWalkable)
-            {
-                PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex,
-                    neighborPos, task.layerIndex);
-
-                if (path.segments.Count == 0)
-                    continue;
-
-                if (path != null && path.totalCost < shortestDistance)
-                {
-                    bestNode = neighborPos;
-                    shortestDistance = path.totalCost;
-                    bestPath = path;
-                }
-            }
-        }
-        if (bestPath != null && shortestDistance > 0)
-            return bestPath;
-
-        return null;
-    }*/
     public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
     {
         var graph = GraphNode.Instance.layerGraphs[layer];
         var objectFootprint = currentTask.targetGameObject.GetComponent<ObjectFootprint>();
+        var targetPosition = currentTask.targetGameObject.transform.position;
+
+        if(currentTask.currentMiniTask != null)
+        {
+            targetPosition = currentTask.currentMiniTask.targetGameObject.transform.position;
+        }
 
         List<Vector3Int> neighborOffsets = null;
 
@@ -211,13 +109,13 @@ public abstract class Unit : MonoBehaviour
         Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
         currentGridPos.z = 0;
 
-        Vector3Int bestNode = Vector3Int.FloorToInt(currentTask.targetGameObject.transform.position);
+        Vector3Int bestNode = Vector3Int.FloorToInt(targetPosition);
         float shortestDistance = float.MaxValue;
         PathFinding bestPath = null;
 
         foreach (var offset in neighborOffsets)
         {
-            Vector3Int neighborPos = Vector3Int.FloorToInt(currentTask.targetGameObject.transform.position) + offset;
+            Vector3Int neighborPos = Vector3Int.FloorToInt(targetPosition) + offset;
             neighborPos.z = 0;
 
             graph.nodes.TryGetValue(neighborPos, out Node node);
@@ -266,6 +164,12 @@ public abstract class Unit : MonoBehaviour
     {
         var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
         var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
+        var targetPosition = task.targetGameObject.transform.position;
+
+        if (currentTask.currentMiniTask != null)
+        {
+            targetPosition = task.currentMiniTask.targetGameObject.transform.position;
+        }
 
         List<Vector3Int> neighborOffsets = null;
 
@@ -318,13 +222,13 @@ public abstract class Unit : MonoBehaviour
         Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
         currentGridPos.z = 0;
 
-        Vector3Int bestNode = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
+        Vector3Int bestNode = Vector3Int.FloorToInt(targetPosition);
         float shortestDistance = float.MaxValue;
         PathFinding bestPath = null;
 
         foreach (var offset in neighborOffsets)
         {
-            Vector3Int neighborPos = Vector3Int.FloorToInt(task.targetGameObject.transform.position) + offset;
+            Vector3Int neighborPos = Vector3Int.FloorToInt(targetPosition) + offset;
             neighborPos.z = 0;
 
             if (neighborPos == currentGridPos)
@@ -373,93 +277,81 @@ public abstract class Unit : MonoBehaviour
 
     private IEnumerator ExecuteTaskRecursive(Task task)
     {
-        task.TryAdvanceMiniTask();
-
-        Task activeTask = task.currentMiniTask ?? task;
-
-        yield return new WaitForSeconds(0.1f);
-
-        var canExecute = MoveToTaskPosition(Vector3Int.FloorToInt(activeTask.targetGameObject.transform.position), activeTask.layerIndex);
-        if (!canExecute)
+        if (task.HasUnfinishedMiniTasks())
         {
-            if (!activeTask.isInPendingQueue && activeTask == task)
+            if (task.currentMiniTask == null)
             {
-                TaskManager.Instance.pendingTask.Enqueue(activeTask);
-                activeTask.isInPendingQueue = true;
+                task.TryAdvanceMiniTask();
+            }
+
+            Task activeTask = task.currentMiniTask;
+
+            if (activeTask != null)
+            {
+                Debug.Log($"[Unit] Executing mini task: {activeTask.taskType} at {activeTask.targetGameObject.transform.position}");
+
+                var canExecute = MoveToTaskPosition(Vector3Int.FloorToInt(activeTask.targetGameObject.transform.position), activeTask.layerIndex);
+                if (!canExecute)
+                {
+                    if (!activeTask.isInPendingQueue && activeTask == task)
+                    {
+                        TaskManager.Instance.pendingTask.Enqueue(activeTask);
+                        activeTask.isInPendingQueue = true;
+                    }
+                    currentTask = null;
+                    currentState = UnitState.Idle;
+                    yield break;
+                }
+
+                activeTask.taskStatus = TaskStatus.InProgress;
+                currentState = UnitState.Working;
+                targetDestination = activeTask.targetGameObject.transform;
+
+                yield return new WaitForSeconds(1f);
+
+                activeTask.taskStatus = TaskStatus.Completed;
+                Debug.Log($"[Unit] Completed mini task: {activeTask.taskType}");
+
+                task.TryAdvanceMiniTask();
+
+                if (task.HasUnfinishedMiniTasks())
+                {
+                    StartCoroutine(ExecuteTaskRecursive(task));
+                    yield break;
+                }
+            }
+        }
+
+        Debug.Log($"[Unit] All mini tasks completed. Executing main task: {task.taskType} at {task.targetGameObject.transform.position}");
+
+        var canExecuteMainTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
+        if (!canExecuteMainTask)
+        {
+            if (!task.isInPendingQueue)
+            {
+                TaskManager.Instance.pendingTask.Enqueue(task);
+                task.isInPendingQueue = true;
             }
             currentTask = null;
             currentState = UnitState.Idle;
             yield break;
         }
 
-        activeTask.taskStatus = TaskStatus.InProgress;
+        task.taskStatus = TaskStatus.InProgress;
         currentState = UnitState.Working;
-        targetDestination = activeTask.targetGameObject.transform;
+        targetDestination = task.targetGameObject.transform;
 
-        yield return new WaitForSeconds(1f); 
-
-        activeTask.taskStatus = TaskStatus.Completed;
-        Debug.Log($"[Unit] Completed task step: {activeTask.taskType}");
-
-        if (task.HasUnfinishedMiniTasks())
-        {
-            StartCoroutine(ExecuteTaskRecursive(task));
-            yield break;
-        }
+        yield return new WaitForSeconds(1f);
 
         task.taskStatus = TaskStatus.Completed;
+        Debug.Log($"[Unit] Completed main task: {task.taskType}");
+
         currentTask = null;
         currentState = UnitState.Idle;
         OnUnitIdle?.Invoke(this);
+
+        TaskManager.Instance.CompletedTask(task);
     }
-
-
-    /* public void ExecuteTask()
-     {
-         if (currentTask != null && currentTask.targetGameObject != null && currentTask.taskStatus == TaskStatus.NotStarted)
-         {
-             StartCoroutine(ExecuteTask(currentTask));
-         }
-     }
-
-     public IEnumerator ExecuteTask(Task task)
-     {
-         yield return new WaitForSeconds(0.1f);
-
-         var canExecuteTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
-         if (!canExecuteTask)
-         {
-             UnitManager.Instance.CleanupTaskFromInProgress(task, this);
-
-             bool taskAlreadyInPending = false;
-             lock (TaskManager.Instance.pendingTask)
-             {
-                 var tempList = TaskManager.Instance.pendingTask.ToArray();
-                 taskAlreadyInPending = System.Array.Exists(tempList, t => t == task);
-             }
-
-             if (!taskAlreadyInPending)
-             {
-                 TaskManager.Instance.pendingTask.Enqueue(task);
-                 Debug.Log($"Task {task.taskType} cannot be executed by {unitName}. Added to pending tasks.");
-             }
-             else
-             {
-                 Debug.Log($"Task {task.taskType} is already in pending queue. Skipping enqueue.");
-             }
-
-             currentTask = null;
-             currentState = UnitState.Idle;
-
-             yield break;
-         }
-         else
-         {
-             task.taskStatus = TaskStatus.InProgress;
-             currentState = UnitState.Working;
-             targetDestination = task.targetGameObject.transform;
-         }
-     }*/
     #endregion
 
     public virtual void StopMovement()
