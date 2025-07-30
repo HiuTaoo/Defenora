@@ -34,6 +34,7 @@ public abstract class Building : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private ObjectFootprint buildingFootprint;
     private Animator animator;
+    private CapsuleCollider2D buildingCollider;
 
     private GameObject customRenderer;
     
@@ -51,6 +52,7 @@ public abstract class Building : MonoBehaviour
         buildingFootprint = GetComponent<ObjectFootprint>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+        buildingCollider = GetComponent<CapsuleCollider2D>();
 
         customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
 
@@ -78,14 +80,17 @@ public abstract class Building : MonoBehaviour
             case BuildingState.Completed:
                 animator.Play("Complete");
                 customRenderer?.SetActive(true);
+
+                foreach (Transform child in transform)
+                    child.gameObject.SetActive(true);
+
                 break;
             case BuildingState.Destroyed:
                 animator.Play("Destroyed");
                 customRenderer?.SetActive(false);
                 break;
             case BuildingState.Pending:
-                animator.Play("Complete");
-
+                animator.Play("UnderConstruction");
                 break;
         }
 
@@ -94,6 +99,12 @@ public abstract class Building : MonoBehaviour
             Color c = spriteRenderer.color;
             c.a = 0.5f;
             spriteRenderer.color = c;
+            buildingCollider.enabled = false;
+
+            foreach(Transform child in transform)
+            {
+                child.gameObject.SetActive(false);
+            }
         }
         else
         {
@@ -122,8 +133,28 @@ public abstract class Building : MonoBehaviour
     private void CreateContructionTask()
     {
         currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
+        CleanGroundBeforeContrucstion();
+    }
+
+    private void CleanGroundBeforeContrucstion()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, range / 2);
+        var count = 0;
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider.CompareTag("Bush") || collider.CompareTag("Rock"))
+            {
+                var cleanTask = new Task(collider.gameObject, TaskType.CleanUp, TaskStatus.NotStarted, 1, LayerIndex);
+                currentTask.AddMiniTask(cleanTask);
+                count++;
+            }
+        }
+        if (count > 0)
+        {
+            Debug.Log($"Đã thêm {count} nhiệm vụ dọn dẹp trước khi xây dựng {buildingName}.");
+            buildingState = BuildingState.Pending;
+        }
         TaskManager.Instance.AddNewTask(currentTask);
-        Debug.Log($"Tạo task xây dựng cho {buildingName} với LayerIndex: {LayerIndex}");
     }
 
     #region Unit Management

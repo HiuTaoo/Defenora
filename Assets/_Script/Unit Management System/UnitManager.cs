@@ -314,13 +314,20 @@ public class UnitManager : MonoBehaviour
             return;
         }
 
-        Builder assignedBuilder = nearestBuilders.Dequeue();
-        assignedBuilder.currentTask = task;
-        task.listBuilders.Add(assignedBuilder);
-        assignedBuilder.ExecuteTask();
+        while (task.listBuilders.Count < task.maxBuilders && nearestBuilders.Count > 0)
+        {
+            Builder assignedBuilder = nearestBuilders.Dequeue();
+            assignedBuilder.currentTask = task;
+            task.listBuilders.Add(assignedBuilder);
+            assignedBuilder.ExecuteTask();
 
-        taskManager.inProgressTask.Add(task);
-        Debug.Log($"Giao task {task.taskType} cho công nhân {assignedBuilder.unitName}");
+            Debug.Log($"Giao task {task.taskType} cho công nhân {assignedBuilder.unitName}");
+        }
+
+        if (!taskManager.inProgressTask.Contains(task))
+        {
+            taskManager.inProgressTask.Add(task);
+        }
     }
 
     public void AssignPendingTaskToBuilder(Task task, Builder builder)
@@ -348,6 +355,8 @@ public class UnitManager : MonoBehaviour
         builder.ExecuteTask();
 
         Debug.Log($"Assigned pending task {task.taskType} to builder {builder.unitName}");
+
+
     }
     private IEnumerator DelayAssignPendingTask(Task pendingTask, Builder builder)
     {
@@ -510,7 +519,7 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    
+
     #endregion
 
     #region Utility Methods

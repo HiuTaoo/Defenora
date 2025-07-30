@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,10 +13,12 @@ public class Task
     public List<Builder> listBuilders;
 
     public Queue<Task> miniTasks = new Queue<Task>();
+    public List<Task> listMiniTask = new List<Task>();
+
     public Task currentMiniTask;
     public Task parentTask;
 
-    public bool isInPendingQueue = false;
+    [HideInInspector] public bool isInPendingQueue = false;
     
     public Task(GameObject target, TaskType type, TaskStatus status = TaskStatus.NotStarted, int maxBuilders = 1, int layerIndex = 0)
     {
@@ -35,6 +37,7 @@ public class Task
     {
         miniTask.parentTask = this;
         miniTasks.Enqueue(miniTask);
+        listMiniTask.Add(miniTask);
     }
 
     public void TryAdvanceMiniTask()
@@ -42,6 +45,7 @@ public class Task
         if (miniTasks.Count > 0)
         {
             currentMiniTask = miniTasks.Dequeue();
+            listMiniTask.Remove(currentMiniTask);
         }
         else
         {
