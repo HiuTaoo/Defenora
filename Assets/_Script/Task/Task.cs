@@ -15,8 +15,8 @@ public class Task
     public Queue<Task> miniTasks = new Queue<Task>();
     public List<Task> listMiniTask = new List<Task>();
 
-    public Task currentMiniTask;
-    public Task parentTask;
+    public Task currentMiniTask = null;
+    public Task parentTask = null;
 
     [HideInInspector] public bool isInPendingQueue = false;
     

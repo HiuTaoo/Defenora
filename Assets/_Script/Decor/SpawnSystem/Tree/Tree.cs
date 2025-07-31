@@ -1,9 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public class Tree : MonoBehaviour
+public class Tree : MonoBehaviour, IChoppable
 {
     [Header("Tree Info")]
     public TreeState treeState = TreeState.Idle;
@@ -20,7 +20,7 @@ public class Tree : MonoBehaviour
     private bool isBeingChopped = false;
     private bool hasBeenChopped = false;
 
-    public System.Action<Tree> OnTreeChopped;
+    public Action<IChoppable> OnChoppedObject { get; set; } 
 
     private void Awake()
     {
@@ -29,16 +29,13 @@ public class Tree : MonoBehaviour
         treeCollider = GetComponent<CapsuleCollider2D>();
 
         animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
-
         RegisterState();
     }
 
     private void RegisterState()
     {
         treeState = TreeState.Idle;
-        animator.Play("idle"); 
-
-        
+        animator.Play("idle");
     }
 
     private void Update()
@@ -50,12 +47,12 @@ public class Tree : MonoBehaviour
 
             if (treeState == TreeState.Idle && currentChopHit == maxChopHit && !hasBeenChopped)
             {
-                OnChoppedTree();
+                OnChopped();
             }
         }
     }
 
-    public void HandleChopTree()
+    public void HandleChopped()
     {
         if (currentChopHit >= maxChopHit) return;
 
@@ -78,25 +75,26 @@ public class Tree : MonoBehaviour
         isBeingChopped = false;
     }
 
-    private void OnChoppedTree()
+    public void OnChopped()
     {
         hasBeenChopped = true;
         treeState = TreeState.Chopped;
         animator.Play("Chopped");
 
-        //GraphNode.Instance.SetWalkableNode(positionInGrid, layerIndex, true);
+        // GraphNode.Instance.SetWalkableNode(positionInGrid, layerIndex, true);
 
         var render = transform.Find("Custom Render Sprite");
         render.gameObject.SetActive(false);
 
-        //treeCollider.enabled = false;
+        // treeCollider.enabled = false;
 
-        OnTreeChopped?.Invoke(this);
+        OnChoppedObject?.Invoke(this);
     }
 
 }
 
-public enum TreeState{
+public enum TreeState
+{
     Idle,
     Chopped
 }
