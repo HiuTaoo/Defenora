@@ -119,6 +119,7 @@ public class FindingTaskTargetObject : MonoBehaviour
             {
                 builderController.StateMachine.ChangeState(new Builder_BuildState(builderController, targetBuilding));
             }
+
             if (!(builderController.StateMachine.CurrentState is Builder_ChopState) && targetDecorObject != null && !characterMovement.moving)
             {
                 builderController.StateMachine.ChangeState(new Builder_ChopState(builderController, targetDecorObject.gameObject));

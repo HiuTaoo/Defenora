@@ -329,6 +329,11 @@ public class UnitManager : MonoBehaviour
             taskManager.inProgressTask.Add(task);
         }
     }
+    private IEnumerator DelayAssignPendingTask(Task pendingTask, Builder builder)
+    {
+        yield return new WaitForSeconds(0.25f);
+        AssignPendingTaskToBuilder(pendingTask, builder);
+    }
 
     public void AssignPendingTaskToBuilder(Task task, Builder builder)
     {
@@ -355,13 +360,6 @@ public class UnitManager : MonoBehaviour
         builder.ExecuteTask();
 
         Debug.Log($"Assigned pending task {task.taskType} to builder {builder.unitName}");
-
-
-    }
-    private IEnumerator DelayAssignPendingTask(Task pendingTask, Builder builder)
-    {
-        yield return new WaitForSeconds(0.25f);
-        AssignPendingTaskToBuilder(pendingTask, builder);
     }
 
     /// <summary>

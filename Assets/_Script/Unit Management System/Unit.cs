@@ -280,43 +280,41 @@ public abstract class Unit : MonoBehaviour
     {
         if (task.HasUnfinishedMiniTasks())
         {
-            if (task.currentMiniTask == null)
+            Task assignedMiniTask = task.TryGetNextMiniTask();
+
+            if (assignedMiniTask != null)
             {
-                task.TryAdvanceMiniTask();
-            }
-
-            Task activeTask = task.currentMiniTask;
-
-            if (activeTask != null)
-            {
-                Debug.Log($"[Unit] Executing mini task: {activeTask.taskType} at {activeTask.targetGameObject.transform.position}");
-
-                var canExecute = MoveToTaskPosition(activeTask);
+                var canExecute = MoveToTaskPosition(assignedMiniTask);
                 if (!canExecute)
                 {
-                    if (!activeTask.isInPendingQueue && activeTask == task)
+                    lock (task.miniTasks)
                     {
-                        TaskManager.Instance.pendingTask.Enqueue(activeTask);
-                        activeTask.isInPendingQueue = true;
+                        task.miniTasks.Enqueue(assignedMiniTask);
+                        task.listMiniTask.Add(assignedMiniTask);
+                    }
+
+                    if (!assignedMiniTask.isInPendingQueue)
+                    {
+                        TaskManager.Instance.pendingTask.Enqueue(task);
+                        assignedMiniTask.isInPendingQueue = true;
                     }
                     currentTask = null;
                     currentState = UnitState.Idle;
                     yield break;
                 }
-                task.taskStatus = TaskStatus.InProgress;
-                activeTask.taskStatus = TaskStatus.InProgress;
-                currentState = UnitState.Working;
-                targetDestination = activeTask.targetGameObject.transform;
-                currentMiniTask = activeTask;
-                task.currentMiniTask = null;
 
+                task.taskStatus = TaskStatus.InProgress;
+                assignedMiniTask.taskStatus = TaskStatus.InProgress;
+                currentState = UnitState.Working;
+                targetDestination = assignedMiniTask.targetGameObject.transform;
+                currentMiniTask = assignedMiniTask; 
+
+                yield break;
             }
         }
 
-        if (task.miniTasks.Count == 0 && task.currentMiniTask == null)
+        if (task.HasNoMiniTasks() || (task.AreAllMiniTasksCompleted() && currentMiniTask == null))
         {
-            Debug.Log($"[Unit] All mini tasks completed. Executing main task: {task.taskType} at {task.targetGameObject.transform.position}");
-
             var canExecuteMainTask = MoveToTaskPosition(currentTask);
             if (!canExecuteMainTask)
             {
@@ -333,7 +331,6 @@ public abstract class Unit : MonoBehaviour
             task.taskStatus = TaskStatus.InProgress;
             currentState = UnitState.Working;
             targetDestination = task.targetGameObject.transform;
-
         }
     }
 
