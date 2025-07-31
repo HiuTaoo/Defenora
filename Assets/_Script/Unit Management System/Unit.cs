@@ -30,6 +30,7 @@ public abstract class Unit : MonoBehaviour
     public CharacterMovement characterMovement;
     public Building assignedBuilding;
     public FloorAgent floorAgent;
+    public Coroutine executeCoroutine;
 
     public System.Action<Unit> OnUnitDestroyed;
     public System.Action<Unit> OnDestinationReached;
@@ -56,6 +57,7 @@ public abstract class Unit : MonoBehaviour
     }
 
     #region Execute Task Logic
+        #region Move and Check
     public virtual bool MoveToTaskPosition(Task task)
     {
         var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
@@ -264,16 +266,17 @@ public abstract class Unit : MonoBehaviour
 
         return null;
     }
-
+    #endregion
+        #region Execute Task
     public void ExecuteTask()
     {
         if (currentTask == null || currentTask.taskStatus == TaskStatus.Completed)
             return;
 
-        StartCoroutine(ExecuteTaskRecursive(currentTask));
+        executeCoroutine = StartCoroutine(ExecuteTask(currentTask));
     }
 
-    private IEnumerator ExecuteTaskRecursive(Task task)
+    private IEnumerator ExecuteTask(Task task)
     {
         if (task.HasUnfinishedMiniTasks())
         {
@@ -307,16 +310,6 @@ public abstract class Unit : MonoBehaviour
                 currentMiniTask = activeTask;
                 task.currentMiniTask = null;
 
-                yield return new WaitForSeconds(1f);
-
-
-                task.TryAdvanceMiniTask();
-
-                if (task.HasUnfinishedMiniTasks())
-                {
-                    StartCoroutine(ExecuteTaskRecursive(task));
-                    yield break;
-                }
             }
         }
 
@@ -341,13 +334,15 @@ public abstract class Unit : MonoBehaviour
             currentState = UnitState.Working;
             targetDestination = task.targetGameObject.transform;
 
-            yield return new WaitForSeconds(1f); 
-
-
-            TaskManager.Instance.CompletedTask(task);
         }
     }
 
+    public IEnumerator DelayContinueExecuteTask()
+    {
+        yield return new WaitForSeconds(Random.Range(0.1f, 0.5f));
+        ExecuteTask();
+    }
+    #endregion
     #endregion
 
     public virtual void StopMovement()

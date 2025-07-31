@@ -68,26 +68,34 @@ public class Builder_ChopState : IUnitState
         facingDir = pawn.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
         origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
 
-        int layer = LayerMask.GetMask($"Layer {pawn.GetCurrentLayerIndex() + 1}");
+        Collider2D[] hits = Physics2D.OverlapBoxAll(origin, pawn.chopBoxSize, 0f);
 
-        Collider2D[] hits = Physics2D.OverlapBoxAll(origin, pawn.chopBoxSize, 0f, layer);
+        var targetTask = pawn.builderUnit.currentMiniTask.targetGameObject != null ? pawn.builderUnit.currentMiniTask : pawn.builderUnit.currentTask;
 
         currentTarget = null;
         foreach (var hit in hits)
         {
-            if (hit.CompareTag("Tree") && hit.gameObject == pawn.builderUnit.currentTask.targetGameObject)
+            if (hit?.gameObject == null)
+                continue;
+
+            if (hit.CompareTag("Tree") && hit.gameObject == targetTask.targetGameObject)
             {
                 currentTarget = hit.gameObject.GetComponent<Tree>();
                 break;
             }
-            /*else if (hit.CompareTag("Bush") && hit.gameObject == pawn.builderUnit.currentTask.targetGameObject)
+            else if (hit.CompareTag("Bush") && hit.gameObject == targetTask.targetGameObject)
             {
                 currentTarget = hit.gameObject.GetComponent<Bush>();
                 break;
-            }*/
-            // Thêm điều kiện cho các đối tượng khác như Rock, Building, v.v.
+            }
+            else if (hit.CompareTag("Rock") && hit.gameObject == targetTask.targetGameObject)
+            {
+                currentTarget = hit.gameObject.GetComponent<Rock>();
+                break;
+            }
         }
     }
+
 
     public void StartCooldown()
     {
@@ -107,18 +115,30 @@ public class Builder_ChopState : IUnitState
 
         SetCompleted();
 
-        Task completedTask = pawn.builderUnit.currentTask;
-
-        if (completedTask != null)
+        if (pawn.builderUnit.currentMiniTask.targetGameObject != null)
         {
-            completedTask.taskStatus = TaskStatus.Completed;
-            TaskManager.Instance.CompletedTask(completedTask);
+            pawn.builderUnit.currentMiniTask.taskStatus = TaskStatus.Completed;
+            pawn.builderUnit.currentMiniTask = null;
+
+            if(pawn.builderUnit.executeCoroutine == null && pawn.builderUnit.currentTask != null)
+            {
+                pawn.builderUnit.StartCoroutine(pawn.builderUnit.DelayContinueExecuteTask());
+            }
+        }
+        else
+        {
+            Task completedTask = pawn.builderUnit.currentTask;
+
+            if (completedTask != null)
+            {
+                completedTask.taskStatus = TaskStatus.Completed;
+                TaskManager.Instance.CompletedTask(completedTask);
+                pawn.builderUnit.currentTask = null;
+            }
+            pawn.builderUnit.currentState = UnitState.Idle;
+            pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
         }
 
-        pawn.builderUnit.currentState = UnitState.Idle;
-        pawn.builderUnit.currentTask = null;
-
-        pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
         currentTarget = null;
     }
 

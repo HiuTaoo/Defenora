@@ -97,6 +97,7 @@ GameObject:
   - component: {fileID: 5865098679597247942}
   - component: {fileID: 68788015722028517}
   - component: {fileID: 2869496205337596450}
+  - component: {fileID: 2782710185629028529}
   m_Layer: 11
   m_Name: Bush 1
   m_TagString: Bush
@@ -205,7 +206,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf68ef9126f45f9418d3e7c1f96b5933, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxChopHit: 5
   layerIndex: 0
+  currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
   isDecorative: 1
 --- !u!114 &5865098679597247942
@@ -270,3 +273,17 @@ CapsuleCollider2D:
   m_Offset: {x: -0.010340198, y: 0.14476137}
   m_Size: {x: 0.9172809, y: 0.6070822}
   m_Direction: 1
+--- !u!114 &2782710185629028529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7113461632919070070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bfae54266be5a64fbf0fe5f55198385, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  occupiedCells:
+  - {x: 0, y: 0}

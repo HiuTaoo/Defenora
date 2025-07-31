@@ -42,22 +42,29 @@ public class Task
 
     public void TryAdvanceMiniTask()
     {
-        if (miniTasks.Count > 0)
+        lock (miniTasks) 
         {
-            currentMiniTask = miniTasks.Dequeue();
-            listMiniTask.Remove(currentMiniTask);
-        }
-        else
-        {
-            currentMiniTask = null;
-            taskStatus = TaskStatus.Completed;
+            if (miniTasks.Count > 0)
+            {
+                currentMiniTask = miniTasks.Dequeue();
+                listMiniTask.Remove(currentMiniTask);
+            }
+            else
+            {
+                currentMiniTask = null;
+                taskStatus = TaskStatus.Completed;
+            }
         }
     }
 
     public bool HasUnfinishedMiniTasks()
     {
-        return currentMiniTask != null || miniTasks.Count > 0;
+        lock (miniTasks)
+        {
+            return currentMiniTask != null || miniTasks.Count > 0;
+        }
     }
+
 }
 
 public enum TaskType

@@ -9,6 +9,7 @@ public class Bush : DecorObject
 
     private void Awake()
     {
+        base.Awake();
         animator = GetComponent<Animator>();
         animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
     }

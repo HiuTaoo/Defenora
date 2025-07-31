@@ -36,9 +36,9 @@ public class FindingTaskTargetObject : MonoBehaviour
         bool isUnitColliderHit = false;
         bool isCheckColliderHit = false;
 
-        //var targetTask = transformUnit.currentMiniTask != null ? transformUnit.currentMiniTask : transformUnit.currentTask; 
-        var targetTask = transformUnit.currentTask;
-        //var targetTask = transformUnit.currentMiniTask ?? transformUnit.currentTask;
+        Task targetTask = transformUnit.currentTask; 
+        if(transformUnit.currentMiniTask != null)
+            targetTask = transformUnit.currentMiniTask.targetGameObject != null ? transformUnit.currentMiniTask : transformUnit.currentTask;
 
         if (targetTask?.targetGameObject == null)
             return;
@@ -54,7 +54,7 @@ public class FindingTaskTargetObject : MonoBehaviour
                 {
                     Tree tree = collider.gameObject.GetComponent<Tree>();
                     Building building = collider.gameObject.GetComponent<Building>();
-                    //DecorObject decorObject = collider.gameObject.GetComponent<DecorObject>();
+                    DecorObject decorObject = collider.gameObject.GetComponent<DecorObject>();
 
                     if (tree != null && transformUnit.floorAgent.currentFloorIndex == tree.layerIndex)
                     {
@@ -78,7 +78,7 @@ public class FindingTaskTargetObject : MonoBehaviour
                         }
                         continue;
                     }
-                    /*if (decorObject != null && transformUnit.floorAgent.currentFloorIndex == decorObject.layerIndex)
+                    if (decorObject != null && transformUnit.floorAgent.currentFloorIndex == decorObject.layerIndex)
                     {
                         isCheckColliderHit = true;
                         if (characterMovement != null &&
@@ -87,7 +87,7 @@ public class FindingTaskTargetObject : MonoBehaviour
                             characterMovement.HandleFlipByPosition(targetTask.targetGameObject.transform.position);
                         }
                         continue;
-                    }*/
+                    }
                 }
             }
         }
@@ -108,7 +108,7 @@ public class FindingTaskTargetObject : MonoBehaviour
         {
             Tree targetTree = targetTask.targetGameObject.GetComponent<Tree>();
             Building targetBuilding = targetTask.targetGameObject.GetComponent<Building>();
-            //DecorObject targetDecorObject = targetTask.targetGameObject.GetComponent<DecorObject>();
+            DecorObject targetDecorObject = targetTask.targetGameObject.GetComponent<DecorObject>();
 
             if (!(builderController.StateMachine.CurrentState is Builder_ChopState) && targetTree != null && !characterMovement.moving)
             {
@@ -119,10 +119,10 @@ public class FindingTaskTargetObject : MonoBehaviour
             {
                 builderController.StateMachine.ChangeState(new Builder_BuildState(builderController, targetBuilding));
             }
-            /*if (!(builderController.StateMachine.CurrentState is Builder_ChopState) && targetDecorObject != null && !characterMovement.moving)
+            if (!(builderController.StateMachine.CurrentState is Builder_ChopState) && targetDecorObject != null && !characterMovement.moving)
             {
                 builderController.StateMachine.ChangeState(new Builder_ChopState(builderController, targetDecorObject.gameObject));
-            }*/
+            }
 
             characterMovement.rb.velocity = Vector2.zero;
             characterMovement.moving = false;

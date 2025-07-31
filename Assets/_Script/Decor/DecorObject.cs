@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class DecorObject : MonoBehaviour, IChoppable
 {
-    public int maxChopHit = 2;
+    public int maxChopHit = 5;
     public int layerIndex;
     public int currentChopHit = 0;
 
@@ -17,7 +17,7 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
 
     public Action<IChoppable> OnChoppedObject { get; set; }
 
-    private void Awake()
+    public virtual void Awake()
     {
         decorCollider = GetComponent<CapsuleCollider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -62,12 +62,12 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
         if (gameObject.CompareTag("Bush"))
         {
             prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs);
-            SaveLoadSystem.Instance.ReturnToPool(ObjectSpawner.Instance.spawnSettings.bushPrefabs[prefabIndex], gameObject);
+            SaveLoadSystem.Instance.ReturnToPool(gameObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs[prefabIndex]);
         }
         else if (gameObject.CompareTag("Rock"))
         {
             prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs);
-            SaveLoadSystem.Instance.ReturnToPool(ObjectSpawner.Instance.spawnSettings.rockPrefabs[prefabIndex], gameObject);
+            SaveLoadSystem.Instance.ReturnToPool(gameObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs[prefabIndex]);
         }
 
         gameObject.SetActive(false);
