@@ -56,16 +56,16 @@ public abstract class Unit : MonoBehaviour
     }
 
     #region Execute Task Logic
-    public virtual bool MoveToTaskPosition(Vector3Int position, int layer)
+    public virtual bool MoveToTaskPosition(Task task)
     {
-        var graph = GraphNode.Instance.layerGraphs[layer];
-        var objectFootprint = currentTask.targetGameObject.GetComponent<ObjectFootprint>();
-        var targetPosition = currentTask.targetGameObject.transform.position;
-
+        var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
+        var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
+        var targetPosition = task.targetGameObject.transform.position;
+/*
         if(currentTask.currentMiniTask != null)
         {
             targetPosition = currentTask.currentMiniTask.targetGameObject.transform.position;
-        }
+        }*/
 
         List<Vector3Int> neighborOffsets = null;
 
@@ -127,7 +127,7 @@ public abstract class Unit : MonoBehaviour
             if (node.isWalkable)
             {
                 PathFinding path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, floorAgent.currentFloorIndex,
-                    neighborPos, layer);
+                    neighborPos, task.layerIndex);
 
                 if (neighborPos == currentGridPos)
                 {
@@ -150,10 +150,7 @@ public abstract class Unit : MonoBehaviour
         }
 
         if (bestPath == null)
-        {
-            Debug.LogWarning($"Không tìm được đường đi hợp lệ đến bất kỳ node lân cận nào quanh {position}");
             return false;
-        }
 
         characterMovement.currentPath = bestPath;
 
@@ -166,11 +163,11 @@ public abstract class Unit : MonoBehaviour
         var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
         var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
         var targetPosition = task.targetGameObject.transform.position;
-
+/*
         if (task.currentMiniTask != null)
         {
             targetPosition = task.currentMiniTask.targetGameObject.transform.position;
-        }
+        }*/
 
         List<Vector3Int> neighborOffsets = null;
 
@@ -291,7 +288,7 @@ public abstract class Unit : MonoBehaviour
             {
                 Debug.Log($"[Unit] Executing mini task: {activeTask.taskType} at {activeTask.targetGameObject.transform.position}");
 
-                var canExecute = MoveToTaskPosition(Vector3Int.FloorToInt(activeTask.targetGameObject.transform.position), activeTask.layerIndex);
+                var canExecute = MoveToTaskPosition(activeTask);
                 if (!canExecute)
                 {
                     if (!activeTask.isInPendingQueue && activeTask == task)
@@ -303,7 +300,7 @@ public abstract class Unit : MonoBehaviour
                     currentState = UnitState.Idle;
                     yield break;
                 }
-
+                task.taskStatus = TaskStatus.InProgress;
                 activeTask.taskStatus = TaskStatus.InProgress;
                 currentState = UnitState.Working;
                 targetDestination = activeTask.targetGameObject.transform;
@@ -312,8 +309,6 @@ public abstract class Unit : MonoBehaviour
 
                 yield return new WaitForSeconds(1f);
 
-                activeTask.taskStatus = TaskStatus.Completed;
-                Debug.Log($"[Unit] Completed mini task: {activeTask.taskType}");
 
                 task.TryAdvanceMiniTask();
 
@@ -329,7 +324,7 @@ public abstract class Unit : MonoBehaviour
         {
             Debug.Log($"[Unit] All mini tasks completed. Executing main task: {task.taskType} at {task.targetGameObject.transform.position}");
 
-            var canExecuteMainTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
+            var canExecuteMainTask = MoveToTaskPosition(currentTask);
             if (!canExecuteMainTask)
             {
                 if (!task.isInPendingQueue)
@@ -348,12 +343,6 @@ public abstract class Unit : MonoBehaviour
 
             yield return new WaitForSeconds(1f); 
 
-            task.taskStatus = TaskStatus.Completed;
-            Debug.Log($"[Unit] Completed main task: {task.taskType}");
-
-            currentTask = null;
-            currentState = UnitState.Idle;
-            OnUnitIdle?.Invoke(this);
 
             TaskManager.Instance.CompletedTask(task);
         }

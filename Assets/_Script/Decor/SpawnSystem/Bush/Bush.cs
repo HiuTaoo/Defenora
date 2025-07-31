@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 
-public class Bush : MonoBehaviour
+public class Bush : DecorObject
 {
-    public int layerIndex;
     public Vector3Int positionInGrid;
     public bool isDecorative = true;
 
