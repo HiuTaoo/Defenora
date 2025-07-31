@@ -362,6 +362,28 @@ public class UnitManager : MonoBehaviour
         Debug.Log($"Assigned pending task {task.taskType} to builder {builder.unitName}");
     }
 
+    public void AssignInprogressTaskToBuilder(Builder builder)
+    {
+        if (builder == null)
+            return;
+
+        if (builder.currentState != UnitState.Idle && builder.currentTask != null)
+        {
+            Debug.LogWarning($"Builder {builder.unitName} is not idle. Cannot assign in-progress task.");
+            return;
+        }
+        foreach (Task task in taskManager.inProgressTask)
+        {
+            if (task.listBuilders.Count < task.maxBuilders && CanAssignTaskToBuilder(task, builder))
+            {
+                builder.currentTask = task;
+                task.listBuilders.Add(builder);
+                builder.ExecuteTask();
+                return;
+            }
+        }
+    }
+
     /// <summary>
     /// Kiểm tra xem có thể assign task cho builder hay không
     /// </summary>
@@ -478,6 +500,8 @@ public class UnitManager : MonoBehaviour
             if (TaskManager.Instance.pendingTask.Count == 0)
             {
                 Debug.Log($"Không có task nào đang tạm hoãn khi unit {unit.unitName} rảnh rỗi.");
+                Debug.Log($"Giao task đang tiến hành mà vẫn thiếu người cho builder {builder.unitName}");
+                AssignInprogressTaskToBuilder(builder);
                 return;
             }
 
@@ -514,6 +538,7 @@ public class UnitManager : MonoBehaviour
         else
         {
             Debug.Log($"Không có pending task nào có thể giao cho {builder.unitName}");
+            
         }
     }
 
