@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -15,11 +14,12 @@ public class Task
     public Queue<Task> miniTasks = new Queue<Task>();
     public List<Task> listMiniTask = new List<Task>();
 
-    public Task currentMiniTask = null;
     public Task parentTask = null;
 
     [HideInInspector] public bool isInPendingQueue = false;
-    
+
+    private readonly object miniTaskLock = new object();
+
     public Task(GameObject target, TaskType type, TaskStatus status = TaskStatus.NotStarted, int maxBuilders = 1, int layerIndex = 0)
     {
         targetGameObject = target;
@@ -36,35 +36,50 @@ public class Task
     public void AddMiniTask(Task miniTask)
     {
         miniTask.parentTask = this;
-        miniTasks.Enqueue(miniTask);
-        listMiniTask.Add(miniTask);
+        lock (miniTaskLock)
+        {
+            miniTasks.Enqueue(miniTask);
+            listMiniTask.Add(miniTask);
+        }
     }
 
-    public void TryAdvanceMiniTask()
+    public Task TryGetNextMiniTask()
     {
-        lock (miniTasks) 
+        lock (miniTaskLock)
         {
             if (miniTasks.Count > 0)
             {
-                currentMiniTask = miniTasks.Dequeue();
-                listMiniTask.Remove(currentMiniTask);
+                Task nextTask = miniTasks.Dequeue();
+                listMiniTask.Remove(nextTask);
+                return nextTask;
             }
-            else
-            {
-                currentMiniTask = null;
-                taskStatus = TaskStatus.Completed;
-            }
+            return null;
         }
     }
 
     public bool HasUnfinishedMiniTasks()
     {
-        lock (miniTasks)
+        lock (miniTaskLock)
         {
-            return currentMiniTask != null || miniTasks.Count > 0;
+            return miniTasks.Count > 0;
         }
     }
 
+    public bool AreAllMiniTasksCompleted()
+    {
+        lock (miniTaskLock)
+        {
+            return miniTasks.Count == 0;
+        }
+    }
+
+    public bool HasNoMiniTasks()
+    {
+        lock (miniTaskLock)
+        {
+            return miniTasks.Count == 0 && listMiniTask.Count == 0;
+        }
+    }
 }
 
 public enum TaskType

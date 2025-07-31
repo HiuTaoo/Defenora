@@ -91,6 +91,11 @@ public abstract class Building : MonoBehaviour
                 break;
             case BuildingState.Pending:
                 animator.Play("UnderConstruction");
+                if(currentTask.HasNoMiniTasks())
+                {
+                    buildingState = BuildingState.UnderConstruction;
+                    buildingCollider.enabled = true;
+                }
                 break;
         }
 
