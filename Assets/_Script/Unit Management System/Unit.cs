@@ -22,6 +22,7 @@ public abstract class Unit : MonoBehaviour
 
     [Header("Task")]
     public Task currentTask = null;
+    public Task currentMiniTask = null;
 
     protected Rigidbody2D rb;
     protected Animator animator;
@@ -166,7 +167,7 @@ public abstract class Unit : MonoBehaviour
         var objectFootprint = task.targetGameObject.GetComponent<ObjectFootprint>();
         var targetPosition = task.targetGameObject.transform.position;
 
-        if (currentTask.currentMiniTask != null)
+        if (task.currentMiniTask != null)
         {
             targetPosition = task.currentMiniTask.targetGameObject.transform.position;
         }
@@ -306,6 +307,8 @@ public abstract class Unit : MonoBehaviour
                 activeTask.taskStatus = TaskStatus.InProgress;
                 currentState = UnitState.Working;
                 targetDestination = activeTask.targetGameObject.transform;
+                currentMiniTask = activeTask;
+                task.currentMiniTask = null;
 
                 yield return new WaitForSeconds(1f);
 
@@ -322,36 +325,40 @@ public abstract class Unit : MonoBehaviour
             }
         }
 
-        Debug.Log($"[Unit] All mini tasks completed. Executing main task: {task.taskType} at {task.targetGameObject.transform.position}");
-
-        var canExecuteMainTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
-        if (!canExecuteMainTask)
+        if (task.miniTasks.Count == 0 && task.currentMiniTask == null)
         {
-            if (!task.isInPendingQueue)
+            Debug.Log($"[Unit] All mini tasks completed. Executing main task: {task.taskType} at {task.targetGameObject.transform.position}");
+
+            var canExecuteMainTask = MoveToTaskPosition(Vector3Int.FloorToInt(task.targetGameObject.transform.position), task.layerIndex);
+            if (!canExecuteMainTask)
             {
-                TaskManager.Instance.pendingTask.Enqueue(task);
-                task.isInPendingQueue = true;
+                if (!task.isInPendingQueue)
+                {
+                    TaskManager.Instance.pendingTask.Enqueue(task);
+                    task.isInPendingQueue = true;
+                }
+                currentTask = null;
+                currentState = UnitState.Idle;
+                yield break;
             }
+
+            task.taskStatus = TaskStatus.InProgress;
+            currentState = UnitState.Working;
+            targetDestination = task.targetGameObject.transform;
+
+            yield return new WaitForSeconds(1f); 
+
+            task.taskStatus = TaskStatus.Completed;
+            Debug.Log($"[Unit] Completed main task: {task.taskType}");
+
             currentTask = null;
             currentState = UnitState.Idle;
-            yield break;
+            OnUnitIdle?.Invoke(this);
+
+            TaskManager.Instance.CompletedTask(task);
         }
-
-        task.taskStatus = TaskStatus.InProgress;
-        currentState = UnitState.Working;
-        targetDestination = task.targetGameObject.transform;
-
-        yield return new WaitForSeconds(1f);
-
-        task.taskStatus = TaskStatus.Completed;
-        Debug.Log($"[Unit] Completed main task: {task.taskType}");
-
-        currentTask = null;
-        currentState = UnitState.Idle;
-        OnUnitIdle?.Invoke(this);
-
-        TaskManager.Instance.CompletedTask(task);
     }
+
     #endregion
 
     public virtual void StopMovement()

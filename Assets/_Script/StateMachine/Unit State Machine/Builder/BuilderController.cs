@@ -74,9 +74,9 @@ public class BuilderController : MonoBehaviour
     {
         if (StateMachine.CurrentState is Builder_ChopState chopState)
         {
-            if (chopState.currentTree != null)
+            if (chopState.currentTarget != null)
             {
-                chopState.currentTree.HandleChopTree();
+                chopState.currentTarget.HandleChopped();
             }
         }
     }

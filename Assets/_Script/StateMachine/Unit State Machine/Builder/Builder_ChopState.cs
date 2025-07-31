@@ -1,11 +1,11 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Builder_ChopState : IUnitState
 {
     private BuilderController pawn;
-    public Tree currentTree;
+    public IChoppable currentTarget;
+    private GameObject currentTargetGameObject;
     private bool isCompleted = false;
     private float chopCooldown = 0.5f;
 
@@ -14,10 +14,10 @@ public class Builder_ChopState : IUnitState
 
     private Coroutine cooldownCoroutine;
 
-    public Builder_ChopState(BuilderController pawn, Tree tree)
+    public Builder_ChopState(BuilderController pawn, GameObject currentTargetGameObject)
     {
         this.pawn = pawn;
-        currentTree = tree;
+        this.currentTargetGameObject = currentTargetGameObject;
     }
 
     public void OnEnter()
@@ -25,14 +25,20 @@ public class Builder_ChopState : IUnitState
         pawn.animator.Play("Chop");
         pawn.rb.velocity = Vector2.zero;
 
-        currentTree.OnTreeChopped -= HandleCompleteChopTree;
-        currentTree.OnTreeChopped += HandleCompleteChopTree;
+        currentTarget = currentTargetGameObject.GetComponent<IChoppable>();
+
+        if (currentTarget != null)
+        {
+            currentTarget.OnChoppedObject += HandleCompleteChop;
+        }
     }
 
     public void OnExit()
     {
-        if (currentTree != null)
-            currentTree.OnTreeChopped -= HandleCompleteChopTree;
+        if (currentTarget != null)
+        {
+            currentTarget.OnChoppedObject -= HandleCompleteChop;
+        }
 
         if (cooldownCoroutine != null)
             pawn.StopCoroutine(cooldownCoroutine);
@@ -48,7 +54,6 @@ public class Builder_ChopState : IUnitState
         }
 
         TryChop();
-
     }
 
     public void FixedUpdate() { }
@@ -67,25 +72,27 @@ public class Builder_ChopState : IUnitState
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(origin, pawn.chopBoxSize, 0f, layer);
 
-        currentTree = null;
+        currentTarget = null;
         foreach (var hit in hits)
         {
             if (hit.CompareTag("Tree") && hit.gameObject == pawn.builderUnit.currentTask.targetGameObject)
             {
-                currentTree = hit.gameObject.GetComponent<Tree>();
-                break; 
+                currentTarget = hit.gameObject.GetComponent<Tree>();
+                break;
             }
+            /*else if (hit.CompareTag("Bush") && hit.gameObject == pawn.builderUnit.currentTask.targetGameObject)
+            {
+                currentTarget = hit.gameObject.GetComponent<Bush>();
+                break;
+            }*/
+            // Thêm điều kiện cho các đối tượng khác như Rock, Building, v.v.
         }
-
     }
-
 
     public void StartCooldown()
     {
         pawn.animator.Play("Idle");
         cooldownCoroutine = pawn.StartCoroutine(ChopCooldownCoroutine());
-        if (currentTree == null)
-            Debug.LogError("Current Tree null");
     }
 
     private IEnumerator ChopCooldownCoroutine()
@@ -94,11 +101,10 @@ public class Builder_ChopState : IUnitState
         pawn.animator.Play("Chop");
     }
 
-    private void HandleCompleteChopTree(Tree tree)
+    private void HandleCompleteChop(IChoppable choppedObject)
     {
-        if (tree == null) return;
+        if (choppedObject == null) return;
 
-        tree.OnTreeChopped -= HandleCompleteChopTree;
         SetCompleted();
 
         Task completedTask = pawn.builderUnit.currentTask;
@@ -113,9 +119,7 @@ public class Builder_ChopState : IUnitState
         pawn.builderUnit.currentTask = null;
 
         pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
-        currentTree = null;
-
-        Debug.Log($"Builder {pawn.builderUnit.unitName} đang hoàn thành task chặt cây và giờ đang rảnh.");
+        currentTarget = null;
     }
 
     public void DrawGizmos()
