@@ -156,6 +156,7 @@ public class CharacterMovement : MonoBehaviour
                     }
                     Vector2 nextPosition = Vector2.MoveTowards(rb.position, targetCenter, moveSpeed * Time.fixedDeltaTime);
                     rb.MovePosition(nextPosition);
+                    moving = true;
                     yield return null;
                 }
                 CurrentLayer = segment.layerIndex;
