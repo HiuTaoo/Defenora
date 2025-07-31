@@ -2,10 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Rock : MonoBehaviour
+public class Rock : DecorObject
 {
     [Header("Rock Info")]
-    public int layerIndex = 0;
     public Vector3Int positionInGrid;
     public bool isMinable = true;
     public float durability = 100f;
