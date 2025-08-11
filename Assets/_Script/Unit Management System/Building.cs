@@ -91,11 +91,6 @@ public abstract class Building : MonoBehaviour
                 break;
             case BuildingState.Pending:
                 animator.Play("UnderConstruction");
-                if(currentTask.HasNoMiniTasks())
-                {
-                    buildingState = BuildingState.UnderConstruction;
-                    buildingCollider.enabled = true;
-                }
                 break;
         }
 
@@ -138,7 +133,7 @@ public abstract class Building : MonoBehaviour
     private void CreateContructionTask()
     {
         currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
-        CleanGroundBeforeContrucstion();
+        //CleanGroundBeforeContrucstion();
     }
 
     private void CleanGroundBeforeContrucstion()
@@ -150,7 +145,6 @@ public abstract class Building : MonoBehaviour
             if (collider.CompareTag("Bush") || collider.CompareTag("Rock"))
             {
                 var cleanTask = new Task(collider.gameObject, TaskType.CleanUp, TaskStatus.NotStarted, 1, LayerIndex);
-                currentTask.AddMiniTask(cleanTask);
                 count++;
             }
         }

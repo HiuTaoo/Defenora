@@ -22,7 +22,6 @@ public abstract class Unit : MonoBehaviour
 
     [Header("Task")]
     public Task currentTask = null;
-    public Task currentMiniTask = null;
 
     protected Rigidbody2D rb;
     protected Animator animator;
@@ -278,60 +277,22 @@ public abstract class Unit : MonoBehaviour
 
     private IEnumerator ExecuteTask(Task task)
     {
-        if (task.HasUnfinishedMiniTasks())
+        var canExecuteMainTask = MoveToTaskPosition(currentTask);
+        if (!canExecuteMainTask)
         {
-            Task assignedMiniTask = task.TryGetNextMiniTask();
-
-            if (assignedMiniTask != null)
+            if (!task.isInPendingQueue)
             {
-                var canExecute = MoveToTaskPosition(assignedMiniTask);
-                if (!canExecute)
-                {
-                    lock (task.miniTasks)
-                    {
-                        task.miniTasks.Enqueue(assignedMiniTask);
-                        task.listMiniTask.Add(assignedMiniTask);
-                    }
-
-                    if (!assignedMiniTask.isInPendingQueue)
-                    {
-                        TaskManager.Instance.pendingTask.Enqueue(task);
-                        assignedMiniTask.isInPendingQueue = true;
-                    }
-                    currentTask = null;
-                    currentState = UnitState.Idle;
-                    yield break;
-                }
-
-                task.taskStatus = TaskStatus.InProgress;
-                assignedMiniTask.taskStatus = TaskStatus.InProgress;
-                currentState = UnitState.Working;
-                targetDestination = assignedMiniTask.targetGameObject.transform;
-                currentMiniTask = assignedMiniTask; 
-
-                yield break;
+                TaskManager.Instance.pendingTask.Enqueue(task);
+                task.isInPendingQueue = true;
             }
+            currentTask = null;
+            currentState = UnitState.Idle;
+            yield break;
         }
 
-        if (task.HasNoMiniTasks() || (task.AreAllMiniTasksCompleted() && currentMiniTask == null))
-        {
-            var canExecuteMainTask = MoveToTaskPosition(currentTask);
-            if (!canExecuteMainTask)
-            {
-                if (!task.isInPendingQueue)
-                {
-                    TaskManager.Instance.pendingTask.Enqueue(task);
-                    task.isInPendingQueue = true;
-                }
-                currentTask = null;
-                currentState = UnitState.Idle;
-                yield break;
-            }
-
-            task.taskStatus = TaskStatus.InProgress;
-            currentState = UnitState.Working;
-            targetDestination = task.targetGameObject.transform;
-        }
+        task.taskStatus = TaskStatus.InProgress;
+        currentState = UnitState.Working;
+        targetDestination = task.targetGameObject.transform;
     }
 
     public IEnumerator DelayContinueExecuteTask()
