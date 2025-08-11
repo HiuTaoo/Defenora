@@ -37,8 +37,6 @@ public class FindingTaskTargetObject : MonoBehaviour
         bool isCheckColliderHit = false;
 
         Task targetTask = transformUnit.currentTask; 
-        if(transformUnit.currentMiniTask != null)
-            targetTask = transformUnit.currentMiniTask.targetGameObject != null ? transformUnit.currentMiniTask : transformUnit.currentTask;
 
         if (targetTask?.targetGameObject == null)
             return;
@@ -145,11 +143,11 @@ public class FindingTaskTargetObject : MonoBehaviour
 
         Rigidbody2D rb = transformUnit.GetComponent<Rigidbody2D>();
         float moveSpeed = transformUnit.moveSpeed;
+        characterMovement.moving = true;
 
         if (Vector3.Distance(currentPosition, targetPosition) > 0.1f)
         {
             rb.velocity = new Vector2(direction.x * moveSpeed, direction.y * moveSpeed);
-            characterMovement.moving = true;
         }
     }
 }

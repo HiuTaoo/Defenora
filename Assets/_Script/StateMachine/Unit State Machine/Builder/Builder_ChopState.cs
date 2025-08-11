@@ -70,7 +70,7 @@ public class Builder_ChopState : IUnitState
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(origin, pawn.chopBoxSize, 0f);
 
-        var targetTask = pawn.builderUnit.currentMiniTask.targetGameObject != null ? pawn.builderUnit.currentMiniTask : pawn.builderUnit.currentTask;
+        var targetTask = pawn.builderUnit.currentTask;
 
         currentTarget = null;
         foreach (var hit in hits)
@@ -115,29 +115,16 @@ public class Builder_ChopState : IUnitState
 
         SetCompleted();
 
-        if (pawn.builderUnit.currentMiniTask.targetGameObject != null)
-        {
-            pawn.builderUnit.currentMiniTask.taskStatus = TaskStatus.Completed;
-            pawn.builderUnit.currentMiniTask = null;
+        Task completedTask = pawn.builderUnit.currentTask;
 
-            if(pawn.builderUnit.executeCoroutine == null && pawn.builderUnit.currentTask != null)
-            {
-                pawn.builderUnit.StartCoroutine(pawn.builderUnit.DelayContinueExecuteTask());
-            }
-        }
-        else
+        if (completedTask != null)
         {
-            Task completedTask = pawn.builderUnit.currentTask;
-
-            if (completedTask != null)
-            {
-                completedTask.taskStatus = TaskStatus.Completed;
-                TaskManager.Instance.CompletedTask(completedTask);
-                pawn.builderUnit.currentTask = null;
-            }
-            pawn.builderUnit.currentState = UnitState.Idle;
-            pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
+            completedTask.taskStatus = TaskStatus.Completed;
+            TaskManager.Instance.CompletedTask(completedTask);
+            pawn.builderUnit.currentTask = null;
         }
+        pawn.builderUnit.currentState = UnitState.Idle;
+        pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
 
         currentTarget = null;
     }
