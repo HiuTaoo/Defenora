@@ -500,7 +500,7 @@ public class UnitManager : MonoBehaviour
             if (TaskManager.Instance.pendingTask.Count == 0)
             {
                 Debug.Log($"Không có task nào đang tạm hoãn khi unit {unit.unitName} rảnh rỗi.");
-                Debug.Log($"Giao task đang tiến hành mà vẫn thiếu người cho builder {builder.unitName}");
+                Debug.Log($"Kiểm tra task đang tiến hành mà vẫn thiếu người cho builder {builder.unitName}");
                 AssignInprogressTaskToBuilder(builder);
                 return;
             }

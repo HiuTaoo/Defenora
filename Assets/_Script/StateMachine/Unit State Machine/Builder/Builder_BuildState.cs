@@ -5,7 +5,8 @@ using UnityEngine;
 public class Builder_BuildState : IUnitState
 {
     private BuilderController pawn;
-    private Building currentBuilding;
+    public IBuildable currentBuilding;
+    public GameObject currentBuildingGameObject;
 
     private bool isCompleted = false;
     private float buildCooldown = 0.5f;
@@ -15,19 +16,29 @@ public class Builder_BuildState : IUnitState
 
     private Coroutine cooldownCoroutine;
 
-    public Builder_BuildState(BuilderController pawn, Building building)
+    public Builder_BuildState(BuilderController pawn, GameObject building)
     {
         this.pawn = pawn;
-        currentBuilding = building;
+        currentBuildingGameObject = building;
     }
 
     public void OnEnter()
     {
         pawn.animator.Play("Build");
         pawn.rb.velocity = Vector2.zero;
+
+        currentBuilding = currentBuildingGameObject.GetComponent<IBuildable>();
+        if (currentBuilding != null)
+        {
+            currentBuilding.OnBuiltObject += HandleCompleteBuild;
+        }
     }
 
     public void OnExit() {
+        if (currentBuilding != null)
+        {
+            currentBuilding.OnBuiltObject -= HandleCompleteBuild;
+        }
         if (cooldownCoroutine != null)
             pawn.StopCoroutine(cooldownCoroutine);
     }
@@ -53,6 +64,9 @@ public class Builder_BuildState : IUnitState
 
     private void TryBuild()
     {
+        if(currentBuilding == null || currentBuildingGameObject == null)
+            return;
+
         facingDir = pawn.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
         origin = (Vector2)pawn.transform.position + facingDir * pawn.chopDistance;
 
@@ -65,7 +79,7 @@ public class Builder_BuildState : IUnitState
         {
             if (hit.CompareTag("Building") && hit.gameObject == pawn.builderUnit.currentTask.targetGameObject)
             {
-                currentBuilding = hit.gameObject.GetComponent<Building>();
+                currentBuilding = hit.gameObject.GetComponent<IBuildable>();
                 break;
             }
         }
@@ -84,5 +98,28 @@ public class Builder_BuildState : IUnitState
     {
         yield return new WaitForSeconds(buildCooldown);
         pawn.animator.Play("Build");
+    }
+
+    private void HandleCompleteBuild(IBuildable buildableObject)
+    {
+        if (buildableObject == null) return;
+
+        SetCompleted();
+        var building = buildableObject as Building;
+        building.currentTask = null;
+
+        Task completedTask = pawn.builderUnit.currentTask;
+
+        if (completedTask != null)
+        {
+            completedTask.taskStatus = TaskStatus.Completed;
+            TaskManager.Instance.CompletedTask(completedTask);
+            pawn.builderUnit.currentTask = null;
+        }
+        pawn.builderUnit.currentState = UnitState.Idle;
+        pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
+
+        currentBuilding = null;
+        
     }
 }
