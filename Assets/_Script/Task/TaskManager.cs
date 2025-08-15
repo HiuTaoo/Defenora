@@ -51,10 +51,19 @@ public class TaskManager : MonoBehaviour
 
     public void CompletedTask(Task task)
     {
-        if (task == null) return;
-        if (task.taskStatus == TaskStatus.Completed)
+        if (task == null || !inProgressTask.Contains(task)) return;
+
+        task.CompleteTask(task.taskType);
+        inProgressTask.Remove(task);
+
+        foreach(var builder in task.listBuilders)
         {
-            inProgressTask.Remove(task);
+            if (builder != null)
+            {
+                builder.currentTask = null;
+                builder.currentState = UnitState.Idle;
+                builder.OnUnitIdle?.Invoke(builder);
+            }
         }
 
     }

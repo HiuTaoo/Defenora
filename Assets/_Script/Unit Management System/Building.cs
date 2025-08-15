@@ -42,6 +42,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     private CapsuleCollider2D buildingCollider;
 
     private GameObject customRenderer;
+    private Coroutine buildEffectCoroutine;
     public Action<IBuildable> OnBuiltObject { get; set; }
 
     private bool isBeingBuilded = false;
@@ -150,26 +151,21 @@ public abstract class Building : MonoBehaviour, IBuildable
     private void CreateContructionTask()
     {
         currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
-        CleanGroundBeforeContrucstion();
-    }
-
-    private void CleanGroundBeforeContrucstion()
-    {
-        /*Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, range / 2);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, range / 2);
         var count = 0;
         foreach (Collider2D collider in colliders)
         {
             if (collider.CompareTag("Bush") || collider.CompareTag("Rock"))
             {
                 var cleanTask = new Task(collider.gameObject, TaskType.CleanUp, TaskStatus.NotStarted, 1, LayerIndex);
+                TaskManager.Instance.AddNewTask(cleanTask);
                 count++;
             }
         }
         if (count > 0)
         {
             Debug.Log($"Đã thêm {count} nhiệm vụ dọn dẹp trước khi xây dựng {buildingName}.");
-            buildingState = BuildingState.Pending;
-        }*/
+        }
         TaskManager.Instance.AddNewTask(currentTask);
     }
 
@@ -476,9 +472,9 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         currentBuildProgress = currentBuildProgress + buildSpeedPerHit;
 
-        if (!isBeingBuilded)
+        if (!isBeingBuilded && buildEffectCoroutine == null)
         {
-            //StartCoroutine();
+            buildEffectCoroutine =  StartCoroutine(BuildEffect());
         }
     }
 
@@ -499,6 +495,7 @@ public abstract class Building : MonoBehaviour, IBuildable
         spriteRenderer.color = Color.white;
 
         isBeingBuilded = false;
+        buildEffectCoroutine = null;
     }
     #endregion
 
