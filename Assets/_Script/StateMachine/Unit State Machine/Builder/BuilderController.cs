@@ -90,6 +90,17 @@ public class BuilderController : MonoBehaviour
             buildState.StartCooldown();
         }
     }
+
+    public void Build()
+    {
+        if (StateMachine.CurrentState is Builder_BuildState buildState)
+        {
+            if (buildState.currentBuilding != null)
+            {
+                buildState.currentBuilding.HandleBuilt();
+            }
+        }
+    }
     #endregion
 
     private void OnDrawGizmos()

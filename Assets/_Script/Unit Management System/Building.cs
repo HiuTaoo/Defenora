@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
-public abstract class Building : MonoBehaviour
+public abstract class Building : MonoBehaviour, IBuildable
 {
     [Header("Building Info")]
     public string buildingName;
@@ -15,6 +15,11 @@ public abstract class Building : MonoBehaviour
     public int currentCapacity = 0;
     public BuildingType buildingType;
     public BuildingState buildingState;
+
+    [Header("Build Progress")]
+    [Range(0f, 100f)]
+    public float currentBuildProgress = 0f; 
+    public float buildSpeedPerHit = 5f; 
 
     [Header("Unit Management")]
     public List<Unit> stationedUnits = new List<Unit>();
@@ -37,7 +42,11 @@ public abstract class Building : MonoBehaviour
     private CapsuleCollider2D buildingCollider;
 
     private GameObject customRenderer;
-    
+    public Action<IBuildable> OnBuiltObject { get; set; }
+
+    private bool isBeingBuilded = false;
+    private bool hasBeenBuilded = false;
+
     public int LayerIndex
     {
         get => layerIndex;
@@ -66,6 +75,14 @@ public abstract class Building : MonoBehaviour
         if (buildingState == BuildingState.UnderConstruction && currentTask.targetGameObject == null)
         {
             CreateContructionTask();
+        }
+
+        if (spriteRenderer.isVisible)
+        {
+            if (buildingState == BuildingState.UnderConstruction && currentBuildProgress >= 100f && !hasBeenBuilded)
+            {
+                OnBuild();
+            }
         }
     }
 
@@ -133,12 +150,12 @@ public abstract class Building : MonoBehaviour
     private void CreateContructionTask()
     {
         currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
-        //CleanGroundBeforeContrucstion();
+        CleanGroundBeforeContrucstion();
     }
 
     private void CleanGroundBeforeContrucstion()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, range / 2);
+        /*Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, range / 2);
         var count = 0;
         foreach (Collider2D collider in colliders)
         {
@@ -152,7 +169,7 @@ public abstract class Building : MonoBehaviour
         {
             Debug.Log($"Đã thêm {count} nhiệm vụ dọn dẹp trước khi xây dựng {buildingName}.");
             buildingState = BuildingState.Pending;
-        }
+        }*/
         TaskManager.Instance.AddNewTask(currentTask);
     }
 
@@ -300,7 +317,7 @@ public abstract class Building : MonoBehaviour
 
         if (validPositions.Count > 0)
         {
-            int randomIndex = Random.Range(0, validPositions.Count);
+            int randomIndex = UnityEngine.Random.Range(0, validPositions.Count);
             return validPositions[randomIndex];
         }
 
@@ -311,8 +328,8 @@ public abstract class Building : MonoBehaviour
 
     private Vector3 GetRandomPositionInRange_UniformCircle(Vector3 basePosition)
     {
-        float angle = Random.Range(0f, 2f * Mathf.PI);
-        float radius = Mathf.Sqrt(Random.Range(0f, 1f)) * range / 2;
+        float angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
+        float radius = Mathf.Sqrt(UnityEngine.Random.Range(0f, 1f)) * range / 2;
 
         Vector2 randomOffset = new Vector2(
             Mathf.Cos(angle) * radius,
@@ -332,8 +349,8 @@ public abstract class Building : MonoBehaviour
         do
         {
             randomOffset = new Vector2(
-                Random.Range(-range / 2, range / 2),
-                Random.Range(-range / 2, range / 2)
+                UnityEngine.Random.Range(-range / 2, range / 2),
+                UnityEngine.Random.Range(-range / 2, range / 2)
             );
         } while (randomOffset.magnitude > range / 2);
 
@@ -347,11 +364,11 @@ public abstract class Building : MonoBehaviour
     private Vector3 GetRandomPositionInRange_GridPattern(Vector3 basePosition)
     {
         int gridSize = Mathf.RoundToInt(range);
-        int randomX = Random.Range(-gridSize / 2, gridSize / 2 + 1);
-        int randomY = Random.Range(-gridSize / 2, gridSize / 2 + 1);
+        int randomX = UnityEngine.Random.Range(-gridSize / 2, gridSize / 2 + 1);
+        int randomY = UnityEngine.Random.Range(-gridSize / 2, gridSize / 2 + 1);
 
-        float noiseX = Random.Range(-0.3f, 0.3f);
-        float noiseY = Random.Range(-0.3f, 0.3f);
+        float noiseX = UnityEngine.Random.Range(-0.3f, 0.3f);
+        float noiseY = UnityEngine.Random.Range(-0.3f, 0.3f);
 
         return new Vector3(
             basePosition.x + randomX + noiseX,
@@ -365,8 +382,8 @@ public abstract class Building : MonoBehaviour
         float minDistance = 2f; 
         float maxDistance = range / 2;
 
-        float angle = Random.Range(0f, 2f * Mathf.PI);
-        float radius = Random.Range(minDistance, maxDistance);
+        float angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
+        float radius = UnityEngine.Random.Range(minDistance, maxDistance);
 
         Vector2 randomOffset = new Vector2(
             Mathf.Cos(angle) * radius,
@@ -382,7 +399,7 @@ public abstract class Building : MonoBehaviour
 
     private Vector3 GetRandomPositionInRange(Vector3 basePosition)
     {
-        int method = Random.Range(0, 4);
+        int method = UnityEngine.Random.Range(0, 4);
 
         switch (method)
         {
@@ -449,6 +466,39 @@ public abstract class Building : MonoBehaviour
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
         return spriteRenderer;
+    }
+    #endregion
+
+    #region Build
+    public void HandleBuilt()
+    {
+        if (currentBuildProgress >= 100f) return;
+
+        currentBuildProgress = currentBuildProgress + buildSpeedPerHit;
+
+        if (!isBeingBuilded)
+        {
+            //StartCoroutine();
+        }
+    }
+
+    public void OnBuild()
+    {
+        hasBeenBuilded = true;
+        buildingState = BuildingState.Completed;
+
+        OnBuiltObject?.Invoke(this);
+    }
+
+    private IEnumerator BuildEffect()
+    {
+        isBeingBuilded = true;
+
+        spriteRenderer.color = new Color32(207, 207, 207, 255);
+        yield return new WaitForSeconds(0.1f);
+        spriteRenderer.color = Color.white;
+
+        isBeingBuilded = false;
     }
     #endregion
 
