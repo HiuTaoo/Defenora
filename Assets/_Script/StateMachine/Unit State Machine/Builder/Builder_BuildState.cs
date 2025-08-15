@@ -57,11 +57,6 @@ public class Builder_BuildState : IUnitState
         TryBuild();
     }
 
-    public void SetCompleted()
-    {
-        isCompleted = true;
-    }
-
     private void TryBuild()
     {
         if(currentBuilding == null || currentBuildingGameObject == null)
@@ -86,7 +81,6 @@ public class Builder_BuildState : IUnitState
 
     }
 
-
     public void StartCooldown()
     {
         pawn.animator.Play("Idle");
@@ -105,6 +99,7 @@ public class Builder_BuildState : IUnitState
         if (buildableObject == null) return;
 
         SetCompleted();
+
         var building = buildableObject as Building;
         building.currentTask = null;
 
@@ -112,14 +107,15 @@ public class Builder_BuildState : IUnitState
 
         if (completedTask != null)
         {
-            completedTask.taskStatus = TaskStatus.Completed;
             TaskManager.Instance.CompletedTask(completedTask);
-            pawn.builderUnit.currentTask = null;
         }
-        pawn.builderUnit.currentState = UnitState.Idle;
-        pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
 
         currentBuilding = null;
-        
+
+    }
+
+    public void SetCompleted()
+    {
+        isCompleted = true;
     }
 }

@@ -119,12 +119,8 @@ public class Builder_ChopState : IUnitState
 
         if (completedTask != null)
         {
-            completedTask.taskStatus = TaskStatus.Completed;
             TaskManager.Instance.CompletedTask(completedTask);
-            pawn.builderUnit.currentTask = null;
         }
-        pawn.builderUnit.currentState = UnitState.Idle;
-        pawn.builderUnit.OnUnitIdle?.Invoke(pawn.builderUnit);
 
         currentTarget = null;
     }

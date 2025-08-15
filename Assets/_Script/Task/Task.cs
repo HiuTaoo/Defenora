@@ -13,8 +13,6 @@ public class Task
 
     [HideInInspector] public bool isInPendingQueue = false;
 
-    private readonly object miniTaskLock = new object();
-
     public Task(GameObject target, TaskType type, TaskStatus status = TaskStatus.NotStarted, int maxBuilders = 1, int layerIndex = 0)
     {
         targetGameObject = target;
@@ -26,6 +24,34 @@ public class Task
     }
     public bool IsCompleted => taskStatus == TaskStatus.Completed;
 
+    public void CompleteTask(TaskType taskType)
+    {
+        taskStatus = TaskStatus.Completed;
+        switch (taskType)
+        {
+            case TaskType.ChopTree:
+                Debug.Log("Chopping tree completed.");
+                break;
+            case TaskType.BuildStructure:
+                Debug.Log("Building structure completed.");
+                break;
+            case TaskType.MineResource:
+                Debug.Log("Mining resource completed.");
+                break;
+            case TaskType.CraftItem:
+                Debug.Log("Crafting item completed.");
+                break;
+            case TaskType.RepairStructure:
+                Debug.Log("Repairing structure completed.");
+                break;
+            case TaskType.TransportItem:
+                Debug.Log("Transporting item completed.");
+                break;
+            case TaskType.CleanUp:
+                Debug.Log("Cleaning up completed.");
+                break;
+        }
+    }
 }
 
 public enum TaskType
