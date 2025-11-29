@@ -93,6 +93,7 @@ public abstract class Building : MonoBehaviour, IBuildable
         {
             case BuildingState.UnderConstruction:
                 animator.Play("UnderConstruction");
+                ChangeTransparent(1f);
                 customRenderer?.SetActive(false);
                 break;
             case BuildingState.Completed:
@@ -109,6 +110,7 @@ public abstract class Building : MonoBehaviour, IBuildable
                 break;
             case BuildingState.Pending:
                 animator.Play("UnderConstruction");
+                ChangeTransparent(0.5f);
                 break;
         }
 
@@ -462,6 +464,13 @@ public abstract class Building : MonoBehaviour, IBuildable
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
         return spriteRenderer;
+    }
+
+    private void ChangeTransparent(float cap)
+    {
+        Color c = spriteRenderer.color;
+        c.a = cap;
+        spriteRenderer.color = c;
     }
     #endregion
 

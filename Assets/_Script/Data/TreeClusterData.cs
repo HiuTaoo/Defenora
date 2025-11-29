@@ -22,7 +22,7 @@ public class TreeClusterData
 
     public TreeCluster ToTreeCluster()
     {
-        TreeCluster cluster = new TreeCluster(centerPosition, layerIndex, noiseValue);
+        var cluster = new TreeCluster(centerPosition, layerIndex, noiseValue);
         cluster.nodePositions = new List<Vector3Int>(nodePositions);
         cluster.desiredTreeCount = desiredTreeCount;
         return cluster;

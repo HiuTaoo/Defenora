@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -17,15 +16,12 @@ public class AutoLightToggle : MonoBehaviour
     {
         GetTimeOfDaySystem();
 
-        pointLight.enabled = timeSystem.currentTime >= 18 || timeSystem.currentTime < 6;
+        pointLight.enabled = timeSystem.currentTime is >= 18 or < 6;
     }
 
     private TimeOfDaySystem GetTimeOfDaySystem()
     {
-        if (timeSystem == null)
-        {
-            timeSystem = TimeOfDaySystem.Instance;
-        }
+        timeSystem ??= TimeOfDaySystem.Instance;
         return timeSystem;
     }
 }
