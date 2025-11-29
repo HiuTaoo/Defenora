@@ -302,7 +302,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             building.currentCapacity = buildingDatum.currentCapacity;
             building.maxHealth = buildingDatum.maxHealth;
             building.currentHealth = buildingDatum.currentHealth;
-            building.GetSpriteRendererComponent().sortingOrder = RenderManager.Instance.decorRenderIndex;
             #endregion
 
             var customRender = building.transform.Find("Custom Render Sprite");
@@ -326,7 +325,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             unit.unitName = unitDatum.unitName;
             unit.gameObject.name = unitDatum.unitName;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
-            unit.floorAgent.UpdateVisualElements();
             foreach (var building in unitManager.buildings) {
                 if(building.name == unitDatum.assignedBuilding)
                 {
@@ -678,13 +676,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             customRender.GetComponent<CustomRender>().layerIndex = treeData.layerIndex;
         }
-
-        var spriteRenderer = treeObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-        }
-
         TreeCluster parentCluster = null;
         if (treeData.parentClusterIndex >= 0 && treeData.parentClusterIndex < clusters.Count)
         {
@@ -720,10 +711,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             int layerIndexMask = LayerMask.NameToLayer("Decor");
             bushObj.layer = layerIndexMask;
         }
-
-        var spriteRenderer = bushObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
 
         TreeCluster parentCluster = null;
         if (bushData.parentClusterIndex >= 0 && bushData.parentClusterIndex < clusters.Count)
@@ -764,13 +751,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             customRender.GetComponent<CustomRender>().layerIndex = rockData.layerIndex;
         }
-
-        var spriteRenderer = rockObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-        }
-
+        
         TreeCluster parentCluster = null;
         if (rockData.parentClusterIndex >= 0 && rockData.parentClusterIndex < clusters.Count)
         {
@@ -805,13 +786,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 floorAgent.MoveToFloor(animalData.layerIndex);
             }
         }
-
-        var spriteRenderer = animalObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-        }
-
         return new SpawnedAnimal(animalObj, Vector3Int.FloorToInt(animalData.currentPosition));
     }
     #endregion

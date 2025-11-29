@@ -240,7 +240,6 @@ public class AgentPhysics2D : MonoBehaviour
         #region Player Enter Stair
         if(gameObject.GetComponent<CharacterMovement>() != null)
         {
-            transform.GetComponentInParent<SpriteRenderer>().sortingOrder = 305;
             Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
             if (movementInput.y > 0.1f)
                 intoStairDirection = Vector2.up;
@@ -252,7 +251,6 @@ public class AgentPhysics2D : MonoBehaviour
         #region Sheep Enter Stair
         if (transform.GetComponentInParent<Sheep>() != null)
         {
-            transform.GetComponentInParent<SpriteRenderer>().sortingOrder = 305;
             if (transform.GetComponentInParent<Sheep>().runDirection.y > 0.1f)
                 intoStairDirection = Vector2.up;
             if (transform.GetComponentInParent<Sheep>().runDirection.y < -0.1f)
@@ -267,7 +265,6 @@ public class AgentPhysics2D : MonoBehaviour
         if (characterMovement != null)
         {
             characterMovement.UpdateLayerIndex();
-            floorAgent.UpdateVisualElements();
 
             Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
 

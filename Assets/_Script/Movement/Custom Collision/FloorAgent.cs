@@ -63,7 +63,6 @@ public class FloorAgent : MonoBehaviour
 
         OnFloorChanged?.Invoke(oldFloor, floorIndex);
 
-        UpdateVisualElements();
     }
 
     public void NextFloor() { 
@@ -81,20 +80,6 @@ public class FloorAgent : MonoBehaviour
         _currentFloorIndex--;
         MoveToFloor(currentFloorIndex);
     }
-
-    public void UpdateVisualElements()
-    {
-        var renderData = RenderManager.Instance.LookUpRenderDataByLayerIndex(RenderManager.Instance.characterRender, currentFloorIndex);
-        if (renderData != null)
-        {
-            var renderer = GetComponentInParent<SpriteRenderer>();
-            if (renderer != null)
-            {
-                renderer.sortingOrder = renderData.sortingOrder;
-            }
-        }
-    }
-
     public bool CanCollideWith(Collider2D other)
     {
         if (other == null) return false;

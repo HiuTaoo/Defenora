@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 5677498787964995631}
   - component: {fileID: 347215634551837432}
   - component: {fileID: 4000456904438927540}
-  - component: {fileID: 4192455286447943970}
   - component: {fileID: 2472314389470793922}
+  - component: {fileID: -4620309893634201294}
   m_Layer: 11
   m_Name: Sheep
   m_TagString: Animal
@@ -195,19 +195,6 @@ MonoBehaviour:
   maxDuration: 15
   runSpeed: 2
   panicTime: 5
---- !u!114 &4192455286447943970
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 103944314967868800}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  runOnce: 0
 --- !u!114 &2472314389470793922
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -222,6 +209,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoRegister: 1
   keepAnimatorEnabled: 0
+--- !u!114 &-4620309893634201294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 103944314967868800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: -1
 --- !u!1 &8140360570584590714
 GameObject:
   m_ObjectHideFlags: 0

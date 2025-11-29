@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 4733442487331926456}
   - component: {fileID: 5170452317051766906}
   - component: {fileID: 3495946019922729784}
-  - component: {fileID: 3175053180050555206}
   - component: {fileID: 7583007069250552871}
   - component: {fileID: 6753559539263613093}
+  - component: {fileID: 9079062118302858176}
   m_Layer: 11
   m_Name: Rock 4
   m_TagString: Rock
@@ -143,19 +143,6 @@ CapsuleCollider2D:
   m_Offset: {x: -0.011705552, y: -0.030451017}
   m_Size: {x: 0.52989835, y: 0.4024351}
   m_Direction: 1
---- !u!114 &3175053180050555206
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8432121970952456116}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  runOnce: 1
 --- !u!114 &7583007069250552871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -184,3 +171,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
+--- !u!114 &9079062118302858176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8432121970952456116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
