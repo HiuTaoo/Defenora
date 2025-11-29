@@ -114,9 +114,6 @@ public class SelectUnitSystem : MonoBehaviour
                     canMoveSelectedUnit = false;
                     isMouseDown = false;
 
-                    if (selectedUnit != null)
-                        floorAgent.UpdateVisualElements();
-
                     OnDragUnit?.Invoke(false);
                     return;
                 }
@@ -132,8 +129,6 @@ public class SelectUnitSystem : MonoBehaviour
                 OnSelectUnit?.Invoke(selectedUnit);
                 OnLerpToSelectedUnit?.Invoke(selectedUnit.transform.position);
             }
-            if(floorAgent != null)
-                floorAgent.UpdateVisualElements();
 
             isMouseDown = false;
             isDragging = false;
@@ -302,13 +297,11 @@ public class SelectUnitSystem : MonoBehaviour
         {
             selectedUnit.transform.position = snappedPos;
             floorAgent.MoveToFloor(targetLayerIndexDrag);
-            floorAgent.UpdateVisualElements();
         }
         else
         {
             selectedUnit.transform.position = initialUnitPosition;
             floorAgent.MoveToFloor(previousLayerIndex);
-            floorAgent.UpdateVisualElements();
         }
 
     }

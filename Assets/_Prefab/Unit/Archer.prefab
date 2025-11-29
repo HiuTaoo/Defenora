@@ -72,6 +72,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 3
+  rb: {fileID: 0}
   moving: 0
 --- !u!114 &7759679723960676305
 MonoBehaviour:
@@ -100,6 +101,7 @@ GameObject:
   - component: {fileID: 6345838413841934660}
   - component: {fileID: 6867302939378748637}
   - component: {fileID: 6194345323299169843}
+  - component: {fileID: 5712727403880073999}
   m_Layer: 10
   m_Name: Archer
   m_TagString: NPC
@@ -312,3 +314,17 @@ MonoBehaviour:
   agentPhysics2D: {fileID: 7759679723960676305}
   archerCollider: {fileID: 0}
   characterMovement: {fileID: 4114209612446939412}
+--- !u!114 &5712727403880073999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9163186071473850716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 1

@@ -321,11 +321,6 @@ public class ObjectSpawner : MonoBehaviour
             }
 
             var spriteRenderer = treeObj.GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-                //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, treeComponent.layerIndex);
-            }
 
             var renderObj = treeObj.transform.Find("Custom Render Sprite");
             var renderComponent = renderObj.GetComponent<CustomRender>();
@@ -536,14 +531,6 @@ public class ObjectSpawner : MonoBehaviour
             bushComponent.positionInGrid = position;
 
         }
-
-        var spriteRenderer = bushObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-            //RenderManager.Instance.SetSortingOrderSubtractOneByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
-        }
-
         return new SpawnedBush(bushObj, position, layerIndex, parentCluster);
     }
     #endregion
@@ -730,13 +717,6 @@ public class ObjectSpawner : MonoBehaviour
             }
         }
 
-        var spriteRenderer = rockObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-        }
-
         return new SpawnedRock(rockObj, position, layerIndex, parentCluster);
     }
     #endregion
@@ -840,14 +820,6 @@ public class ObjectSpawner : MonoBehaviour
                 animalComponent.floorAgent.MoveToFloor(layerIndex);
             }
         }
-
-        var spriteRenderer = animalObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-            //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.characterRender, spriteRenderer, layerIndex);
-        }
-
         return new SpawnedAnimal(animalObj, position);
     }
     #endregion
@@ -1236,14 +1208,6 @@ public class ObjectSpawner : MonoBehaviour
             treeComponent.positionInGrid = position;
             GraphNode.Instance.SetWalkableNode(position, layerIndex, false);
         }
-
-        var spriteRenderer = treeObj.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            //RenderManager.Instance.SetSortingOrderByIndex(RenderManager.Instance.decorRender, spriteRenderer, layerIndex);
-            spriteRenderer.sortingOrder = RenderManager.Instance.decorRenderIndex;
-        }
-
         return new SpawnedTree(treeComponent, position, layerIndex, cluster);
     }
 

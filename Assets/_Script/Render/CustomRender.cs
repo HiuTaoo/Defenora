@@ -1,96 +1,62 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CustomRender : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
-    public GameObject currentCollideGameObject;
+    private GameObject currentCollideGameObject;
 
     public int layerIndex = -1;
 
     private void Awake()
     {
         spriteRenderer = GetComponentInParent<SpriteRenderer>();
-
-    }
-
-    private void LookUpLayerIndex()
-    {
-        if(layerIndex >= 0)
-        {
-            var building = gameObject.GetComponentInParent<Building>();
-            var tree = gameObject.GetComponentInParent<Tree>();
-            if (building != null && tree == null)
-            {
-                layerIndex = building.LayerIndex;
-            }
-            if (tree != null && building == null)
-            {
-                layerIndex = tree.layerIndex;
-            }
-        }
     }
 
     private void OnDisable()
     {
-        if (currentCollideGameObject != null)
-        {
-            var floorAgent = currentCollideGameObject.GetComponentInChildren<FloorAgent>();
-            if (floorAgent != null)
-            {
-                floorAgent.UpdateVisualElements();
-            }
+        if (currentCollideGameObject == null)
+            return;
 
-            currentCollideGameObject = null;
-        }
+        currentCollideGameObject = null;
     }
 
-
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D col)
     {
-        if (GameLoop.Instance.StateMachine.CurrentStateType != GameStateType.Editor)
-        {
-            if (collision.CompareTag("NPC") && 
-                collision.GetComponent<Unit>().unitType == UnitType.Archer)
-                return;
+        // Không xử lý trong Editor Mode
+        if (GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Editor)
+            return;
 
-            if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null )
-            {
-                currentCollideGameObject = collision.gameObject;
-                var floorAgent = collision.gameObject.GetComponentInChildren<FloorAgent>();
-                LookUpLayerIndex();
+        // Không quan tâm NPC
+        if (col.CompareTag("NPC"))
+            return;
 
-                if (layerIndex == floorAgent.currentFloorIndex)
-                {
-                    collision.gameObject.GetComponent<SpriteRenderer>().sortingOrder = spriteRenderer.sortingOrder - 1;
-                }
+        // Chỉ xử lý Player
+        if (!col.CompareTag("Player"))
+            return;
 
-                if (collision.CompareTag("Player"))
-                {
-                    Color c = spriteRenderer.color;
-                    c.a = 0.5f;
-                    spriteRenderer.color = c;
-                }
-            }
-        }
-        
+        // Player có SpriteRenderer là đủ
+        if (col.GetComponent<SpriteRenderer>() == null)
+            return;
+
+        SetAlpha(0.5f);
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerExit2D(Collider2D col)
     {
-        if (collision != null && collision.gameObject.GetComponent<SpriteRenderer>() != null && collision.CompareTag("Player"))
-        {
-            collision.gameObject.GetComponentInChildren<FloorAgent>().UpdateVisualElements();
-            currentCollideGameObject = null;
+        // Chỉ cần check Player
+        if (!col.CompareTag("Player"))
+            return;
 
-            if (collision.CompareTag("Player"))
-            {
-                Color c = spriteRenderer.color;
-                c.a = 1f;
-                spriteRenderer.color = c;
-            }
-            
-        }
+        SetAlpha(1f);
+    }
+
+    private void SetAlpha(float a)
+    {
+        if (spriteRenderer == null)
+            return;
+
+        Color c = spriteRenderer.color;
+        c.a = a;
+        spriteRenderer.color = c;
     }
 }

@@ -431,9 +431,6 @@ public abstract class Building : MonoBehaviour, IBuildable
     public void UpdateRenderSortingOrder(int layerIndex)
     {
         GetSpriteRenderer();
-        var renderData = RenderManager.Instance.LookUpRenderDataByLayerIndex(RenderManager.Instance.decorRender, layerIndex);
-        if (spriteRenderer != null)
-            spriteRenderer.sortingOrder = renderData.sortingOrder;
     }
 
     private void GetSpriteRenderer()
