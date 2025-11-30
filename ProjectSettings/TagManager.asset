@@ -16,6 +16,7 @@ TagManager:
   - NPC
   - Ground
   - Door
+  - Bridge
   layers:
   - Default
   - TransparentFX
