@@ -1,39 +1,44 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
+[RequireComponent(typeof(CircleCollider2D))]
+[RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(DynamicSortingYX))]
 public class RenderInBridge : MonoBehaviour
 {
-    private TilemapRenderer  tilemapRenderer;
+    public int bridgeOffset = 1; 
+
+    private CircleCollider2D circle;
+    private SpriteRenderer sr;
+    private DynamicSortingYX dynamicSorting;
+    private FloorAgent floorAgent;
 
     private void Awake()
     {
-        tilemapRenderer = GetComponent<TilemapRenderer>();
+        circle         = GetComponent<CircleCollider2D>();
+        sr             = GetComponent<SpriteRenderer>();
+        dynamicSorting = GetComponent<DynamicSortingYX>();
+        floorAgent = GetComponentInChildren<FloorAgent>();
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void LateUpdate()
     {
-        if (!other.CompareTag("Player"))
+        if (BridgeTilemapManager.Instance.Equals(null))
             return;
         
-        DynamicSortingYX sorting = other.GetComponent<DynamicSortingYX>();
-        if (sorting != null && sorting)
-            sorting.enabled = false;
-        
-        SpriteRenderer spriteRenderer = other.GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-            spriteRenderer.sortingOrder = tilemapRenderer.sortingOrder++;
-    }
+        Vector3 footPos = circle.bounds.center;
 
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (!other.CompareTag("Player"))
-            return;
-        
-        DynamicSortingYX sorting = other.GetComponent<DynamicSortingYX>();
-        if (sorting != null && !sorting.enabled)
-            sorting.enabled = true;
+        if (BridgeTilemapManager.Instance.TryGetBridgeSortingOrder(footPos,floorAgent._currentFloorIndex, out int bridgeOrder))
+        {
+            if (dynamicSorting.enabled)
+                dynamicSorting.enabled = false;
+
+            sr.sortingOrder = bridgeOrder + bridgeOffset;
+        }
+        else
+        {
+            if (!dynamicSorting.enabled)
+                dynamicSorting.enabled = true;
+        }
     }
 }
+

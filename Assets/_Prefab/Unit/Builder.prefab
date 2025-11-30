@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 2885146454794559777}
   - component: {fileID: 4703880664553601771}
   - component: {fileID: 3660066448183255177}
+  - component: {fileID: 3025417812595231669}
   m_Layer: 10
   m_Name: Builder
   m_TagString: NPC
@@ -333,6 +334,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   yFactor: 10
   baseOrder: 1
+  isStaticDecor: 0
+--- !u!114 &3025417812595231669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4446480107038641665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d692b154f7308674fa98c3907cc9fe84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bridgeOffset: 1
 --- !u!1 &6753680548334571932
 GameObject:
   m_ObjectHideFlags: 0

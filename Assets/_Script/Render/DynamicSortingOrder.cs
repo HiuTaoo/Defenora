@@ -11,7 +11,7 @@ public class DynamicSortingYX : MonoBehaviour
 
     public int baseOrder = 0;
 
-    private bool isStaticDecor = false;    
+    public bool isStaticDecor = false;    
 
     void Awake()
     {
