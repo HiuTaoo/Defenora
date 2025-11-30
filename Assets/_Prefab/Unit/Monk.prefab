@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 8659560294403211864}
   - component: {fileID: 680273864771012031}
   - component: {fileID: 8836191163903776366}
+  - component: {fileID: 183254153025691274}
   m_Layer: 10
   m_Name: Monk
   m_TagString: NPC
@@ -310,3 +311,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   yFactor: 10
   baseOrder: 1
+  isStaticDecor: 0
+--- !u!114 &183254153025691274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6602815683075122701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d692b154f7308674fa98c3907cc9fe84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bridgeOffset: 1
