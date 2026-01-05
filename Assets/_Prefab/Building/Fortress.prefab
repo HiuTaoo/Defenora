@@ -91,7 +91,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentCollideGameObject: {fileID: 0}
   layerIndex: -1
 --- !u!60 &7212452886757199008
 PolygonCollider2D:
@@ -318,6 +317,8 @@ MonoBehaviour:
   currentCapacity: 0
   buildingType: 0
   buildingState: 0
+  currentBuildProgress: 0
+  buildSpeedPerHit: 5
   stationedUnits: []
   currentTask:
     targetGameObject: {fileID: 0}
@@ -360,7 +361,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runOnce: 0
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!114 &746064543262414782
 MonoBehaviour:
   m_ObjectHideFlags: 0
