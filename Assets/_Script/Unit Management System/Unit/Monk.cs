@@ -18,22 +18,6 @@ public class Monk : Unit
 
     public override void UseSpecialAbility()
     {
-        // Hồi máu cho đồng minh xung quanh
-        if (Time.time >= nextHealTime)
-        {
-            Collider2D[] nearbyUnits = Physics2D.OverlapCircleAll(transform.position, healRange);
-
-            foreach (var collider in nearbyUnits)
-            {
-                Unit unit = collider.GetComponent<Unit>();
-                if (unit != null && unit != this)
-                {
-                    unit.Heal(healAmount);
-                }
-            }
-
-            nextHealTime = Time.time + healCooldown;
-            Debug.Log($"{unitName} đã hồi máu cho đồng minh!");
-        }
     }
+
 }

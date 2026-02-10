@@ -1,77 +1,83 @@
-using System.Collections;
 using System.Collections.Generic;
+using _Script.Task;
 using UnityEngine;
 
 public class TaskManager : MonoBehaviour
 {
-    private UnitManager unitManager;
-
-    public Queue<Task> newTaskQueue = new Queue<Task>();
-
-    public Queue<Task> pendingTask = new Queue<Task>();
-
-    public List<Task> listTaskInNewTaskQueue = new List<Task>();
-
-    public List<Task> inProgressTask = new List<Task>();
-
-    public List<Task> listTaskInPendingQueue = new List<Task>();
-
-    public System.Action<Task> OnTaskCreated;
-
     public static TaskManager Instance { get; private set; }
+
+    [Header("All Tasks (Global Blackboard)")]
+    [SerializeField]
+    private List<Task> allTasks = new List<Task>();
+
+    public IReadOnlyList<Task> AllTasks => allTasks;
 
     private void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
         else
-        {
             Destroy(gameObject);
-        }
     }
 
-    private void Update()
+    // =========================
+    // TASK LIFECYCLE
+    // =========================
+
+    public void AddTask(Task task)
     {
-        if (unitManager == null)
-            GetUnitManager();
-        listTaskInPendingQueue = new List<Task>(pendingTask);
-        listTaskInNewTaskQueue = new List<Task>(newTaskQueue);
-    }
+        if (task == null)
+            return;
 
-    public void AddNewTask(Task task)
-    {
-        if (task == null) return;
-
-        newTaskQueue.Enqueue(task);
-        Debug.Log($"New task has been added: {task.taskType}");
-        OnTaskCreated?.Invoke(task);
-    }
-
-    public void CompletedTask(Task task)
-    {
-        if (task == null || !inProgressTask.Contains(task)) return;
-
-        task.CompleteTask(task.taskType);
-        inProgressTask.Remove(task);
-
-        foreach(var builder in task.listBuilders)
+        if (!allTasks.Contains(task))
         {
-            if (builder != null)
-            {
-                builder.currentTask = null;
-                builder.currentState = UnitState.Idle;
-                builder.OnUnitIdle?.Invoke(builder);
-            }
+            allTasks.Add(task);
         }
-
     }
 
-    private void GetUnitManager()
+    public void RemoveTask(Task task)
     {
-        if (UnitManager.Instance != null)
-            unitManager = UnitManager.Instance;
+        if (task == null)
+            return;
+
+        if (allTasks.Remove(task))
+        {
+            Debug.Log($"[TaskManager] Remove task: {task.taskType}");
+        }
     }
 
+    // =========================
+    // QUERY (OPTIONAL – RẤT HỮU ÍCH)
+    // =========================
+
+    public IEnumerable<Task> GetAvailableTasks()
+    {
+        foreach (var task in allTasks)
+        {
+            if (!task.IsCompleted && task.HasFreeSlot())
+                yield return task;
+        }
+    }
+
+    public IEnumerable<Task> GetTasksByStatus(TaskStatus status)
+    {
+        foreach (var task in allTasks)
+        {
+            if (task.taskStatus == status)
+                yield return task;
+        }
+    }
+
+/*#if UNITY_EDITOR
+    private void OnGUI()
+    {
+        GUILayout.Label($"Tasks: {allTasks.Count}");
+        foreach (var task in allTasks)
+        {
+            GUILayout.Label(
+                $"{task.taskType} | {task.taskStatus} | {task.Builders.Count}/{task.maxBuilders}"
+            );
+        }
+    }
+#endif*/
 }

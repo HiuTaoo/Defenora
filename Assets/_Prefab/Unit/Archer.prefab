@@ -100,7 +100,6 @@ GameObject:
   - component: {fileID: 1685579659005612717}
   - component: {fileID: 6345838413841934660}
   - component: {fileID: 6867302939378748637}
-  - component: {fileID: 6194345323299169843}
   - component: {fileID: 5712727403880073999}
   - component: {fileID: 7621971442396312281}
   m_Layer: 10
@@ -286,35 +285,19 @@ MonoBehaviour:
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
+    layerIndex: 0
     taskStatus: 0
     maxBuilders: 0
-    layerIndex: 0
-    listBuilders: []
-    isInPendingQueue: 0
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
+  assignedBuilding: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
-  assignedBuilding: {fileID: 0}
   floorAgent: {fileID: 0}
   arrowPrefab: {fileID: 0}
   firePoint: {fileID: 0}
   fireRate: 1
---- !u!114 &6194345323299169843
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9163186071473850716}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 27b03c853d3ca1048bb2160f13691f0b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rb: {fileID: 1685579659005612717}
-  animator: {fileID: 5867290427063926860}
-  agentPhysics2D: {fileID: 7759679723960676305}
-  archerCollider: {fileID: 0}
-  characterMovement: {fileID: 4114209612446939412}
 --- !u!114 &5712727403880073999
 MonoBehaviour:
   m_ObjectHideFlags: 0

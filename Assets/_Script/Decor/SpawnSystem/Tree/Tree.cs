@@ -11,7 +11,7 @@ public class Tree : MonoBehaviour, IChoppable
     public int layerIndex;
     public int currentChopHit = 0;
     public Vector3Int positionInGrid;
-    public Task currentTask;
+    private Task currentTask;
 
     private SpriteRenderer spriteRenderer;
     private Animator animator;
@@ -21,6 +21,10 @@ public class Tree : MonoBehaviour, IChoppable
     private bool hasBeenChopped = false;
 
     public Action<IChoppable> OnChoppedObject { get; set; } 
+    
+    private Builder claimedBy;
+
+    public bool IsClaimed => claimedBy != null;
 
     private void Awake()
     {
@@ -89,6 +93,31 @@ public class Tree : MonoBehaviour, IChoppable
         // treeCollider.enabled = false;
 
         OnChoppedObject?.Invoke(this);
+    }
+
+    public bool TryClaim(Builder builder)
+    {
+        if (claimedBy != null)
+            return false;
+
+        claimedBy = builder;
+        return true;
+    }
+
+    public void Release(Builder builder)
+    {
+        if (claimedBy == builder)
+            claimedBy = null;
+    }
+    
+    public Task GetTask()
+    {
+        return currentTask;
+    }
+
+    public void SetTask(Task task)
+    {
+        currentTask = task;
     }
 
 }

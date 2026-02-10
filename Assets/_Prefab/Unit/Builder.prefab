@@ -100,9 +100,9 @@ GameObject:
   - component: {fileID: 1915212152733246068}
   - component: {fileID: 3884093425256017183}
   - component: {fileID: 2885146454794559777}
-  - component: {fileID: 4703880664553601771}
   - component: {fileID: 3660066448183255177}
   - component: {fileID: 3025417812595231669}
+  - component: {fileID: 1888212580571355522}
   m_Layer: 10
   m_Name: Builder
   m_TagString: NPC
@@ -168,7 +168,8 @@ SpriteRenderer:
   m_SortingLayerID: -628924309
   m_SortingLayer: 4
   m_SortingOrder: 1
-  m_Sprite: {fileID: 414852911, guid: 2a36690d2e363b74fa9831586549dd53, type: 3}
+  m_Sprite: {fileID: -5948806968594788206, guid: 4c87a6310f87c47f1b785669e6191f00,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -189,7 +190,7 @@ Animator:
   m_GameObject: {fileID: 4446480107038641665}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 44d5d2a613dbd42419e397f725ddc939, type: 2}
+  m_Controller: {fileID: 9100000, guid: 392949dc7dc664ffa92fa29ae687d347, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -287,39 +288,21 @@ MonoBehaviour:
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
+    layerIndex: 0
     taskStatus: 0
     maxBuilders: 0
-    layerIndex: 0
-    listBuilders: []
-    isInPendingQueue: 0
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
+  assignedBuilding: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
-  assignedBuilding: {fileID: 0}
   floorAgent: {fileID: 0}
-  buildSpeed: 1
-  buildablePrefabs: []
---- !u!114 &4703880664553601771
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4446480107038641665}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1da4b64bfc25d194980ae3a1100ead20, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 3.5
-  chopBoxSize: {x: 1, y: 1}
-  chopDistance: 0.5
-  rb: {fileID: 0}
-  animator: {fileID: 0}
-  agentPhysics2D: {fileID: 0}
-  builderCollider: {fileID: 0}
-  characterMovement: {fileID: 0}
-  floorAgent: {fileID: 0}
-  builderUnit: {fileID: 0}
+  workBoxSize: {x: 1, y: 1}
+  workRange: 0.2
+  currentTool: 4
+  currentResource: 3
+  animFSM: {fileID: 0}
 --- !u!114 &3660066448183255177
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -348,6 +331,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bridgeOffset: 1
+--- !u!114 &1888212580571355522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4446480107038641665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d2babb833e41d7a39ecf236e85d6a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationProfileSO: {fileID: 11400000, guid: 7a380857135ff4a449847739f42f563a, type: 2}
 --- !u!1 &6753680548334571932
 GameObject:
   m_ObjectHideFlags: 0
@@ -358,7 +354,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4529321241409971695}
   - component: {fileID: 1287960773851700773}
-  - component: {fileID: 4030804285919024086}
   m_Layer: 0
   m_Name: Finding Target Object Collider
   m_TagString: Untagged
@@ -416,15 +411,3 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 1.5
---- !u!114 &4030804285919024086
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6753680548334571932}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54bcc7e595b476e48938cfa040122987, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

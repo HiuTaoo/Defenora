@@ -152,15 +152,24 @@ public class EditBuildingManager : MonoBehaviour
         }
     }
 
+    private void CreateBuildStructureTask()
+    {
+        foreach (var building in listPlacedBuilding)
+        {
+            var buildingComponent = building.gameObject.GetComponent<Building>();
+            buildingComponent.CreateBuildStructureTask();
+        }
+    }
+
     private void HandleSaveBuilding() {
         UpdateGraphNode();
         ChangeBuildingState();
+        CreateBuildStructureTask();
         UnitManager.Instance.buildings.AddRange(listPlacedBuilding);
         RollBackBuildingVisual();
         listPlacedBuilding.Clear();
     }
-
-
+    
     public bool CheckIsTempBuiling(Building building)
     {
         if(listPlacedBuilding.Count > 0)

@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 8297012556547123896}
   - component: {fileID: 2722583741435187917}
   - component: {fileID: 4596112636076992252}
-  - component: {fileID: 4350320347764061682}
   - component: {fileID: 5869277206965500433}
   - component: {fileID: 8756480895445328423}
   - component: {fileID: 8050703228285986877}
@@ -81,7 +80,8 @@ SpriteRenderer:
   m_SortingLayerID: -628924309
   m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: -978153640, guid: ff903c3a034b05348bc476fb3931b351, type: 3}
+  m_Sprite: {fileID: 7384290322352760091, guid: 63555c658eb534f48acbb1ba682fbec3,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -164,7 +164,7 @@ Animator:
   m_GameObject: {fileID: 2417399181293632922}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 497f9413dc1e6934b9f782d63cda8470, type: 2}
+  m_Controller: {fileID: 9100000, guid: aa1112b337436413a9e3f0f07d8475c2, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -175,23 +175,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &4350320347764061682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2417399181293632922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29f6ad43a4268384794826a35988cc67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rb: {fileID: 2722583741435187917}
-  animator: {fileID: 4596112636076992252}
-  agentPhysics2D: {fileID: 4281134691819306975}
-  warriorCollider: {fileID: 0}
-  characterMovement: {fileID: 5040010967329960600}
 --- !u!114 &5869277206965500433
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -217,14 +200,15 @@ MonoBehaviour:
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
+    layerIndex: 0
     taskStatus: 0
     maxBuilders: 0
-    layerIndex: 0
-    listBuilders: []
-    isInPendingQueue: 0
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
+  assignedBuilding: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
-  assignedBuilding: {fileID: 0}
   floorAgent: {fileID: 0}
   chargeSpeed: 8
   chargeDuration: 2

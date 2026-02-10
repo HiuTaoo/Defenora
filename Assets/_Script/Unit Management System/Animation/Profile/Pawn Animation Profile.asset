@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63a68761ca174d40bbb200fc1b09c7e6, type: 3}
+  m_Name: Pawn Animation Profile
+  m_EditorClassIdentifier: 
+  animations:
+  - state: 0
+    tool: 4
+    resource: 3
+    animationName: Pawn_Idle_Blue
+  - state: 0
+    tool: 1
+    resource: 3
+    animationName: Pawn_Idle Hammer_Blue
+  - state: 0
+    tool: 0
+    resource: 3
+    animationName: Pawn_Idle Axe_Blue
+  - state: 0
+    tool: 2
+    resource: 3
+    animationName: Pawn_Idle Knife_Blue
+  - state: 0
+    tool: 3
+    resource: 3
+    animationName: Pawn_Idle Pickaxe_Blue
+  - state: 1
+    tool: 4
+    resource: 3
+    animationName: Pawn_Run_Blue
+  - state: 1
+    tool: 1
+    resource: 3
+    animationName: Pawn_Run Hammer_Blue
+  - state: 1
+    tool: 0
+    resource: 3
+    animationName: Pawn_Run Axe_Blue
+  - state: 1
+    tool: 2
+    resource: 3
+    animationName: Pawn_Run Knife_Blue
+  - state: 1
+    tool: 3
+    resource: 3
+    animationName: Pawn_Run Pickaxe_Blue
+  - state: 3
+    tool: 1
+    resource: 3
+    animationName: Pawn_Interact Hammer_Blue
+  - state: 3
+    tool: 0
+    resource: 3
+    animationName: Pawn_Interact Axe_Blue
+  - state: 3
+    tool: 2
+    resource: 3
+    animationName: Pawn_Interact Knife_Blue
+  - state: 3
+    tool: 3
+    resource: 3
+    animationName: Pawn_Interact Pickaxe_Blue
+  - state: 0
+    tool: 4
+    resource: 0
+    animationName: Pawn_Idle Wood_Blue
+  - state: 0
+    tool: 4
+    resource: 1
+    animationName: Pawn_Idle Meat_Blue
+  - state: 0
+    tool: 4
+    resource: 2
+    animationName: Pawn_Idle Gold_Blue
+  - state: 1
+    tool: 4
+    resource: 0
+    animationName: Pawn_Run Wood_Blue
+  - state: 1
+    tool: 4
+    resource: 1
+    animationName: Pawn_Run Meat_Blue
+  - state: 1
+    tool: 4
+    resource: 2
+    animationName: Pawn_Run Gold_Blue

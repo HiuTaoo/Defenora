@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using _Script.Task;
 using UnityEngine;
 
 public class InteractButton : MonoBehaviour
@@ -60,9 +61,10 @@ public class InteractButton : MonoBehaviour
                 {
                     Debug.Log($"Cây: {treeComponent.name} đang trong hàng đợt. Đang tìm kiếm builder để chặt.");
 
-                    var task = new Task(obj, TaskType.ChopTree, TaskStatus.NotStarted, 1, treeComponent.layerIndex);
-                    treeComponent.currentTask = task;
-                    TaskManager.Instance.AddNewTask(task);
+                    var task = new Task(obj, TaskType.ChopTree,  1, treeComponent.layerIndex);
+                    treeComponent.SetTask(task); 
+                    
+                    TaskManager.Instance.AddTask(task);
                 }
                 break;
             case InteractButtonState.Enter:

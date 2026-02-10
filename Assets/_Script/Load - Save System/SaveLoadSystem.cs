@@ -323,6 +323,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             Unit unit = unitManager.CreateUnit(unitDatum.unitType, unitDatum.position);
             unit.unitName = unitDatum.unitName;
+            unit.unitType = unitDatum.unitType;
             unit.gameObject.name = unitDatum.unitName;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
             foreach (var building in unitManager.buildings) {

@@ -113,7 +113,7 @@ public class CharacterMovement : MonoBehaviour
     }
 
 
-    public IEnumerator FollowPathCoroutine(PathFinding path)
+    /*public IEnumerator FollowPathCoroutine(PathFinding path)
     {
         if (path.totalCost == 0)
             yield return null;
@@ -160,14 +160,83 @@ public class CharacterMovement : MonoBehaviour
                     yield return null;
                 }
                 CurrentLayer = segment.layerIndex;
+                var unit = transform.parent.GetComponent<Unit>();
+                if (unit != null)
+                    unit.currentState = UnitState.Idle;
             }
         }
 
         PathfindingAlgorithm.Instance.ClearPath();
         moving = false;
         moveCoroutine = null;
-    }
+    }*/
+    
+    public IEnumerator FollowPathCoroutine(PathFinding path)
+    {
+        if (path == null || path.segments == null || path.segments.Count == 0)
+        {
+            moving = false;
+            yield break;
+        }
 
+        moving = true;
+
+        var unit = transform.parent.GetComponent<Unit>();
+        if (unit != null)
+            unit.currentState = UnitState.Moving;
+
+        foreach (var segment in path.segments)
+        {
+            for (int i = 0; i < segment.positions.Count; i++)
+            {
+                var tilePos = segment.positions[i];
+                Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
+                targetCenter.z = transform.parent.position.z;
+
+                while ((transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
+                {
+                    var dir = ((Vector2)targetCenter - rb.position).normalized;
+                    direction = dir;
+                    HandleFlip(dir);
+
+                    if (agentPhysics2D.IsBuilding(
+                            transform.parent.position,
+                            direction,
+                            0.01f,
+                            moveSpeed,
+                            circleCollider2D))
+                    {
+                        // ❗ path không còn hợp lệ
+                        moving = false;
+
+                        if (unit != null)
+                            unit.currentState = UnitState.Idle;
+
+                        currentPath = null;   // 🔥 báo cho BT biết path chết
+                        yield break;
+                    }
+
+                    Vector2 nextPosition = Vector2.MoveTowards(
+                        rb.position,
+                        targetCenter,
+                        moveSpeed * Time.fixedDeltaTime);
+
+                    rb.MovePosition(nextPosition);
+                    yield return null;
+                }
+
+                CurrentLayer = segment.layerIndex;
+            }
+        }
+
+        moving = false;
+
+        if (unit != null)
+            unit.currentState = UnitState.Idle;
+
+        moveCoroutine = null;
+    }
+    
     public void MoveTo(Vector2 targetPosition)
     {
         if (moveCoroutine != null)

@@ -16,6 +16,10 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
     private SpriteRenderer spriteRenderer;
 
     public Action<IChoppable> OnChoppedObject { get; set; }
+    
+    private Builder claimedBy;
+
+    public bool IsClaimed => claimedBy != null;
 
     public virtual void Awake()
     {
@@ -54,18 +58,20 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
         isBeingCleared = false;
     }
 
-    private void OnClearObject()
+    public void OnClearObject()
     {
         hasBeenChopped = true;
         int prefabIndex = -1;
 
         if (gameObject.CompareTag("Bush"))
         {
+            Release(claimedBy);
             prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs);
             SaveLoadSystem.Instance.ReturnToPool(gameObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs[prefabIndex]);
         }
         else if (gameObject.CompareTag("Rock"))
         {
+            Release(claimedBy);
             prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs);
             SaveLoadSystem.Instance.ReturnToPool(gameObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs[prefabIndex]);
         }
@@ -78,5 +84,19 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
     {
         OnClearObject();
     }
+    
+    public bool TryClaim(Builder builder)
+    {
+        if (claimedBy != null)
+            return false;
 
+        claimedBy = builder;
+        return true;
+    }
+
+    public void Release(Builder builder)
+    {
+        if (claimedBy == builder)
+            claimedBy = null;
+    }
 }

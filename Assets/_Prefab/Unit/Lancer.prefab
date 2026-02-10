@@ -99,7 +99,6 @@ GameObject:
   - component: {fileID: 2040500343385495937}
   - component: {fileID: 1563502413937114029}
   - component: {fileID: 8280558650109143541}
-  - component: {fileID: 5895243835817682444}
   - component: {fileID: 7733666581131024601}
   - component: {fileID: 3665529698773067817}
   - component: {fileID: 2837562405334351045}
@@ -167,7 +166,8 @@ SpriteRenderer:
   m_SortingLayerID: -628924309
   m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: 584756821, guid: b8e617c2bffadfe478da80b4294e48fc, type: 3}
+  m_Sprite: {fileID: -594197781322936934, guid: 2307ce0d618cb4ea2be2cb2a4148cbde,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -188,7 +188,7 @@ Animator:
   m_GameObject: {fileID: 4124294002956455345}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 893c88c8299cab845997a7dd993e652d, type: 2}
+  m_Controller: {fileID: 9100000, guid: fa7ae5cd619544ca4a4ea82a50baa12d, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -261,23 +261,6 @@ CircleCollider2D:
   m_Offset: {x: -0.027789434, y: 0}
   serializedVersion: 2
   m_Radius: 0.47221056
---- !u!114 &5895243835817682444
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4124294002956455345}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 920638de9bb105247a0506bf48b06b24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rb: {fileID: 0}
-  animator: {fileID: 0}
-  agentPhysics2D: {fileID: 0}
-  lancerCollider: {fileID: 0}
-  characterMovement: {fileID: 0}
 --- !u!114 &7733666581131024601
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -303,14 +286,15 @@ MonoBehaviour:
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
+    layerIndex: 0
     taskStatus: 0
     maxBuilders: 0
-    layerIndex: 0
-    listBuilders: []
-    isInPendingQueue: 0
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
+  assignedBuilding: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
-  assignedBuilding: {fileID: 0}
   floorAgent: {fileID: 0}
   chargeSpeed: 8
   chargeDuration: 2

@@ -45,7 +45,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentCollideGameObject: {fileID: 0}
   layerIndex: -1
 --- !u!70 &3690479180729775736
 CapsuleCollider2D:
@@ -54,7 +53,7 @@ CapsuleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3814112241329904214}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -211,6 +210,8 @@ MonoBehaviour:
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
   isDecorative: 1
+  maxChopHit: 3
+  currentChopHit: 0
 --- !u!114 &5865098679597247942
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,7 +224,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runOnce: 1
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!114 &68788015722028517
 MonoBehaviour:
   m_ObjectHideFlags: 0

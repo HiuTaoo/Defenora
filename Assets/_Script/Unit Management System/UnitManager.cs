@@ -26,7 +26,6 @@ public class UnitManager : MonoBehaviour
 
     private Transform unitParent;
     private Transform buildingParent;
-    private TaskManager taskManager;
 
     private Dictionary<GameObject, Queue<GameObject>> objectPools = new Dictionary<GameObject, Queue<GameObject>>();
 
@@ -67,8 +66,6 @@ public class UnitManager : MonoBehaviour
 
     private void Update()
     {
-        if (taskManager == null)
-            GetTaskManager();
     }
 
     #region Register Methods
@@ -96,9 +93,6 @@ public class UnitManager : MonoBehaviour
         {
             allUnits.Add(unit);
         }
-
-        unit.OnUnitIdle -= HandlePendingTask;
-        unit.OnUnitIdle += HandlePendingTask;
 
         unit.OnUnitDestroyed -= OnUnitDestroyed;
         unit.OnUnitDestroyed += OnUnitDestroyed;
@@ -248,196 +242,6 @@ public class UnitManager : MonoBehaviour
     #endregion
 
     #region Management Methods
-    public List<Unit> FindAllIdleBuilder()
-    {
-        List<Unit> idleBuilders = new List<Unit>();
-        foreach (Unit unit in allUnits)
-        {
-            if (unit.unitType == UnitType.Builder && unit.currentState == UnitState.Idle)
-            {
-                idleBuilders.Add(unit);
-            }
-        }
-        return idleBuilders;
-    }
-
-    public Queue<Builder> FindNearestBuilderQueue(Task task)
-    {
-        List<Unit> idleBuilders = FindAllIdleBuilder();
-        List<(Builder builder, float distance)> builderDistances = new List<(Builder, float)>();
-
-        foreach (Builder builder in idleBuilders)
-        {
-            var pathFinding = builder.CanMoveToTaskTarget(task);
-            var distance = pathFinding?.totalCost ?? -1;
-
-            if (distance < 0)
-                continue;
-
-            builderDistances.Add((builder, distance));
-        }
-
-        builderDistances.Sort((a, b) => a.distance.CompareTo(b.distance));
-
-        Queue<Builder> sortedQueue = new Queue<Builder>();
-        foreach (var entry in builderDistances)
-        {
-            sortedQueue.Enqueue(entry.builder);
-        }
-        Debug.Log($"Tìm thấy {sortedQueue.Count} công nhân rảnh rỗi để thực hiện công việc {task.taskType} tại {task.targetGameObject.transform.position}");
-        return sortedQueue;
-    }
-
-    #region Unit Task Assignment
-    public void AssignNewTaskToBuilder(Task task)
-    {
-        if (task == null || task.targetGameObject == null)
-        {
-            Debug.LogError("Task or target GameObject is null.");
-            return;
-        }
-
-        if (taskManager.newTaskQueue.Count > 0)
-        {
-            taskManager.newTaskQueue.Dequeue();
-        }
-
-        Queue<Builder> nearestBuilders = FindNearestBuilderQueue(task);
-        if (nearestBuilders.Count == 0)
-        {
-            Debug.LogWarning("Không có builder nào thực hiện được công việc này.");
-            if (!TaskManager.Instance.pendingTask.Contains(task))
-            {
-                TaskManager.Instance.pendingTask.Enqueue(task);
-            }
-            Debug.Log($"Task {task.targetGameObject} đang được thêm vào pending tasks.");
-            return;
-        }
-
-        while (task.listBuilders.Count < task.maxBuilders && nearestBuilders.Count > 0)
-        {
-            Builder assignedBuilder = nearestBuilders.Dequeue();
-            assignedBuilder.currentTask = task;
-            task.listBuilders.Add(assignedBuilder);
-            assignedBuilder.ExecuteTask();
-
-            Debug.Log($"Giao task {task.taskType} cho công nhân {assignedBuilder.unitName}");
-        }
-
-        if (!taskManager.inProgressTask.Contains(task))
-        {
-            taskManager.inProgressTask.Add(task);
-        }
-    }
-    private IEnumerator DelayAssignPendingTask(Task pendingTask, Builder builder)
-    {
-        yield return new WaitForSeconds(0.25f);
-        AssignPendingTaskToBuilder(pendingTask, builder);
-    }
-
-    public void AssignPendingTaskToBuilder(Task task, Builder builder)
-    {
-        if (task == null || task.targetGameObject == null || builder == null)
-        {
-            Debug.LogError("Task, target GameObject, or builder is null.");
-            return;
-        }
-
-        if (builder.currentState != UnitState.Idle && builder.currentTask.targetGameObject != null)
-        {
-            Debug.LogWarning($"Builder {builder.unitName} is not idle. Cannot assign pending task.");
-            if (!TaskManager.Instance.pendingTask.Contains(task))
-            {
-                TaskManager.Instance.pendingTask.Enqueue(task);
-            }
-            return;
-        }
-
-        builder.currentTask = task;
-        builder.currentState = UnitState.Working;
-        task.listBuilders.Add(builder);
-        taskManager.inProgressTask.Add(task);
-        builder.ExecuteTask();
-
-        Debug.Log($"Assigned pending task {task.taskType} to builder {builder.unitName}");
-    }
-
-    public void AssignInprogressTaskToBuilder(Builder builder)
-    {
-        if (builder == null)
-            return;
-
-        if (builder.currentState != UnitState.Idle && builder.currentTask != null)
-        {
-            Debug.LogWarning($"Builder {builder.unitName} is not idle. Cannot assign in-progress task.");
-            return;
-        }
-        foreach (Task task in taskManager.inProgressTask)
-        {
-            if (task.listBuilders.Count < task.maxBuilders && CanAssignTaskToBuilder(task, builder))
-            {
-                builder.currentTask = task;
-                task.listBuilders.Add(builder);
-                builder.ExecuteTask();
-                return;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Kiểm tra xem có thể assign task cho builder hay không
-    /// </summary>
-    /// <param name="task">Task cần kiểm tra</param>
-    /// <param name="builder">Builder cần assign</param>
-    /// <returns>True nếu có thể assign, False nếu không thể</returns>
-    private bool CanAssignTaskToBuilder(Task task, Builder builder)
-    {
-        if (task == null || builder == null)
-            return false;
-
-        if (task.targetGameObject == null)
-            return false;
-
-        if (builder.currentState != UnitState.Idle || builder.currentTask != null)
-            return false;
-
-        PathFinding pathFinding = builder.CanMoveToTaskTarget(task);
-
-        if (pathFinding == null || pathFinding.totalCost < 0)
-        {
-            Debug.LogWarning($"Không có đường đi thích hợp cho {builder.unitName} thực hiện công việc {task.taskType} tại vị trí {task.targetGameObject.transform.position}");
-            return false;
-        }
-
-        // Có thể thêm các điều kiện khác tùy vào game logic:
-        // - Kiểm tra tool requirements
-        // - Kiểm tra skill requirements
-        // - Kiểm tra distance limits
-        // - Kiểm tra resource availability
-
-        return true;
-    }
-
-    public void CleanupTaskFromInProgress(Task task, Unit unit)
-    {
-        if (task == null || unit == null) return;
-
-        if (taskManager.inProgressTask.Contains(task))
-        {
-            taskManager.inProgressTask.Remove(task);
-            Debug.Log($"Removed task {task.taskType} from inProgressTask");
-        }
-
-        if (task.listBuilders.Contains(unit))
-        {
-            task.listBuilders.Remove(unit as Builder);
-            Debug.Log($"Removed {unit.unitName} from task {task.taskType} builders list");
-        }
-
-        task.taskStatus = TaskStatus.NotStarted;
-    }
-    #endregion
-
     public Unit FindUnitIdleByType(UnitType unitType)
     {
         foreach (Unit unit in allUnits)
@@ -463,88 +267,6 @@ public class UnitManager : MonoBehaviour
 
     #endregion
 
-    #region Event Handling
-    private void HandleTaskCreated(Task task)
-    {
-        Debug.Log($"UnitManager đã nhận task mới: {task.taskType}");
-        AssignNewTaskToBuilder(task);
-    }
-
-    private void HandlePendingTask(Unit unit)
-    {
-        if (unit.currentState != UnitState.Idle)
-        {
-            Debug.LogWarning($"Unit {unit.unitName} đang không rảnh. State hiện tại: {unit.currentState}");
-            return;
-        }
-
-        Debug.Log($"Xử lí task trong đang tạm hoãn: {unit.unitName}, số lượng pending task: {TaskManager.Instance.pendingTask.Count}");
-
-        if (unit.unitType != UnitType.Builder || unit.currentState != UnitState.Idle || unit.currentTask != null)
-        {
-            Debug.LogWarning($"Unit {unit.unitName} không phù hợp cho task. Type: {unit.unitType}, State: {unit.currentState}, HasTask: {unit.currentTask != null}");
-            return;
-        }
-
-        Builder builder = unit as Builder;
-        if (builder == null)
-        {
-            Debug.LogError($"Unit {unit.unitName} is marked as Builder but cannot cast to Builder type.");
-            return;
-        }
-
-        Task assignableTask = null;
-
-        lock (TaskManager.Instance.pendingTask)
-        {
-            if (TaskManager.Instance.pendingTask.Count == 0)
-            {
-                Debug.Log($"Không có task nào đang tạm hoãn khi unit {unit.unitName} rảnh rỗi.");
-                Debug.Log($"Kiểm tra task đang tiến hành mà vẫn thiếu người cho builder {builder.unitName}");
-                AssignInprogressTaskToBuilder(builder);
-                return;
-            }
-
-            var tempQueue = new Queue<Task>();
-            bool foundAssignableTask = false;
-
-            while (TaskManager.Instance.pendingTask.Count > 0 && !foundAssignableTask)
-            {
-                var task = TaskManager.Instance.pendingTask.Dequeue();
-
-                if (CanAssignTaskToBuilder(task, builder))
-                {
-                    assignableTask = task;
-                    foundAssignableTask = true;
-                    Debug.Log($"Tìm thấy task {task.taskType} được giao cho builder {builder.unitName}");
-                }
-                else
-                {
-                    tempQueue.Enqueue(task);
-                    Debug.Log($"Task {task.taskType} không thể giao cho {builder.unitName}, trả lại hàng đợi");
-                }
-            }
-
-            while (tempQueue.Count > 0)
-            {
-                TaskManager.Instance.pendingTask.Enqueue(tempQueue.Dequeue());
-            }
-        }
-
-        if (assignableTask != null)
-        {
-            StartCoroutine(DelayAssignPendingTask(assignableTask, builder));
-        }
-        else
-        {
-            Debug.Log($"Không có pending task nào có thể giao cho {builder.unitName}");
-            
-        }
-    }
-
-
-    #endregion
-
     #region Utility Methods
     public bool DeployUnitToStation(Unit unit, Building station)
     {
@@ -558,24 +280,7 @@ public class UnitManager : MonoBehaviour
 
         return station.CanAddUnit(unit);
     }
-
-    public bool RecallUnit(Unit unit)
-    {
-        if (unit == null)
-            return false;
-
-        foreach (Building station in buildings)
-        {
-            if (station.RemoveUnit(unit))
-            {
-                unit.StopMovement();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    
     private GameObject GetUnitPrefab(UnitType unitType)
     {
         switch (unitType)
@@ -643,24 +348,13 @@ public class UnitManager : MonoBehaviour
         {
             totalUnits = allUnits.Count,
             archerCount = GetUnitsByType(UnitType.Archer).Count,
-            priestCount = GetUnitsByType(UnitType.Monk).Count,
+            monkCount = GetUnitsByType(UnitType.Monk).Count,
             warriorCount = GetUnitsByType(UnitType.Warrior).Count,
             builderCount = GetUnitsByType(UnitType.Builder).Count,
             idleUnits = GetIdleUnits().Count,
             totalBuildings = buildings.Count
         };
     }
-
-    private void GetTaskManager()
-    {
-        if (TaskManager.Instance != null)
-        {
-            taskManager = TaskManager.Instance;
-            taskManager.OnTaskCreated += HandleTaskCreated;
-        }
-    }
-    #endregion
-
     public void UpdateGraphNodeWhenStart()
     {
         foreach (var building in buildings)
@@ -675,4 +369,7 @@ public class UnitManager : MonoBehaviour
             }
         }
     }
+    #endregion
+
+    
 }

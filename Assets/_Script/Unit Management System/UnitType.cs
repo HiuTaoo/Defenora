@@ -20,11 +20,3 @@ public enum UnitState
     Patrolling,
     Attacking
 }
-
-
-public enum StationType
-{
-    Watchtower, 
-    Fortress,    
-    Mine      
-}

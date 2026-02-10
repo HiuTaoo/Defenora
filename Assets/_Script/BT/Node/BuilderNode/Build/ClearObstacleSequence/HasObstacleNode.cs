@@ -1,0 +1,32 @@
+﻿using UnityEngine;
+
+namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
+{
+    public class HasObstacleNode : BTActionNode
+    {
+        public HasObstacleNode(Builder builder) : base(builder) { }
+
+        public override BTStatus Tick()
+        {
+            if (builder.currentTask == null || builder.currentTask.targetGameObject == null)
+                return BTStatus.Failure;
+
+            var building = builder.currentTask.targetGameObject.GetComponent<Building>();
+            if (building == null)
+                return BTStatus.Failure;
+  
+            var obstacle = building.FindObstacleObject();
+            if (obstacle == null)
+                return BTStatus.Failure; 
+
+            if (!obstacle.IsClaimed && obstacle.TryClaim(builder))
+            {
+                builder.builderBlackBoard.currentObstacle = obstacle;
+                builder.targetGO = (obstacle as Component)?.gameObject;
+            }
+
+            return BTStatus.Success;
+        }
+
+    }
+}

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using _Script.Task;
 using UnityEngine;
 
 public abstract class Building : MonoBehaviour, IBuildable
@@ -19,7 +20,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     [Header("Build Progress")]
     [Range(0f, 100f)]
     public float currentBuildProgress = 0f; 
-    public float buildSpeedPerHit = 5f; 
+    public float buildSpeedPerHit = 10f; 
 
     [Header("Unit Management")]
     public List<Unit> stationedUnits = new List<Unit>();
@@ -73,10 +74,10 @@ public abstract class Building : MonoBehaviour, IBuildable
     {
         UpdateAnimation();
 
-        if (buildingState == BuildingState.UnderConstruction && currentTask.targetGameObject == null)
+        /*if (buildingState == BuildingState.UnderConstruction && currentTask == null)
         {
-            CreateContructionTask();
-        }
+            CreateConstructionTask();
+        }*/
 
         if (spriteRenderer.isVisible)
         {
@@ -150,26 +151,23 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     }
 
-    private void CreateContructionTask()
+    public void CreateBuildStructureTask()
     {
-        currentTask = new Task(this.gameObject, TaskType.BuildStructure, TaskStatus.NotStarted, 3, LayerIndex);
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, range / 2);
-        var count = 0;
-        foreach (Collider2D collider in colliders)
-        {
-            if (collider.CompareTag("Bush") || collider.CompareTag("Rock"))
-            {
-                var cleanTask = new Task(collider.gameObject, TaskType.CleanUp, TaskStatus.NotStarted, 1, LayerIndex);
-                TaskManager.Instance.AddNewTask(cleanTask);
-                count++;
-            }
-        }
-        if (count > 0)
-        {
-            Debug.Log($"Đã thêm {count} nhiệm vụ dọn dẹp trước khi xây dựng {buildingName}.");
-        }
-        TaskManager.Instance.AddNewTask(currentTask);
+        if (currentTask.targetGameObject != null)
+            return;
+
+        currentTask = new Task(
+            target: this.gameObject,
+            type: TaskType.BuildStructure,
+            maxBuilders: 3,
+            layerIndex: LayerIndex
+        );
+
+        TaskManager.Instance.AddTask(currentTask);
+
+        Debug.Log($"[Building] Created BuildStructure task for {buildingName}");
     }
+
 
     #region Unit Management
     public bool CanAddUnit(Unit unit)
@@ -489,8 +487,16 @@ public abstract class Building : MonoBehaviour, IBuildable
         hasBeenBuilded = true;
         buildingState = BuildingState.Completed;
 
+        if (currentTask != null)
+        {
+            currentTask.Complete();
+            TaskManager.Instance.RemoveTask(currentTask);
+            currentTask = null;
+        }
+
         OnBuiltObject?.Invoke(this);
     }
+
 
     private IEnumerator BuildEffect()
     {
@@ -503,6 +509,47 @@ public abstract class Building : MonoBehaviour, IBuildable
         isBeingBuilded = false;
         buildEffectCoroutine = null;
     }
+    
+    public bool HasObstacleAroundBuilding( float radius = 3f)
+    {
+        Vector3 center = transform.position;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius);
+
+        foreach (var hit in hits)
+        {
+            if (hit.gameObject == gameObject)
+                continue;
+            
+            if (hit.TryGetComponent<IChoppable>(out var choppable))
+            {
+                return true; 
+            }
+        }
+        return false;
+    }
+    
+    public IChoppable FindObstacleObject( float radius = 2f)
+    {
+        Vector3 center = transform.position;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius);
+
+        foreach (var hit in hits)
+        {
+            if (hit.gameObject == gameObject)
+                continue;
+            
+            if (hit.TryGetComponent<IChoppable>(out var choppable) && !choppable.IsClaimed)
+            {
+                if(choppable is Tree)
+                    continue;
+                return choppable; 
+            }
+        }
+        return null;
+    }
+    
     #endregion
 
 #if UNITY_EDITOR

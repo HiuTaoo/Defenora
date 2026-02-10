@@ -101,8 +101,10 @@ public class PlayerInteraction : MonoBehaviour
                             currentObject = interactCollider.gameObject;
                             var tree = currentObject.GetComponent<Tree>();
                             LookUpLayerIndex();
-                            if (layerIndex == playerLayerIndex && tree.currentTask.targetGameObject == null 
-                                && tree.treeState != TreeState.Chopped)
+                            var task = tree.GetTask();
+
+                            if (layerIndex == playerLayerIndex &&
+                                (task == null || task.targetGameObject == null) && tree.treeState != TreeState.Chopped)
                             {
                                 interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
                                 interactButtonState = InteractButtonState.Cut;

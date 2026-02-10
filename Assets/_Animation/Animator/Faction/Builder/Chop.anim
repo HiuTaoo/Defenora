@@ -89,14 +89,7 @@ AnimationClip:
   m_HasMotionFloatCurves: 0
   m_Events:
   - time: 0.3
-    functionName: Chop
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 0.5833333
-    functionName: EndChopAction
+    functionName: TryChop
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

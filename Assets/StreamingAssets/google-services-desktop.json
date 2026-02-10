@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "974214658925",
+    "project_id": "defenora",
+    "storage_bucket": "defenora.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:974214658925:android:afa20fc3221dbf91baf864",
+        "android_client_info": {
+          "package_name": "com.hiutao.defenora"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdZ0eE9m9HWlQjreExbDthYHtLeHGCxCk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
