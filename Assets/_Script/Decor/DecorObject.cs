@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.Object_Pooling;
 using UnityEngine;
 
 public abstract class DecorObject : MonoBehaviour, IChoppable
@@ -66,14 +67,14 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
         if (gameObject.CompareTag("Bush"))
         {
             Release(claimedBy);
-            prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs);
-            SaveLoadSystem.Instance.ReturnToPool(gameObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs[prefabIndex]);
+            prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, PrefabConfig.Instance.bushPrefabs);
+            PoolManager.Instance.Despawn(PrefabConfig.Instance.bushPrefabs[prefabIndex]);
         }
         else if (gameObject.CompareTag("Rock"))
         {
             Release(claimedBy);
-            prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs);
-            SaveLoadSystem.Instance.ReturnToPool(gameObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs[prefabIndex]);
+            prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, PrefabConfig.Instance.rockPrefabs);
+            PoolManager.Instance.Despawn(PrefabConfig.Instance.rockPrefabs[prefabIndex]);
         }
 
         gameObject.SetActive(false);

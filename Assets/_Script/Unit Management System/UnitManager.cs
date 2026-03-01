@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using _Script.Object_Pooling;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static UnityEditor.ObjectChangeEventStream;
@@ -12,7 +13,7 @@ public class UnitManager : MonoBehaviour
     public List<Building> buildings = new List<Building>();
     public Dictionary<string, GameObject> buildingPrefabs;
 
-    [Header("Unit Prefabs")]
+    /*[Header("Unit Prefabs")]
     public GameObject archerPrefab;
     public GameObject monkPrefab;
     public GameObject warriorPrefab;
@@ -22,13 +23,12 @@ public class UnitManager : MonoBehaviour
     [Header("Building Prefab")]
     public GameObject fortressPrefab;
     public GameObject watchTowerPrefab;
-    public GameObject storagePrefab;
+    public GameObject storagePrefab;*/
 
     private Transform unitParent;
     private Transform buildingParent;
 
-    private Dictionary<GameObject, Queue<GameObject>> objectPools = new Dictionary<GameObject, Queue<GameObject>>();
-
+    
     public static UnitManager Instance { get; private set; }
 
     private void Awake()
@@ -48,24 +48,18 @@ public class UnitManager : MonoBehaviour
     {
         RefreshUnitList();
         RefreshStationList();
-        InitializeObjectPools();
-        PrewarmPools();
     }
 
     private void Register()
     {
         buildingPrefabs = new Dictionary<string, GameObject> {
-            { "Fortress", fortressPrefab },
-            { "WatchTower", watchTowerPrefab },
-            { "Storage", storagePrefab }
+            { "Fortress", PrefabConfig.Instance.fortressPrefab },
+            { "WatchTower", PrefabConfig.Instance.watchTowerPrefab },
+            { "Storage", PrefabConfig.Instance.storagePrefab }
         };
 
         unitParent = transform.Find("Unit");
         buildingParent = transform.Find("Building");
-    }
-
-    private void Update()
-    {
     }
 
     #region Register Methods
@@ -162,85 +156,6 @@ public class UnitManager : MonoBehaviour
     }
     #endregion
 
-    #region Object Pooling
-    private void InitializeObjectPools()
-    {
-        var spawnSettings = ObjectSpawner.Instance?.spawnSettings;
-        if (spawnSettings != null)
-        {
-            InitializePool(archerPrefab);
-            InitializePool(warriorPrefab);
-            InitializePool(monkPrefab);
-            InitializePool(builderPrefab);
-            InitializePool(lancerPrefab);
-        }
-    }
-
-    private void InitializePool(GameObject prefab)
-    {
-        objectPools[prefab] = new Queue<GameObject>();
-    }
-
-    public GameObject GetFromPool(GameObject prefab)
-    {
-        if (!objectPools.ContainsKey(prefab))
-            return Instantiate(prefab);
-
-        var pool = objectPools[prefab];
-        if (pool.Count > 0)
-        {
-            var obj = pool.Dequeue();
-            obj.SetActive(true);
-            return obj;
-        }
-
-        return Instantiate(prefab);
-    }
-
-    public void ReturnToPool(GameObject obj, GameObject prefab)
-    {
-        if (!objectPools.ContainsKey(prefab))
-        {
-            Destroy(obj);
-            return;
-        }
-
-        obj.SetActive(false);
-        objectPools[prefab].Enqueue(obj);
-    }
-
-    private void PrewarmPools()
-    {
-        var spawnSettings = ObjectSpawner.Instance?.spawnSettings;
-        if (spawnSettings != null)
-        {
-            PrewarmPool(archerPrefab, 5);
-            PrewarmPool(lancerPrefab, 5);
-            PrewarmPool(warriorPrefab, 5);
-            PrewarmPool(builderPrefab, 10);
-            PrewarmPool(monkPrefab, 5);
-        }
-    }
-
-    private void PrewarmPool(GameObject prefab, int count)
-    {
-        if (prefab != null && objectPools.ContainsKey(prefab))
-        {
-            for (int i = 0; i < count; i++)
-            {
-                var obj = Instantiate(prefab);
-                var pooling = transform.Find("Object Pooling");
-                if (pooling != null)
-                {
-                    obj.transform.SetParent(pooling);
-                }
-                obj.SetActive(false);
-                objectPools[prefab].Enqueue(obj);
-            }
-        }
-    }
-    #endregion
-
     #region Management Methods
     public Unit FindUnitIdleByType(UnitType unitType)
     {
@@ -296,11 +211,11 @@ public class UnitManager : MonoBehaviour
     {
         switch (unitType)
         {
-            case UnitType.Archer: return archerPrefab;
-            case UnitType.Monk: return monkPrefab;
-            case UnitType.Warrior: return warriorPrefab;
-            case UnitType.Builder: return builderPrefab;
-            case UnitType.Lancer: return lancerPrefab;
+            case UnitType.Archer: return PrefabConfig.Instance.archerPrefab;
+            case UnitType.Monk: return PrefabConfig.Instance.monkPrefab;
+            case UnitType.Warrior: return PrefabConfig.Instance.warriorPrefab;
+            case UnitType.Builder: return PrefabConfig.Instance.builderPrefab;
+            case UnitType.Lancer: return PrefabConfig.Instance.lancerPrefab;
             default: return null;
         }
     }
@@ -309,9 +224,9 @@ public class UnitManager : MonoBehaviour
     {
         switch (buildingType)
         {
-            case BuildingType.Fortress: return fortressPrefab;
-            case BuildingType.WatchTower: return watchTowerPrefab;
-            case BuildingType.Storage: return storagePrefab;
+            case BuildingType.Fortress: return PrefabConfig.Instance.fortressPrefab;
+            case BuildingType.WatchTower: return PrefabConfig.Instance.watchTowerPrefab;
+            case BuildingType.Storage: return PrefabConfig.Instance.storagePrefab;
             default: return null;
         }
     }

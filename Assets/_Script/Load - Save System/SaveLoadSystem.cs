@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Threading.Tasks;
+using _Script.Object_Pooling;
 using _Script.Unit_Management_System.Building;
 
 public class SaveLoadSystem : MonoBehaviour, ISaveable
@@ -46,14 +47,11 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         unitManager = FindObjectOfType<UnitManager>();
         decorObjectParent = transform.Find("Decor Object");
-
-        InitializeObjectPools();
     }
 
     void Start()
     {
         saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
-        PrewarmPools(); 
 
         if (loadAsync)
             StartCoroutine(LoadGameAsync());
@@ -71,89 +69,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             //Debug.Log($"Auto-saved game.");
         }
     }
-
-    #region Object Pooling
-    private void InitializeObjectPools()
-    {
-        if (!useObjectPooling) return;
-
-        var spawnSettings = ObjectSpawner.Instance?.spawnSettings;
-        if (spawnSettings != null)
-        {
-            InitializePool(spawnSettings.treePrefabs);
-            InitializePool(spawnSettings.bushPrefabs);
-            InitializePool(spawnSettings.rockPrefabs);
-            InitializePool(spawnSettings.animalPrefabs);
-        }
-    }
-
-    private void InitializePool(GameObject[] prefabs)
-    {
-        foreach (var prefab in prefabs)
-        {
-            if (prefab != null)
-                objectPools[prefab] = new Queue<GameObject>();
-        }
-    }
-
-    public GameObject GetFromPool(GameObject prefab)
-    {
-        if (!useObjectPooling || !objectPools.ContainsKey(prefab))
-            return Instantiate(prefab);
-
-        var pool = objectPools[prefab];
-        if (pool.Count > 0)
-        {
-            var obj = pool.Dequeue();
-            obj.SetActive(true);
-            return obj;
-        }
-
-        return Instantiate(prefab);
-    }
-
-    public void ReturnToPool(GameObject obj, GameObject prefab)
-    {
-        if (!useObjectPooling || !objectPools.ContainsKey(prefab))
-        {
-            Destroy(obj);
-            return;
-        }
-
-        obj.SetActive(false);
-        objectPools[prefab].Enqueue(obj);
-    }
-
-    private void PrewarmPools()
-    {
-        if (!useObjectPooling) return;
-
-        var spawnSettings = ObjectSpawner.Instance?.spawnSettings;
-        if (spawnSettings != null)
-        {
-            PrewarmPool(spawnSettings.treePrefabs, 20);
-            PrewarmPool(spawnSettings.bushPrefabs, 30);
-            PrewarmPool(spawnSettings.rockPrefabs, 15);
-            PrewarmPool(spawnSettings.animalPrefabs, 5);
-        }
-    }
-
-    private void PrewarmPool(GameObject[] prefabs, int count)
-    {
-        foreach (var prefab in prefabs)
-        {
-            if (prefab != null && objectPools.ContainsKey(prefab))
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    var obj = Instantiate(prefab);
-                    obj.SetActive(false);
-                    objectPools[prefab].Enqueue(obj);
-                }
-            }
-        }
-    }
-    #endregion
 
     public void SaveGame()
     {
@@ -390,7 +305,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (tree.treeComponent != null)
                 {
-                    int prefabIndex = GetPrefabIndex(tree.treeComponent.gameObject, ObjectSpawner.Instance.spawnSettings.treePrefabs);
+                    int prefabIndex = GetPrefabIndex(tree.treeComponent.gameObject, PrefabConfig.Instance.treePrefabs);
                     int clusterIndex = clusters.IndexOf(tree.parentCluster);
                     layerData.trees.Add(new SpawnedTreeData(tree, prefabIndex, clusterIndex));
                 }
@@ -403,7 +318,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (bush.bushObject != null)
                 {
-                    int prefabIndex = GetPrefabIndex(bush.bushObject, ObjectSpawner.Instance.spawnSettings.bushPrefabs);
+                    int prefabIndex = GetPrefabIndex(bush.bushObject, PrefabConfig.Instance.bushPrefabs);
                     int clusterIndex = bush.parentCluster != null ? clusters.IndexOf(bush.parentCluster) : -1;
                     layerData.bushes.Add(new SpawnedBushData(bush, prefabIndex, clusterIndex));
                 }
@@ -416,7 +331,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (rock.rockObject != null)
                 {
-                    int prefabIndex = GetPrefabIndex(rock.rockObject, ObjectSpawner.Instance.spawnSettings.rockPrefabs);
+                    int prefabIndex = GetPrefabIndex(rock.rockObject, PrefabConfig.Instance.rockPrefabs);
                     int clusterIndex = rock.parentCluster != null ? clusters.IndexOf(rock.parentCluster) : -1;
                     layerData.rocks.Add(new SpawnedRockData(rock, prefabIndex, clusterIndex));
                 }
@@ -429,7 +344,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (animal.animalObject != null && animal.animalComponent != null)
                 {
-                    int prefabIndex = GetPrefabIndex(animal.animalObject, ObjectSpawner.Instance.spawnSettings.animalPrefabs);
+                    int prefabIndex = GetPrefabIndex(animal.animalObject, PrefabConfig.Instance.animalPrefabs);
                     layerData.animals.Add(new SpawnedAnimalData(animal, prefabIndex));
                 }
             }
@@ -640,18 +555,16 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     #region Load Object Methods
     private SpawnedTree LoadTree(SpawnedTreeData treeData, List<TreeCluster> clusters)
     {
-        if (treeData.prefabIndex < 0 || treeData.prefabIndex >= ObjectSpawner.Instance.spawnSettings.treePrefabs.Length)
+        if (treeData.prefabIndex < 0 || treeData.prefabIndex >= PrefabConfig.Instance.treePrefabs.Length)
         {
             Debug.LogWarning($"Invalid tree prefab index: {treeData.prefabIndex}");
             return null;
         }
 
-        GameObject treePrefab = ObjectSpawner.Instance.spawnSettings.treePrefabs[treeData.prefabIndex];
+        GameObject treePrefab = PrefabConfig.Instance.treePrefabs[treeData.prefabIndex];
         Vector3 worldPosition = ObjectSpawner.Instance.GridToWorld(treeData.gridPosition);
 
-        GameObject treeObj = GetFromPool(treePrefab);
-        treeObj.transform.position = worldPosition;
-        treeObj.transform.rotation = Quaternion.identity;
+        GameObject treeObj = PoolManager.Instance.Spawn(treePrefab, worldPosition, Quaternion.identity);
         treeObj.transform.SetParent(this.transform);
         treeObj.transform.SetParent(decorObjectParent);
 
@@ -693,18 +606,16 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     private SpawnedBush LoadBush(SpawnedBushData bushData, List<TreeCluster> clusters)
     {
-        if (bushData.prefabIndex < 0 || bushData.prefabIndex >= ObjectSpawner.Instance.spawnSettings.bushPrefabs.Length)
+        if (bushData.prefabIndex < 0 || bushData.prefabIndex >= PrefabConfig.Instance.bushPrefabs.Length)
         {
             Debug.LogWarning($"Invalid bush prefab index: {bushData.prefabIndex}");
             return null;
         }
 
-        GameObject bushPrefab = ObjectSpawner.Instance.spawnSettings.bushPrefabs[bushData.prefabIndex];
+        GameObject bushPrefab = PrefabConfig.Instance.bushPrefabs[bushData.prefabIndex];
         Vector3 worldPosition = ObjectSpawner.Instance.GridToWorld(bushData.gridPosition);
 
-        GameObject bushObj = GetFromPool(bushPrefab);
-        bushObj.transform.position = worldPosition;
-        bushObj.transform.rotation = Quaternion.identity;
+        GameObject bushObj = PoolManager.Instance.Spawn(bushPrefab, worldPosition, Quaternion.identity);
         bushObj.transform.SetParent(this.transform);
         bushObj.transform.SetParent(decorObjectParent);
 
@@ -727,18 +638,16 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     private SpawnedRock LoadRock(SpawnedRockData rockData, List<TreeCluster> clusters)
     {
-        if (rockData.prefabIndex < 0 || rockData.prefabIndex >= ObjectSpawner.Instance.spawnSettings.rockPrefabs.Length)
+        if (rockData.prefabIndex < 0 || rockData.prefabIndex >= PrefabConfig.Instance.rockPrefabs.Length)
         {
             Debug.LogWarning($"Invalid rock prefab index: {rockData.prefabIndex}");
             return null;
         }
 
-        GameObject rockPrefab = ObjectSpawner.Instance.spawnSettings.rockPrefabs[rockData.prefabIndex];
+        GameObject rockPrefab = PrefabConfig.Instance.rockPrefabs[rockData.prefabIndex];
         Vector3 worldPosition = ObjectSpawner.Instance.GridToWorld(rockData.gridPosition);
-
-        GameObject rockObj = GetFromPool(rockPrefab);
-        rockObj.transform.position = worldPosition;
-        rockObj.transform.rotation = Quaternion.identity;
+        
+        GameObject rockObj = PoolManager.Instance.Spawn(rockPrefab, worldPosition, Quaternion.identity);
         rockObj.transform.SetParent(this.transform);
         rockObj.transform.SetParent(decorObjectParent);
 
@@ -769,16 +678,14 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     private SpawnedAnimal LoadAnimal(SpawnedAnimalData animalData)
     {
-        if (animalData.prefabIndex < 0 || animalData.prefabIndex >= ObjectSpawner.Instance.spawnSettings.animalPrefabs.Length)
+        if (animalData.prefabIndex < 0 || animalData.prefabIndex >= PrefabConfig.Instance.animalPrefabs.Length)
         {
             Debug.LogWarning($"Invalid animal prefab index: {animalData.prefabIndex}");
             return null;
         }
 
-        GameObject animalPrefab = ObjectSpawner.Instance.spawnSettings.animalPrefabs[animalData.prefabIndex];
-        GameObject animalObj = GetFromPool(animalPrefab);
-        animalObj.transform.position = animalData.currentPosition;
-        animalObj.transform.rotation = Quaternion.identity;
+        GameObject animalPrefab = PrefabConfig.Instance.animalPrefabs[animalData.prefabIndex];
+        GameObject animalObj = PoolManager.Instance.Spawn(animalPrefab, animalData.currentPosition, Quaternion.identity);
         animalObj.transform.SetParent(this.transform);
         animalObj.transform.SetParent(decorObjectParent);
 

@@ -6,6 +6,7 @@ using _Script.BT.BlackBoard;
 using _Script.BT.Node.BuilderNode;
 using _Script.BT.Node.BuilderNode.Build;
 using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
+using _Script.Object_Pooling;
 using _Script.Task;
 using _Script.Unit_Management_System.Animation;
 using UnityEngine;
@@ -139,7 +140,8 @@ public class Builder : Unit
                 currentTask.taskStatus = TaskStatus.Completed;
                 TaskManager.Instance.RemoveTask(currentTask);
                 currentTask = null;
-                InstaniateObject(ItemBlackBoard.Instance.woodPrefab, tree.gameObject.transform.position, tree.layerIndex, 1);
+                InstaniateObject(PrefabConfig.Instance.woodPrefab, 
+                    tree.gameObject.transform.position, tree.layerIndex, 1);
                 return true;
             }
         }
@@ -277,7 +279,7 @@ public class Builder : Unit
         {
             if (addedAmount >= item.amount)
             {
-                Destroy(item.gameObject);
+                PoolManager.Instance.Despawn(item.gameObject);
             }
             else
             {
@@ -392,8 +394,10 @@ public class Builder : Unit
     public GameObject InstaniateObject(GameObject obj, Vector3 worldPosition, int currentLayerIndex, int amount)
     {
         GameObject parentTransform = GameObject.Find("ItemSpawned");
-        var spawnedObj = Instantiate(obj, worldPosition, Quaternion.identity,
-            parentTransform != null ? parentTransform.transform : null);
+        var spawnedObj = PoolManager.Instance.Spawn(obj, 
+            worldPosition, Quaternion.identity);
+        
+        
 
         if (worldPosition.x > transform.position.x)
             spawnedObj.transform.localScale = new Vector3(-1, 1, 1);

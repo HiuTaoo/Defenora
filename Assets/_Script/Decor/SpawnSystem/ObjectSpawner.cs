@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using _Script.Object_Pooling;
 using UnityEngine;
 
 public class ObjectSpawner : MonoBehaviour
@@ -303,7 +304,7 @@ public class ObjectSpawner : MonoBehaviour
             if (IsPositionOccupied(position, cluster.layerIndex))
                 continue;
 
-            GameObject treePrefab = spawnSettings.treePrefabs[random.Next(spawnSettings.treePrefabs.Length)];
+            GameObject treePrefab = PrefabConfig.Instance.treePrefabs[random.Next(PrefabConfig.Instance.treePrefabs.Length)];
             Vector3 worldPosition = GridToWorld(position);
 
             GameObject treeObj = Instantiate(treePrefab, worldPosition, Quaternion.identity, this.transform);
@@ -352,7 +353,7 @@ public class ObjectSpawner : MonoBehaviour
 
     private List<SpawnedBush> SpawnBushesOnLayer(int layerIndex, List<SpawnedTree> trees, List<TreeCluster> clusters)
     {
-        if (spawnSettings.bushPrefabs == null || spawnSettings.bushPrefabs.Length == 0)
+        if (PrefabConfig.Instance.bushPrefabs == null || PrefabConfig.Instance.bushPrefabs.Length == 0)
         {
             return new List<SpawnedBush>();
         }
@@ -515,7 +516,7 @@ public class ObjectSpawner : MonoBehaviour
 
     private SpawnedBush SpawnBushAtPosition(Vector3Int position, int layerIndex, TreeCluster parentCluster)
     {
-        GameObject bushPrefab = spawnSettings.bushPrefabs[random.Next(spawnSettings.bushPrefabs.Length)];
+        GameObject bushPrefab = PrefabConfig.Instance.bushPrefabs[random.Next(PrefabConfig.Instance.bushPrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
         GameObject bushObj = Instantiate(bushPrefab, worldPosition, Quaternion.identity, this.transform);
@@ -538,7 +539,7 @@ public class ObjectSpawner : MonoBehaviour
     #region Spawn Rock
     private List<SpawnedRock> SpawnRocksOnLayer(int layerIndex, List<SpawnedTree> trees, List<TreeCluster> clusters)
     {
-        if (spawnSettings.rockPrefabs == null || spawnSettings.rockPrefabs.Length == 0)
+        if (PrefabConfig.Instance.rockPrefabs == null || PrefabConfig.Instance.rockPrefabs.Length == 0)
         {
             return new List<SpawnedRock>();
         }
@@ -696,7 +697,7 @@ public class ObjectSpawner : MonoBehaviour
 
     private SpawnedRock SpawnRockAtPosition(Vector3Int position, int layerIndex, TreeCluster parentCluster)
     {
-        GameObject rockPrefab = spawnSettings.rockPrefabs[random.Next(spawnSettings.rockPrefabs.Length)];
+        GameObject rockPrefab = PrefabConfig.Instance.rockPrefabs[random.Next(PrefabConfig.Instance.rockPrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
         GameObject rockObj = Instantiate(rockPrefab, worldPosition, Quaternion.identity, this.transform);
@@ -724,7 +725,7 @@ public class ObjectSpawner : MonoBehaviour
     #region Spawn Animal
     private List<SpawnedAnimal> SpawnAnimalsOnLayer(int layerIndex, List<SpawnedTree> trees, List<SpawnedBush> bushes, List<SpawnedRock> rocks, List<TreeCluster> clusters)
     {
-        if (spawnSettings.animalPrefabs == null || spawnSettings.animalPrefabs.Length == 0)
+        if (PrefabConfig.Instance.animalPrefabs == null || PrefabConfig.Instance.animalPrefabs.Length == 0)
         {
             return new List<SpawnedAnimal>();
         }
@@ -806,7 +807,7 @@ public class ObjectSpawner : MonoBehaviour
 
     private SpawnedAnimal SpawnAnimalAtPosition(Vector3Int position, int layerIndex)
     {
-        GameObject animalPrefab = spawnSettings.animalPrefabs[random.Next(spawnSettings.animalPrefabs.Length)];
+        GameObject animalPrefab = PrefabConfig.Instance.animalPrefabs[random.Next(PrefabConfig.Instance.animalPrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
         GameObject animalObj = Instantiate(animalPrefab, worldPosition, Quaternion.identity, this.transform);
@@ -1192,7 +1193,7 @@ public class ObjectSpawner : MonoBehaviour
 
     private SpawnedTree SpawnTreeAtPosition(Vector3Int position, int layerIndex, TreeCluster cluster)
     {
-        GameObject treePrefab = spawnSettings.treePrefabs[random.Next(spawnSettings.treePrefabs.Length)];
+        GameObject treePrefab = PrefabConfig.Instance.treePrefabs[random.Next(PrefabConfig.Instance.treePrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
         GameObject treeObj = Instantiate(treePrefab, worldPosition, Quaternion.identity, this.transform);

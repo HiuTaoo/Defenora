@@ -45,15 +45,18 @@ namespace _Script.BT.Node.BuilderNode
                 if (added > 0)
                 {
                     builder.currentInventory.Remove(type, added);
+                    builder.currentTask.taskStatus = TaskStatus.Completed;
+                    TaskManager.Instance.RemoveTask(builder.currentTask);
                 }
             }
             
             isDepositing = false;
             timer = 0f;
-
+            
             builder.currentResource = ResourceType.None;
             builder.UpdateAnim();
             builder.animFSM.ChangeState(UnitState.Idle);
+            builder.currentTask = null;
 
             return BTStatus.Success;
         }

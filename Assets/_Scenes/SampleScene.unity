@@ -2423,6 +2423,85 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eecf34129fc74914180760cac37dcaa8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &283616246
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 283616247}
+  - component: {fileID: 283616248}
+  m_Layer: 0
+  m_Name: Prefab Config
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &283616247
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283616246}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1193000362}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &283616248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283616246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b600570325ba4615b4380a1bbdfb3f47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  archerPrefab: {fileID: 9163186071473850716, guid: 153ccded75be38c4b86acf1983f0c61a,
+    type: 3}
+  monkPrefab: {fileID: 6602815683075122701, guid: 07ea391a267d1724ca46c8d9052f2190,
+    type: 3}
+  warriorPrefab: {fileID: 2417399181293632922, guid: 104b85fde5291614d81761bda79257dc,
+    type: 3}
+  builderPrefab: {fileID: 4446480107038641665, guid: 025e6fa42ec1c2a469ed1e7312a37155,
+    type: 3}
+  lancerPrefab: {fileID: 4124294002956455345, guid: 187a13ad6c03e0f419e485c7d9ccbbb2,
+    type: 3}
+  fortressPrefab: {fileID: 3379170715116996560, guid: a68a665378b71bf4597a35e944839e82,
+    type: 3}
+  watchTowerPrefab: {fileID: 6994465110449608766, guid: a15e6f9adbd329b418b4c8cddf5ffd08,
+    type: 3}
+  storagePrefab: {fileID: 4317628030385230672, guid: f3214acee366a224181ad5949e2ddc83,
+    type: 3}
+  woodPrefab: {fileID: 7863484325131383881, guid: c30b0f37fa212234b8f2f01b1bc3fe3f,
+    type: 3}
+  treePrefabs:
+  - {fileID: 5697450924608689214, guid: 7c2fe03ab850967418e7136975dfb126, type: 3}
+  - {fileID: 5276064107349130557, guid: 2529afe1a7cb22248bc4d6412437fcf7, type: 3}
+  - {fileID: 5100034286511634508, guid: bd456f67041267c47a13bfcffcce041d, type: 3}
+  - {fileID: 3411453609490766746, guid: 8cb819f8d3e44f74ab35f5e47d39eaa4, type: 3}
+  rockPrefabs:
+  - {fileID: 5158490374402420867, guid: 33efe4c4b3fdca041a3ddab410d0cdd9, type: 3}
+  - {fileID: 6301797900601607933, guid: 91ff87da10acf824caab8c3b34711eda, type: 3}
+  - {fileID: 5751919396076328951, guid: dee3ed08f3d12cb4aa876c84c6595f30, type: 3}
+  - {fileID: 8432121970952456116, guid: 9acaf66d6c1a7f048a85da3673ebd0a0, type: 3}
+  bushPrefabs:
+  - {fileID: 7113461632919070070, guid: b38086e99a4f3534bb60888e7f5b861a, type: 3}
+  - {fileID: 6991148153946299098, guid: 15f264e0e1fa89f4e91b0d2ee0450f0f, type: 3}
+  - {fileID: 5763684362129333738, guid: b46656bd8e1d05543bb596dbd61b2afc, type: 3}
+  - {fileID: 4888299571084455030, guid: 071ef5763569ab34d90a52838368a421, type: 3}
+  animalPrefabs:
+  - {fileID: 103944314967868800, guid: 05671fa0de4cb064cb80191a43190066, type: 3}
 --- !u!1 &287115104
 GameObject:
   m_ObjectHideFlags: 0
@@ -7979,22 +8058,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   allUnits: []
   buildings: []
-  archerPrefab: {fileID: 9163186071473850716, guid: 153ccded75be38c4b86acf1983f0c61a,
-    type: 3}
-  monkPrefab: {fileID: 6602815683075122701, guid: 07ea391a267d1724ca46c8d9052f2190,
-    type: 3}
-  warriorPrefab: {fileID: 2417399181293632922, guid: 104b85fde5291614d81761bda79257dc,
-    type: 3}
-  builderPrefab: {fileID: 4446480107038641665, guid: 025e6fa42ec1c2a469ed1e7312a37155,
-    type: 3}
-  lancerPrefab: {fileID: 4124294002956455345, guid: 187a13ad6c03e0f419e485c7d9ccbbb2,
-    type: 3}
-  fortressPrefab: {fileID: 3379170715116996560, guid: a68a665378b71bf4597a35e944839e82,
-    type: 3}
-  watchTowerPrefab: {fileID: 6994465110449608766, guid: a15e6f9adbd329b418b4c8cddf5ffd08,
-    type: 3}
-  storagePrefab: {fileID: 4317628030385230672, guid: f3214acee366a224181ad5949e2ddc83,
-    type: 3}
 --- !u!1 &1024100652
 GameObject:
   m_ObjectHideFlags: 0
@@ -9160,6 +9223,117 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1191379673}
   m_CullTransparentMesh: 1
+--- !u!1 &1193000361
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1193000362}
+  - component: {fileID: 1193000363}
+  m_Layer: 0
+  m_Name: Object Pooling
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1193000362
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193000361}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 283616247}
+  m_Father: {fileID: 1479350531}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1193000363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193000361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c138b43a9f5c2dc4aafb88e98e0adbfa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  poolsToPrewarm:
+  - prefab: {fileID: 5697450924608689214, guid: 7c2fe03ab850967418e7136975dfb126,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 5276064107349130557, guid: 2529afe1a7cb22248bc4d6412437fcf7,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 5100034286511634508, guid: bd456f67041267c47a13bfcffcce041d,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 3411453609490766746, guid: 8cb819f8d3e44f74ab35f5e47d39eaa4,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 5158490374402420867, guid: 33efe4c4b3fdca041a3ddab410d0cdd9,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 6301797900601607933, guid: 91ff87da10acf824caab8c3b34711eda,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 5751919396076328951, guid: dee3ed08f3d12cb4aa876c84c6595f30,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 8432121970952456116, guid: 9acaf66d6c1a7f048a85da3673ebd0a0,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 7113461632919070070, guid: b38086e99a4f3534bb60888e7f5b861a,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 6991148153946299098, guid: 15f264e0e1fa89f4e91b0d2ee0450f0f,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 5763684362129333738, guid: b46656bd8e1d05543bb596dbd61b2afc,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 4888299571084455030, guid: 071ef5763569ab34d90a52838368a421,
+      type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 9163186071473850716, guid: 153ccded75be38c4b86acf1983f0c61a,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 4446480107038641665, guid: 025e6fa42ec1c2a469ed1e7312a37155,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 4124294002956455345, guid: 187a13ad6c03e0f419e485c7d9ccbbb2,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 6602815683075122701, guid: 07ea391a267d1724ca46c8d9052f2190,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 2417399181293632922, guid: 104b85fde5291614d81761bda79257dc,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 7863484325131383881, guid: c30b0f37fa212234b8f2f01b1bc3fe3f,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 103944314967868800, guid: 05671fa0de4cb064cb80191a43190066, type: 3}
+    prewarmCount: 25
+  - prefab: {fileID: 3379170715116996560, guid: a68a665378b71bf4597a35e944839e82,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 4317628030385230672, guid: f3214acee366a224181ad5949e2ddc83,
+      type: 3}
+    prewarmCount: 5
+  - prefab: {fileID: 6994465110449608766, guid: a15e6f9adbd329b418b4c8cddf5ffd08,
+      type: 3}
+    prewarmCount: 5
 --- !u!1 &1193915709
 GameObject:
   m_ObjectHideFlags: 0
@@ -703301,7 +703475,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 2, y: -20, z: 0}
@@ -703541,7 +703715,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 18, y: -20, z: 0}
@@ -703676,7 +703850,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -19, y: -19, z: 0}
@@ -703946,7 +704120,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -26, y: -16, z: 0}
@@ -704186,7 +704360,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 21, y: -9, z: 0}
@@ -704216,7 +704390,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 21, y: -8, z: 0}
@@ -704636,7 +704810,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -25, y: 1, z: 0}
@@ -705026,7 +705200,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 24, y: 10, z: 0}
@@ -705101,7 +705275,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -21, y: 11, z: 0}
@@ -705131,7 +705305,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -19, y: 11, z: 0}
@@ -705371,7 +705545,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 0, y: 11, z: 0}
@@ -705641,7 +705815,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 18, y: 11, z: 0}
@@ -705716,7 +705890,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10
+      m_AnimationSpeed: 10.000001
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: 23, y: 11, z: 0}
@@ -705746,7 +705920,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -14, y: 12, z: 0}
@@ -705776,7 +705950,7 @@ Tilemap:
       - {fileID: 3962821419786391377, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: 2722876772995862566, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
       - {fileID: -6800427014071290710, guid: 73bfcefb5991e2c44ab7c01a8d0d4c1c, type: 3}
-      m_AnimationSpeed: 10.000001
+      m_AnimationSpeed: 10
       m_AnimationTimeOffset: 0
       m_Flags: 0
   - first: {x: -12, y: 12, z: 0}
@@ -705920,6 +706094,7 @@ Transform:
   - {fileID: 1075833601}
   - {fileID: 2143656044}
   - {fileID: 2079647206}
+  - {fileID: 1193000362}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1504251678
@@ -714561,16 +714736,6 @@ MonoBehaviour:
     avoidStairs: 1
     avoidBridge: 1
     stairAvoidanceRadius: 1
-    treePrefabs:
-    - {fileID: 5697450924608689214, guid: 7c2fe03ab850967418e7136975dfb126, type: 3}
-    - {fileID: 5276064107349130557, guid: 2529afe1a7cb22248bc4d6412437fcf7, type: 3}
-    - {fileID: 5100034286511634508, guid: bd456f67041267c47a13bfcffcce041d, type: 3}
-    - {fileID: 3411453609490766746, guid: 8cb819f8d3e44f74ab35f5e47d39eaa4, type: 3}
-    bushPrefabs:
-    - {fileID: 7113461632919070070, guid: b38086e99a4f3534bb60888e7f5b861a, type: 3}
-    - {fileID: 6991148153946299098, guid: 15f264e0e1fa89f4e91b0d2ee0450f0f, type: 3}
-    - {fileID: 5763684362129333738, guid: b46656bd8e1d05543bb596dbd61b2afc, type: 3}
-    - {fileID: 4888299571084455030, guid: 071ef5763569ab34d90a52838368a421, type: 3}
     bushSpawnChance: 0.06
     scatteredBushSpawnChance: 0.025
     bushSpacing: 2
@@ -714580,11 +714745,6 @@ MonoBehaviour:
     bushNoiseScale: 0.15
     bushNoiseThreshold: 0.25
     bushNoiseOffset: {x: 100, y: 100}
-    rockPrefabs:
-    - {fileID: 5158490374402420867, guid: 33efe4c4b3fdca041a3ddab410d0cdd9, type: 3}
-    - {fileID: 6301797900601607933, guid: 91ff87da10acf824caab8c3b34711eda, type: 3}
-    - {fileID: 5751919396076328951, guid: dee3ed08f3d12cb4aa876c84c6595f30, type: 3}
-    - {fileID: 8432121970952456116, guid: 9acaf66d6c1a7f048a85da3673ebd0a0, type: 3}
     rockSpawnChance: 0.3
     scatteredRockSpawnChance: 0.08
     rockSpacing: 1.5
@@ -714594,8 +714754,6 @@ MonoBehaviour:
     rockNoiseScale: 0.12
     rockNoiseThreshold: 0.4
     rockNoiseOffset: {x: 200, y: 200}
-    animalPrefabs:
-    - {fileID: 103944314967868800, guid: 05671fa0de4cb064cb80191a43190066, type: 3}
     animalSpawnChance: 0.15
     animalMinDistanceFromObstacles: 1
     animalMaxDistanceFromVegetation: 5

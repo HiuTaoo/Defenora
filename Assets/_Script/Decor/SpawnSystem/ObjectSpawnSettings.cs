@@ -23,12 +23,6 @@ public class ObjectSpawnSettings
     public bool avoidBridge = true;
     public float stairAvoidanceRadius = 2f;
 
-    [Header("Tree Prefabs")]
-    public GameObject[] treePrefabs;
-
-    [Header("Bush Settings")]
-    public GameObject[] bushPrefabs;
-
     [Header("Bush Spawn Settings")]
     [Range(0f, 1f)]
     public float bushSpawnChance = 0.4f;
@@ -44,9 +38,6 @@ public class ObjectSpawnSettings
     public float bushNoiseThreshold = 0.25f;
     public Vector2 bushNoiseOffset = new Vector2(100f, 100f);
 
-    [Header("Rock Settings")]
-    public GameObject[] rockPrefabs;
-
     [Header("Rock Spawn Settings")]
     [Range(0f, 1f)]
     public float rockSpawnChance = 0.3f;
@@ -61,9 +52,6 @@ public class ObjectSpawnSettings
     public float rockNoiseScale = 0.12f;
     public float rockNoiseThreshold = 0.4f;
     public Vector2 rockNoiseOffset = new Vector2(200f, 200f);
-
-    [Header("Animal Settings")]
-    public GameObject[] animalPrefabs;
 
     [Header("Animal Spawn Settings")]
     [Range(0f, 1f)]
