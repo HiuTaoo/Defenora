@@ -28,12 +28,6 @@ public abstract class Building : MonoBehaviour, IBuildable
     [Header("Task")]
     public Task currentTask;
 
-    [Tooltip("Danh sách những điểm mà cung thủ có thể đứng")]
-    public Transform[] positionSpots;
-
-    [Tooltip("Lưu tên unit và vị trí đang đứng nếu đó là tháp canh ")]
-    public List<SpotData> listArcherPositions = new List<SpotData>();
-
     [Tooltip("Tầng mà công trình được đặt")]
     private int layerIndex = 0;
 
@@ -135,22 +129,6 @@ public abstract class Building : MonoBehaviour, IBuildable
         }
     }
 
-    public void RegisterSpot()
-    {
-        List<Transform> spots = new List<Transform>();
-
-        foreach (Transform child in transform.GetComponentsInChildren<Transform>(true))
-        {
-            if (child.CompareTag("Spot"))
-            {
-                spots.Add(child);
-            }
-        }
-
-        positionSpots = spots.ToArray();
-
-    }
-
     public void CreateBuildStructureTask()
     {
         if (currentTask.targetGameObject != null)
@@ -169,7 +147,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     }
 
 
-    #region Unit Management
+    /*#region Unit Management
     public bool CanAddUnit(Unit unit)
     {
         if (currentCapacity >= maxCapacity)
@@ -253,25 +231,59 @@ public abstract class Building : MonoBehaviour, IBuildable
     }
 
     
-    #endregion
-
-    #region RANDOM POSITION
-    public virtual Vector3 GetAvailableSpot()
+    #endregion*/
+    
+    #region Unit Management
+    public virtual bool CanAddUnit(Unit unit)
     {
-        foreach (var spot in positionSpots)
-        {
-            SpotData? spotData = listArcherPositions
-                .FirstOrDefault(s => s.position == spot.position);
+        if (currentCapacity >= maxCapacity)
+            return false;
 
-            if (!spotData.HasValue || string.IsNullOrEmpty(spotData.Value.unitName))
-            {
-                return spot.position;
-            }
-        }
+        if (unit.unitType == UnitType.Builder && buildingType != BuildingType.WorkShop)
+            return false;
 
-        return GetRandomPositionAroundBuilding();
+        if (unit.unitType != UnitType.Builder && buildingType == BuildingType.WorkShop)
+            return false;
+
+        return !stationedUnits.Contains(unit);
     }
 
+    public virtual void AddUnit(Unit unit)
+    {
+        stationedUnits.Add(unit);
+        unit.floorAgent.MoveToFloor(LayerIndex);
+        unit.assignedBuilding = this;
+        currentCapacity++;
+
+        unit.currentState = UnitState.Stationed;
+
+        // 🔽 Hook cho component khác
+        OnUnitAdded(unit);
+    }
+
+    public virtual bool RemoveUnit(Unit unit)
+    {
+        if (!stationedUnits.Contains(unit)) return false;
+
+        stationedUnits.Remove(unit);
+        unit.currentState = UnitState.Idle;
+        unit.assignedBuilding = null;
+        currentCapacity--;
+
+        // 🔽 Hook
+        OnUnitRemoved(unit);
+
+        return true;
+    }
+
+// 🔑 HOOK — mặc định không làm gì
+    protected virtual void OnUnitAdded(Unit unit) { }
+    protected virtual void OnUnitRemoved(Unit unit) { }
+
+    #endregion
+
+
+    #region RANDOM POSITION
     public Vector3 GetRandomPositionAroundBuilding()
     {
         const int maxTries = 10; 
@@ -490,7 +502,6 @@ public abstract class Building : MonoBehaviour, IBuildable
         if (currentTask != null)
         {
             currentTask.Complete();
-            TaskManager.Instance.RemoveTask(currentTask);
             currentTask = null;
         }
 
@@ -551,21 +562,4 @@ public abstract class Building : MonoBehaviour, IBuildable
     }
     
     #endregion
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (positionSpots == null) return;
-
-        Gizmos.color = Color.green;
-        foreach (Transform spot in positionSpots)
-        {
-            if (spot != null)
-                Gizmos.DrawSphere(spot.position, 0.1f);
-        }
-        Gizmos.DrawWireSphere(transform.position, range);
-    }
-#endif
-
-
 }

@@ -22,7 +22,7 @@ public class UnitManager : MonoBehaviour
     [Header("Building Prefab")]
     public GameObject fortressPrefab;
     public GameObject watchTowerPrefab;
-    public GameObject workShopPrefab;
+    public GameObject storagePrefab;
 
     private Transform unitParent;
     private Transform buildingParent;
@@ -57,7 +57,7 @@ public class UnitManager : MonoBehaviour
         buildingPrefabs = new Dictionary<string, GameObject> {
             { "Fortress", fortressPrefab },
             { "WatchTower", watchTowerPrefab },
-            { "WorkShop", workShopPrefab }
+            { "Storage", storagePrefab }
         };
 
         unitParent = transform.Find("Unit");
@@ -265,6 +265,17 @@ public class UnitManager : MonoBehaviour
             return buildings.FirstOrDefault(b => b.buildingType != BuildingType.WorkShop && b.currentCapacity < b.maxCapacity);
     }
 
+    public List<Building> FindBuilding(BuildingType buildingType)
+    {
+        List<Building> listBuilding = new List<Building>();
+        foreach (var building in buildings)
+        {
+            if(building.buildingType == buildingType)
+                listBuilding.Add(building);
+        }
+        return buildings;
+    }
+
     #endregion
 
     #region Utility Methods
@@ -300,7 +311,7 @@ public class UnitManager : MonoBehaviour
         {
             case BuildingType.Fortress: return fortressPrefab;
             case BuildingType.WatchTower: return watchTowerPrefab;
-            case BuildingType.WorkShop: return workShopPrefab;
+            case BuildingType.Storage: return storagePrefab;
             default: return null;
         }
     }

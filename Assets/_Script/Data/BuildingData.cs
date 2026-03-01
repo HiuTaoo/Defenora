@@ -28,7 +28,8 @@ public enum BuildingType
 {
     Fortress,
     WatchTower,
-    WorkShop
+    WorkShop,
+    Storage
 }
 
 public enum BuildingState

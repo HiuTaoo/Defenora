@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 8699020775138910166}
   - component: {fileID: 7744562848832361240}
   m_Layer: 8
-  m_Name: WorkShop
+  m_Name: Storage
   m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -261,7 +261,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runOnce: 0
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!114 &8699020775138910166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -289,24 +291,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buildingName: 
-  maxCapacity: 5
+  maxCapacity: 3
   range: 3
   maxHealth: 10
   currentHealth: 10
   currentCapacity: 0
-  buildingType: 2
+  buildingType: 3
   buildingState: 0
+  currentBuildProgress: 0
+  buildSpeedPerHit: 10
   stationedUnits: []
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
+    layerIndex: 0
     taskStatus: 0
     maxBuilders: 0
-    layerIndex: 0
-    listBuilders: []
-    isInPendingQueue: 0
-  positionSpots: []
-  listArcherPositions: []
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
+  maxStoreageCapacity: 100
 --- !u!1 &6365253327673594782
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,7 +356,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentCollideGameObject: {fileID: 0}
   layerIndex: -1
 --- !u!60 &4511077883850886076
 PolygonCollider2D:

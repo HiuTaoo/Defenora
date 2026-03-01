@@ -47,6 +47,7 @@ GameObject:
   - component: {fileID: 4274527819006447420}
   - component: {fileID: 7832843909344419583}
   - component: {fileID: 5840214879785921328}
+  - component: {fileID: 7336370338770260069}
   m_Layer: 8
   m_Name: WatchTower
   m_TagString: Building
@@ -206,13 +207,12 @@ MonoBehaviour:
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
+    layerIndex: 0
     taskStatus: 0
     maxBuilders: 0
-    layerIndex: 0
-    listBuilders: []
-    isInPendingQueue: 0
-  positionSpots: []
-  listArcherPositions: []
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
 --- !u!114 &4274527819006447420
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -256,6 +256,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoRegister: 1
   keepAnimatorEnabled: 0
+--- !u!114 &7336370338770260069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6994465110449608766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eaff2ebe7664dfd81b37d4e728d8d10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionSpots:
+  - {fileID: 8559164744609574262}
+  listArcherPositions: []
 --- !u!1 &7552566619195896200
 GameObject:
   m_ObjectHideFlags: 0

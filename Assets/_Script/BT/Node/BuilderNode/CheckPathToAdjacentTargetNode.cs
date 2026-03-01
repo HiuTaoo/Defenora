@@ -1,8 +1,8 @@
 ﻿namespace _Script.BT.Node.BuilderNode
 {
-    public class CheckPathToTargetNode : BTActionNode
+    public class CheckPathToAdjacentTargetNode : BTActionNode
     {
-        public CheckPathToTargetNode(Builder builder) : base(builder) {}
+        public CheckPathToAdjacentTargetNode(Builder builder) : base(builder) {}
 
         public override BTStatus Tick()
         {

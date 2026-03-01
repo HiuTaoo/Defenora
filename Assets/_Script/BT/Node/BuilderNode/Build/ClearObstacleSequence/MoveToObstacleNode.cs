@@ -24,8 +24,7 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
             // ===== START =====
             if (!hasStartedMove)
             {
-                builder.animFSM.SetTool(builder.currentTool);
-                builder.animFSM.SetResource(builder.currentResource);
+                builder.UpdateAnim();
                 builder.animFSM.ChangeState(UnitState.Moving);
 
                 builder.MoveToTargetPosition(builder.builderBlackBoard.pathFinding);
@@ -71,7 +70,7 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
                 if (!builder.IsCollidingWithTarget(obstacleGO))
                 {
                     
-                    builder.MoveHorizontallyToTarget(obstacleGO);
+                    builder.MoveDirectlyToTarget(obstacleGO);
                     return BTStatus.Running;
                 }
 

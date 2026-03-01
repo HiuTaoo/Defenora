@@ -1,29 +1,26 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.Unit_Management_System.Building;
 using UnityEngine;
 
 public class Watchtower : Building
 {
+    private GuardComponent guardComponent;
     private void Awake()
     {
         base.Awake();
         buildingType = BuildingType.WatchTower;
-        RegisterSpot();
+        guardComponent = gameObject.GetComponent<GuardComponent>();
     }
-
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
+    
+    protected override void OnUnitAdded(Unit unit)
     {
-        if (positionSpots == null) return;
-
-        Gizmos.color = Color.green;
-        foreach (Transform spot in positionSpots)
-        {
-            if (spot != null)
-                Gizmos.DrawSphere(spot.position, 0.1f);
-        }
+        GetComponent<GuardComponent>()?.OnUnitAdded(unit);
     }
-#endif
+
+    protected override void OnUnitRemoved(Unit unit)
+    {
+        GetComponent<GuardComponent>()?.OnUnitRemoved(unit);
+    }
 }

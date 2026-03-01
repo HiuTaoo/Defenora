@@ -174,6 +174,59 @@ public abstract class Unit : MonoBehaviour
         }
         return bestPath;
     }
+    
+    public PathFinding FindBestPathToFront(Task task)
+    {
+        if (task == null || task.targetGameObject == null)
+            return null;
+
+        var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
+
+        var fp = task.targetGameObject.GetComponent<ObjectFootprint>();
+        if (fp == null)
+            return null;
+
+        Vector3Int targetWorld = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
+        targetWorld.z = 0;
+
+        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        currentGridPos.z = 0;
+
+        // Front direction cố định
+        Vector3Int frontDir = new Vector3Int(0, -1, 0);
+
+        float bestCost = float.MaxValue;
+        PathFinding bestPath = null;
+
+        foreach (var cell in fp.occupiedCells)
+        {
+            Vector3Int localCell = new Vector3Int(cell.x, cell.y, 0);
+
+            // Tính cell phía trước
+            Vector3Int frontOffset = localCell + frontDir;
+
+            Vector3Int frontWorld = targetWorld + frontOffset;
+            frontWorld.z = 0;
+
+            if (!graph.nodes.TryGetValue(frontWorld, out Node node) || !node.isWalkable)
+                continue;
+
+            var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
+                currentGridPos, floorAgent.currentFloorIndex,
+                frontWorld, task.layerIndex);
+
+            if (path == null || path.segments.Count == 0)
+                continue;
+
+            if (path.totalCost < bestCost)
+            {
+                bestCost = path.totalCost;
+                bestPath = path;
+            }
+        }
+
+        return bestPath;
+    }
 
     public virtual bool MoveToTargetPosition()
     {

@@ -12,18 +12,11 @@ namespace _Script.BT.Node.BuilderNode.Build
             {
                 builder.currentState = UnitState.Working;
                 builder.currentTool = ToolType.Hammer;
-                builder.animFSM.SetTool(builder.currentTool);
-                builder.animFSM.SetResource(ResourceType.None);
+                builder.UpdateAnim();
                 builder.animFSM.ChangeState(UnitState.Working);
             }
             
             var building = builder.currentTask?.targetGameObject?.GetComponent<Building>();
-
-            if (building == null || building.currentBuildProgress >= 100f)
-            {
-                builder.currentTask = null;
-                return BTStatus.Success;
-            }
             
             if (builder.IsCompletedBuild())
             {

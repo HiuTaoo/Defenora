@@ -27,6 +27,7 @@ public class Builder : Unit
     public GameObject targetGO;
     
     private IChoppable currentTarget;
+    public Inventory currentInventory;
 
     protected override void Awake()
     {
@@ -34,6 +35,7 @@ public class Builder : Unit
         bt = CreateBuilderBT(this);
         animFSM = GetComponent<AnimationFSM>();
         builderBlackBoard = new BuilderBlackBoard();
+        currentInventory = GetComponentInChildren<Inventory>();
     }
     
     private void Update()
@@ -44,14 +46,28 @@ public class Builder : Unit
     #region BT
     public BehaviourTree CreateBuilderBT(Builder builder)
     {
+        var collectItemSequence = new SequenceNode(
+            new HasEmptySpaceNode(builder),
+            new HasItemAroundNode(builder),
+            new CollectItemNode(builder));
+        
         var chopTreeSequence = new SequenceNode(
             new HasChopTaskNode(builder),
             new FindChopTaskNode(builder),
             new AssignTaskNode(builder),
-            new CheckPathToTargetNode(builder),
+            new CheckPathToAdjacentTargetNode(builder),
             new MoveToTargetNode(builder),
             new ChopNode(builder)
         );
+        
+        var transportItemSequence = new SequenceNode(
+            new HasItemInInventoryNode(builder),
+            new CreateTransportTask(builder),
+            new AssignTaskNode(builder),
+            new CheckPathToFrontTargetNode(builder),
+            new MoveToTargetNode(builder),
+            new TransportItemNode(builder)
+            );
 
         var clearObstacleLoop = new RepeatUntilFailureNode(
             new SequenceNode(
@@ -66,15 +82,24 @@ public class Builder : Unit
             new HasBuildTaskNode(builder),
             new FindBuildTaskNode(builder),
             new AssignTaskNode(builder),
-            new CheckPathToTargetNode(builder),
+            new CheckPathToAdjacentTargetNode(builder),
             clearObstacleLoop,
             new MoveToTargetNode(builder),
             new BuildNode(builder)
         );
-
+        
+        //Root
         var root = new SelectorNode(
-            chopTreeSequence,
-            buildStructureSequence,
+            new SequenceNode(
+                new IsInventoryFullNode(builder),
+                transportItemSequence
+            ),
+            collectItemSequence,
+            new SelectorNode(
+                buildStructureSequence,
+                chopTreeSequence
+            ),
+            transportItemSequence,
             new IdleNode(builder)
         );
 
@@ -100,11 +125,11 @@ public class Builder : Unit
             transform.localScale = scale;
         }
 
-        if (currentTask.IsCompleted)
+        /*if (currentTask.IsCompleted)
         {
             currentTask = null;
             return true;
-        }
+        }*/
         var target = currentTask.targetGameObject.GetComponent<IChoppable>();
         if (target is Tree)
         {
@@ -114,6 +139,7 @@ public class Builder : Unit
                 currentTask.taskStatus = TaskStatus.Completed;
                 TaskManager.Instance.RemoveTask(currentTask);
                 currentTask = null;
+                InstaniateObject(ItemBlackBoard.Instance.woodPrefab, tree.gameObject.transform.position, tree.layerIndex, 1);
                 return true;
             }
         }
@@ -212,7 +238,6 @@ public class Builder : Unit
         {
             if (hit?.gameObject == null)
                 continue;
-
             if (hit.CompareTag("Building") && hit.gameObject == currentTask.targetGameObject)
             {
                 var building = hit.gameObject.GetComponent<Building>();
@@ -223,6 +248,45 @@ public class Builder : Unit
     }
 
     #endregion
+    
+    
+    #endregion
+    
+    #region Methods
+    public Item FindItemAround()
+    {
+        var collider = transform.GetComponentInChildren<CircleCollider2D>();
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, collider != null ? collider.radius : 2f);
+
+        foreach (var hit in hits)
+        {
+            if (hit.TryGetComponent<Item>(out Item item))
+            {
+                return item;
+            }
+        }
+        return null;
+    }
+    
+    public void PickupItem(Item item)
+    {
+        int addedAmount = currentInventory.Add(item.resourceType, item.amount);
+
+        if (addedAmount > 0)
+        {
+            if (addedAmount >= item.amount)
+            {
+                Destroy(item.gameObject);
+            }
+            else
+            {
+                item.amount -= addedAmount;
+            }
+            Debug.Log($"Collected Item: {item.resourceType}, Amount:  {item.amount}");
+        }
+    }
+    
     public bool FindAvailableTask()
     {
         var task = TaskManager.Instance
@@ -264,8 +328,6 @@ public class Builder : Unit
         builderBlackBoard.pathFinding = path;
         return true;
     }
-
-    
     #endregion
     
     #region Move to task target
@@ -301,9 +363,9 @@ public class Builder : Unit
         return dist.distance <= 0.05f; 
     }
 
-    public void MoveHorizontallyToTarget(GameObject target)
+    public void MoveDirectlyToTarget(GameObject target)
     {
-        if (target.Equals(null))
+        if (target == null)
             return;
 
         var rb = characterMovement.rb;
@@ -311,24 +373,52 @@ public class Builder : Unit
         Vector2 myPos = rb.position;
         Vector2 targetPos = target.transform.position;
 
-        float dx = targetPos.x - myPos.x;
-        
-        if (Mathf.Abs(dx) <= 0.05f)
+        Vector2 direction = (targetPos - myPos);
+
+        if (direction.magnitude <= 0.05f)
             return;
 
-        float dir = Mathf.Sign(dx);
+        direction.Normalize();
 
         characterMovement.HandleFlipByPosition(targetPos);
 
-        Vector2 nextPos = new Vector2(
-            myPos.x + dir * characterMovement.moveSpeed * Time.fixedDeltaTime,
-            myPos.y
-        );
+        Vector2 nextPos = myPos + direction * characterMovement.moveSpeed * Time.fixedDeltaTime;
 
         rb.MovePosition(nextPos);
     }
     #endregion
+
+    #region  Instaniate Object
+    public GameObject InstaniateObject(GameObject obj, Vector3 worldPosition, int currentLayerIndex, int amount)
+    {
+        GameObject parentTransform = GameObject.Find("ItemSpawned");
+        var spawnedObj = Instantiate(obj, worldPosition, Quaternion.identity,
+            parentTransform != null ? parentTransform.transform : null);
+
+        if (worldPosition.x > transform.position.x)
+            spawnedObj.transform.localScale = new Vector3(-1, 1, 1);
+        
+        var itemComponent = spawnedObj.GetComponent<Item>();
+        if (itemComponent != null)
+        {
+            itemComponent.layerIndex = currentLayerIndex;
+            itemComponent.amount = amount;
+        }
+        
+        if (spawnedObj != null)
+        {
+            itemComponent.StartDrop(worldPosition, transform.position);
+        }
+        return spawnedObj;
+    }
     
+    #endregion
+
+    public void UpdateAnim()
+    {
+        animFSM.SetResource(currentResource);
+        animFSM.SetTool(currentTool);
+    }
     public override void UseSpecialAbility()
     {
         throw new System.NotImplementedException();

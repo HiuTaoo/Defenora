@@ -12,8 +12,7 @@ namespace _Script.BT.Node.BuilderNode
             {
 				builder.currentState = UnitState.Working;
 				builder.currentTool = ToolType.Axe;
-				builder.animFSM.SetTool(builder.currentTool);
-				builder.animFSM.SetResource(ResourceType.None);
+				builder.UpdateAnim();
 				builder.animFSM.ChangeState(UnitState.Working);
             }
 

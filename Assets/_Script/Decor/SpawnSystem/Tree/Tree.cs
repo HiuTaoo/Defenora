@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.BT.BlackBoard;
 using UnityEngine;
 
 public class Tree : MonoBehaviour, IChoppable
@@ -47,8 +48,10 @@ public class Tree : MonoBehaviour, IChoppable
         if (spriteRenderer.isVisible)
         {
             if (treeState == TreeState.Chopped)
+            {
                 animator.Play("Chopped");
-
+            }
+            
             if (treeState == TreeState.Idle && currentChopHit == maxChopHit && !hasBeenChopped)
             {
                 OnChopped();

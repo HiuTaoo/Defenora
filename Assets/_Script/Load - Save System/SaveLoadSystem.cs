@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Threading.Tasks;
+using _Script.Unit_Management_System.Building;
 
 public class SaveLoadSystem : MonoBehaviour, ISaveable
 {
@@ -253,13 +254,14 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         var buildingData = new BuildingSaveData();
         foreach (var building in unitManager.buildings)
         {
+            var guardComponent = building.gameObject.GetComponent<GuardComponent>();
             buildingData.buildings.Add(new BuildingData
             {
                 buildingName = building.name,
                 currentCapacity = building.currentCapacity,
                 maxCapacity = building.maxCapacity,
                 layerIndex = building.LayerIndex,
-                archerPositions = building.listArcherPositions,
+                archerPositions = guardComponent == null ? null : guardComponent.listArcherPositions,
                 buildingType = building.buildingType,
                 position = building.transform.position,
                 buildingState = building.buildingState,
@@ -327,16 +329,19 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             unit.gameObject.name = unitDatum.unitName;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
             foreach (var building in unitManager.buildings) {
+                var guardComponent = building.gameObject.GetComponent<GuardComponent>();
                 if(building.name == unitDatum.assignedBuilding)
                 {
                     unit.assignedBuilding = building;
                     building.stationedUnits.Add(unit);
-
-                    foreach (var spot in building.positionSpots)
+                    if (guardComponent != null)
                     {
-                        if(unit.transform.position == spot.position)
-                            building.listArcherPositions.Add(new SpotData { position = spot.position, unitName = unit.unitName });
-                        break;
+                        foreach (var spot in guardComponent.positionSpots)
+                        {
+                            if(unit.transform.position == spot.position)
+                                guardComponent.listArcherPositions.Add(new SpotData { position = spot.position, unitName = unit.unitName });
+                            break;
+                        }
                     }
                     break;
                 }

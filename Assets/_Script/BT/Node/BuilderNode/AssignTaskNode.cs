@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using _Script.Task;
 using UnityEngine;
 
 namespace _Script.BT.Node.BuilderNode
@@ -22,8 +23,14 @@ namespace _Script.BT.Node.BuilderNode
                     Debug.Log("Can't join");
                     return BTStatus.Failure;
                 }
-                
-                builder.builderBlackBoard.pathFinding =
+
+                if (builder.currentTask.taskType == TaskType.TransportItem)
+                {
+                    builder.builderBlackBoard.pathFinding =
+                        builder.FindBestPathToFront(builder.currentTask);
+                }
+                else
+                    builder.builderBlackBoard.pathFinding =
                     builder.FindBestPathToAnyAdjacent(builder.currentTask);
 
                 if (builder.builderBlackBoard.pathFinding == null)
