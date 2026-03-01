@@ -6,6 +6,7 @@ using _Script.BT.BlackBoard;
 using _Script.BT.Node.BuilderNode;
 using _Script.BT.Node.BuilderNode.Build;
 using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
+using _Script.BT.Node.BuilderNode.Idle;
 using _Script.Object_Pooling;
 using _Script.Task;
 using _Script.Unit_Management_System.Animation;
@@ -18,6 +19,8 @@ public class Builder : Unit
     [Header("Builder Info")]
     public Vector2 workBoxSize = new Vector2(1f, 1f);
     public float workRange = 1f;
+    
+    [Header("Carry Item")]
     public ToolType currentTool = ToolType.None;
     public ResourceType currentResource = ResourceType.None;
     
@@ -25,9 +28,12 @@ public class Builder : Unit
     public AnimationFSM animFSM;
     
     public BuilderBlackBoard builderBlackBoard { get; private set; }
+    
+    [Header("Tartget Game Object")]
     public GameObject targetGO;
     
     private IChoppable currentTarget;
+    [Header("Inventory")]
     public Inventory currentInventory;
 
     protected override void Awake()
@@ -88,6 +94,11 @@ public class Builder : Unit
             new MoveToTargetNode(builder),
             new BuildNode(builder)
         );
+
+        var idleSequence = new SequenceNode(
+            new HasIdleTimeNode(builder),
+            new MoveFollowAvaiablePathNode(builder),
+            new WaitRandomTimeNode(builder));
         
         //Root
         var root = new SelectorNode(
@@ -101,7 +112,8 @@ public class Builder : Unit
                 chopTreeSequence
             ),
             transportItemSequence,
-            new IdleNode(builder)
+            idleSequence
+            //new IdleNode(builder)
         );
 
         return new BehaviourTree(root);
@@ -257,15 +269,14 @@ public class Builder : Unit
     #region Methods
     public Item FindItemAround()
     {
-        var collider = transform.GetComponentInChildren<CircleCollider2D>();
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, collider != null ? collider.radius : 2f);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 1f);
 
         foreach (var hit in hits)
         {
             if (hit.TryGetComponent<Item>(out Item item))
             {
-                return item;
+                if(item.TryJoin(this) || item.assignBuilder == this)
+                    return item;
             }
         }
         return null;
@@ -301,15 +312,7 @@ public class Builder : Unit
         currentTask = task;
         return true;
     }
-
-    public bool AssignCurrentTask()
-    {
-        if (currentTask == null)
-            return false;
-
-        return currentTask.TryJoin(this);
-    }
-
+    
     public bool CheckPathToObstacleObject()
     {
         if (builderBlackBoard.currentObstacle == null)
@@ -329,6 +332,32 @@ public class Builder : Unit
 
         builderBlackBoard.pathFinding = path;
         return true;
+    }
+
+    public GameObject FindInterestObject()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            transform.position,
+            3f
+        );
+
+        List<GameObject> validTargets = new List<GameObject>();
+
+        foreach (var hit in hits)
+        {
+            if (hit.gameObject == this.gameObject)
+                continue;
+
+            if (hit.CompareTag("Animal") || hit.CompareTag("Building"))
+            {
+                validTargets.Add(hit.gameObject);
+            }
+        }
+
+        if (validTargets.Count == 0)
+            return null;
+
+        return validTargets[Random.Range(0, validTargets.Count)];
     }
     #endregion
     

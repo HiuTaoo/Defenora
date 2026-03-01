@@ -10,6 +10,7 @@ public class Item : MonoBehaviour
     public ResourceType resourceType;
     public int amount;
     public int layerIndex;
+    public Builder assignBuilder;
 
     private Vector3 startPos;
     private Vector3 endPos;
@@ -54,5 +55,16 @@ public class Item : MonoBehaviour
             transform.position = endPos;
             isDropping = false;
         }
+    }
+
+    public bool TryJoin(Builder builder)
+    {
+        if (assignBuilder == null)
+        {
+            assignBuilder = builder;
+            return true;
+        }
+
+        return false;
     }
 }

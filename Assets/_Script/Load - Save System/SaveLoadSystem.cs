@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
-using System.Threading.Tasks;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.Building;
 
@@ -11,7 +10,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 {
     public static SaveLoadSystem Instance;
 
-    public List<ISaveable> saveables = new List<ISaveable>();
+    private List<ISaveable> saveables = new List<ISaveable>();
 
     private string saveFilePath => Path.Combine(Application.persistentDataPath, "savegame.json");
 
@@ -28,8 +27,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     public bool loadAsync = true;
 
     private Transform decorObjectParent;
-    private Dictionary<GameObject, Queue<GameObject>> objectPools = new Dictionary<GameObject, Queue<GameObject>>();
-
+    
     public System.Action OnLoaded;
     public System.Action OnSave;
 
@@ -76,9 +74,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         GameSaveData saveData = new GameSaveData();
 
-        foreach (var saveable in saveables)
+        foreach (var saveAble in saveables)
         {
-            saveable.PopulateSaveData(saveData);
+            saveAble.PopulateSaveData(saveData);
         }
 
         string json = JsonUtility.ToJson(saveData, true);
@@ -100,9 +98,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         string json = File.ReadAllText(saveFilePath);
         GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
 
-        foreach (var saveable in saveables)
+        foreach (var saveAble in saveables)
         {
-            saveable.LoadFromSaveData(saveData);
+            saveAble.LoadFromSaveData(saveData);
             yield return null; 
         }
 
@@ -131,9 +129,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         string json = File.ReadAllText(saveFilePath);
         GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
 
-        foreach (var saveable in saveables)
+        foreach (var saveAble in saveables)
         {
-            saveable.LoadFromSaveData(saveData);
+            saveAble.LoadFromSaveData(saveData);
         }
 
         UnitManager.Instance.UpdateGraphNodeWhenStart();
@@ -703,9 +701,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     }
     #endregion
 
-    public int GetPrefabIndex(GameObject gameObject, GameObject[] prefabs)
+    public int GetPrefabIndex(GameObject gameObj, GameObject[] prefabs)
     {
-        string prefabName = gameObject.name.Replace("(Clone)", "");
+        string prefabName = gameObj.name.Replace("(Clone)", "");
 
         for (int i = 0; i < prefabs.Length; i++)
         {
@@ -739,24 +737,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             Debug.LogError($"Failed to delete save data: {e.Message}");
         }
     }
-
-    // Cleanup object pools
-    private void OnDestroy()
-    {
-        if (useObjectPooling)
-        {
-            foreach (var pool in objectPools.Values)
-            {
-                while (pool.Count > 0)
-                {
-                    var obj = pool.Dequeue();
-                    if (obj != null) Destroy(obj);
-                }
-            }
-            objectPools.Clear();
-        }
-    }
-
     #endregion
     #endregion
 }
