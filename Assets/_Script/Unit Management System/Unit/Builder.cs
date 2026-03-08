@@ -54,11 +54,13 @@ public class Builder : Unit
     public BehaviourTree CreateBuilderBT(Builder builder)
     {
         var collectItemSequence = new SequenceNode(
+            new IsIdleNode(builder),
             new HasEmptySpaceNode(builder),
             new HasItemAroundNode(builder),
             new CollectItemNode(builder));
         
         var chopTreeSequence = new SequenceNode(
+            new IsIdleNode(builder),
             new HasChopTaskNode(builder),
             new FindChopTaskNode(builder),
             new AssignTaskNode(builder),
@@ -86,6 +88,7 @@ public class Builder : Unit
         );
 
         var buildStructureSequence = new SequenceNode(
+            new IsIdleNode(builder),
             new HasBuildTaskNode(builder),
             new FindBuildTaskNode(builder),
             new AssignTaskNode(builder),
@@ -137,12 +140,7 @@ public class Builder : Unit
 
             transform.localScale = scale;
         }
-
-        /*if (currentTask.IsCompleted)
-        {
-            currentTask = null;
-            return true;
-        }*/
+        
         var target = currentTask.targetGameObject.GetComponent<IChoppable>();
         if (target is Tree)
         {
@@ -158,9 +156,11 @@ public class Builder : Unit
             }
         }
 
-        if (target is DecorObject)
+        var targetObtacle = builderBlackBoard.currentObstacle;
+        
+        if (targetObtacle is DecorObject && targetObtacle != null)
         {
-            var obj = target as DecorObject;
+            var obj = targetObtacle as DecorObject;
             if (obj.currentChopHit >= obj.maxChopHit)
             {
                 builderBlackBoard.currentObstacle = null;
@@ -318,13 +318,13 @@ public class Builder : Unit
         if (builderBlackBoard.currentObstacle == null)
             return false;
 
-        var obstacleGO = (builderBlackBoard.currentObstacle as Component)?.gameObject;
-        if (obstacleGO == null)
+        var obstacleGo = builderBlackBoard.currentObstacle as DecorObject;
+        if (obstacleGo == null)
             return false;
 
         var path = FindBestPathToAnyAdjacent(
-            obstacleGO,
-            characterMovement.CurrentLayer
+            obstacleGo.gameObject,
+            obstacleGo.layerIndex
         );
 
         if (path == null)
@@ -358,6 +358,19 @@ public class Builder : Unit
             return null;
 
         return validTargets[Random.Range(0, validTargets.Count)];
+    }
+
+    public void ResetState()
+    {
+        builderBlackBoard.currentObstacle = null;
+        builderBlackBoard.pathFinding = null;
+        currentResource = ResourceType.None;
+        currentTool = ToolType.None;
+        currentTask = null;
+        currentState = UnitState.Idle;
+        targetGO = null;
+        UpdateAnim();
+        animFSM.ChangeState(UnitState.Idle);
     }
     #endregion
     

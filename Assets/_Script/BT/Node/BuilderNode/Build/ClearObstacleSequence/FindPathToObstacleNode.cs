@@ -1,4 +1,6 @@
-﻿namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
+﻿using UnityEngine;
+
+namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
 {
     public class FindPathToObstacleNode: BTActionNode
     {
@@ -16,7 +18,7 @@
                     }
                 }
             }
-
+            Debug.Log("Can't find path to obstacle");
             return BTStatus.Failure;
         }
     }

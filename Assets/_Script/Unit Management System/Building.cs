@@ -29,7 +29,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     public Task currentTask;
 
     [Tooltip("Tầng mà công trình được đặt")]
-    private int layerIndex = 0;
+    public int layerIndex = 0;
 
     private SpriteRenderer spriteRenderer;
     private ObjectFootprint buildingFootprint;
@@ -548,7 +548,7 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         foreach (var hit in hits)
         {
-            if (hit.gameObject == gameObject)
+            if (hit.gameObject == gameObject && !hit.gameObject.activeInHierarchy)
                 continue;
             
             if (hit.TryGetComponent<IChoppable>(out var choppable) && !choppable.IsClaimed)

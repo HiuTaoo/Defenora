@@ -19,6 +19,7 @@ namespace _Script.BT.Node.BuilderNode
                 {
                     builder.currentState = UnitState.Working;
                     builder.currentTool = ToolType.Axe;
+                    builder.currentResource = ResourceType.None;
                     builder.UpdateAnim();
                     builder.animFSM.ChangeState(UnitState.Working);
                 }
@@ -28,12 +29,7 @@ namespace _Script.BT.Node.BuilderNode
                     isFinishing = true;
                     timer = 0f;
 
-                    builder.currentResource = ResourceType.None;
-                    builder.UpdateAnim();
-                    builder.currentState = UnitState.Idle;
-                    builder.animFSM.ChangeState(UnitState.Idle);
-                    builder.targetGO = null;
-                    builder.builderBlackBoard.pathFinding = null;
+                    builder.ResetState();
                 }
 
                 return BTStatus.Running;

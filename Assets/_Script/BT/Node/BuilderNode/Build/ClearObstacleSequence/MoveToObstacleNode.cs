@@ -92,7 +92,6 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
         private void FinishMove()
         {
             ResetNode();
-            builder.currentState = UnitState.Idle;
             builder.animFSM.ChangeState(UnitState.Idle);
         }
     }

@@ -151,6 +151,7 @@ MonoBehaviour:
   resourceType: 0
   amount: 0
   layerIndex: 0
+  assignBuilder: {fileID: 0}
 --- !u!114 &6962564633651806308
 MonoBehaviour:
   m_ObjectHideFlags: 0

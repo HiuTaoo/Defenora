@@ -62,22 +62,9 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
     public void OnClearObject()
     {
         hasBeenChopped = true;
-        int prefabIndex = -1;
-
-        if (gameObject.CompareTag("Bush"))
-        {
-            Release(claimedBy);
-            prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, PrefabConfig.Instance.bushPrefabs);
-            PoolManager.Instance.Despawn(PrefabConfig.Instance.bushPrefabs[prefabIndex]);
-        }
-        else if (gameObject.CompareTag("Rock"))
-        {
-            Release(claimedBy);
-            prefabIndex = SaveLoadSystem.Instance.GetPrefabIndex(gameObject, PrefabConfig.Instance.rockPrefabs);
-            PoolManager.Instance.Despawn(PrefabConfig.Instance.rockPrefabs[prefabIndex]);
-        }
-
-        gameObject.SetActive(false);
+        Release(claimedBy);
+        PoolManager.Instance.Despawn(transform.gameObject);
+        Debug.Log("Despawn Obstacle");
         OnChoppedObject?.Invoke(this); 
     }
 

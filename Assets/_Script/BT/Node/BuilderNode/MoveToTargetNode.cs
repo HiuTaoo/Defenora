@@ -1,4 +1,8 @@
-﻿namespace _Script.BT.Node.BuilderNode
+﻿using System.Linq;
+using _Script.Task;
+using UnityEngine;
+
+namespace _Script.BT.Node.BuilderNode
 {
     public class MoveToTargetNode : BTActionNode
     {
@@ -14,12 +18,32 @@
                 ResetNode();
                 return BTStatus.Failure;
             }
+            
+            if (builder.currentInventory.IsFull == false  && builder.currentTask.taskType == TaskType.TransportItem)
+            {
+                bool hasTask = TaskManager.Instance
+                    .GetAvailableTasks()
+                    .Any();
+
+                if (hasTask)
+                {
+                    Debug.Log("Interrupt move transport");
+                    
+                    TaskManager.Instance.RemoveTask(builder.currentTask);
+                    builder.currentTask = null;
+                    builder.ResetState();
+                    ResetNode();
+
+                    return BTStatus.Failure;
+                }
+            }
 
             // ===== START =====
             if (!hasStartedMove)
             {
                 builder.UpdateAnim();
                 builder.animFSM.ChangeState(UnitState.Moving);
+                builder.currentState = UnitState.Moving;
 
                 builder.MoveToTargetPosition(builder.builderBlackBoard.pathFinding);
 
@@ -67,7 +91,6 @@
         private void FinishMove()
         {
             ResetNode();
-            builder.currentState = UnitState.Idle;
             builder.animFSM.ChangeState(UnitState.Idle);
         }
     }

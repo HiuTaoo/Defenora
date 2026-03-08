@@ -12,6 +12,7 @@ namespace _Script.BT.Node.BuilderNode.Build
             {
                 builder.currentState = UnitState.Working;
                 builder.currentTool = ToolType.Hammer;
+                builder.currentResource = ResourceType.None;
                 builder.UpdateAnim();
                 builder.animFSM.ChangeState(UnitState.Working);
             }
@@ -20,9 +21,7 @@ namespace _Script.BT.Node.BuilderNode.Build
             
             if (builder.IsCompletedBuild())
             {
-                builder.currentState = UnitState.Idle;
-                builder.animFSM.ChangeState(UnitState.Idle);
-                builder.currentTask = null;
+                builder.ResetState();
                 return BTStatus.Success;
             }			
 			

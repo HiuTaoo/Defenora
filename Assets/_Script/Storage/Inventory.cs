@@ -91,10 +91,10 @@ using UnityEngine;
             if (items.Count == 0)
                 return false;
 
-            foreach (var pair in items)
+            /*foreach (var pair in items)
             {
                 Debug.Log($"Inventory contains: {pair.Key} x{pair.Value}");
-            }
+            }*/
 
             int maxAmount = int.MinValue;
 
@@ -107,7 +107,7 @@ using UnityEngine;
                 }
             }
 
-            Debug.Log($"Most abundant selected: {type}");
+            //Debug.Log($"Most abundant selected: {type}");
             return true;
         }
 

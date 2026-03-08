@@ -29,6 +29,7 @@ namespace _Script.BT.Node.BuilderNode
 
                 isDepositing = true;
                 timer = 0f;
+                builder.currentState = UnitState.Working;
                 
                 return BTStatus.Running;
             }
@@ -47,17 +48,13 @@ namespace _Script.BT.Node.BuilderNode
                     builder.currentInventory.Remove(type, added);
                     builder.currentTask.taskStatus = TaskStatus.Completed;
                     TaskManager.Instance.RemoveTask(builder.currentTask);
+                    builder.ResetState();
                 }
             }
             
             isDepositing = false;
             timer = 0f;
             
-            builder.currentResource = ResourceType.None;
-            builder.UpdateAnim();
-            builder.animFSM.ChangeState(UnitState.Idle);
-            builder.currentTask = null;
-
             return BTStatus.Success;
         }
     }

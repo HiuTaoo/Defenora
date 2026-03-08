@@ -165,8 +165,6 @@ MonoBehaviour:
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
   treeCollider: {fileID: 0}
-  woodPrefab: {fileID: 7863484325131383881, guid: c30b0f37fa212234b8f2f01b1bc3fe3f,
-    type: 3}
 --- !u!114 &1582335531085501104
 MonoBehaviour:
   m_ObjectHideFlags: 0

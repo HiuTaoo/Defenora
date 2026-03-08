@@ -13,7 +13,10 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
 
             var building = builder.currentTask.targetGameObject.GetComponent<Building>();
             if (building == null)
+            {
+                Debug.Log("Building null");
                 return BTStatus.Failure;
+            }
   
             var obstacle = building.FindObstacleObject();
             if (obstacle == null)

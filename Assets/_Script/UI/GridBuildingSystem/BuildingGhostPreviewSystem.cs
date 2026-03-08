@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using _Script.Object_Pooling;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class BuildingGhostPreviewSystem : MonoBehaviour
@@ -70,10 +71,14 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     public void SpawnGhost(GameObject ghostPrefabToSpawn)
     {
         CancelGhost();
-
-        currentGhost = Instantiate(ghostPrefabToSpawn);
+        currentGhost = PoolManager.Instance.Spawn(ghostPrefabToSpawn, transform.position, Quaternion.identity);
         currentFootprint = currentGhost.GetComponent<ObjectFootprint>();
         spriteRenderer = currentGhost.GetComponent<SpriteRenderer>();
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+        foreach (var col in colliders)
+        {
+            col.enabled = false;
+        }
         if (currentFootprint == null)
             Debug.LogError("Ghost prefab thiếu BuildingFootprint component.");
     }
@@ -82,7 +87,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     {
         if (currentGhost != null)
         {
-            Destroy(currentGhost);
+            PoolManager.Instance.Despawn(currentGhost);
             currentGhost = null;
         }
     }
