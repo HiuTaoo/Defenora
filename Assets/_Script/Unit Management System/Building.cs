@@ -68,11 +68,6 @@ public abstract class Building : MonoBehaviour, IBuildable
     {
         UpdateAnimation();
 
-        /*if (buildingState == BuildingState.UnderConstruction && currentTask == null)
-        {
-            CreateConstructionTask();
-        }*/
-
         if (spriteRenderer.isVisible)
         {
             if (buildingState == BuildingState.UnderConstruction && currentBuildProgress >= 100f && !hasBeenBuilded)

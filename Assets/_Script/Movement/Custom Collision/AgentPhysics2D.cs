@@ -299,6 +299,6 @@ public class AgentPhysics2D : MonoBehaviour
     }
 
     private float GetMoveSpeed() {
-        return GameObject.FindGameObjectWithTag("Player").GetComponentInChildren<CharacterMovement>().moveSpeed;
+        return GameObject.Find("---Player---").GetComponentInChildren<CharacterMovement>().moveSpeed;
     }
 }

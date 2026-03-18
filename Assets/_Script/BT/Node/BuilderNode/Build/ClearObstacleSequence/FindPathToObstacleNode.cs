@@ -4,7 +4,11 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
 {
     public class FindPathToObstacleNode: BTActionNode
     {
-        public FindPathToObstacleNode(Builder builder): base(builder){}
+        private Builder builder;
+        public FindPathToObstacleNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

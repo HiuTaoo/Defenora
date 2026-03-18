@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6673425295976105253}
   - component: {fileID: 4829863585484123223}
   - component: {fileID: 7212452886757199008}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Custom Render Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -162,9 +162,9 @@ GameObject:
   - component: {fileID: 1033327744204612256}
   - component: {fileID: 7977919660959584953}
   - component: {fileID: 1731817293600673060}
-  - component: {fileID: 8325173384286561876}
   - component: {fileID: 746064543262414782}
   - component: {fileID: 6154862175739829330}
+  - component: {fileID: 8847610691692393152}
   m_Layer: 8
   m_Name: Fortress
   m_TagString: Building
@@ -330,6 +330,7 @@ MonoBehaviour:
     requiredProgress: 0
     currentProgress: 0
     builders: []
+  layerIndex: 0
 --- !u!114 &1731817293600673060
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -346,21 +347,6 @@ MonoBehaviour:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
   - {x: -1, y: 0}
---- !u!114 &8325173384286561876
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3379170715116996560}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: 0
-  isStaticDecor: 0
 --- !u!114 &746064543262414782
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -392,6 +378,21 @@ MonoBehaviour:
   - {fileID: 463292457007941665}
   - {fileID: 8404697974518227058}
   listArcherPositions: []
+--- !u!114 &8847610691692393152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3379170715116996560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!1 &6952107171530182966
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,7 +2,11 @@
 {
     public class CheckPathToAdjacentTargetNode : BTActionNode
     {
-        public CheckPathToAdjacentTargetNode(Builder builder) : base(builder) {}
+        private Builder builder;
+        public CheckPathToAdjacentTargetNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

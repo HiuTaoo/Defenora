@@ -2,11 +2,11 @@
 {
     public abstract class BTActionNode : BTNode
     {
-        protected Builder builder;
+        protected Unit unit;
 
-        protected BTActionNode(Builder builder)
+        protected BTActionNode(Unit unit)
         {
-            this.builder = builder;
+            this.unit = unit;
         }
     }
 }

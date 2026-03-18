@@ -5,7 +5,12 @@ namespace _Script.BT.Node.BuilderNode.Build
 {
     public class FindBuildTaskNode :BTActionNode
     {
-        public FindBuildTaskNode(Builder builder) : base(builder){}
+        private Builder builder;
+
+        public FindBuildTaskNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

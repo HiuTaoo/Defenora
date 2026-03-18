@@ -2,7 +2,12 @@
 {
     public class HasItemAroundNode: BTActionNode
     {
-        public HasItemAroundNode(Builder builder):base(builder){}
+        private Builder builder;
+
+        public HasItemAroundNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
         public override BTStatus Tick()
         {
             if (builder.FindItemAround() != null)

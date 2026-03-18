@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 1017558872786155303}
   - component: {fileID: 2281497340975008334}
   - component: {fileID: 1367610579090631140}
-  - component: {fileID: 8448295130713633013}
   - component: {fileID: 1761517465522089442}
   - component: {fileID: 4802562396339019657}
+  - component: {fileID: 325430632988255155}
   m_Layer: 11
   m_Name: Tree 4
   m_TagString: Tree
@@ -165,21 +165,6 @@ MonoBehaviour:
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
   treeCollider: {fileID: 0}
---- !u!114 &8448295130713633013
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3411453609490766746}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: 0
-  isStaticDecor: 0
 --- !u!114 &1761517465522089442
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -208,6 +193,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
+--- !u!114 &325430632988255155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3411453609490766746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!1 &3905940925738651169
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,7 +219,7 @@ GameObject:
   - component: {fileID: 1673395790171328464}
   - component: {fileID: 8447435865369191953}
   - component: {fileID: 7297935846678267089}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Custom Render Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

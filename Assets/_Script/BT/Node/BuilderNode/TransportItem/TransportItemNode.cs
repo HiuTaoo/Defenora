@@ -7,11 +7,15 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class TransportItemNode : BTActionNode
     {
+        private Builder builder;
         private float delay = 0.6f;
         private float timer = 0f;
         private bool isDepositing = false;
 
-        public TransportItemNode(Builder builder) : base(builder) { }
+        public TransportItemNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

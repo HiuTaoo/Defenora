@@ -12,10 +12,10 @@ GameObject:
   - component: {fileID: 3200710884896011466}
   - component: {fileID: 9008120946396942088}
   - component: {fileID: 1675236551445220980}
-  - component: {fileID: 5047472347287900836}
   - component: {fileID: 5024684931273837129}
   - component: {fileID: 8763293005500034774}
   - component: {fileID: 7316189474729538805}
+  - component: {fileID: 318907529847168953}
   m_Layer: 11
   m_Name: Bush 2
   m_TagString: Bush
@@ -129,19 +129,6 @@ MonoBehaviour:
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
   isDecorative: 1
---- !u!114 &5047472347287900836
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6991148153946299098}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  runOnce: 1
 --- !u!114 &5024684931273837129
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -205,6 +192,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
+--- !u!114 &318907529847168953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6991148153946299098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!1 &8794550294110042826
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,7 +218,7 @@ GameObject:
   - component: {fileID: 8712827062501865623}
   - component: {fileID: 2297117166353693944}
   - component: {fileID: 5387832158561674434}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Custom Render
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -250,7 +252,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408a25c343dd9ca42a86ac4aec8a3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentCollideGameObject: {fileID: 0}
   layerIndex: -1
 --- !u!70 &5387832158561674434
 CapsuleCollider2D:

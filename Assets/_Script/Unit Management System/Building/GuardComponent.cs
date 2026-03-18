@@ -86,7 +86,6 @@ namespace _Script.Unit_Management_System.Building
                 if (spot != null)
                     Gizmos.DrawSphere(spot.position, 0.1f);
             }
-            Gizmos.DrawWireSphere(transform.position, building.range);
         }
 #endif
     }

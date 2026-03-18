@@ -6,6 +6,5 @@ public enum BTStatus
 {
     Success,
     Failure,
-    Running,
-    Working
+    Running
 }

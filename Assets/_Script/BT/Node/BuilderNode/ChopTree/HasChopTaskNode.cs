@@ -6,7 +6,12 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class HasChopTaskNode : BTActionNode
     {
-        public HasChopTaskNode(Builder builder) : base(builder) {}
+        private Builder builder;
+
+        public HasChopTaskNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
         
         public override BTStatus Tick() {
             if (builder.IsBusy)

@@ -90,9 +90,9 @@ GameObject:
   - component: {fileID: 3646996966829662897}
   - component: {fileID: 2209014728433610812}
   - component: {fileID: 8090229926699787873}
-  - component: {fileID: 8287882715719993104}
   - component: {fileID: 8699020775138910166}
   - component: {fileID: 7744562848832361240}
+  - component: {fileID: 659560381163937438}
   m_Layer: 8
   m_Name: Storage
   m_TagString: Building
@@ -249,21 +249,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
---- !u!114 &8287882715719993104
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4317628030385230672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: 0
-  isStaticDecor: 0
 --- !u!114 &8699020775138910166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,7 +295,24 @@ MonoBehaviour:
     requiredProgress: 0
     currentProgress: 0
     builders: []
+  layerIndex: 0
   maxStoreageCapacity: 100
+  debugStorage: []
+--- !u!114 &659560381163937438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4317628030385230672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!1 &6365253327673594782
 GameObject:
   m_ObjectHideFlags: 0
@@ -322,7 +324,7 @@ GameObject:
   - component: {fileID: 8587346219870872525}
   - component: {fileID: 6093418671676950187}
   - component: {fileID: 4511077883850886076}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Custom Render Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -4,12 +4,16 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class CollectItemNode : BTActionNode
     {
+        private Builder builder;
         private float collectDelay = 1f;
         private float timer = 0f;
         private bool isCollecting = false;
         private Item targetItem;
 
-        public CollectItemNode(Builder builder) : base(builder) { }
+        public CollectItemNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

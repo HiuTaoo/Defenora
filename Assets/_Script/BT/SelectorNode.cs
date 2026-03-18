@@ -18,5 +18,4 @@ public class SelectorNode : BTComposite
 
         return BTStatus.Failure;
     }
-
 }

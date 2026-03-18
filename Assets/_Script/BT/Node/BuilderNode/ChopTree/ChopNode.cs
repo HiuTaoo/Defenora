@@ -5,11 +5,15 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class ChopNode : BTActionNode
     {
+        private Builder builder;
         private float delay = 0.5f;
         private float timer = 0f;
         private bool isFinishing = false;
 
-        public ChopNode(Builder builder) : base(builder) { }
+        public ChopNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

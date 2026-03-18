@@ -2,11 +2,11 @@
 {
     public class IdleNode : BTActionNode
     {
-        public IdleNode(Builder builder) : base(builder) {}
+        
+        public IdleNode(Unit unit) : base(unit) {}
 
         public override BTStatus Tick()
         {
-
             return BTStatus.Running;
         }
     }

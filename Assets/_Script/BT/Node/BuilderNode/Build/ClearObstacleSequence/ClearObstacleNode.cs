@@ -2,7 +2,12 @@
 {
     public class ClearObstacleNode :BTActionNode
     {
-        public ClearObstacleNode(Builder builder) : base(builder){}
+        private Builder builder;
+
+        public ClearObstacleNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

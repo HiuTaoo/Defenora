@@ -21,6 +21,7 @@ namespace _Script.Object_Pooling
 
         [Header("Item Prefab")]
         public GameObject woodPrefab;
+        public GameObject arrowPrefab;
 
         [Header("Tree Prefab")]
         public GameObject[] treePrefabs;

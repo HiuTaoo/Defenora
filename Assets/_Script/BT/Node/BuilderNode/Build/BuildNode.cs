@@ -4,7 +4,11 @@ namespace _Script.BT.Node.BuilderNode.Build
 {
     public class BuildNode : BTActionNode
     {
-        public BuildNode(Builder builder) :  base(builder) { }
+        private Builder builder;
+        public BuildNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

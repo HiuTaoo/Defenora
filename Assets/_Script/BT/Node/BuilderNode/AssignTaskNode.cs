@@ -6,7 +6,12 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class AssignTaskNode : BTActionNode
     {
-        public AssignTaskNode(Builder builder) : base(builder) {}
+        private Builder builder;
+
+        public AssignTaskNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

@@ -4,7 +4,12 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class HasAvaiableStorageNode: BTActionNode
     {
-        public HasAvaiableStorageNode(Builder builder): base(builder){}
+        private Builder builder;
+
+        public HasAvaiableStorageNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
         public override BTStatus Tick()
         {
             var buildings = UnitManager.Instance.FindBuilding(BuildingType.Storage);

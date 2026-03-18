@@ -3,5 +3,6 @@
     public interface IAnimationProfile
     {
         string GetAnimation(UnitState state);
+        
     }
 }

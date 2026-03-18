@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1958549855620521691}
   - component: {fileID: 4943058129234871618}
   - component: {fileID: 3690479180729775736}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Custom Render
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -93,10 +93,10 @@ GameObject:
   - component: {fileID: 7016390423521843682}
   - component: {fileID: 3208053548929949423}
   - component: {fileID: 7874396281741493430}
-  - component: {fileID: 5865098679597247942}
   - component: {fileID: 68788015722028517}
   - component: {fileID: 2869496205337596450}
   - component: {fileID: 2782710185629028529}
+  - component: {fileID: 8364028935766061008}
   m_Layer: 11
   m_Name: Bush 1
   m_TagString: Bush
@@ -210,23 +210,6 @@ MonoBehaviour:
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
   isDecorative: 1
-  maxChopHit: 3
-  currentChopHit: 0
---- !u!114 &5865098679597247942
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7113461632919070070}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: 0
-  isStaticDecor: 0
 --- !u!114 &68788015722028517
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -290,3 +273,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
+--- !u!114 &8364028935766061008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7113461632919070070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0

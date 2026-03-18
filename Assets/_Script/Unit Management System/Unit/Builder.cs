@@ -14,8 +14,6 @@ using UnityEngine;
 
 public class Builder : Unit
 {
-    private BehaviourTree bt;
-    
     [Header("Builder Info")]
     public Vector2 workBoxSize = new Vector2(1f, 1f);
     public float workRange = 1f;

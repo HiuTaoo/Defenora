@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2196319345434338361}
   - component: {fileID: 8861735865809960788}
   - component: {fileID: 8976375715414720005}
-  - component: {fileID: 6115708056716034679}
+  - component: {fileID: 6329295446962908966}
   m_Layer: 11
   m_Name: Rock 3
   m_TagString: Rock
@@ -171,7 +171,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
---- !u!114 &6115708056716034679
+--- !u!114 &6329295446962908966
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -185,3 +185,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   yFactor: 10
   baseOrder: 0
+  isStaticDecor: 0

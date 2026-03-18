@@ -4,7 +4,11 @@ namespace _Script.BT.Node.BuilderNode.Idle
 {
     public class MoveFollowAvaiablePathNode : BTActionNode
     {
-        public MoveFollowAvaiablePathNode(Builder builder) : base(builder) { }
+        private Builder builder;
+        public MoveFollowAvaiablePathNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         private bool hasStartedMove = false;
         private Vector3Int wanderTarget;

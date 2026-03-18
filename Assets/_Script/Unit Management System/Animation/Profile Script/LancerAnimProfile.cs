@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace _Script.Unit_Management_System.Animation.Profile
+namespace _Script.Unit_Management_System.Animation.Profile_Script
 {
     [CreateAssetMenu(menuName = "Animation/Lancer Animation Profile")]
     public class LancerAnimProfile : ScriptableObject, IAnimationProfile

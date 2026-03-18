@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48d5af3d596c45818c3a026011f70dde, type: 3}
+  m_Name: Archer Animation
+  m_EditorClassIdentifier: 
+  animations:
+  - state: 0
+    fireDirection: 3
+    animationName: Idle
+  - state: 0
+    fireDirection: 2
+    animationName: Idle
+  - state: 0
+    fireDirection: 1
+    animationName: Idle
+  - state: 0
+    fireDirection: 0
+    animationName: Idle
+  - state: 0
+    fireDirection: 4
+    animationName: Idle
+  - state: 1
+    fireDirection: 5
+    animationName: Run
+  - state: 5
+    fireDirection: 0
+    animationName: Shoot Front
+  - state: 5
+    fireDirection: 1
+    animationName: Shoot Up
+  - state: 5
+    fireDirection: 3
+    animationName: Shoot Diogonal Up
+  - state: 5
+    fireDirection: 2
+    animationName: Shoot Down
+  - state: 5
+    fireDirection: 4
+    animationName: Shoot Diogonal Down

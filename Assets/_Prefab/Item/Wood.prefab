@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1390152299511907002}
   - component: {fileID: 6622330194523358206}
   - component: {fileID: 281708428742736450}
-  - component: {fileID: 6962564633651806308}
+  - component: {fileID: 6682270675238724222}
   m_Layer: 11
   m_Name: Wood
   m_TagString: Item
@@ -152,7 +152,7 @@ MonoBehaviour:
   amount: 0
   layerIndex: 0
   assignBuilder: {fileID: 0}
---- !u!114 &6962564633651806308
+--- !u!114 &6682270675238724222
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

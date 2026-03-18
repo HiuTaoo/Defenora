@@ -15,7 +15,6 @@ GameObject:
   - component: {fileID: 347215634551837432}
   - component: {fileID: 4000456904438927540}
   - component: {fileID: 2472314389470793922}
-  - component: {fileID: -4620309893634201294}
   - component: {fileID: 6289721686343462924}
   m_Layer: 11
   m_Name: Sheep
@@ -210,21 +209,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoRegister: 1
   keepAnimatorEnabled: 0
---- !u!114 &-4620309893634201294
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 103944314967868800}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: -1
-  isStaticDecor: 0
 --- !u!114 &6289721686343462924
 MonoBehaviour:
   m_ObjectHideFlags: 0

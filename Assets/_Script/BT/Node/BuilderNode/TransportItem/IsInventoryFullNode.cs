@@ -4,7 +4,12 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class IsInventoryFullNode: BTActionNode
     {
-        public IsInventoryFullNode(Builder builder):base(builder){}
+        private Builder builder;
+
+        public IsInventoryFullNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
         public override BTStatus Tick()
         {
             if (builder.currentInventory.IsFull)

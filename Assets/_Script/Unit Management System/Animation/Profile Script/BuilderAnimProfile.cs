@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace _Script.Unit_Management_System.Animation.Profile
+namespace _Script.Unit_Management_System.Animation.Profile_Script
 {
     [CreateAssetMenu(menuName = "Animation/Pawn Animation Profile")]
-    public class PawnAnimProfile : ScriptableObject, IAnimationProfile
+    public class BuilderAnimProfile : ScriptableObject, IAnimationProfile
     {
         [System.Serializable]
-        public class StateAnimation
+        public class BuilderStateAnimation
         {
             public UnitState state;
             public ToolType tool;
@@ -15,7 +15,7 @@ namespace _Script.Unit_Management_System.Animation.Profile
             public string animationName;
         }
 
-        public List<StateAnimation> animations;
+        public List<BuilderStateAnimation> animations;
 
         private ResourceType currentResource = ResourceType.None;
         private ToolType currentTool = ToolType.None;
@@ -37,7 +37,7 @@ namespace _Script.Unit_Management_System.Animation.Profile
                 a.tool == currentTool &&
                 a.resource == currentResource);
 
-            return anim != null ? anim.animationName : null;
+            return anim?.animationName;
         }
     }
 

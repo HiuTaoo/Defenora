@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using _Script.BT;
 using UnityEngine;
 
 public abstract class Unit : MonoBehaviour
@@ -12,8 +14,6 @@ public abstract class Unit : MonoBehaviour
     public float health = 100f;
     public float maxHealth = 100f;
     public float moveSpeed = 5f;
-    public float attackDamage = 10f;
-    public float attackRange = 2f;
 
     [Header("Movement")]
     public Transform targetDestination;
@@ -25,8 +25,10 @@ public abstract class Unit : MonoBehaviour
 
     [Header("Deployment")]
     public Building assignedBuilding;   
-    
-    protected Rigidbody2D rb;
+
+    protected BehaviourTree bt;
+
+    private Rigidbody2D rb;
     protected Animator animator;
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public CharacterMovement characterMovement;
@@ -49,16 +51,12 @@ public abstract class Unit : MonoBehaviour
         unitName = gameObject.name;
     }
 
-    protected virtual void Update()
-    {
-        //UpdateFacing();
-    }
-
     // =========================
     // PATHFINDING
     // =========================
 
-    private static readonly Vector3Int[] kDirs = new Vector3Int[]
+    #region PATHFINDING
+private static readonly Vector3Int[] kDirs = new Vector3Int[]
     {
         new Vector3Int( 1, 0, 0),
         new Vector3Int(-1, 0, 0)
@@ -227,7 +225,6 @@ public abstract class Unit : MonoBehaviour
 
         return bestPath;
     }
-
     public virtual bool MoveToTargetPosition()
     {
         var path = FindBestPathToAnyAdjacent(currentTask);
@@ -255,27 +252,33 @@ public abstract class Unit : MonoBehaviour
         currentState = UnitState.Moving;
     }
 
-
+    #endregion
+    
     // =========================
-    // VISUAL
+    // Method
     // =========================
 
-    public virtual void UpdateFacing()
+    #region Method
+    public virtual void UpdateFacing(Vector3 dir)
     {
-        if (rb == null || rb.velocity.x == 0)
-            return;
-
         Vector3 scale = transform.localScale;
-        scale.x = rb.velocity.x < 0
+        scale.x = dir.x < 0
             ? -Mathf.Abs(scale.x)
             : Mathf.Abs(scale.x);
         transform.localScale = scale;
     }
     
+
+    
+
+    #endregion
+    
+    
     // =========================
     // LIFE
     // =========================
 
+    #region LIFE
     public virtual void TakeDamage(float damage)
     {
         health -= damage;
@@ -290,6 +293,8 @@ public abstract class Unit : MonoBehaviour
         OnUnitDestroyed?.Invoke(this);
         Destroy(gameObject);
     }
+    #endregion
+    
 
     public abstract void UseSpecialAbility();
 }

@@ -241,6 +241,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             unit.unitType = unitDatum.unitType;
             unit.gameObject.name = unitDatum.unitName;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
+            unit.currentState = unitDatum.currentState;
             foreach (var building in unitManager.buildings) {
                 var guardComponent = building.gameObject.GetComponent<GuardComponent>();
                 if(building.name == unitDatum.assignedBuilding)

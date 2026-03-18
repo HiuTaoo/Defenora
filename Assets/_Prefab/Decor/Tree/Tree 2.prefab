@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5135643926133577171}
   - component: {fileID: 5412177236346946872}
   - component: {fileID: 2534435472118015756}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Custom Render Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -91,10 +91,10 @@ PolygonCollider2D:
   m_Points:
     m_Paths:
     - - {x: 0.047426224, y: 3.4079056}
-      - {x: -0.6450034, y: 0.5385587}
-      - {x: -0.20521683, y: 0.30808365}
-      - {x: 0.25112498, y: 0.32338738}
-      - {x: 0.660306, y: 0.5385589}
+      - {x: -0.75790507, y: 0.42565703}
+      - {x: -0.3519873, y: 0.20647252}
+      - {x: 0.30757678, y: 0.21048665}
+      - {x: 0.77320576, y: 0.4933986}
   m_UseDelaunayMesh: 0
 --- !u!1 &5276064107349130557
 GameObject:
@@ -109,9 +109,9 @@ GameObject:
   - component: {fileID: 7564619909819582424}
   - component: {fileID: 7542816938458537202}
   - component: {fileID: 123393408589102159}
-  - component: {fileID: 919691684603789907}
   - component: {fileID: 8825140872732629244}
   - component: {fileID: 4282435963108984204}
+  - component: {fileID: 4231533467295821646}
   m_Layer: 11
   m_Name: Tree 2
   m_TagString: Tree
@@ -261,21 +261,6 @@ MonoBehaviour:
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
   treeCollider: {fileID: 0}
---- !u!114 &919691684603789907
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5276064107349130557}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: 0
-  isStaticDecor: 0
 --- !u!114 &8825140872732629244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,3 +289,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
+--- !u!114 &4231533467295821646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5276064107349130557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0

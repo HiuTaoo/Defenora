@@ -45,9 +45,9 @@ GameObject:
   - component: {fileID: 6492361942553286753}
   - component: {fileID: 6580866885181238989}
   - component: {fileID: 4274527819006447420}
-  - component: {fileID: 7832843909344419583}
   - component: {fileID: 5840214879785921328}
   - component: {fileID: 7336370338770260069}
+  - component: {fileID: 3205074456675443801}
   m_Layer: 8
   m_Name: WatchTower
   m_TagString: Building
@@ -213,6 +213,7 @@ MonoBehaviour:
     requiredProgress: 0
     currentProgress: 0
     builders: []
+  layerIndex: 0
 --- !u!114 &4274527819006447420
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -227,21 +228,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
---- !u!114 &7832843909344419583
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6994465110449608766}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: 0
-  isStaticDecor: 0
 --- !u!114 &5840214879785921328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -271,6 +257,21 @@ MonoBehaviour:
   positionSpots:
   - {fileID: 8559164744609574262}
   listArcherPositions: []
+--- !u!114 &3205074456675443801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6994465110449608766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!1 &7552566619195896200
 GameObject:
   m_ObjectHideFlags: 0
@@ -282,7 +283,7 @@ GameObject:
   - component: {fileID: 2003971139306908848}
   - component: {fileID: 4406461855960362702}
   - component: {fileID: 2057061004878811590}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Custom Render Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

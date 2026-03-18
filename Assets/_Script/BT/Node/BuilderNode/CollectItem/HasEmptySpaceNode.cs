@@ -4,7 +4,12 @@ namespace _Script.BT.Node.BuilderNode
 {
     public class HasEmptySpaceNode : BTActionNode
     {
-        public HasEmptySpaceNode(Builder builder) : base(builder) { }
+        private Builder builder;
+
+        public HasEmptySpaceNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
 
         public override BTStatus Tick()
         {

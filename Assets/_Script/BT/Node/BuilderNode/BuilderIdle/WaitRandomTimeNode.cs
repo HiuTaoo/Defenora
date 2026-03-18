@@ -4,13 +4,13 @@ namespace _Script.BT.Node.BuilderNode.Idle
 {
     public class WaitRandomTimeNode: BTActionNode
     {
-        public  WaitRandomTimeNode(Builder builder): base(builder){}
+        public  WaitRandomTimeNode(Unit unit): base(unit){}
         private float waitTime;
         private float timer;
         private bool initialized;
 
         private float minTime = 5f;
-        private float maxTime = 15f;
+        private float maxTime = 10f;
         
         public override BTStatus Tick()
         {

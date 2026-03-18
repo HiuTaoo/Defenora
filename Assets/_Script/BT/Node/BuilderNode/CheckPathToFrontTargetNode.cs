@@ -2,7 +2,11 @@
 {
     public class CheckPathToFrontTargetNode: BTActionNode
     {
-        public CheckPathToFrontTargetNode(Builder builder):base(builder){}
+        private Builder builder;
+        public CheckPathToFrontTargetNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
         public override BTStatus Tick()
         {
             if (builder.currentTask == null)

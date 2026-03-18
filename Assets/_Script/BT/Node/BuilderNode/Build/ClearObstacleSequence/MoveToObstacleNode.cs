@@ -4,7 +4,11 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
 {
     public class MoveToObstacleNode: BTActionNode
     {
-        public MoveToObstacleNode(Builder builder): base(builder){}
+        private Builder builder;
+        public MoveToObstacleNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
         
         private bool hasStartedMove = false;
         private bool isAligningTarget = false;

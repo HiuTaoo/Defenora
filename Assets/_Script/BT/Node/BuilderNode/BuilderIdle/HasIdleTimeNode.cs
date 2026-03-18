@@ -4,7 +4,12 @@ namespace _Script.BT.Node.BuilderNode.Idle
 {
     public class HasIdleTimeNode: BTActionNode
     {
-        public HasIdleTimeNode(Builder builder): base(builder){}
+        private Builder builder;
+
+        public HasIdleTimeNode(Unit unit) : base(unit)
+        {
+            builder = (Builder)unit;
+        }
         public override BTStatus Tick()
         {
             if (builder.currentState == UnitState.Idle)

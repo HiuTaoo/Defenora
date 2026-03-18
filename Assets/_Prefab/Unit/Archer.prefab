@@ -86,6 +86,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9c79e264e334eb43b6e68c699901814, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &6465090153343079755
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1642505350253639894}
+  m_Layer: 10
+  m_Name: Fire Point
+  m_TagString: Untagged
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1642505350253639894
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6465090153343079755}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.4, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5324220452094368532}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &9163186071473850716
 GameObject:
   m_ObjectHideFlags: 0
@@ -100,8 +131,9 @@ GameObject:
   - component: {fileID: 1685579659005612717}
   - component: {fileID: 6345838413841934660}
   - component: {fileID: 6867302939378748637}
-  - component: {fileID: 5712727403880073999}
   - component: {fileID: 7621971442396312281}
+  - component: {fileID: 8961981535275278551}
+  - component: {fileID: 105630551468891021}
   m_Layer: 10
   m_Name: Archer
   m_TagString: NPC
@@ -123,6 +155,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3367794133413154289}
+  - {fileID: 1642505350253639894}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &9086398698701681295
@@ -278,8 +311,6 @@ MonoBehaviour:
   health: 100
   maxHealth: 100
   moveSpeed: 5
-  attackDamage: 10
-  attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
   currentTask:
@@ -295,24 +326,14 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
-  arrowPrefab: {fileID: 0}
-  firePoint: {fileID: 0}
+  attackDamage: 2
+  attackRange: 5
   fireRate: 1
---- !u!114 &5712727403880073999
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9163186071473850716}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yFactor: 10
-  baseOrder: 1
-  isStaticDecor: 0
+  firePoint: {fileID: 1642505350253639894}
+  isStationed: 0
+  viewDistance: 5
+  viewAngle: 180
+  animFSM: {fileID: 0}
 --- !u!114 &7621971442396312281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -326,3 +347,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bridgeOffset: 1
+--- !u!114 &8961981535275278551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9163186071473850716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
+--- !u!114 &105630551468891021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9163186071473850716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d2babb833e41d7a39ecf236e85d6a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationProfileSO: {fileID: 11400000, guid: f14f2f93bd1d6a34288359de55fbe6b4, type: 2}
