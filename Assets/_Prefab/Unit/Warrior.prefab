@@ -164,7 +164,7 @@ Animator:
   m_GameObject: {fileID: 2417399181293632922}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: aa1112b337436413a9e3f0f07d8475c2, type: 2}
+  m_Controller: {fileID: 9100000, guid: 497f9413dc1e6934b9f782d63cda8470, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -193,8 +193,6 @@ MonoBehaviour:
   health: 100
   maxHealth: 100
   moveSpeed: 5
-  attackDamage: 10
-  attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
   currentTask:

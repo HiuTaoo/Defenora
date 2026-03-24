@@ -31,9 +31,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
                 Vector2 end = target.transform.position;
 
                 archer.animFSM.SetFireDirection(archer.archerBlackBoard.fireDirection);
-                archer.animFSM.ChangeState(archer.currentState);
                 
-                Debug.Log("Shoot: "+ archer.archerBlackBoard.fireDirection);
                 hasShot = true;
                 timer = 0f;
             }
@@ -43,7 +41,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
             if (timer >= delay)
             {
                 archer.ResetState();
-                archer.animFSM.ChangeState(archer.currentState);
                 ResetInternal();
                 return BTStatus.Success;
             }

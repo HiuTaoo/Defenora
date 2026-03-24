@@ -19,7 +19,7 @@ public class FloorAgent : MonoBehaviour
             {
                 return;
             }
-
+            Debug.Log($"Change floor index to {value}");
             _currentFloorIndex = value;
         }
     }

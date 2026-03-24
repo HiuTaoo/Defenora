@@ -18,7 +18,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
             if (archer.DetectEnemies(archer.attackRange, dir).Count == 0)
             {
                 archer.ResetState();
-                archer.animFSM.ChangeState(archer.currentState);
                 return BTStatus.Success;
             }
             

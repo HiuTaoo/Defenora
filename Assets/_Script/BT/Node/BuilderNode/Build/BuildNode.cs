@@ -18,7 +18,6 @@ namespace _Script.BT.Node.BuilderNode.Build
                 builder.currentTool = ToolType.Hammer;
                 builder.currentResource = ResourceType.None;
                 builder.UpdateAnim();
-                builder.animFSM.ChangeState(UnitState.Working);
             }
             
             var building = builder.currentTask?.targetGameObject?.GetComponent<Building>();

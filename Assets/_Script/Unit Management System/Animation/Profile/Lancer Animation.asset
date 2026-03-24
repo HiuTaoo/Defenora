@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a276101d83dd46d4a3925390d192bc81, type: 3}
+  m_Name: Lancer Animation
+  m_EditorClassIdentifier: 
+  animations:
+  - state: 0
+    animationName: Lancer_Idle_Blue
+    lancerDirection: 0
+  - state: 0
+    animationName: Lancer_Idle_Blue
+    lancerDirection: 1
+  - state: 0
+    animationName: Lancer_Idle_Blue
+    lancerDirection: 2
+  - state: 0
+    animationName: Lancer_Idle_Blue
+    lancerDirection: 3
+  - state: 0
+    animationName: Lancer_Idle_Blue
+    lancerDirection: 5
+  - state: 2
+    animationName: Lancer_UpRight_Defence_Blue
+    lancerDirection: 2
+  - state: 2
+    animationName: Lancer_Up_Defence_Blue
+    lancerDirection: 1
+  - state: 2
+    animationName: Lancer_Right_Defence_Blue
+    lancerDirection: 3
+  - state: 2
+    animationName: Lancer_DownRight_Defence_Blue
+    lancerDirection: 4
+  - state: 2
+    animationName: Lancer_Down_Defence_Blue
+    lancerDirection: 0
+  - state: 5
+    animationName: Lancer_Down_Attack_Blue
+    lancerDirection: 0
+  - state: 5
+    animationName: Lancer_DownRight_Attack_Blue
+    lancerDirection: 4
+  - state: 5
+    animationName: Lancer_Right_Attack_Blue
+    lancerDirection: 3
+  - state: 5
+    animationName: Lancer_UpRight_Attack_Blue
+    lancerDirection: 2
+  - state: 5
+    animationName: Lancer_Up_Attack_Blue
+    lancerDirection: 1
+  - state: 1
+    animationName: Lancer_Run_Blue
+    lancerDirection: 0
+  - state: 1
+    animationName: Lancer_Run_Blue
+    lancerDirection: 1
+  - state: 1
+    animationName: Lancer_Run_Blue
+    lancerDirection: 2
+  - state: 1
+    animationName: Lancer_Run_Blue
+    lancerDirection: 3
+  - state: 1
+    animationName: Lancer_Run_Blue
+    lancerDirection: 4
+  - state: 1
+    animationName: Lancer_Run_Blue
+    lancerDirection: 5

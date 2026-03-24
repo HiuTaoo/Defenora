@@ -13,7 +13,8 @@ namespace _Script.BT.Node.BuilderNode
         }
         public override BTStatus Tick()
         {
-            if (builder.currentInventory == null || builder.currentInventory.IsEmpty)
+            if (builder.currentInventory == null
+                || builder.currentInventory.IsEmpty)
                 return BTStatus.Failure;
 
             if (builder.currentInventory.TryGetMostAbundant(out var resource))

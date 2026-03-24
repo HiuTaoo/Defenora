@@ -323,12 +323,25 @@ MonoBehaviour:
     currentProgress: 0
     builders: []
   assignedBuilding: {fileID: 0}
+  obstacleLayer: 0
+  enemyLayer: 0
+  results:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
   attackDamage: 2
   attackRange: 5
-  fireRate: 1
+  fireRate: 5
   firePoint: {fileID: 1642505350253639894}
   isStationed: 0
   viewDistance: 5

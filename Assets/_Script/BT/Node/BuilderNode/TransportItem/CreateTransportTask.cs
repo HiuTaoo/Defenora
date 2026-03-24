@@ -45,6 +45,9 @@ namespace _Script.BT.Node.BuilderNode
             if (bestStorage == null)
                 return BTStatus.Failure;
 
+            if(builder.currentTask != null && builder.currentTask.taskType == TaskType.TransportItem)
+                return BTStatus.Success;
+            
             var task = new global::Task(
                 bestStorage.gameObject,
                 TaskType.TransportItem,

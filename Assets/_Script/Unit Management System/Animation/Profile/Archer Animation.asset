@@ -28,9 +28,6 @@ MonoBehaviour:
   - state: 0
     fireDirection: 4
     animationName: Idle
-  - state: 1
-    fireDirection: 5
-    animationName: Run
   - state: 5
     fireDirection: 0
     animationName: Shoot Front
@@ -46,3 +43,18 @@ MonoBehaviour:
   - state: 5
     fireDirection: 4
     animationName: Shoot Diogonal Down
+  - state: 1
+    fireDirection: 0
+    animationName: Run
+  - state: 1
+    fireDirection: 1
+    animationName: Run
+  - state: 1
+    fireDirection: 2
+    animationName: Run
+  - state: 1
+    fireDirection: 3
+    animationName: Run
+  - state: 1
+    fireDirection: 4
+    animationName: Run

@@ -29,7 +29,6 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
             if (!hasStartedMove)
             {
                 builder.UpdateAnim();
-                builder.animFSM.ChangeState(UnitState.Moving);
 
                 builder.MoveToTargetPosition(builder.builderBlackBoard.pathFinding);
 
@@ -96,7 +95,6 @@ namespace _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence
         private void FinishMove()
         {
             ResetNode();
-            builder.animFSM.ChangeState(UnitState.Idle);
         }
     }
 }

@@ -46,7 +46,6 @@ namespace _Script.BT.Node.BuilderNode
             if (!hasStartedMove)
             {
                 builder.UpdateAnim();
-                builder.animFSM.ChangeState(UnitState.Moving);
                 builder.currentState = UnitState.Moving;
 
                 builder.MoveToTargetPosition(builder.builderBlackBoard.pathFinding);
@@ -95,7 +94,6 @@ namespace _Script.BT.Node.BuilderNode
         private void FinishMove()
         {
             ResetNode();
-            builder.animFSM.ChangeState(UnitState.Idle);
         }
     }
 

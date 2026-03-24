@@ -19,27 +19,7 @@ public class Warrior : Unit
 
     public override void UseSpecialAbility()
     {
-        // Lao về phía trước
-        if (Time.time >= nextChargeTime && !isCharging)
-        {
-            StartCoroutine(ChargeAttack());
-        }
+     
     }
 
-    private System.Collections.IEnumerator ChargeAttack()
-    {
-        isCharging = true;
-        float originalSpeed = moveSpeed;
-        moveSpeed = chargeSpeed;
-
-        Debug.Log($"{unitName} đang lao tới!");
-
-        yield return new WaitForSeconds(chargeDuration);
-
-        moveSpeed = originalSpeed;
-        isCharging = false;
-        nextChargeTime = Time.time + chargeCooldown;
-
-        Debug.Log($"{unitName} đã hoàn thành đòn tấn công!");
-    }
 }

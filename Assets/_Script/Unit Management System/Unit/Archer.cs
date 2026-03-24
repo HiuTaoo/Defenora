@@ -32,13 +32,6 @@ public class Archer : Unit
     
     [Header("Animation FSM")]
     public AnimationFSM animFSM;
-    
-    [Header("Enemy")]
-    private Collider2D[] results = new Collider2D[10];
-    
-    [Header("Layer")]
-    private int obstacleLayer;
-    private int enemyLayer;
 
     public ArcherBlackBoard archerBlackBoard {get; set;}
     
@@ -53,9 +46,7 @@ public class Archer : Unit
         sortingYX = GetComponent<DynamicSortingYX>();
         archerBlackBoard = new ArcherBlackBoard();
         animFSM = GetComponent<AnimationFSM>();
-                
-        enemyLayer = LayerMask.GetMask("NPC");
-        obstacleLayer = LayerMask.GetMask("VisionBlocker");
+
 
         bt = CreateBehaviourTree(this);
     }
@@ -66,6 +57,7 @@ public class Archer : Unit
         CheckIsStationed();
         UpdateFirePointPosition();
         CheckEnemyDirection();
+        animFSM.ChangeState(currentState);
         
         bt?.Tick();
     }
@@ -288,25 +280,6 @@ public class Archer : Unit
         }
 
         return enemiesInRange;
-    }
-    
-    public GameObject SelectClosestTarget(List<GameObject> enemies)
-    {
-        GameObject best = null;
-        float minDist = float.MaxValue;
-
-        foreach (var enemy in enemies)
-        {
-            float dist = Vector2.Distance(transform.position, enemy.transform.position);
-
-            if (dist < minDist)
-            {
-                minDist = dist;
-                best = enemy;
-            }
-        }
-
-        return best;
     }
     
     public ArcherFireDirection GetFireDirection(Vector2 from, Vector2 to)

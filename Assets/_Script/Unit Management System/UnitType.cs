@@ -15,7 +15,7 @@ public enum UnitState
 {
     Idle,      
     Moving,    
-    Stationed, 
+    Defencing, 
     Working,
     Patrolling,
     Attacking

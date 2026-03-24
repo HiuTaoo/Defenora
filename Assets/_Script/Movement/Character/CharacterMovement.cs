@@ -193,7 +193,7 @@ public class CharacterMovement : MonoBehaviour
                 Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
                 targetCenter.z = transform.parent.position.z;
 
-                while ((transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
+                while (unit.currentState == UnitState.Moving && (transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
                 {
                     var dir = ((Vector2)targetCenter - rb.position).normalized;
                     direction = dir;
@@ -224,8 +224,6 @@ public class CharacterMovement : MonoBehaviour
                     rb.MovePosition(nextPosition);
                     yield return null;
                 }
-
-                CurrentLayer = segment.layerIndex;
             }
         }
 
@@ -298,23 +296,7 @@ public class CharacterMovement : MonoBehaviour
 
         transform.parent.localScale = scale;
     }
-
-
-    private void HandleFlip()
-    {
-        if (direction == Vector2.left)
-        {
-            Vector3 scale = transform.parent.localScale;
-            scale.x = -Mathf.Abs(scale.x);
-            transform.parent.localScale = scale;
-        }
-        if (direction == Vector2.right)
-        {
-            Vector3 scale = transform.parent.localScale;
-            scale.x = Mathf.Abs(scale.x);
-            transform.parent.localScale = scale;
-        }
-    }
+    
     public void UpdateLayerIndex()
     {
         if(CurrentLayer != floorAgent.currentFloorIndex) 

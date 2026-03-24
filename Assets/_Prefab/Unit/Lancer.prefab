@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &530500149843686783
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2082031161799423126}
+  m_Layer: 10
+  m_Name: DetectPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2082031161799423126
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 530500149843686783}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5313260142165246465}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3672300665775765675
 GameObject:
   m_ObjectHideFlags: 0
@@ -83,7 +114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f191a147b968d3438112b9615b3cf78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2.75
+  moveSpeed: 2
   rb: {fileID: 0}
   moving: 0
 --- !u!1 &4124294002956455345
@@ -101,6 +132,8 @@ GameObject:
   - component: {fileID: 8280558650109143541}
   - component: {fileID: 7733666581131024601}
   - component: {fileID: 2837562405334351045}
+  - component: {fileID: 4903893649108744999}
+  - component: {fileID: 7414797695237030093}
   m_Layer: 10
   m_Name: Lancer
   m_TagString: NPC
@@ -122,6 +155,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4961915294824534777}
+  - {fileID: 2082031161799423126}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1664691516249532554
@@ -187,7 +221,7 @@ Animator:
   m_GameObject: {fileID: 4124294002956455345}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: fa7ae5cd619544ca4a4ea82a50baa12d, type: 2}
+  m_Controller: {fileID: 9100000, guid: d4c34b780aab0d44d9f02e8f3a8d7c46, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -277,9 +311,6 @@ MonoBehaviour:
   currentState: 0
   health: 100
   maxHealth: 100
-  moveSpeed: 5
-  attackDamage: 10
-  attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
   currentTask:
@@ -292,12 +323,27 @@ MonoBehaviour:
     currentProgress: 0
     builders: []
   assignedBuilding: {fileID: 0}
+  obstacleLayer: 0
+  enemyLayer: 0
+  results:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
-  chargeSpeed: 8
-  chargeDuration: 2
-  chargeCooldown: 10
+  attackRange: 1.5
+  viewDistance: 3
+  detectPoint: {fileID: 2082031161799423126}
+  viewAngle: 180
+  animFSM: {fileID: 0}
 --- !u!114 &2837562405334351045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -311,3 +357,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bridgeOffset: 1
+--- !u!114 &4903893649108744999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4124294002956455345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
+--- !u!114 &7414797695237030093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4124294002956455345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d2babb833e41d7a39ecf236e85d6a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationProfileSO: {fileID: 11400000, guid: 970c1e4cf88372a4db8f268e5e52b10f, type: 2}

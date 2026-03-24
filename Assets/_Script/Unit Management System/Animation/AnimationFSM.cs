@@ -44,5 +44,23 @@ namespace _Script.Unit_Management_System.Animation
                 archerAnimProfile.SetCurrentFireDirection(direction);
             }
         }
+
+        public void SetLancerDirection(LancerDirection direction)
+        {
+            if (animationProfile is LancerAnimProfile lancerAnimProfile)
+            {
+                lancerAnimProfile.SetLancerDirection(direction);
+            }
+        }
+
+        public LancerDirection GetLancerDirection()
+        {
+            if (animationProfile is LancerAnimProfile lancerAnimProfile)
+            {
+                return lancerAnimProfile.currentLancerDirection;
+            }
+
+            return LancerDirection.None;
+        }
     }
 }

@@ -43,7 +43,6 @@ namespace _Script.BT.Node.BuilderNode
             isCollecting = false;
             targetItem = null;
             builder.UpdateAnim();
-            builder.animFSM.ChangeState(UnitState.Idle);
 
             return BTStatus.Success;
         }

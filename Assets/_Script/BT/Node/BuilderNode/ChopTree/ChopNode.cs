@@ -25,7 +25,6 @@ namespace _Script.BT.Node.BuilderNode
                     builder.currentTool = ToolType.Axe;
                     builder.currentResource = ResourceType.None;
                     builder.UpdateAnim();
-                    builder.animFSM.ChangeState(UnitState.Working);
                 }
 
                 if (builder.IsChopped())

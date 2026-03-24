@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 2885146454794559777}
   - component: {fileID: 3025417812595231669}
   - component: {fileID: 1888212580571355522}
+  - component: {fileID: 4390076893957488362}
   m_Layer: 10
   m_Name: Builder
   m_TagString: NPC
@@ -280,9 +281,7 @@ MonoBehaviour:
   currentState: 0
   health: 100
   maxHealth: 100
-  moveSpeed: 5
-  attackDamage: 10
-  attackRange: 2
+  moveSpeed: 3
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
   currentTask:
@@ -295,6 +294,19 @@ MonoBehaviour:
     currentProgress: 0
     builders: []
   assignedBuilding: {fileID: 0}
+  obstacleLayer: 0
+  enemyLayer: 0
+  results:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -331,6 +343,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationProfileSO: {fileID: 11400000, guid: 7a380857135ff4a449847739f42f563a, type: 2}
+--- !u!114 &4390076893957488362
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4446480107038641665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
 --- !u!1 &6753680548334571932
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,7 +5,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
 {
     public class ArcherAttackCooldownNode : BTActionNode
     {
-        private float cooldown = 1f;
         private float timer = 0f;
         private Archer archer;
 
@@ -18,7 +17,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
         {
             timer += Time.deltaTime;
 
-            if (timer >= cooldown)
+            if (timer >= archer.fireRate)
             {
                 
                 timer = 0f;

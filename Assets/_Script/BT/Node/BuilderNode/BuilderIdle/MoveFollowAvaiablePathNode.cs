@@ -29,7 +29,6 @@ namespace _Script.BT.Node.BuilderNode.Idle
                     return BTStatus.Failure;
                 
                 builder.UpdateAnim();
-                builder.animFSM.ChangeState(UnitState.Moving);
 
                 builder.characterMovement.MoveToPosition(wanderTarget, builder.characterMovement.CurrentLayer); 
 
@@ -65,7 +64,6 @@ namespace _Script.BT.Node.BuilderNode.Idle
         private void FinishMove()
         {
             ResetNode();
-            builder.animFSM.ChangeState(UnitState.Idle);
         }
     }
 }

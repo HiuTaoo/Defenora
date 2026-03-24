@@ -13,7 +13,6 @@ public abstract class Unit : MonoBehaviour
     [Header("Stats")]
     public float health = 100f;
     public float maxHealth = 100f;
-    public float moveSpeed = 5f;
 
     [Header("Movement")]
     public Transform targetDestination;
@@ -24,7 +23,15 @@ public abstract class Unit : MonoBehaviour
     public bool IsBusy => currentTask != null && !currentTask.IsCompleted  && currentTask.targetGameObject != null;
 
     [Header("Deployment")]
-    public Building assignedBuilding;   
+    public Building assignedBuilding;  
+    
+    [Header("Layer")]
+    public int obstacleLayer;
+    public int enemyLayer;
+    
+        
+    [Header("Enemy")]
+    public Collider2D[] results;
 
     protected BehaviourTree bt;
 
@@ -43,6 +50,10 @@ public abstract class Unit : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         characterMovement = GetComponentInChildren<CharacterMovement>();
         floorAgent = GetComponentInChildren<FloorAgent>();
+                        
+        enemyLayer = LayerMask.GetMask("NPC");
+        obstacleLayer = LayerMask.GetMask("VisionBlocker");
+        results = new Collider2D[20];
 
         if (rb == null)
             rb = gameObject.AddComponent<Rigidbody2D>();
@@ -111,7 +122,9 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
 
             if (!graph.nodes.TryGetValue(neighborWorld, out Node node) || !node.isWalkable)
                 continue;
-
+            Debug.Log($"Start pos: {currentGridPos}, layer: {floorAgent.currentFloorIndex}");
+            Debug.Log($"End pos: {neighborWorld}, layer: {task.layerIndex}");
+            Debug.Log($"$Current task: {task.taskType}");
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
                 currentGridPos, floorAgent.currentFloorIndex,
                 neighborWorld, task.layerIndex);
@@ -268,7 +281,25 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
         transform.localScale = scale;
     }
     
+    public GameObject SelectClosestTarget(List<GameObject> enemies)
+    {
+        GameObject best = null;
+        float minDist = float.MaxValue;
 
+        foreach (var enemy in enemies)
+        {
+            float dist = Vector2.Distance(transform.position, enemy.transform.position);
+
+            if (dist < minDist)
+            {
+                minDist = dist;
+                best = enemy;
+            }
+        }
+
+        return best;
+    }
+    
     
 
     #endregion

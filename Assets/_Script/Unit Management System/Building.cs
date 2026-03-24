@@ -250,8 +250,6 @@ public abstract class Building : MonoBehaviour, IBuildable
         unit.assignedBuilding = this;
         currentCapacity++;
 
-        unit.currentState = UnitState.Stationed;
-
         // 🔽 Hook cho component khác
         OnUnitAdded(unit);
     }

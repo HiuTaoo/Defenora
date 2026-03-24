@@ -11,14 +11,22 @@ namespace _Script.Unit_Management_System.Animation.Profile_Script
         {
             public UnitState state;
             public string animationName;
+            public LancerDirection lancerDirection;
         }
 
         public List<StateAnimation> animations;
+        public LancerDirection currentLancerDirection {get; private set;}
 
         public string GetAnimation(UnitState state)
         {
-            var anim = animations.Find(a => a.state == state);
-            return anim != null ? anim.animationName : null;
+            var anim = animations.Find(a => a.state == state
+            && a.lancerDirection == currentLancerDirection);
+            return anim?.animationName;
+        }
+
+        public void SetLancerDirection(LancerDirection lancerDirection)
+        {
+            currentLancerDirection = lancerDirection;
         }
     }
 

@@ -46,6 +46,7 @@ public class Builder : Unit
     private void Update()
     {
         bt?.Tick();
+        animFSM.ChangeState(currentState);
     }
     
     #region BT
