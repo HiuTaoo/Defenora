@@ -83,7 +83,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f191a147b968d3438112b9615b3cf78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2
+  moveSpeed: 1.75
   rb: {fileID: 0}
   moving: 0
 --- !u!1 &6602815683075122701
@@ -101,6 +101,8 @@ GameObject:
   - component: {fileID: 8659560294403211864}
   - component: {fileID: 680273864771012031}
   - component: {fileID: 183254153025691274}
+  - component: {fileID: 4635585049436068879}
+  - component: {fileID: 5000977805069631393}
   m_Layer: 10
   m_Name: Monk
   m_TagString: NPC
@@ -276,9 +278,6 @@ MonoBehaviour:
   currentState: 0
   health: 100
   maxHealth: 100
-  moveSpeed: 5
-  attackDamage: 10
-  attackRange: 2
   targetDestination: {fileID: 0}
   stoppingDistance: 0.1
   currentTask:
@@ -291,12 +290,18 @@ MonoBehaviour:
     currentProgress: 0
     builders: []
   assignedBuilding: {fileID: 0}
+  obstacleLayer: 0
+  enemyLayer: 0
+  results: []
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
   healAmount: 20
   healRange: 3
   healCooldown: 5
+  viewDistance: 3
+  viewAngle: 180
+  animFSM: {fileID: 0}
 --- !u!114 &183254153025691274
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,3 +315,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bridgeOffset: 1
+--- !u!114 &4635585049436068879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6602815683075122701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ca65fcd55c035b488bd1c227797ea27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yFactor: 10
+  baseOrder: 0
+  isStaticDecor: 0
+--- !u!114 &5000977805069631393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6602815683075122701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d2babb833e41d7a39ecf236e85d6a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationProfileSO: {fileID: 11400000, guid: fd130453ad8753d4ca37112976b344e7, type: 2}

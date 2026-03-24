@@ -18,5 +18,6 @@ public enum UnitState
     Defending, 
     Working,
     Patrolling,
-    Attacking
+    Attacking,
+    Heal
 }
