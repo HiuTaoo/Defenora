@@ -40,7 +40,7 @@ public class Lancer : Unit
     {
         bt?.Tick();
         CheckEnemyDirection();
-        UpdateDetctPointPosition();
+        UpdateDetectPointPosition();
         animFSM.ChangeState(currentState);
         if(lancerBlackBoard.detectedEnemy != null)
         {
@@ -54,13 +54,13 @@ public class Lancer : Unit
     private BehaviourTree CreateBehaviourTree(Lancer lancer)
     {
         var idleSequence = new SequenceNode(
-            new HasNoEnemyInSight(lancer),
-            new FindNextPatrolPositionNode(lancer),
-            new MoveToNextPatrolPositionNode(lancer),
-            new LancerWaitNode(lancer));
+            new LancerHasNoEnemyInSight(lancer),
+            new LancerFindNextPatrolPositionNode(lancer),
+            new LancerMoveToNextPatrolPositionNode(lancer),
+            new WaitNode(lancer));
 
         var attackSequence = new SequenceNode(
-            new IsEnemyInAttackRangeNode(lancer),
+            new LancerIsEnemyInAttackRangeNode(lancer),
             new LancerAttackNode(lancer));
         
         var combatSequence = new SequenceNode(
@@ -156,40 +156,7 @@ public class Lancer : Unit
         return enemiesInRange;
     }
 
-    public Vector3Int FindPatrolPosition(Vector3Int buildingCell, int minRadius = 2, int maxRadius = 4)
-    {
-        const int maxTries = 20;
-
-        for (int i = 0; i < maxTries; i++)
-        {
-            float angle = Random.Range(0f, Mathf.PI * 2);
-            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-
-            float radius = Random.Range(minRadius, maxRadius + 1);
-
-            Vector2 offset = dir * radius;
-
-            Vector3Int candidate = new Vector3Int(
-                buildingCell.x + Mathf.RoundToInt(offset.x),
-                buildingCell.y + Mathf.RoundToInt(offset.y),
-                0
-            );
-            
-            var node = GraphNode.Instance.GetNode(candidate, assignedBuilding.layerIndex);
-
-            if (node == null)
-                continue;
-
-            return candidate;
-        }
-
-        return Vector3Int.zero;
-    }
-
-    public bool IsStopped()
-    {
-        return currentState != UnitState.Moving;
-    }
+  
     
     private void CheckEnemyDirection()
     {
@@ -254,7 +221,7 @@ public class Lancer : Unit
         animFSM.SetLancerDirection(dir);
     }
     
-    private void UpdateDetctPointPosition()
+    private void UpdateDetectPointPosition()
     {
         if(detectPoint == null) return;
         var target = lancerBlackBoard.detectedEnemy;

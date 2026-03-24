@@ -2,10 +2,8 @@
 
 namespace _Script.BT.Node.LancerNode.LancerIdle
 {
-    public class LancerWaitNode : BTActionNode
+    public class WaitNode : BTActionNode
     {
-        private Lancer lancer;
-
         private float waitDuration = 10f;
         private float waitTimer = 0f;
 
@@ -14,10 +12,8 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
 
         private bool isInitialized = false;
 
-        public LancerWaitNode(Unit unit) : base(unit)
-        {
-            lancer = unit as Lancer;
-        }
+        public WaitNode(Unit unit) : base(unit)
+        { }
 
         public override BTStatus Tick()
         {
@@ -34,7 +30,7 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
 
             if (flipTimer >= nextFlipTime)
             {
-                lancer.UpdateFacing(-lancer.transform.position);
+                unit.UpdateFacing(-unit.transform.position);
                 flipTimer = 0f;
                 SetNextFlipTime();
             }

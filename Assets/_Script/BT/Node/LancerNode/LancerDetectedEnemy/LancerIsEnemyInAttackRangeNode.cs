@@ -1,10 +1,10 @@
 ﻿namespace _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop
 {
-    public class IsEnemyInAttackRangeNode: BTActionNode
+    public class LancerIsEnemyInAttackRangeNode: BTActionNode
     {
         private Lancer lancer;
 
-        public IsEnemyInAttackRangeNode(Unit unit) : base(unit)
+        public LancerIsEnemyInAttackRangeNode(Unit unit) : base(unit)
         {
             this.lancer = unit as Lancer;
         }

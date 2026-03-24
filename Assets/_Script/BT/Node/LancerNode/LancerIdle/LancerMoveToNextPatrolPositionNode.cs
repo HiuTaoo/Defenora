@@ -2,14 +2,14 @@
 
 namespace _Script.BT.Node.LancerNode.LancerIdle
 {
-    public class MoveToNextPatrolPositionNode : BTActionNode
+    public class LancerMoveToNextPatrolPositionNode : BTActionNode
     {
         private Lancer lancer;
 
         private bool hasStartedMove = false;
         private Vector3 targetWorldPos;
 
-        public MoveToNextPatrolPositionNode(Unit unit) : base(unit)
+        public LancerMoveToNextPatrolPositionNode(Unit unit) : base(unit)
         {
             lancer = unit as Lancer;
         }

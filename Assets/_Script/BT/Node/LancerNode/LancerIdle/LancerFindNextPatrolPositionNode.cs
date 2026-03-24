@@ -2,10 +2,10 @@
 
 namespace _Script.BT.Node.LancerNode.LancerIdle
 {
-    public class FindNextPatrolPositionNode: BTActionNode
+    public class LancerFindNextPatrolPositionNode: BTActionNode
     {
         private Lancer lancer;
-        public FindNextPatrolPositionNode(Unit unit) : base(unit)
+        public LancerFindNextPatrolPositionNode(Unit unit) : base(unit)
         {
             lancer = unit as Lancer;
         }

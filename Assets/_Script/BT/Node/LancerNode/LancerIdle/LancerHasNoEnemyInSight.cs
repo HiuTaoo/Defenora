@@ -2,10 +2,10 @@
 
 namespace _Script.BT.Node.LancerNode.LancerIdle
 {
-    public class HasNoEnemyInSight: BTActionNode
+    public class LancerHasNoEnemyInSight: BTActionNode
     {
         private Lancer lancer;
-        public HasNoEnemyInSight(Unit unit) : base(unit)
+        public LancerHasNoEnemyInSight(Unit unit) : base(unit)
         {
             lancer = unit as Lancer;
         }

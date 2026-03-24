@@ -62,5 +62,23 @@ namespace _Script.Unit_Management_System.Animation
 
             return LancerDirection.None;
         }
+
+        public void SetWarriorDirection(WarriorDirection direction)
+        {
+            if (animationProfile is WarriorAnimProfile warriorAnimProfile)
+            {
+                warriorAnimProfile.SetWarriorDirection(direction);
+            }
+        }
+        
+        public WarriorDirection GetWarriorDirection()
+        {
+            if (animationProfile is WarriorAnimProfile warriorAnimProfile)
+            {
+                return warriorAnimProfile.currentWarriorDirection;
+            }
+
+            return WarriorDirection.None;
+        }
     }
 }

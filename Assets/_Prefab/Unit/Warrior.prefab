@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 8297012556547123896}
   - component: {fileID: 2722583741435187917}
   - component: {fileID: 4596112636076992252}
-  - component: {fileID: 5869277206965500433}
   - component: {fileID: 8756480895445328423}
   - component: {fileID: 8050703228285986877}
+  - component: {fileID: 8606747695470908351}
+  - component: {fileID: 5869277206965500433}
   m_Layer: 10
   m_Name: Warrior
   m_TagString: NPC
@@ -36,6 +37,7 @@ Transform:
   m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 8250754444523929379}
   - {fileID: 5304657630165761042}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -175,42 +177,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &5869277206965500433
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2417399181293632922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11929574c6c3e9d4a860ff15fc5ebef7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  unitName: 
-  unitType: 2
-  currentState: 0
-  health: 100
-  maxHealth: 100
-  moveSpeed: 5
-  targetDestination: {fileID: 0}
-  stoppingDistance: 0.1
-  currentTask:
-    targetGameObject: {fileID: 0}
-    taskType: 0
-    layerIndex: 0
-    taskStatus: 0
-    maxBuilders: 0
-    requiredProgress: 0
-    currentProgress: 0
-    builders: []
-  assignedBuilding: {fileID: 0}
-  spriteRenderer: {fileID: 0}
-  characterMovement: {fileID: 0}
-  floorAgent: {fileID: 0}
-  chargeSpeed: 8
-  chargeDuration: 2
-  chargeCooldown: 10
 --- !u!114 &8756480895445328423
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,6 +205,59 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bridgeOffset: 1
+--- !u!114 &8606747695470908351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2417399181293632922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d2babb833e41d7a39ecf236e85d6a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationProfileSO: {fileID: 11400000, guid: 35e343b2ebfaa654b95bd2c89b22d7d4, type: 2}
+--- !u!114 &5869277206965500433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2417399181293632922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11929574c6c3e9d4a860ff15fc5ebef7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitName: 
+  unitType: 2
+  currentState: 0
+  health: 100
+  maxHealth: 100
+  targetDestination: {fileID: 0}
+  stoppingDistance: 0.1
+  currentTask:
+    targetGameObject: {fileID: 0}
+    taskType: 0
+    layerIndex: 0
+    taskStatus: 0
+    maxBuilders: 0
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
+  assignedBuilding: {fileID: 0}
+  obstacleLayer: 0
+  enemyLayer: 0
+  results: []
+  spriteRenderer: {fileID: 0}
+  characterMovement: {fileID: 0}
+  floorAgent: {fileID: 0}
+  attackRange: 1
+  viewDistance: 3
+  detectPoint: {fileID: 8250754444523929379}
+  viewAngle: 180
+  animFSM: {fileID: 0}
 --- !u!1 &2804461022730358203
 GameObject:
   m_ObjectHideFlags: 0
@@ -310,7 +329,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f191a147b968d3438112b9615b3cf78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2.5
+  moveSpeed: 1.5
   rb: {fileID: 0}
   moving: 0
 --- !u!114 &4281134691819306975
@@ -325,3 +344,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9c79e264e334eb43b6e68c699901814, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &4785634088178189461
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8250754444523929379}
+  m_Layer: 10
+  m_Name: DetectPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8250754444523929379
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4785634088178189461}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 13.757142, y: -0.6000001, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3755721970266095713}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
