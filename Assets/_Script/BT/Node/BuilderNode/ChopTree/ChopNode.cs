@@ -22,6 +22,7 @@ namespace _Script.BT.Node.BuilderNode
                 if (builder.currentState != UnitState.Working)
                 {
                     builder.currentState = UnitState.Working;
+                    builder.animState = AnimState.Working;
                     builder.currentTool = ToolType.Axe;
                     builder.currentResource = ResourceType.None;
                     builder.UpdateAnim();

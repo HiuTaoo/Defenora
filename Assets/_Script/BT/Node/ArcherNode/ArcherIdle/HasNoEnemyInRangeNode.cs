@@ -17,7 +17,8 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
             var dir = archer.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
             if (archer.DetectEnemies(archer.attackRange, dir).Count == 0)
             {
-                archer.ResetState();
+                archer.ResetAnim();
+                archer.currentState = UnitState.Idle;
                 return BTStatus.Success;
             }
             

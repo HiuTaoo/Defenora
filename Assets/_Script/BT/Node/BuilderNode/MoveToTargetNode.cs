@@ -46,7 +46,8 @@ namespace _Script.BT.Node.BuilderNode
             if (!hasStartedMove)
             {
                 builder.UpdateAnim();
-                builder.currentState = UnitState.Moving;
+                builder.currentState = UnitState.Move;
+                
 
                 builder.MoveToTargetPosition(builder.builderBlackBoard.pathFinding);
 

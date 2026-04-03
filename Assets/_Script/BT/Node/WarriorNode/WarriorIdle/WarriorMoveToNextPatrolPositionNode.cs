@@ -33,7 +33,8 @@ namespace _Script.BT.Node.WarriorNode.WarriorIdle
                 warrior.MoveToTargetPosition(warrior.warriorBlackBoard.pathFinding);
                 hasStartedMove = true;
 
-                warrior.currentState = UnitState.Moving;
+                warrior.currentState = UnitState.Move;
+                warrior.animState = AnimState.Moving;
             }
 
             float dist = Vector2.Distance(warrior.transform.position, targetWorldPos);

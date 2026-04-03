@@ -14,7 +14,7 @@
             if (!lancer.IsEnemyInAttackRange())
                 return BTStatus.Failure;
             
-            lancer.currentState = UnitState.Attacking;
+            lancer.animState = AnimState.Attacking;
             return BTStatus.Running;
         }
     }

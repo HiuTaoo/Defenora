@@ -13,83 +13,108 @@ MonoBehaviour:
   m_Name: Pawn Animation
   m_EditorClassIdentifier: 
   animations:
-  - state: 0
+  - unitState: 0
+    animState: 0
     tool: 4
     resource: 3
     animationName: Pawn_Idle_Blue
-  - state: 0
+  - unitState: 0
+    animState: 0
     tool: 1
     resource: 3
     animationName: Pawn_Idle Hammer_Blue
-  - state: 0
+  - unitState: 0
+    animState: 0
     tool: 0
     resource: 3
     animationName: Pawn_Idle Axe_Blue
-  - state: 0
+  - unitState: 0
+    animState: 0
     tool: 2
     resource: 3
     animationName: Pawn_Idle Knife_Blue
-  - state: 0
-    tool: 3
-    resource: 3
-    animationName: Pawn_Idle Pickaxe_Blue
-  - state: 1
-    tool: 4
-    resource: 3
-    animationName: Pawn_Run_Blue
-  - state: 1
-    tool: 1
-    resource: 3
-    animationName: Pawn_Run Hammer_Blue
-  - state: 1
-    tool: 0
-    resource: 3
-    animationName: Pawn_Run Axe_Blue
-  - state: 1
-    tool: 2
-    resource: 3
-    animationName: Pawn_Run Knife_Blue
-  - state: 1
-    tool: 3
-    resource: 3
-    animationName: Pawn_Run Pickaxe_Blue
-  - state: 3
-    tool: 1
-    resource: 3
-    animationName: Pawn_Interact Hammer_Blue
-  - state: 3
-    tool: 0
-    resource: 3
-    animationName: Pawn_Interact Axe_Blue
-  - state: 3
-    tool: 2
-    resource: 3
-    animationName: Pawn_Interact Knife_Blue
-  - state: 3
-    tool: 3
-    resource: 3
-    animationName: Pawn_Interact Pickaxe_Blue
-  - state: 0
-    tool: 4
-    resource: 0
-    animationName: Pawn_Idle Wood_Blue
-  - state: 0
-    tool: 4
-    resource: 1
-    animationName: Pawn_Idle Meat_Blue
-  - state: 0
+  - unitState: 0
+    animState: 0
     tool: 4
     resource: 2
     animationName: Pawn_Idle Gold_Blue
-  - state: 1
+  - unitState: 0
+    animState: 0
+    tool: 4
+    resource: 0
+    animationName: Pawn_Idle Wood_Blue
+  - unitState: 0
+    animState: 0
+    tool: 4
+    resource: 1
+    animationName: Pawn_Idle Meat_Blue
+  - unitState: 0
+    animState: 0
+    tool: 3
+    resource: 3
+    animationName: Pawn_Idle Pickaxe_Blue
+  - unitState: 1
+    animState: 1
+    tool: 4
+    resource: 3
+    animationName: Pawn_Run_Blue
+  - unitState: 1
+    animState: 1
+    tool: 1
+    resource: 3
+    animationName: Pawn_Run Hammer_Blue
+  - unitState: 1
+    animState: 1
+    tool: 0
+    resource: 3
+    animationName: Pawn_Run Axe_Blue
+  - unitState: 1
+    animState: 1
+    tool: 2
+    resource: 3
+    animationName: Pawn_Run Knife_Blue
+  - unitState: 1
+    animState: 1
+    tool: 3
+    resource: 3
+    animationName: Pawn_Run Pickaxe_Blue
+  - unitState: 1
+    animState: 1
+    tool: 4
+    resource: 3
+    animationName: Pawn_Run_Blue
+  - unitState: 1
+    animState: 1
     tool: 4
     resource: 0
     animationName: Pawn_Run Wood_Blue
-  - state: 1
-    tool: 4
-    resource: 1
-    animationName: Pawn_Run Meat_Blue
-  - state: 1
+  - unitState: 1
+    animState: 1
     tool: 4
     resource: 2
     animationName: Pawn_Run Gold_Blue
+  - unitState: 1
+    animState: 1
+    tool: 4
+    resource: 1
+    animationName: Pawn_Run Meat_Blue
+  - unitState: 6
+    animState: 4
+    tool: 1
+    resource: 3
+    animationName: Pawn_Interact Hammer_Blue
+  - unitState: 6
+    animState: 4
+    tool: 0
+    resource: 3
+    animationName: Pawn_Interact Axe_Blue
+  - unitState: 6
+    animState: 4
+    tool: 2
+    resource: 3
+    animationName: Pawn_Interact Knife_Blue
+  - unitState: 6
+    animState: 4
+    tool: 3
+    resource: 3
+    animationName: Pawn_Interact Pickaxe_Blue

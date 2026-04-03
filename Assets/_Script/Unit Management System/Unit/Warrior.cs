@@ -40,7 +40,7 @@ public class Warrior : Unit
     {
         bt?.Tick();
         CheckEnemyDirection();
-        animFSM.ChangeState(currentState);
+        animFSM.ChangeState(currentState, animState);
         UpdateDetectPointPosition();
         if(warriorBlackBoard.detectedEnemy != null)
         {
@@ -207,6 +207,7 @@ public class Warrior : Unit
     public void ResetState()
     {
         currentState = UnitState.Idle;
+        animState = AnimState.Idle;
         animFSM.SetWarriorDirection(WarriorDirection.None);
     }
     

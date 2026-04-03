@@ -13,66 +13,87 @@ MonoBehaviour:
   m_Name: Lancer Animation
   m_EditorClassIdentifier: 
   animations:
-  - state: 0
+  - UnitState: 0
+    animState: 0
     animationName: Lancer_Idle_Blue
     lancerDirection: 0
-  - state: 0
+  - UnitState: 0
+    animState: 0
     animationName: Lancer_Idle_Blue
     lancerDirection: 1
-  - state: 0
+  - UnitState: 0
+    animState: 0
     animationName: Lancer_Idle_Blue
     lancerDirection: 2
-  - state: 0
+  - UnitState: 0
+    animState: 0
     animationName: Lancer_Idle_Blue
     lancerDirection: 3
-  - state: 0
+  - UnitState: 0
+    animState: 0
     animationName: Lancer_Idle_Blue
     lancerDirection: 5
-  - state: 2
+  - UnitState: 5
+    animState: 2
     animationName: Lancer_UpRight_Defence_Blue
     lancerDirection: 2
-  - state: 2
+  - UnitState: 5
+    animState: 2
     animationName: Lancer_Up_Defence_Blue
     lancerDirection: 1
-  - state: 2
+  - UnitState: 5
+    animState: 2
     animationName: Lancer_Right_Defence_Blue
     lancerDirection: 3
-  - state: 2
+  - UnitState: 5
+    animState: 2
     animationName: Lancer_DownRight_Defence_Blue
     lancerDirection: 4
-  - state: 2
+  - UnitState: 5
+    animState: 2
     animationName: Lancer_Down_Defence_Blue
     lancerDirection: 0
-  - state: 5
+  - UnitState: 5
+    animState: 3
     animationName: Lancer_Down_Attack_Blue
     lancerDirection: 0
-  - state: 5
+  - UnitState: 5
+    animState: 3
     animationName: Lancer_DownRight_Attack_Blue
     lancerDirection: 4
-  - state: 5
+  - UnitState: 5
+    animState: 3
     animationName: Lancer_Right_Attack_Blue
     lancerDirection: 3
-  - state: 5
+  - UnitState: 5
+    animState: 3
     animationName: Lancer_UpRight_Attack_Blue
     lancerDirection: 2
-  - state: 5
+  - UnitState: 5
+    animState: 3
     animationName: Lancer_Up_Attack_Blue
     lancerDirection: 1
-  - state: 1
+  - UnitState: 1
+    animState: 1
     animationName: Lancer_Run_Blue
     lancerDirection: 0
-  - state: 1
+  - UnitState: 1
+    animState: 1
     animationName: Lancer_Run_Blue
     lancerDirection: 1
-  - state: 1
+  - UnitState: 1
+    animState: 1
     animationName: Lancer_Run_Blue
     lancerDirection: 2
-  - state: 1
+  - UnitState: 1
+    animState: 1
     animationName: Lancer_Run_Blue
     lancerDirection: 3
-  - state: 1
+  - UnitState: 1
+    animState: 1
     animationName: Lancer_Run_Blue
     lancerDirection: 4
-  - state: 1
+  - UnitState: 1
+    animState: 1
     animationName: Lancer_Run_Blue
     lancerDirection: 5

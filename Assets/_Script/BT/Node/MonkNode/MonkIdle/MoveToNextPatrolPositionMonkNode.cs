@@ -34,7 +34,8 @@ namespace _Script.BT.Node.MonkNode.MonkIdle
                 monk.MoveToTargetPosition(monk.monkBlackBoard.pathFinding);
                 hasStartedMove = true;
 
-                monk.currentState = UnitState.Moving;
+                monk.currentState = UnitState.Move;
+                monk.animState = AnimState.Moving;
             }
 
             float dist = Vector2.Distance(monk.transform.position, targetWorldPos);
@@ -55,6 +56,7 @@ namespace _Script.BT.Node.MonkNode.MonkIdle
         {
             hasStartedMove = false;
             monk.currentState = UnitState.Idle;
+            monk.animState = AnimState.Idle;
         }
     }
 }

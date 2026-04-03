@@ -10,14 +10,3 @@ public enum UnitType
     Lancer,
     Monk
 }
-
-public enum UnitState
-{
-    Idle,      
-    Moving,    
-    Defending, 
-    Working,
-    Patrolling,
-    Attacking,
-    Heal
-}

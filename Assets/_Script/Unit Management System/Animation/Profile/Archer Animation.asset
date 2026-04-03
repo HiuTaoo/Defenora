@@ -13,48 +13,111 @@ MonoBehaviour:
   m_Name: Archer Animation
   m_EditorClassIdentifier: 
   animations:
-  - state: 0
+  - animState: 0
+    unitState: 0
+    fireDirection: 5
+    animationName: Idle
+  - animState: 0
+    unitState: 0
     fireDirection: 3
     animationName: Idle
-  - state: 0
+  - animState: 0
+    unitState: 0
     fireDirection: 2
     animationName: Idle
-  - state: 0
+  - animState: 0
+    unitState: 0
     fireDirection: 1
     animationName: Idle
-  - state: 0
+  - animState: 0
+    unitState: 0
     fireDirection: 0
     animationName: Idle
-  - state: 0
+  - animState: 0
+    unitState: 0
     fireDirection: 4
     animationName: Idle
-  - state: 5
+  - animState: 3
+    unitState: 5
     fireDirection: 0
     animationName: Shoot Front
-  - state: 5
+  - animState: 3
+    unitState: 5
     fireDirection: 1
     animationName: Shoot Up
-  - state: 5
+  - animState: 3
+    unitState: 5
     fireDirection: 3
     animationName: Shoot Diogonal Up
-  - state: 5
+  - animState: 3
+    unitState: 5
     fireDirection: 2
     animationName: Shoot Down
-  - state: 5
+  - animState: 3
+    unitState: 5
     fireDirection: 4
     animationName: Shoot Diogonal Down
-  - state: 1
+  - animState: 1
+    unitState: 1
     fireDirection: 0
     animationName: Run
-  - state: 1
+  - animState: 1
+    unitState: 1
     fireDirection: 1
     animationName: Run
-  - state: 1
+  - animState: 1
+    unitState: 1
     fireDirection: 2
     animationName: Run
-  - state: 1
+  - animState: 1
+    unitState: 1
     fireDirection: 3
     animationName: Run
-  - state: 1
+  - animState: 1
+    unitState: 1
     fireDirection: 4
     animationName: Run
+  - animState: 3
+    unitState: 4
+    fireDirection: 4
+    animationName: Shoot Diogonal Down
+  - animState: 3
+    unitState: 4
+    fireDirection: 3
+    animationName: Shoot Diogonal Up
+  - animState: 3
+    unitState: 4
+    fireDirection: 1
+    animationName: Shoot Up
+  - animState: 3
+    unitState: 4
+    fireDirection: 2
+    animationName: Shoot Down
+  - animState: 3
+    unitState: 4
+    fireDirection: 0
+    animationName: Shoot Front
+  - animState: 0
+    unitState: 5
+    fireDirection: 5
+    animationName: Idle
+  - animState: 0
+    unitState: 5
+    fireDirection: 0
+    animationName: Idle
+  - animState: 0
+    unitState: 5
+    fireDirection: 1
+    animationName: Idle
+  - animState: 0
+    unitState: 5
+    fireDirection: 2
+    animationName: Idle
+  - animState: 0
+    unitState: 5
+    fireDirection: 3
+    animationName: Idle
+  - animState: 0
+    unitState: 5
+    fireDirection: 4
+    animationName: Idle

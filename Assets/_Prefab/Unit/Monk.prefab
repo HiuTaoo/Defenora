@@ -83,7 +83,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f191a147b968d3438112b9615b3cf78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.75
+  moveSpeed: 1.5
   rb: {fileID: 0}
   moving: 0
 --- !u!1 &6602815683075122701
@@ -276,6 +276,7 @@ MonoBehaviour:
   unitName: 
   unitType: 5
   currentState: 0
+  animState: 0
   health: 100
   maxHealth: 100
   targetDestination: {fileID: 0}

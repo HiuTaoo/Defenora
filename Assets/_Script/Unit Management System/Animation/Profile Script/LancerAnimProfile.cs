@@ -9,7 +9,8 @@ namespace _Script.Unit_Management_System.Animation.Profile_Script
         [System.Serializable]
         public class StateAnimation
         {
-            public UnitState state;
+            public UnitState UnitState;
+            public AnimState animState;
             public string animationName;
             public LancerDirection lancerDirection;
         }
@@ -17,10 +18,12 @@ namespace _Script.Unit_Management_System.Animation.Profile_Script
         public List<StateAnimation> animations;
         public LancerDirection currentLancerDirection {get; private set;}
 
-        public string GetAnimation(UnitState state)
+        public string GetAnimation(UnitState unitState, AnimState animState)
         {
-            var anim = animations.Find(a => a.state == state
-            && a.lancerDirection == currentLancerDirection);
+            var anim = animations.Find(
+                a => a.UnitState == unitState 
+                     && a.animState == animState 
+                     && a.lancerDirection == currentLancerDirection);
             return anim?.animationName;
         }
 

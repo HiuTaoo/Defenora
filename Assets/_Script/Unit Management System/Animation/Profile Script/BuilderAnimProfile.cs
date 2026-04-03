@@ -9,7 +9,8 @@ namespace _Script.Unit_Management_System.Animation.Profile_Script
         [System.Serializable]
         public class BuilderStateAnimation
         {
-            public UnitState state;
+            public UnitState unitState;
+            public AnimState animState;
             public ToolType tool;
             public ResourceType resource;
             public string animationName;
@@ -30,10 +31,11 @@ namespace _Script.Unit_Management_System.Animation.Profile_Script
             currentTool = newTool;
         }
 
-        public string GetAnimation(UnitState state)
+        public string GetAnimation(UnitState unitState, AnimState animState)
         {
             var anim = animations.Find(a =>
-                a.state == state &&
+                a.unitState == unitState &&
+                a.animState == animState &&
                 a.tool == currentTool &&
                 a.resource == currentResource);
 

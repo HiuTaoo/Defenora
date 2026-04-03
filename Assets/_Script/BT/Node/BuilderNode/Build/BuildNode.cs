@@ -15,12 +15,11 @@ namespace _Script.BT.Node.BuilderNode.Build
             if (builder.currentState != UnitState.Working)
             {
                 builder.currentState = UnitState.Working;
+                builder.animState = AnimState.Working;
                 builder.currentTool = ToolType.Hammer;
                 builder.currentResource = ResourceType.None;
                 builder.UpdateAnim();
             }
-            
-            var building = builder.currentTask?.targetGameObject?.GetComponent<Building>();
             
             if (builder.IsCompletedBuild())
             {

@@ -57,7 +57,7 @@ public class Archer : Unit
         CheckIsStationed();
         UpdateFirePointPosition();
         CheckEnemyDirection();
-        animFSM.ChangeState(currentState);
+        animFSM.ChangeState(currentState, animState);
         
         bt?.Tick();
     }
@@ -349,7 +349,11 @@ public class Archer : Unit
             UpdateFacing(archerBlackBoard.lastDirection);
         }
         else
+        {
             archerBlackBoard.detectedEnemy = null;
+            ResetAnim();
+        }
+            
     }
 
     private void UpdateFirePointPosition()
@@ -370,10 +374,10 @@ public class Archer : Unit
         firePoint.position = firePos;
     }
 
-    public void ResetState()
+    public void ResetAnim()
     {
         archerBlackBoard.fireDirection =  ArcherFireDirection.None;
-        currentState = UnitState.Idle;
+        animState = AnimState.Idle;
     }
     #endregion
 

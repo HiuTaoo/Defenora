@@ -41,7 +41,7 @@ public class Lancer : Unit
         bt?.Tick();
         CheckEnemyDirection();
         UpdateDetectPointPosition();
-        animFSM.ChangeState(currentState);
+        animFSM.ChangeState(currentState, animState);
         if(lancerBlackBoard.detectedEnemy != null)
         {
             UpdateDirection(lancerBlackBoard.detectedEnemy.transform.position, transform.position);
@@ -242,6 +242,7 @@ public class Lancer : Unit
     public void ResetState()
     {
         currentState = UnitState.Idle;
+        animState = AnimState.Idle;
         animFSM.SetLancerDirection(LancerDirection.None);
     }
     public void ResetStateWithDelay(float delay = 5f)

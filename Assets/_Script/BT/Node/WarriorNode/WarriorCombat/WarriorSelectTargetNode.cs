@@ -25,6 +25,7 @@ namespace _Script.BT.Node.WarriorNode.WarriorCombat
             }
 
             warrior.warriorBlackBoard.detectedEnemy = target;
+            warrior.currentState = UnitState.Defend;
 
             return BTStatus.Success;
         }

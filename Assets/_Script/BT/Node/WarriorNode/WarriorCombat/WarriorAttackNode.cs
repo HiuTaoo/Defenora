@@ -17,7 +17,7 @@ namespace _Script.BT.Node.WarriorNode.WarriorCombat
             if (!warrior.IsEnemyInAttackRange())
                 return BTStatus.Failure;
             
-            warrior.currentState = UnitState.Attacking;
+            warrior.animState = AnimState.Attacking;
             Debug.Log(warrior.animFSM.GetWarriorDirection());
             return BTStatus.Running;
         }

@@ -23,6 +23,7 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
                 flipTimer = 0f;
                 SetNextFlipTime();
                 isInitialized = true;
+                unit.animState = AnimState.Idle;
             }
 
             waitTimer += Time.deltaTime;

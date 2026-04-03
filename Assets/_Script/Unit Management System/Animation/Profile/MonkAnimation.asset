@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: MonkAnimation
   m_EditorClassIdentifier: 
   animations:
-  - state: 0
+  - unitState: 0
+    animState: 0
     animationName: Idle
-  - state: 1
+  - unitState: 1
+    animState: 1
     animationName: Walk
-  - state: 6
+  - unitState: 5
+    animState: 5
     animationName: Heal

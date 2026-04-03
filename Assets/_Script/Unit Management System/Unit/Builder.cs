@@ -46,7 +46,7 @@ public class Builder : Unit
     private void Update()
     {
         bt?.Tick();
-        animFSM.ChangeState(currentState);
+        animFSM.ChangeState(currentState, animState);
     }
     
     #region BT
@@ -367,9 +367,10 @@ public class Builder : Unit
         currentTool = ToolType.None;
         currentTask = null;
         currentState = UnitState.Idle;
+        animState = AnimState.Idle;
         targetGO = null;
         UpdateAnim();
-        animFSM.ChangeState(UnitState.Idle);
+        animFSM.ChangeState(UnitState.Idle, AnimState.Idle);
     }
     #endregion
     

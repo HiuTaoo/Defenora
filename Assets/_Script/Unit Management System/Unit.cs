@@ -9,6 +9,7 @@ public abstract class Unit : MonoBehaviour
     public string unitName;
     public UnitType unitType;
     public UnitState currentState = UnitState.Idle;
+    public AnimState animState = AnimState.Idle;
 
     [Header("Stats")]
     public float health = 100f;
@@ -122,9 +123,9 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
 
             if (!graph.nodes.TryGetValue(neighborWorld, out Node node) || !node.isWalkable)
                 continue;
-            Debug.Log($"Start pos: {currentGridPos}, layer: {floorAgent.currentFloorIndex}");
+            /*Debug.Log($"Start pos: {currentGridPos}, layer: {floorAgent.currentFloorIndex}");
             Debug.Log($"End pos: {neighborWorld}, layer: {task.layerIndex}");
-            Debug.Log($"$Current task: {task.taskType}");
+            Debug.Log($"$Current task: {task.taskType}");*/
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
                 currentGridPos, floorAgent.currentFloorIndex,
                 neighborWorld, task.layerIndex);
@@ -249,7 +250,8 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
         characterMovement.moveCoroutine =
             StartCoroutine(characterMovement.FollowPathCoroutine(path));
 
-        currentState = UnitState.Moving;
+        currentState = UnitState.Move;
+        animState = AnimState.Moving;
         return true;
     }
     
@@ -262,7 +264,8 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
         characterMovement.moveCoroutine =
             StartCoroutine(characterMovement.FollowPathCoroutine(path));
 
-        currentState = UnitState.Moving;
+        currentState = UnitState.Move;
+        animState = AnimState.Moving;
     }
 
     #endregion
@@ -333,7 +336,7 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
       
     public bool IsStopped()
     {
-        return currentState != UnitState.Moving;
+        return currentState != UnitState.Move && animState != AnimState.Moving;
     }
 
     #endregion

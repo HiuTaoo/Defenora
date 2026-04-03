@@ -183,7 +183,7 @@ public class CharacterMovement : MonoBehaviour
 
         var unit = transform.parent.GetComponent<Unit>();
         if (unit != null)
-            unit.currentState = UnitState.Moving;
+            unit.currentState = UnitState.Move;
 
         foreach (var segment in path.segments)
         {
@@ -193,7 +193,7 @@ public class CharacterMovement : MonoBehaviour
                 Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
                 targetCenter.z = transform.parent.position.z;
 
-                while (unit.currentState == UnitState.Moving && (transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
+                while (unit.currentState == UnitState.Move && (transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
                 {
                     var dir = ((Vector2)targetCenter - rb.position).normalized;
                     direction = dir;

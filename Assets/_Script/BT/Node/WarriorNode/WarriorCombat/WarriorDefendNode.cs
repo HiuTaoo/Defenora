@@ -14,7 +14,7 @@
             if (!warrior.CheckEnemyStillInRange(warrior.viewDistance))
                 return BTStatus.Failure;
             
-            warrior.currentState = UnitState.Defending;
+            warrior.animState = AnimState.Defending;
             return BTStatus.Running;
         }
     }

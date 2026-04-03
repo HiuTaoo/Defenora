@@ -10,16 +10,18 @@ namespace _Script.Unit_Management_System.Animation
         [SerializeField] private ScriptableObject animationProfileSO;
 
         private IAnimationProfile animationProfile;
+        private ScriptableObject runtimeProfile;
 
         private void Awake()
         {
-            animationProfile = animationProfileSO as IAnimationProfile;
+            runtimeProfile = Instantiate(animationProfileSO);
+            animationProfile = runtimeProfile as IAnimationProfile;
             animator = GetComponent<Animator>();
         }
 
-        public void ChangeState(UnitState state)
+        public void ChangeState(UnitState unitState, AnimState animState)
         {
-            var anim = animationProfile.GetAnimation(state);
+            var anim = animationProfile.GetAnimation(unitState, animState);
 
             if (!string.IsNullOrEmpty(anim))
                 animator.Play(anim);
@@ -27,13 +29,13 @@ namespace _Script.Unit_Management_System.Animation
 
         public void SetTool(ToolType tool)
         {
-            if(animationProfile is BuilderAnimProfile builderProfile)
+            if (animationProfile is BuilderAnimProfile builderProfile)
                 builderProfile.SetTool(tool);
         }
 
         public void SetResource(ResourceType resource)
         {
-            if(animationProfile is BuilderAnimProfile builderProfile)
+            if (animationProfile is BuilderAnimProfile builderProfile)
                 builderProfile.SetResource(resource);
         }
 

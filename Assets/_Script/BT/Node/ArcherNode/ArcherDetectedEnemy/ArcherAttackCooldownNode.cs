@@ -16,6 +16,9 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
         public override BTStatus Tick()
         {
             timer += Time.deltaTime;
+            
+            if(archer.archerBlackBoard.detectedEnemy == null)
+                return BTStatus.Success;
 
             if (timer >= archer.fireRate)
             {

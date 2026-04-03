@@ -34,7 +34,7 @@ public class Monk : Unit
     private void Update()
     {
         bt?.Tick();
-        animFSM.ChangeState(currentState);
+        animFSM.ChangeState(currentState, animState);
         CheckEnemyDirection();
     }
 
@@ -162,6 +162,7 @@ public class Monk : Unit
     public void ResetState()
     {
         currentState = UnitState.Idle;
+        animState = AnimState.Idle;
     }
 
     #endregion

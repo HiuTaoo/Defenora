@@ -34,7 +34,8 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
                 lancer.MoveToTargetPosition(lancer.lancerBlackBoard.pathFinding);
                 hasStartedMove = true;
 
-                lancer.currentState = UnitState.Moving;
+                lancer.currentState = UnitState.Move;
+                lancer.animState = AnimState.Moving;
             }
 
             float dist = Vector2.Distance(lancer.transform.position, targetWorldPos);

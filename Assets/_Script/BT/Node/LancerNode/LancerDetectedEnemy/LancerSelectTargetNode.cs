@@ -31,6 +31,7 @@ namespace _Script.BT.Node.LancerNode.LancerDetectedEnemy
             }
 
             lancer.lancerBlackBoard.detectedEnemy = target;
+            lancer.currentState = UnitState.Defend;
 
             return BTStatus.Success;
         }

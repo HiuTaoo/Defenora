@@ -40,7 +40,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
 
             if (timer >= delay)
             {
-                archer.ResetState();
+                archer.ResetAnim();
                 ResetInternal();
                 return BTStatus.Success;
             }

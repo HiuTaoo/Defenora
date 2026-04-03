@@ -16,7 +16,8 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
             if(archer.DetectEnemies(archer.attackRange, dir).Count == 0)
                 return BTStatus.Failure;
 
-            archer.currentState = UnitState.Attacking;
+            archer.currentState = UnitState.Defend;
+            archer.animState = AnimState.Attacking;
             return BTStatus.Success;
         }
     }

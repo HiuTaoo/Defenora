@@ -9,17 +9,19 @@ namespace _Script.Unit_Management_System.Animation.Profile_Script
         [System.Serializable]
         public class ArcherStateAnimation
         {
-            public UnitState state;
+            public AnimState animState;
+            public UnitState unitState;
             public ArcherFireDirection fireDirection;
             public string animationName;
         }
 
         public List<ArcherStateAnimation> animations;
         public ArcherFireDirection currentFireDirection {get; private set;}
-        public string GetAnimation(UnitState state)
+        public string GetAnimation(UnitState unitState, AnimState animstate)
         {
             var anim = animations.Find(a =>
-                a.state == state &&
+                a.animState == animstate &&
+                a.unitState == unitState &&
                 a.fireDirection == currentFireDirection);
 
             return anim?.animationName;

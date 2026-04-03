@@ -13,8 +13,8 @@
         {
             if (!lancer.CheckEnemyStillInRange(lancer.viewDistance))
                 return BTStatus.Failure;
-            
-            lancer.currentState = UnitState.Defending;
+
+            lancer.animState = AnimState.Defending;
             return BTStatus.Running;
         }
     }
