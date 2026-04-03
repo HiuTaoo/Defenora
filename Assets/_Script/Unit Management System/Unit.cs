@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using _Script.BT;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public abstract class Unit : MonoBehaviour
 {
@@ -30,9 +32,15 @@ public abstract class Unit : MonoBehaviour
     public int obstacleLayer;
     public int enemyLayer;
     
-        
     [Header("Enemy")]
     public Collider2D[] results;
+    
+    [Header("Aggro")]
+    public float aggroTimer;
+    public float aggroDuration = 5f;
+    public Transform currentTarget;
+    public Vector2 lastSeenPosition;
+    public int lastSeenLayerIndex;
 
     protected BehaviourTree bt;
 
@@ -63,12 +71,17 @@ public abstract class Unit : MonoBehaviour
         unitName = gameObject.name;
     }
 
+    private void Update()
+    {
+        SynchronizedLayerIndex();
+    }
+
     // =========================
     // PATHFINDING
     // =========================
 
     #region PATHFINDING
-private static readonly Vector3Int[] kDirs = new Vector3Int[]
+    private static readonly Vector3Int[] kDirs = new Vector3Int[]
     {
         new Vector3Int( 1, 0, 0),
         new Vector3Int(-1, 0, 0)
@@ -187,6 +200,33 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
         return bestPath;
     }
     
+    public PathFinding FindBestPathToTarget(GameObject target, int layerIndex)
+    {
+        if (target == null)
+            return null;
+
+        var graph = GraphNode.Instance.layerGraphs[layerIndex];
+
+        Vector3Int targetGridPos = Vector3Int.FloorToInt(target.transform.position);
+        targetGridPos.z = 0;
+
+        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        currentGridPos.z = 0;
+
+        // Kiểm tra ô target có tồn tại và đi được không
+        if (!graph.nodes.TryGetValue(targetGridPos, out Node targetNode) || !targetNode.isWalkable)
+            return null;
+
+        var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
+            currentGridPos, floorAgent.currentFloorIndex,
+            targetGridPos, layerIndex);
+
+        if (path == null || path.segments.Count == 0)
+            return null;
+
+        return path;
+    }
+    
     public PathFinding FindBestPathToFront(Task task)
     {
         if (task == null || task.targetGameObject == null)
@@ -267,6 +307,46 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
         currentState = UnitState.Move;
         animState = AnimState.Moving;
     }
+    
+    public bool IsCollidingWithTarget(GameObject target)
+    {
+        if (target == null )
+            return false;
+
+        var pawnCol = GetComponent<CircleCollider2D>();
+        var targetCol = target.GetComponent<Collider2D>();
+
+        if (pawnCol == null || targetCol == null)
+            return false;
+
+        ColliderDistance2D dist = pawnCol.Distance(targetCol);
+
+        return dist.distance <= 0.05f; 
+    }
+    
+    public void MoveDirectlyToTarget(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        var rb = characterMovement.rb;
+
+        Vector2 myPos = rb.position;
+        Vector2 targetPos = target.transform.position;
+
+        Vector2 direction = (targetPos - myPos);
+
+        if (direction.magnitude <= 0.05f)
+            return;
+
+        direction.Normalize();
+
+        characterMovement.HandleFlipByPosition(targetPos);
+
+        Vector2 nextPos = myPos + direction * characterMovement.moveSpeed * Time.fixedDeltaTime;
+
+        rb.MovePosition(nextPos);
+    }
 
     #endregion
     
@@ -336,7 +416,13 @@ private static readonly Vector3Int[] kDirs = new Vector3Int[]
       
     public bool IsStopped()
     {
-        return currentState != UnitState.Move && animState != AnimState.Moving;
+        return currentState != UnitState.Move;
+    }
+
+    private void SynchronizedLayerIndex()
+    {
+        if(floorAgent._currentFloorIndex != characterMovement.CurrentLayer)
+            floorAgent.MoveToFloor(characterMovement.CurrentLayer);
     }
 
     #endregion

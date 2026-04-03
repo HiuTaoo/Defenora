@@ -11,7 +11,7 @@
 
         public override BTStatus Tick()
         {
-            if (!lancer.CheckEnemyStillInRange(lancer.viewDistance))
+            if (!lancer.CheckEnemyStillInRange(lancer.lancerBlackBoard.detectedEnemy, lancer.viewDistance))
                 return BTStatus.Failure;
 
             lancer.animState = AnimState.Defending;

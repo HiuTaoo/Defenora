@@ -11,7 +11,7 @@
 
         public override BTStatus Tick()
         {
-            if (!warrior.CheckEnemyStillInRange(warrior.viewDistance))
+            if (!warrior.CheckEnemyStillInRange(warrior.warriorBlackBoard.detectedEnemy, warrior.viewDistance))
                 return BTStatus.Failure;
             
             warrior.animState = AnimState.Defending;

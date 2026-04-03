@@ -391,45 +391,7 @@ public class Builder : Unit
         return dist.distance <= 0.05f; 
     }
     
-    public bool IsCollidingWithTarget(GameObject target)
-    {
-        if (target == null )
-            return false;
-
-        var pawnCol = GetComponent<CircleCollider2D>();
-        var targetCol = target.GetComponent<Collider2D>();
-
-        if (pawnCol == null || targetCol == null)
-            return false;
-
-        ColliderDistance2D dist = pawnCol.Distance(targetCol);
-
-        return dist.distance <= 0.05f; 
-    }
-
-    public void MoveDirectlyToTarget(GameObject target)
-    {
-        if (target == null)
-            return;
-
-        var rb = characterMovement.rb;
-
-        Vector2 myPos = rb.position;
-        Vector2 targetPos = target.transform.position;
-
-        Vector2 direction = (targetPos - myPos);
-
-        if (direction.magnitude <= 0.05f)
-            return;
-
-        direction.Normalize();
-
-        characterMovement.HandleFlipByPosition(targetPos);
-
-        Vector2 nextPos = myPos + direction * characterMovement.moveSpeed * Time.fixedDeltaTime;
-
-        rb.MovePosition(nextPos);
-    }
+    
     #endregion
 
     #region  Instaniate Object

@@ -83,3 +83,23 @@ MonoBehaviour:
     direction: 3
     animationName:
     - Walk
+  - unitState: 5
+    animState: 0
+    direction: 3
+    animationName:
+    - Idle
+  - unitState: 5
+    animState: 0
+    direction: 0
+    animationName:
+    - Idle
+  - unitState: 5
+    animState: 0
+    direction: 1
+    animationName:
+    - Idle
+  - unitState: 5
+    animState: 0
+    direction: 2
+    animationName:
+    - Idle

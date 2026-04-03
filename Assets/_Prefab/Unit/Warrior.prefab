@@ -233,6 +233,7 @@ MonoBehaviour:
   unitName: 
   unitType: 2
   currentState: 0
+  animState: 0
   health: 100
   maxHealth: 100
   targetDestination: {fileID: 0}
@@ -250,6 +251,11 @@ MonoBehaviour:
   obstacleLayer: 0
   enemyLayer: 0
   results: []
+  aggroTimer: 0
+  aggroDuration: 5
+  currentTarget: {fileID: 0}
+  lastSeenPosition: {x: 0, y: 0}
+  lastSeenLayerIndex: 0
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}

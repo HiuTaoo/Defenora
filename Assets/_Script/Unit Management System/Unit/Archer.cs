@@ -56,7 +56,7 @@ public class Archer : Unit
         UpdateIsStationed();
         CheckIsStationed();
         UpdateFirePointPosition();
-        CheckEnemyDirection();
+        CheckEnemyAggro();
         animFSM.ChangeState(currentState, animState);
         
         bt?.Tick();
@@ -147,11 +147,18 @@ public class Archer : Unit
         isStationed = assignedBuilding != null;
     }
 
-    private bool CheckEnemyStillInRange(float range)
+    public bool CheckEnemyStillInRange(GameObject target, float range)
     {
-        var size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results);
+        int size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results, enemyLayer);
 
-        return results.Any(hit => hit.gameObject == archerBlackBoard.detectedEnemy);
+        for (int i = 0; i < size; i++)
+        {
+            if (results[i] != null &&
+                results[i].gameObject == target)
+                return true;
+        }
+
+        return false;
     }
     
     public bool DetectEnemy(float range, Vector2 dir)
@@ -336,24 +343,33 @@ public class Archer : Unit
         return targetPos + targetVelocity * t;
     }
     
-    private void CheckEnemyDirection()
+    private void CheckEnemyAggro()
     {
-        if (archerBlackBoard.detectedEnemy == null)
-            return;
-        
-        var distance = archerBlackBoard.detectedEnemy
-            .transform.position - transform.position;
-        if (CheckEnemyStillInRange(attackRange))
+        if (archerBlackBoard.detectedEnemy != null &&
+            CheckEnemyStillInRange(archerBlackBoard.detectedEnemy, viewDistance))
         {
+            var distance = archerBlackBoard.detectedEnemy.transform.position - transform.position;
+
             archerBlackBoard.lastDirection = distance.x > 0 ? Vector2.right : Vector2.left;
             UpdateFacing(archerBlackBoard.lastDirection);
+
+            currentTarget = archerBlackBoard.detectedEnemy.transform;
+            lastSeenPosition = currentTarget.position;
+
+            aggroTimer = aggroDuration;
+            return;
         }
-        else
+
+        if (currentTarget != null)
         {
-            archerBlackBoard.detectedEnemy = null;
-            ResetAnim();
+            aggroTimer -= Time.deltaTime;
+
+            if (aggroTimer <= 0)
+            {
+                currentTarget = null;
+                archerBlackBoard.detectedEnemy = null;
+            }
         }
-            
     }
 
     private void UpdateFirePointPosition()

@@ -17,11 +17,11 @@ public class CharacterMovement : MonoBehaviour
     private Camera cam;
     public PathFinding currentPath = null;
     public Coroutine moveCoroutine;
+    private bool stopRequested = false;
 
     public bool moving = false;
     public Vector2 direction { get; private set; } = Vector2.zero;
     private int _currentLayer;
-    
 
     public int CurrentLayer
     {
@@ -111,65 +111,6 @@ public class CharacterMovement : MonoBehaviour
         StopAllCoroutines();
         moveCoroutine = StartCoroutine(FollowPathCoroutine(currentPath));
     }
-
-
-    /*public IEnumerator FollowPathCoroutine(PathFinding path)
-    {
-        if (path.totalCost == 0)
-            yield return null;
-
-        moving = true;
-
-        foreach (var segment in path.segments)
-        {
-            foreach (var tilePos in segment.positions)
-            {
-                Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
-                targetCenter.z = transform.parent.position.z;
-
-                Vector3 currentPosition = transform.parent.position;
-
-                Vector2 toTarget = (Vector2)(targetCenter - currentPosition);
-
-                if (toTarget.sqrMagnitude > 0.001f)
-                {
-                    if (Mathf.Abs(toTarget.x) > Mathf.Abs(toTarget.y))
-                    {
-                        direction = toTarget.x > 0 ? Vector2.right : Vector2.left;
-                    }
-                    else
-                    {
-                        direction = toTarget.y > 0 ? Vector2.up : Vector2.down;
-                    }
-
-                    HandleFlip();
-                    //Debug.Log($"Direction updated: {direction} | From: {currentPosition} To: {targetCenter}");
-                }
-
-                while ((transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
-                {
-                    if (agentPhysics2D.IsBuilding(transform.parent.position, direction, 0.01f, moveSpeed, circleCollider2D))
-                    {
-                        PathfindingAlgorithm.Instance.ClearPath();
-                        moving = false;
-                        yield break;
-                    }
-                    Vector2 nextPosition = Vector2.MoveTowards(rb.position, targetCenter, moveSpeed * Time.fixedDeltaTime);
-                    rb.MovePosition(nextPosition);
-                    moving = true;
-                    yield return null;
-                }
-                CurrentLayer = segment.layerIndex;
-                var unit = transform.parent.GetComponent<Unit>();
-                if (unit != null)
-                    unit.currentState = UnitState.Idle;
-            }
-        }
-
-        PathfindingAlgorithm.Instance.ClearPath();
-        moving = false;
-        moveCoroutine = null;
-    }*/
     
     public IEnumerator FollowPathCoroutine(PathFinding path)
     {
@@ -179,6 +120,7 @@ public class CharacterMovement : MonoBehaviour
             yield break;
         }
 
+        stopRequested = false;
         moving = true;
 
         var unit = transform.parent.GetComponent<Unit>();
@@ -190,11 +132,28 @@ public class CharacterMovement : MonoBehaviour
             for (int i = 0; i < segment.positions.Count; i++)
             {
                 var tilePos = segment.positions[i];
+
+                _currentLayer = segment.layerIndex;
+                
                 Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
                 targetCenter.z = transform.parent.position.z;
 
                 while (unit.currentState == UnitState.Move && (transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
                 {
+                    
+                    if (stopRequested)
+                    {
+                        moving = false;
+                        currentPath = null;
+                        direction = Vector2.zero;
+                        moveCoroutine = null;
+
+                        if (unit != null)
+                            unit.currentState = UnitState.Idle;
+
+                        yield break;
+                    }
+                    
                     var dir = ((Vector2)targetCenter - rb.position).normalized;
                     direction = dir;
                     HandleFlip(dir);
@@ -206,13 +165,14 @@ public class CharacterMovement : MonoBehaviour
                             moveSpeed,
                             circleCollider2D))
                     {
-                        // ❗ path không còn hợp lệ
+      
                         moving = false;
 
                         if (unit != null)
                             unit.currentState = UnitState.Idle;
 
-                        currentPath = null;   // 🔥 báo cho BT biết path chết
+                        currentPath = null;
+                        moveCoroutine = null;
                         yield break;
                     }
 
@@ -228,11 +188,12 @@ public class CharacterMovement : MonoBehaviour
         }
 
         moving = false;
+        currentPath = null;
+        direction = Vector2.zero;
+        moveCoroutine = null;
 
         if (unit != null)
             unit.currentState = UnitState.Idle;
-
-        moveCoroutine = null;
     }
     
     public void MoveTo(Vector2 targetPosition)
@@ -301,5 +262,24 @@ public class CharacterMovement : MonoBehaviour
     {
         if(CurrentLayer != floorAgent.currentFloorIndex) 
             floorAgent.MoveToFloor(CurrentLayer);
+    }
+    
+    public void StopMoving()
+    {
+        if (moveCoroutine != null)
+        {
+            StopCoroutine(moveCoroutine);
+            moveCoroutine = null;
+        }
+
+        currentPath = null;
+
+        moving = false;
+        direction = Vector2.zero;
+    }
+    
+    public void RequestStopMoving()
+    {
+        stopRequested = true;
     }
 }

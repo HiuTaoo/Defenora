@@ -5,6 +5,8 @@ using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.WarriorNode.WarriorCombat;
+using _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition;
+using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorChaseEnemy;
 using _Script.BT.Node.WarriorNode.WarriorIdle;
 using _Script.Unit_Management_System.Animation;
 using UnityEditor;
@@ -39,7 +41,7 @@ public class Warrior : Unit
     private void Update()
     {
         bt?.Tick();
-        CheckEnemyDirection();
+        CheckEnemyAggro();
         animFSM.ChangeState(currentState, animState);
         UpdateDetectPointPosition();
         if(warriorBlackBoard.detectedEnemy != null)
@@ -57,11 +59,26 @@ public class Warrior : Unit
         var attackSequence = new SequenceNode(
             new IsEnemyInAttackRangeWarriorNode(warrior),
             new WarriorAttackNode(warrior));
+
+        var chaseSequence = new SequenceNode(
+            new HasEnemyInWarriorSight(warrior),
+            new IsEnemyOutOfWarriorAttackRangeNode(warrior),
+            new WarriorChaseEnemy(warrior)
+        );
+
+        var searchLastSeenPositionSequence = new SequenceNode(
+            new HasAggroTargetNode(warrior),
+            new IsTargetVisibleNode(warrior),
+            new MoveToLastSeenPositionNode(warrior),
+            new ReachedLastSeenPositionNode(warrior),
+            new ClearTargetNode(warrior));
         
         var combatSequence = new SequenceNode(
             new SelectorNode(
                 attackSequence,
-                new WarriorDefendNode(warrior)
+                chaseSequence,
+                searchLastSeenPositionSequence
+                //, new WarriorDefendNode(warrior)
             )
         );
 
@@ -167,41 +184,52 @@ public class Warrior : Unit
 
         float dist = Vector2.Distance(transform.position, closest);
 
-        return dist <= attackRange;
+        return dist <= (attackRange * 0.75);
     }
 
-    public bool CheckEnemyStillInRange(float range)
+    public bool CheckEnemyStillInRange(GameObject target, float range)
     {
-        int size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results);
+        int size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results, enemyLayer);
 
         for (int i = 0; i < size; i++)
         {
             if (results[i] != null &&
-                results[i].gameObject == warriorBlackBoard.detectedEnemy)
+                results[i].gameObject == target)
                 return true;
         }
 
         return false;
     }
     
-    private void CheckEnemyDirection()
+    private void CheckEnemyAggro()
     {
-        if (warriorBlackBoard.detectedEnemy == null)
-            return;
-        
-        var distance = warriorBlackBoard.detectedEnemy
-            .transform.position - transform.position;
-        if (CheckEnemyStillInRange(viewDistance))
+        if (warriorBlackBoard.detectedEnemy != null &&
+            CheckEnemyStillInRange(warriorBlackBoard.detectedEnemy, viewDistance))
         {
+            var distance = warriorBlackBoard.detectedEnemy.transform.position - transform.position;
+
             warriorBlackBoard.lastDirection = distance.x > 0 ? Vector2.right : Vector2.left;
             UpdateFacing(warriorBlackBoard.lastDirection);
+
+            currentTarget = warriorBlackBoard.detectedEnemy.transform;
+            lastSeenPosition = currentTarget.position;
+
+            var flootAgent = currentTarget.GetComponentInChildren<FloorAgent>();
+            lastSeenLayerIndex = flootAgent._currentFloorIndex;
+            aggroTimer = aggroDuration;
+            return;
         }
-        else
+
+        if (currentTarget != null)
         {
-            warriorBlackBoard.detectedEnemy = null;
-            ResetState();
+            aggroTimer -= Time.deltaTime;
+
+            if (aggroTimer <= 0)
+            {
+                //currentTarget = null;
+                warriorBlackBoard.detectedEnemy = null;
+            }
         }
-            
     }
     
     public void ResetState()
@@ -255,7 +283,12 @@ public class Warrior : Unit
         var dir = GetDirection(from, to);
         animFSM.SetWarriorDirection(dir);
     }
-    
+
+    public void EndAnim()
+    {
+        animState = AnimState.Idle;
+    }
+
     #endregion
     
     public override void UseSpecialAbility()

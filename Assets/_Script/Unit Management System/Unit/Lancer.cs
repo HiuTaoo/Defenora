@@ -39,7 +39,7 @@ public class Lancer : Unit
     private void Update()
     {
         bt?.Tick();
-        CheckEnemyDirection();
+        CheckEnemyAggro();
         UpdateDetectPointPosition();
         animFSM.ChangeState(currentState, animState);
         if(lancerBlackBoard.detectedEnemy != null)
@@ -156,40 +156,47 @@ public class Lancer : Unit
         return enemiesInRange;
     }
 
-  
-    
-    private void CheckEnemyDirection()
+    public bool CheckEnemyStillInRange(GameObject target, float range)
     {
-        if (lancerBlackBoard.detectedEnemy == null)
-            return;
-        
-        var distance = lancerBlackBoard.detectedEnemy
-            .transform.position - transform.position;
-        if (CheckEnemyStillInRange(viewDistance))
-        {
-            lancerBlackBoard.lastDirection = distance.x > 0 ? Vector2.right : Vector2.left;
-            UpdateFacing(lancerBlackBoard.lastDirection);
-        }
-        else
-        {
-            lancerBlackBoard.detectedEnemy = null;
-            ResetState();
-        }
-            
-    }
-    
-    public bool CheckEnemyStillInRange(float range)
-    {
-        int size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results);
+        int size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results, enemyLayer);
 
         for (int i = 0; i < size; i++)
         {
             if (results[i] != null &&
-                results[i].gameObject == lancerBlackBoard.detectedEnemy)
+                results[i].gameObject == target)
                 return true;
         }
 
         return false;
+    }
+    
+    private void CheckEnemyAggro()
+    {
+        if (lancerBlackBoard.detectedEnemy != null &&
+            CheckEnemyStillInRange(lancerBlackBoard.detectedEnemy, viewDistance))
+        {
+            var distance = lancerBlackBoard.detectedEnemy.transform.position - transform.position;
+
+            lancerBlackBoard.lastDirection = distance.x > 0 ? Vector2.right : Vector2.left;
+            UpdateFacing(lancerBlackBoard.lastDirection);
+
+            currentTarget = lancerBlackBoard.detectedEnemy.transform;
+            lastSeenPosition = currentTarget.position;
+
+            aggroTimer = aggroDuration;
+            return;
+        }
+
+        if (currentTarget != null)
+        {
+            aggroTimer -= Time.deltaTime;
+
+            if (aggroTimer <= 0)
+            {
+                currentTarget = null;
+                lancerBlackBoard.detectedEnemy = null;
+            }
+        }
     }
     
     public LancerDirection GetDirection(Vector2 from, Vector2 to)
