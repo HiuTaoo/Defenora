@@ -7,7 +7,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
         private Archer archer;
 
         private float timer = 0f;
-        private float delay = 1f;
+        private float animDuration = 1f; 
         private bool hasShot = false;
 
         public ShootArrowNode(Unit unit) : base(unit)
@@ -27,10 +27,9 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
 
             if (!hasShot)
             {
-                Vector2 start = archer.firePoint.position;
-                Vector2 end = target.transform.position;
-
                 archer.animFSM.SetFireDirection(archer.archerBlackBoard.fireDirection);
+                archer.animState = AnimState.Attacking;
+                archer.nextFireTime = Time.time + archer.fireRate;
                 
                 hasShot = true;
                 timer = 0f;
@@ -38,14 +37,14 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
 
             timer += Time.deltaTime;
 
-            if (timer >= delay)
+            if (timer >= animDuration)
             {
                 archer.ResetAnim();
                 ResetInternal();
-                return BTStatus.Success;
+                return BTStatus.Success; 
             }
 
-            return BTStatus.Running;
+            return BTStatus.Running; 
         }
 
         private void ResetInternal()

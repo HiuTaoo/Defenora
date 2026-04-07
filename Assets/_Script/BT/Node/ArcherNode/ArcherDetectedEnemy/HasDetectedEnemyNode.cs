@@ -17,7 +17,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
                 return BTStatus.Failure;
 
             archer.currentState = UnitState.Defend;
-            archer.animState = AnimState.Attacking;
             return BTStatus.Success;
         }
     }

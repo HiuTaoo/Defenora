@@ -61,7 +61,7 @@ public class Warrior : Unit
     {
         var holdBorderSequence = new SequenceNode(
             new HasMaxDistanceExceeded(warrior), 
-            new WarriorStopMovingNode(warrior)          
+            new WarriorStopMovingNode(warrior)         
         );
         
         var attackSequence = new SequenceNode(

@@ -16,13 +16,13 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
         public override BTStatus Tick()
         {
             timer += Time.deltaTime;
+            archer.animState = AnimState.Idle;
             
             if(archer.archerBlackBoard.detectedEnemy == null)
                 return BTStatus.Success;
 
             if (timer >= archer.fireRate)
             {
-                
                 timer = 0f;
                 return BTStatus.Success;
             }

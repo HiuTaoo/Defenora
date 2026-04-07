@@ -7,6 +7,7 @@ using _Script.BT.BlackBoard;
 using _Script.BT.Node.ArcherNode.ArcherDetectedEnemy;
 using _Script.BT.Node.ArcherNode.ArcherIdle;
 using _Script.BT.Node.BuilderNode.Idle;
+using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.ItemScript;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.Animation;
@@ -20,6 +21,7 @@ public class Archer : Unit
     public float attackDamage = 10f;
     public float attackRange = 2f;
     public float fireRate = 1f;
+    public float nextFireTime = 0f;
     
     [Header("Archer Specific")]
     public Transform firePoint;
@@ -35,7 +37,6 @@ public class Archer : Unit
 
     public ArcherBlackBoard archerBlackBoard {get; set;}
     
-    private float nextFireTime;
     private DynamicSortingYX sortingYX;
     
 
@@ -69,18 +70,30 @@ public class Archer : Unit
         var idleSequence = new SequenceNode(
             new HasNoEnemyInRangeNode(archer),
             new RotateScanNode(archer),
-            new WaitRandomTimeNode(archer));
-        
+            new WaitRandomTimeNode(archer)
+        );
+
+        // Tách riêng hành động Bắn thành một chuỗi nhỏ
+        var attackActionSequence = new SequenceNode(
+            new IsArcherCooldownReadyNode(archer), // Trả về Success nếu đã hồi xong, Failure nếu đang chờ
+            new ShootArrowNode(archer)             // Thực hiện bắn và reset lại thời gian hồi chiêu
+        );
+
         var detectedSequence = new SequenceNode(
-            new HasDetectedEnemyNode(archer),
+            new HasDetectedEnemyNode(archer), // Đã bao gồm check Raycast từ Camera cực xịn của bạn
             new SelectTargetNode(archer),
-            new AimAtTargetNode(archer),
-            new ShootArrowNode(archer),
-            new ArcherAttackCooldownNode(archer));
-        
+            new AimAtTargetNode(archer),      
+            new SelectorNode(
+                attackActionSequence,         // Ưu tiên 1: Thử bắn (Nếu chưa hồi xong, node này Failure)
+                new ArcherAttackCooldownNode(archer)          // Ưu tiên 2: Đứng chờ (Trả về Running, giúp BT dừng ở đây và không bị rớt xuống Idle)
+            )
+        );
+
         var root = new SelectorNode(
             detectedSequence,
-            idleSequence);
+            idleSequence
+        );
+    
         return new BehaviourTree(root);
     }
 
@@ -357,6 +370,7 @@ public class Archer : Unit
             lastSeenPosition = currentTarget.position;
 
             aggroTimer = aggroDuration;
+
             return;
         }
 

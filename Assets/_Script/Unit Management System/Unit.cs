@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using _Script.BT;
+using _Script.BT.GlobalAlarm;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -429,6 +430,44 @@ public abstract class Unit : MonoBehaviour
     {
         if(characterMovement != null)
             characterMovement.RequestStopMoving();
+    }
+    
+    protected virtual void OnEnable()
+    {
+        // Đăng ký nghe loa phát thanh khi Unit được bật/sinh ra
+        GlobalAlarmSystem.OnEnemySpotted += HandleGlobalAlarm;
+    }
+
+    protected virtual void OnDisable()
+    {
+        // Hủy đăng ký khi Unit chết/tắt để tránh lỗi tràn bộ nhớ (Memory Leak)
+        GlobalAlarmSystem.OnEnemySpotted -= HandleGlobalAlarm;
+    }
+
+    // Hàm phản ứng lại báo động
+    protected virtual void HandleGlobalAlarm(GameObject spottedEnemy, Vector3 spottedPosition)
+    {
+        // Nếu mình đang đánh nhau với thằng khác rồi thì bơ đi, không quan tâm
+        if (currentTarget != null) return;
+
+        // Nếu kẻ địch đã chết hoặc biến mất thì bỏ qua
+        if (spottedEnemy == null) return;
+
+        // TÍNH TOÁN KHOẢNG CÁCH: Chỉ báo động nếu tiếng la hét nằm trong phạm vi nghe thấy
+        // (Ví dụ: Lính ở bên kia bản đồ thì không thể nghe thấy lính bên này la lên được)
+        float hearRange = 15f; 
+        if (Vector2.Distance(transform.position, spottedPosition) > hearRange) return;
+
+        // ----- HÀNH ĐỘNG KHI NGHE BÁO ĐỘNG -----
+        // Đánh thức giác quan: Gán vị trí cuối cùng nhìn thấy địch
+        lastSeenPosition = spottedPosition;
+        
+        // Gán mục tiêu để các nhánh Behavior Tree tự động chuyển sang chế độ Cảnh giác
+        currentTarget = spottedEnemy.transform; 
+        
+        // Cập nhật lại timer báo động
+        aggroTimer = aggroDuration; 
+
     }
 
     #endregion
