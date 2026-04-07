@@ -13,7 +13,7 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
         public override BTStatus Tick()
         {
             var dir = lancer.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-            if (lancer.DetectEnemies(lancer.viewDistance, dir).Count != 0) return BTStatus.Failure;
+            if (lancer.DetectEnemies(lancer.viewDistance, dir).Count != 0 || lancer.currentTarget != null) return BTStatus.Failure;
             lancer.ResetState();
             return BTStatus.Success;
         }

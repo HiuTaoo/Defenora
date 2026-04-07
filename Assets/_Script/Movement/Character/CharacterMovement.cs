@@ -148,7 +148,7 @@ public class CharacterMovement : MonoBehaviour
                         direction = Vector2.zero;
                         moveCoroutine = null;
 
-                        if (unit != null)
+                        if (unit != null && unit.currentState == UnitState.Move)
                             unit.currentState = UnitState.Idle;
 
                         yield break;

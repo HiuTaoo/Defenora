@@ -33,6 +33,10 @@ MonoBehaviour:
     animState: 0
     animationName: Lancer_Idle_Blue
     lancerDirection: 5
+  - UnitState: 0
+    animState: 0
+    animationName: Lancer_Idle_Blue
+    lancerDirection: 4
   - UnitState: 5
     animState: 2
     animationName: Lancer_UpRight_Defence_Blue

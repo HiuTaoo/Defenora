@@ -40,7 +40,8 @@ namespace _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition
                     FinishMove();
                     return BTStatus.Failure;
                 }
-
+                
+                warrior.characterMovement.RequestStopMoving();
                 warrior.MoveToTargetPosition(path);
                 hasStartedMove = true;
 
@@ -49,7 +50,7 @@ namespace _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition
             }
 
             float dist = Vector2.Distance(warrior.transform.position, targetWorldPos);
-            bool isCloseEnough = dist < 0.2f;
+            bool isCloseEnough = dist < 0.1f;
             bool isStopped = warrior.IsStopped();
 
             if (isCloseEnough || isStopped)

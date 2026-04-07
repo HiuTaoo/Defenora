@@ -425,6 +425,12 @@ public abstract class Unit : MonoBehaviour
             floorAgent.MoveToFloor(characterMovement.CurrentLayer);
     }
 
+    public void StopMove()
+    {
+        if(characterMovement != null)
+            characterMovement.RequestStopMoving();
+    }
+
     #endregion
     
     

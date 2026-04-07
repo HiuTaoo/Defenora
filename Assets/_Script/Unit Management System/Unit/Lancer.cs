@@ -5,9 +5,11 @@ using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
+using _Script.BT.Node.LancerNode;
 using _Script.BT.Node.LancerNode.LancerDetectedEnemy;
 using _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop;
 using _Script.BT.Node.LancerNode.LancerIdle;
+using _Script.BT.Node.LancerNode.LancerIntercept;
 using _Script.Unit_Management_System.Animation;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +20,8 @@ public class Lancer : Unit
     [Header("Lancer Specific")] 
     public float attackRange = 1f;
     public float viewDistance = 3f;
+    public int minRadius = 1;
+    public int maxRadius = 2;
     
     [Header("Detect Point")]
     public Transform detectPoint;
@@ -51,7 +55,7 @@ public class Lancer : Unit
 
     #region Behaviour Tree
 
-    private BehaviourTree CreateBehaviourTree(Lancer lancer)
+    /*private BehaviourTree CreateBehaviourTree(Lancer lancer)
     {
         var idleSequence = new SequenceNode(
             new LancerHasNoEnemyInSight(lancer),
@@ -77,6 +81,48 @@ public class Lancer : Unit
             ),
             idleSequence
         );
+        return new BehaviourTree(root);
+    }*/
+    
+    private BehaviourTree CreateBehaviourTree(Lancer lancer)
+    {
+        // Nhánh 1: Tấn công (Đâm liên tục nếu quái vào tầm)
+        var attackSequence = new SequenceNode(
+            new LancerIsEnemyInAttackRangeNode(lancer),
+            new LancerStopMovingNode(lancer), 
+            new IsDefendStateNode(lancer),
+            new LancerAttackNode(lancer)      
+        );
+
+        // Nhánh 2: Di chuyển cản địa (Địch ở ngoài tầm đâm nhưng trong tầm nhìn)
+        var interceptSequence = new SequenceNode(
+            new LancerHasEnemyInSightNode(lancer),
+            new IsEnemyOutOfLancerAttackRangeNode(lancer),
+            new LancerMoveToInterceptPositionNode(lancer)
+        );
+
+        var combatBranch = new SequenceNode(
+            new LancerSelectTargetNode(lancer),
+            new SelectorNode(
+                attackSequence,     // Ưu tiên 1: Cứ vào gần là đâm văng ra
+                interceptSequence   // Ưu tiên 2: Chưa vào gần thì chạy ra chặn đầu
+            )
+        );
+
+        // Nhánh 3: Đi tuần xung quanh tòa nhà khi bình yên
+        var patrolSequence = new SequenceNode(
+            new LancerHasNoEnemyInSight(lancer),
+            new LancerFindNextPatrolPositionNode(lancer), // Hàm đã có của bạn
+            new LancerMoveToNextPatrolPositionNode(lancer),
+            new WaitNode(lancer)
+        );
+
+        var root = new SelectorNode(
+            // (Thêm các node Death, Stun ở đây nếu có)
+            combatBranch,   // Có địch thì lo Đánh / Đón đầu
+            patrolSequence  // Không địch thì đi dạo quanh nhà
+        );
+
         return new BehaviourTree(root);
     }
     
@@ -278,7 +324,7 @@ public class Lancer : Unit
 
         float dist = Vector2.Distance(transform.position, closest);
 
-        return dist <= attackRange;
+        return dist <= attackRange * 0.75;
     }
 
     #endregion

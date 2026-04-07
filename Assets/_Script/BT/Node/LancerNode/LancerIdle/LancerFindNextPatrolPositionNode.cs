@@ -14,7 +14,7 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
         {
             var nextPosition = lancer.FindPatrolPosition(
                 Vector3Int.FloorToInt(lancer.assignedBuilding.transform.position)
-                , 1, 2);
+                , lancer.minRadius, lancer.maxRadius);
             
             if (nextPosition == Vector3Int.zero)
                 return BTStatus.Failure;

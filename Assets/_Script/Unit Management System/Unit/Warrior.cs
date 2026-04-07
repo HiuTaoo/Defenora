@@ -5,6 +5,7 @@ using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.WarriorNode.WarriorCombat;
+using _Script.BT.Node.WarriorNode.WarriorCombat.ReturnToBuilding;
 using _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition;
 using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorChaseEnemy;
 using _Script.BT.Node.WarriorNode.WarriorIdle;
@@ -42,8 +43,10 @@ public class Warrior : Unit
     {
         bt?.Tick();
         CheckEnemyAggro();
+		UpdateDetectPointPosition();
+
         animFSM.ChangeState(currentState, animState);
-        UpdateDetectPointPosition();
+   
         if(warriorBlackBoard.detectedEnemy != null)
         {
             UpdateDirection(warriorBlackBoard.detectedEnemy.transform.position, 
@@ -56,6 +59,11 @@ public class Warrior : Unit
 
     private BehaviourTree CreateBehaviourTree(Warrior warrior)
     {
+        var holdBorderSequence = new SequenceNode(
+            new HasMaxDistanceExceeded(warrior), 
+            new WarriorStopMovingNode(warrior)          
+        );
+        
         var attackSequence = new SequenceNode(
             new IsEnemyInAttackRangeWarriorNode(warrior),
             new WarriorAttackNode(warrior));
@@ -76,6 +84,7 @@ public class Warrior : Unit
         var combatSequence = new SequenceNode(
             new SelectorNode(
                 attackSequence,
+                holdBorderSequence,
                 chaseSequence,
                 searchLastSeenPositionSequence
                 //, new WarriorDefendNode(warrior)
@@ -88,11 +97,15 @@ public class Warrior : Unit
             new WarriorMoveToNextPatrolPositionNode(warrior),
             new WaitNode(warrior));
         
+        var combatBranch = new SequenceNode(
+            new WarriorSelectTargetNode(warrior),
+            combatSequence
+        );
+        
         var root = new SelectorNode(
-            new SequenceNode(
-                new WarriorSelectTargetNode(warrior),
-                combatSequence
-            ),
+            //death sequence,
+            //hurt/stun sequence,
+            combatBranch,
             idleSequence
         );
         return new BehaviourTree(root);
@@ -287,6 +300,13 @@ public class Warrior : Unit
     public void EndAnim()
     {
         animState = AnimState.Idle;
+    }
+
+    public void ClearAggro()
+    {
+        currentTarget = null;
+        lastSeenPosition = Vector2.zero;
+        lastSeenLayerIndex = -1;
     }
 
     #endregion

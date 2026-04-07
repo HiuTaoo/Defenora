@@ -1,4 +1,6 @@
-﻿namespace _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop
+﻿using UnityEngine;
+
+namespace _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop
 {
     public class LancerAttackNode: BTActionNode
     {
@@ -12,7 +14,10 @@
         public override BTStatus Tick()
         {
             if (!lancer.IsEnemyInAttackRange())
+            {
                 return BTStatus.Failure;
+            }
+                
             
             lancer.animState = AnimState.Attacking;
             return BTStatus.Running;

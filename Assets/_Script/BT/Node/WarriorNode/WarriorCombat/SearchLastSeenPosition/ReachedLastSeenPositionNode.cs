@@ -5,7 +5,7 @@ public class ReachedLastSeenPositionNode : BTActionNode
 {
     private Warrior warrior;
 
-    private float waitTime = 1.5f;
+    private float waitTime = 3f;
     private float timer = 0f;
     private bool hasArrived = false;
 
@@ -16,19 +16,22 @@ public class ReachedLastSeenPositionNode : BTActionNode
 
     public override BTStatus Tick()
     {
+        Vector3Int targetCell = Vector3Int.FloorToInt(warrior.lastSeenPosition);
+        targetCell.z = 0;
+        var targetWorldPos = new Vector3(targetCell.x + 0.5f, targetCell.y + 0.5f, 0f);
+        
         float dist = Vector2.Distance(
             warrior.transform.position,
-            warrior.lastSeenPosition
+            targetWorldPos
         );
         
         if (!hasArrived)
         {
-            if (dist > 0.2f)
+            if (dist > 0.1f)
                 return BTStatus.Running;
 
             hasArrived = true;
             timer = 0f;
-            Debug.Log("Reach Last Seen Position");
             
             warrior.currentState = UnitState.Idle;
             warrior.animState = AnimState.Idle;

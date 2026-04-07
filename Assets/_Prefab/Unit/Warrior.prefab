@@ -252,7 +252,7 @@ MonoBehaviour:
   enemyLayer: 0
   results: []
   aggroTimer: 0
-  aggroDuration: 5
+  aggroDuration: 3
   currentTarget: {fileID: 0}
   lastSeenPosition: {x: 0, y: 0}
   lastSeenLayerIndex: 0

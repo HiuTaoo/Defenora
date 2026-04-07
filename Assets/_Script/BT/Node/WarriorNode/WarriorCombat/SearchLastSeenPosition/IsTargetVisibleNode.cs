@@ -1,4 +1,6 @@
-﻿namespace _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition
+﻿using UnityEngine;
+
+namespace _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition
 {
     public class IsTargetVisibleNode: BTActionNode
     {
