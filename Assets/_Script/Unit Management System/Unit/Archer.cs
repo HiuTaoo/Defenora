@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
+using _Script.BT.GlobalAlarm;
 using _Script.BT.Node.ArcherNode.ArcherDetectedEnemy;
 using _Script.BT.Node.ArcherNode.ArcherIdle;
 using _Script.BT.Node.BuilderNode.Idle;
@@ -384,7 +385,7 @@ public class Archer : Unit
 
             if (aggroTimer <= 0)
             {
-                currentTarget = null;
+                ClearAggro();
                 archerBlackBoard.detectedEnemy = null;
             }
         }
@@ -425,6 +426,8 @@ public class Archer : Unit
             {
                 if (CheckEnemyStillInRange(archerBlackBoard.detectedEnemy, viewDistance))
                 {
+                    GlobalAlarmSystem.TriggerAlarm(archerBlackBoard.detectedEnemy, 
+                        archerBlackBoard.detectedEnemy.transform.position);
                     return; 
                 }
             }
@@ -436,6 +439,7 @@ public class Archer : Unit
         
             if (newTarget != null)
             {
+                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position);
                 archerBlackBoard.detectedEnemy = newTarget; 
             }
         }

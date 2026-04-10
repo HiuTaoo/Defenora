@@ -3,10 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using _Script.BT;
 using _Script.BT.BlackBoard;
+using _Script.BT.GlobalAlarm;
 using _Script.BT.Node.LancerNode.LancerIdle;
+using _Script.BT.Node.unitNode.unitCombat.SearchLastSeenPosition;
 using _Script.BT.Node.WarriorNode.WarriorCombat;
 using _Script.BT.Node.WarriorNode.WarriorCombat.ReturnToBuilding;
 using _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition;
+using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorArlert;
 using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorChaseEnemy;
 using _Script.BT.Node.WarriorNode.WarriorIdle;
 using _Script.Unit_Management_System.Animation;
@@ -62,12 +65,23 @@ public class Warrior : Unit
     {
         var holdBorderSequence = new SequenceNode(
             new HasMaxDistanceExceeded(warrior), 
-            new WarriorStopMovingNode(warrior)         
+            new StopMovingNode(warrior)         
         );
         
         var attackSequence = new SequenceNode(
             new IsEnemyInAttackRangeWarriorNode(warrior),
             new WarriorAttackNode(warrior));
+        
+        var alarmResponseSequence = new SequenceNode(
+            new IsUnitAlertedNode(warrior),
+            new MoveToLastSeenPositionNode(warrior), 
+            new ClearAlertNode(warrior)
+        );
+
+        var responseBranchWithGuard = new SelectorNode(
+            holdBorderSequence,      
+            alarmResponseSequence    
+        );
 
         var chaseSequence = new SequenceNode(
             new HasEnemyInWarriorSight(warrior),
@@ -107,6 +121,7 @@ public class Warrior : Unit
             //death sequence,
             //hurt/stun sequence,
             combatBranch,
+            responseBranchWithGuard,
             idleSequence
         );
         return new BehaviourTree(root);
@@ -241,6 +256,9 @@ public class Warrior : Unit
             if (aggroTimer <= 0)
             {
                 //currentTarget = null;
+                if(isAlerted)
+                    ClearAggro();
+                
                 warriorBlackBoard.detectedEnemy = null;
             }
         }
@@ -297,13 +315,6 @@ public class Warrior : Unit
         var dir = GetDirection(from, to);
         animFSM.SetWarriorDirection(dir);
     }
-
-    public void ClearAggro()
-    {
-        currentTarget = null;
-        lastSeenPosition = Vector2.zero;
-        lastSeenLayerIndex = -1;
-    }
     
     private void UpdateSensors()
     {
@@ -316,6 +327,8 @@ public class Warrior : Unit
             {
                 if (CheckEnemyStillInRange(warriorBlackBoard.detectedEnemy, viewDistance))
                 {
+                    GlobalAlarmSystem.TriggerAlarm(warriorBlackBoard.detectedEnemy, 
+                        warriorBlackBoard.detectedEnemy.transform.position);
                     return; 
                 }
             }
@@ -328,6 +341,7 @@ public class Warrior : Unit
             if (newTarget != null)
             {
                 warriorBlackBoard.detectedEnemy = newTarget; 
+                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position);
             }
         }
     }

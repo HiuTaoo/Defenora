@@ -1,57 +1,52 @@
 ﻿using UnityEngine;
 
-namespace _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition
+namespace _Script.BT.Node.unitNode.unitCombat.SearchLastSeenPosition
 {
     public class MoveToLastSeenPositionNode : BTActionNode
     {
-        private Warrior warrior;
-
         private bool hasStartedMove = false;
         private Vector3 targetWorldPos;
 
-        public MoveToLastSeenPositionNode(Unit unit) : base(unit)
-        {
-            warrior = unit as Warrior;
-        }
+        public MoveToLastSeenPositionNode(Unit unit) : base(unit) { }
 
         public override BTStatus Tick()
         {
-            if (warrior.currentTarget == null)
+            if (unit.currentTarget == null && !unit.isAlerted)
             {
                 FinishMove();
                 return BTStatus.Failure;
             }
 
-            Vector3Int targetCell = Vector3Int.FloorToInt(warrior.lastSeenPosition);
+            Vector3Int targetCell = Vector3Int.FloorToInt(unit.lastSeenPosition);
             targetCell.z = 0;
 
             targetWorldPos = new Vector3(targetCell.x + 0.5f, targetCell.y + 0.5f, 0f);
 
             if (!hasStartedMove)
             {
-                var floorAgent = warrior.GetComponentInChildren<FloorAgent>();
+                var floorAgent = unit.GetComponentInChildren<FloorAgent>();
                 var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-                    Vector3Int.FloorToInt(warrior.transform.position), 
+                    Vector3Int.FloorToInt(unit.transform.position), 
                     floorAgent._currentFloorIndex
                     ,targetCell, 
-                    warrior.lastSeenLayerIndex);
+                    unit.lastSeenLayerIndex);
                 if (path == null)
                 {
                     FinishMove();
                     return BTStatus.Failure;
                 }
                 
-                warrior.characterMovement.RequestStopMoving();
-                warrior.MoveToTargetPosition(path);
+                unit.characterMovement.RequestStopMoving();
+                unit.MoveToTargetPosition(path);
                 hasStartedMove = true;
 
-                warrior.currentState = UnitState.Move;
-                warrior.animState = AnimState.Moving;
+                unit.currentState = UnitState.Move;
+                unit.animState = AnimState.Moving;
             }
 
-            float dist = Vector2.Distance(warrior.transform.position, targetWorldPos);
+            float dist = Vector2.Distance(unit.transform.position, targetWorldPos);
             bool isCloseEnough = dist < 0.1f;
-            bool isStopped = warrior.IsStopped();
+            bool isStopped = unit.IsStopped();
 
             if (isCloseEnough || isStopped)
             {
@@ -65,7 +60,7 @@ namespace _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition
         private void FinishMove()
         {
             hasStartedMove = false;
-            warrior.animState = AnimState.Idle;
+            unit.animState = AnimState.Idle;
         }
     }
 }

@@ -4,13 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
+using _Script.BT.GlobalAlarm;
 using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
 using _Script.BT.Node.LancerNode;
 using _Script.BT.Node.LancerNode.LancerDetectedEnemy;
 using _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.LancerNode.LancerIntercept;
+using _Script.BT.Node.unitNode.unitCombat.SearchLastSeenPosition;
 using _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition;
+using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorArlert;
 using _Script.Unit_Management_System.Animation;
 using UnityEditor;
 using UnityEngine;
@@ -96,8 +99,13 @@ public class Lancer : Unit
             new IsDefendStateNode(lancer),
             new LancerAttackNode(lancer)      
         );
+        
+        var alarmResponseSequence = new SequenceNode(
+            new IsUnitAlertedNode(lancer),
+            new LancerMoveToInterceptPositionNode(lancer), 
+            new ClearAlertNode(lancer)
+        );
 
-        // Nhánh 2: Di chuyển cản địa (Địch ở ngoài tầm đâm nhưng trong tầm nhìn)
         var interceptSequence = new SequenceNode(
             new LancerHasEnemyInSightNode(lancer),
             new IsEnemyOutOfLancerAttackRangeNode(lancer),
@@ -107,23 +115,22 @@ public class Lancer : Unit
         var combatBranch = new SequenceNode(
             new HasAggroTargetNode(lancer),
             new SelectorNode(
-                attackSequence,     // Ưu tiên 1: Cứ vào gần là đâm văng ra
-                interceptSequence   // Ưu tiên 2: Chưa vào gần thì chạy ra chặn đầu
+                attackSequence,     
+                interceptSequence   
             )
         );
 
-        // Nhánh 3: Đi tuần xung quanh tòa nhà khi bình yên
         var patrolSequence = new SequenceNode(
             new LancerHasNoEnemyInSight(lancer),
-            new LancerFindNextPatrolPositionNode(lancer), // Hàm đã có của bạn
+            new LancerFindNextPatrolPositionNode(lancer), 
             new LancerMoveToNextPatrolPositionNode(lancer),
             new WaitNode(lancer)
         );
 
         var root = new SelectorNode(
-            // (Thêm các node Death, Stun ở đây nếu có)
-            combatBranch,   // Có địch thì lo Đánh / Đón đầu
-            patrolSequence  // Không địch thì đi dạo quanh nhà
+            combatBranch, 
+            alarmResponseSequence,
+            patrolSequence  
         );
 
         return new BehaviourTree(root);
@@ -242,7 +249,8 @@ public class Lancer : Unit
 
             if (aggroTimer <= 0)
             {
-                currentTarget = null;
+                ClearAggro();
+                isAlerted = false;
                 lancerBlackBoard.detectedEnemy = null;
             }
         }
@@ -263,7 +271,7 @@ public class Lancer : Unit
 
         return angle switch
         {
-            <= 15f => LancerDirection.Down,        
+            <= 25f => LancerDirection.Down,        
             <= 75f => LancerDirection.DownRight,   
             <= 105f => LancerDirection.Right,      
             <= 165f => LancerDirection.UpRight,   
@@ -341,6 +349,8 @@ public class Lancer : Unit
             {
                 if (CheckEnemyStillInRange(lancerBlackBoard.detectedEnemy, viewDistance))
                 {
+                    GlobalAlarmSystem.TriggerAlarm(lancerBlackBoard.detectedEnemy, 
+                        lancerBlackBoard.detectedEnemy.transform.position);
                     return; 
                 }
             }
@@ -353,6 +363,7 @@ public class Lancer : Unit
             if (newTarget != null)
             {
                 lancerBlackBoard.detectedEnemy = newTarget; 
+                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position);
             }
         }
     }

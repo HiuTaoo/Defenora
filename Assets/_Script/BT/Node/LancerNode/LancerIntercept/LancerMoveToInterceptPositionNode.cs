@@ -16,10 +16,10 @@ namespace _Script.BT.Node.LancerNode.LancerIntercept
 
         public override BTStatus Tick()
         {
-            var enemy = lancer.lancerBlackBoard.detectedEnemy;
+            //var enemy = lancer.lancerBlackBoard.detectedEnemy;
             var building = lancer.assignedBuilding;
 
-            if (enemy == null || building == null)
+            if (lancer.lastSeenPosition == Vector2.zero || building == null)
             {
                 ResetNode();
                 return BTStatus.Failure;
@@ -34,7 +34,7 @@ namespace _Script.BT.Node.LancerNode.LancerIntercept
             if (!hasStartedMove)
             {
                 Vector2 buildingPos = building.transform.position;
-                Vector2 enemyPos = enemy.transform.position;
+                Vector2 enemyPos = lancer.lastSeenPosition ;
                 float guardRadius = lancer.maxRadius; 
 
                 Vector2 vectorToEnemy = enemyPos - buildingPos;
@@ -93,7 +93,7 @@ namespace _Script.BT.Node.LancerNode.LancerIntercept
                 lancer.characterMovement.RequestStopMoving();
             }
 
-            lancer.currentState = lancer.GetState();
+            lancer.currentState = UnitState.Idle;
             lancer.animState = AnimState.Idle;
         }
     }

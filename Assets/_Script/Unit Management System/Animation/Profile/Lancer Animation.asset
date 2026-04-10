@@ -101,3 +101,27 @@ MonoBehaviour:
     animState: 1
     animationName: Lancer_Run_Blue
     lancerDirection: 5
+  - UnitState: 5
+    animState: 0
+    animationName: Lancer_Down_Defend_Blue
+    lancerDirection: 0
+  - UnitState: 5
+    animState: 0
+    animationName: Lancer_Up_Defend_Blue
+    lancerDirection: 1
+  - UnitState: 5
+    animState: 0
+    animationName: Lancer_UpRight_Defend_Blue
+    lancerDirection: 2
+  - UnitState: 5
+    animState: 0
+    animationName: Lancer_Right_Defend_Blue
+    lancerDirection: 3
+  - UnitState: 5
+    animState: 0
+    animationName: Lancer_DownRight_Defend_Blue
+    lancerDirection: 4
+  - UnitState: 5
+    animState: 0
+    animationName: Lancer_Idle_Blue
+    lancerDirection: 5
