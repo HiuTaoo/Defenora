@@ -55,7 +55,9 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
         public void FinishMove()
         {
             hasStartedMove = false;
-            lancer.currentState = UnitState.Idle;
+            if(lancer.currentState == UnitState.Move)
+                lancer.currentState = UnitState.Idle;
         }
+        
     }
 }

@@ -10,6 +10,7 @@ using _Script.BT.Node.LancerNode.LancerDetectedEnemy;
 using _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.LancerNode.LancerIntercept;
+using _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition;
 using _Script.Unit_Management_System.Animation;
 using UnityEditor;
 using UnityEngine;
@@ -45,11 +46,13 @@ public class Lancer : Unit
         bt?.Tick();
         CheckEnemyAggro();
         UpdateDetectPointPosition();
-        animFSM.ChangeState(currentState, animState);
+        UpdateSensors();
+        
         if(lancerBlackBoard.detectedEnemy != null)
         {
-            UpdateDirection(lancerBlackBoard.detectedEnemy.transform.position, transform.position);
+            UpdateDirection(transform.position, lancerBlackBoard.detectedEnemy.transform.position);
         }
+        animFSM.ChangeState(currentState, animState);
         
     }
 
@@ -102,7 +105,7 @@ public class Lancer : Unit
         );
 
         var combatBranch = new SequenceNode(
-            new LancerSelectTargetNode(lancer),
+            new HasAggroTargetNode(lancer),
             new SelectorNode(
                 attackSequence,     // Ưu tiên 1: Cứ vào gần là đâm văng ra
                 interceptSequence   // Ưu tiên 2: Chưa vào gần thì chạy ra chặn đầu
@@ -260,11 +263,11 @@ public class Lancer : Unit
 
         return angle switch
         {
-            <= 15f => LancerDirection.Up,
-            <= 75f => LancerDirection.UpRight,
-            <= 105f => LancerDirection.Right,
-            <= 165f => LancerDirection.DownRight,
-            _ => LancerDirection.Down
+            <= 15f => LancerDirection.Down,        
+            <= 75f => LancerDirection.DownRight,   
+            <= 105f => LancerDirection.Right,      
+            <= 165f => LancerDirection.UpRight,   
+            _ => LancerDirection.Up                
         };
     }
 
@@ -325,6 +328,40 @@ public class Lancer : Unit
         float dist = Vector2.Distance(transform.position, closest);
 
         return dist <= attackRange * 0.75;
+    }
+    
+    private void UpdateSensors()
+    {
+        detectTimer += Time.deltaTime;
+        if (detectTimer >= detectInterval)
+        {
+            detectTimer = 0f;
+
+            if (lancerBlackBoard.detectedEnemy != null)
+            {
+                if (CheckEnemyStillInRange(lancerBlackBoard.detectedEnemy, viewDistance))
+                {
+                    return; 
+                }
+            }
+
+            var dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+            var enemies = DetectEnemies(viewDistance, dir);
+        
+            var newTarget = SelectClosestTarget(enemies); 
+        
+            if (newTarget != null)
+            {
+                lancerBlackBoard.detectedEnemy = newTarget; 
+            }
+        }
+    }
+
+    public override UnitState GetState()
+    {
+        if(lancerBlackBoard.detectedEnemy != null || currentTarget != null)
+            return UnitState.Defend;
+        return UnitState.Idle;
     }
 
     #endregion

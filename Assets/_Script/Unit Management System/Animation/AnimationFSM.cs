@@ -11,6 +11,8 @@ namespace _Script.Unit_Management_System.Animation
 
         private IAnimationProfile animationProfile;
         private ScriptableObject runtimeProfile;
+        
+        private string currentPlayingAnim;
 
         private void Awake()
         {
@@ -23,8 +25,11 @@ namespace _Script.Unit_Management_System.Animation
         {
             var anim = animationProfile.GetAnimation(unitState, animState);
 
-            if (!string.IsNullOrEmpty(anim))
+            if (!string.IsNullOrEmpty(anim) && currentPlayingAnim != anim)
+            {
                 animator.Play(anim);
+                currentPlayingAnim = anim;
+            }
         }
 
         public void SetTool(ToolType tool)

@@ -42,6 +42,10 @@ public abstract class Unit : MonoBehaviour
     public Transform currentTarget;
     public Vector2 lastSeenPosition;
     public int lastSeenLayerIndex;
+    
+    [Header("Sensor")]
+    public float detectTimer = 0f;
+    public float detectInterval = 0.25f;
 
     protected BehaviourTree bt;
 
@@ -468,6 +472,16 @@ public abstract class Unit : MonoBehaviour
         // Cập nhật lại timer báo động
         aggroTimer = aggroDuration; 
 
+    }
+    
+    public void EndAnim()
+    {
+        animState = AnimState.Idle;
+    }
+
+    public virtual UnitState GetState()
+    {
+        return UnitState.Idle;
     }
 
     #endregion

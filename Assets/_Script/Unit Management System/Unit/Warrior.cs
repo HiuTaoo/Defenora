@@ -21,6 +21,7 @@ public class Warrior : Unit
     
     [Header("Detect Point")]
     public Transform detectPoint;
+
     [Range(0, 360)]
     public float viewAngle;
     
@@ -44,14 +45,14 @@ public class Warrior : Unit
         bt?.Tick();
         CheckEnemyAggro();
 		UpdateDetectPointPosition();
-
-        animFSM.ChangeState(currentState, animState);
+        UpdateSensors();
    
         if(warriorBlackBoard.detectedEnemy != null)
         {
-            UpdateDirection(warriorBlackBoard.detectedEnemy.transform.position, 
-                transform.position);
+            UpdateDirection(transform.position, 
+                warriorBlackBoard.detectedEnemy.transform.position);
         }
+        animFSM.ChangeState(currentState, animState);
     }
 
 
@@ -98,7 +99,7 @@ public class Warrior : Unit
             new WaitNode(warrior));
         
         var combatBranch = new SequenceNode(
-            new WarriorSelectTargetNode(warrior),
+            new HasAggroTargetNode(warrior),
             combatSequence
         );
         
@@ -285,9 +286,9 @@ public class Warrior : Unit
 
         return angle switch
         {
-            <= 45f => WarriorDirection.Up,
-            <= 135f => WarriorDirection.Front,
-            _ => WarriorDirection.Down
+            <= 45f => WarriorDirection.Down,   
+            <= 135f => WarriorDirection.Front, 
+            _ => WarriorDirection.Up           
         };
     }
     
@@ -297,16 +298,38 @@ public class Warrior : Unit
         animFSM.SetWarriorDirection(dir);
     }
 
-    public void EndAnim()
-    {
-        animState = AnimState.Idle;
-    }
-
     public void ClearAggro()
     {
         currentTarget = null;
         lastSeenPosition = Vector2.zero;
         lastSeenLayerIndex = -1;
+    }
+    
+    private void UpdateSensors()
+    {
+        detectTimer += Time.deltaTime;
+        if (detectTimer >= detectInterval)
+        {
+            detectTimer = 0f;
+
+            if (warriorBlackBoard.detectedEnemy != null)
+            {
+                if (CheckEnemyStillInRange(warriorBlackBoard.detectedEnemy, viewDistance))
+                {
+                    return; 
+                }
+            }
+
+            var dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+            var enemies = DetectEnemies(viewDistance, dir);
+        
+            var newTarget = SelectClosestTarget(enemies); 
+        
+            if (newTarget != null)
+            {
+                warriorBlackBoard.detectedEnemy = newTarget; 
+            }
+        }
     }
 
     #endregion

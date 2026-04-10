@@ -7,7 +7,9 @@ using _Script.BT.BlackBoard;
 using _Script.BT.Node.ArcherNode.ArcherDetectedEnemy;
 using _Script.BT.Node.ArcherNode.ArcherIdle;
 using _Script.BT.Node.BuilderNode.Idle;
+using _Script.BT.Node.LancerNode.LancerDetectedEnemy;
 using _Script.BT.Node.LancerNode.LancerIdle;
+using _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition;
 using _Script.ItemScript;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.Animation;
@@ -56,6 +58,7 @@ public class Archer : Unit
     {
         UpdateIsStationed();
         CheckIsStationed();
+        UpdateSensors();
         UpdateFirePointPosition();
         CheckEnemyAggro();
         animFSM.ChangeState(currentState, animState);
@@ -80,9 +83,10 @@ public class Archer : Unit
         );
 
         var detectedSequence = new SequenceNode(
-            new HasDetectedEnemyNode(archer), // Đã bao gồm check Raycast từ Camera cực xịn của bạn
+            new HasAggroTargetNode(archer), // Đã bao gồm check Raycast từ Camera cực xịn của bạn
             new SelectTargetNode(archer),
-            new AimAtTargetNode(archer),      
+            new AimAtTargetNode(archer), 
+            new IsArcherInDefendStateNode(archer),
             new SelectorNode(
                 attackActionSequence,         // Ưu tiên 1: Thử bắn (Nếu chưa hồi xong, node này Failure)
                 new ArcherAttackCooldownNode(archer)          // Ưu tiên 2: Đứng chờ (Trả về Running, giúp BT dừng ở đây và không bị rớt xuống Idle)
@@ -408,6 +412,33 @@ public class Archer : Unit
     {
         archerBlackBoard.fireDirection =  ArcherFireDirection.None;
         animState = AnimState.Idle;
+    }
+    
+    private void UpdateSensors()
+    {
+        detectTimer += Time.deltaTime;
+        if (detectTimer >= detectInterval)
+        {
+            detectTimer = 0f;
+
+            if (archerBlackBoard.detectedEnemy != null)
+            {
+                if (CheckEnemyStillInRange(archerBlackBoard.detectedEnemy, viewDistance))
+                {
+                    return; 
+                }
+            }
+
+            var dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+            var enemies = DetectEnemies(viewDistance, dir);
+        
+            var newTarget = SelectClosestTarget(enemies); 
+        
+            if (newTarget != null)
+            {
+                archerBlackBoard.detectedEnemy = newTarget; 
+            }
+        }
     }
     #endregion
 

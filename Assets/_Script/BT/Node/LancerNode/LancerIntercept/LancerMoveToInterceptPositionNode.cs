@@ -92,8 +92,8 @@ namespace _Script.BT.Node.LancerNode.LancerIntercept
             {
                 lancer.characterMovement.RequestStopMoving();
             }
-            
-            lancer.currentState = UnitState.Idle;
+
+            lancer.currentState = lancer.GetState();
             lancer.animState = AnimState.Idle;
         }
     }

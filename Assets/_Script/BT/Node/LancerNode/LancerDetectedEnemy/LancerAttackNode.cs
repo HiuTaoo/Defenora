@@ -17,7 +17,6 @@ namespace _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop
             {
                 return BTStatus.Failure;
             }
-                
             
             lancer.animState = AnimState.Attacking;
             return BTStatus.Running;
