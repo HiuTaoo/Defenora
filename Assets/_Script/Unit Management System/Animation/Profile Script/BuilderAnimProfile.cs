@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Script.Unit_Management_System.Animation.Profile_Script
 {
-    [CreateAssetMenu(menuName = "Animation/Pawn Animation Profile")]
+    [CreateAssetMenu(menuName = "CustomAnimation/Pawn Animation Profile")]
     public class BuilderAnimProfile : ScriptableObject, IAnimationProfile
     {
         [System.Serializable]

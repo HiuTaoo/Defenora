@@ -1,20 +1,20 @@
 using UnityEngine;
 
-[RequireComponent(typeof(CircleCollider2D))]
+[RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(SpriteRenderer))]
 [RequireComponent(typeof(DynamicSortingYX))]
 public class RenderInBridge : MonoBehaviour
 {
     public int bridgeOffset = 1; 
 
-    private CircleCollider2D circle;
+    private Collider2D circle;
     private SpriteRenderer sr;
     private DynamicSortingYX dynamicSorting;
     private FloorAgent floorAgent;
 
     private void Awake()
     {
-        circle         = GetComponent<CircleCollider2D>();
+        circle         = GetComponent<Collider2D>();
         sr             = GetComponent<SpriteRenderer>();
         dynamicSorting = GetComponent<DynamicSortingYX>();
         floorAgent = GetComponentInChildren<FloorAgent>();

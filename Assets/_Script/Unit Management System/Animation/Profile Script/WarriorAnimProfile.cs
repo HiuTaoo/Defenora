@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Script.Unit_Management_System.Animation.Profile_Script
 {
-    [CreateAssetMenu(menuName = "Animation/Warrior Animation Profile")]
+    [CreateAssetMenu(menuName = "CustomAnimation/Warrior Animation Profile")]
     public class WarriorAnimProfile: ScriptableObject, IAnimationProfile
     {
         [System.Serializable]

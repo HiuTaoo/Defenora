@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Script.Unit_Management_System.Animation.Profile_Script
 {
-    [CreateAssetMenu(menuName = "Animation/Archer Animation Profile")]
+    [CreateAssetMenu(menuName = "CustomAnimation/Archer Animation Profile")]
     public class ArcherAnimProfile: ScriptableObject, IAnimationProfile
     {
         [System.Serializable]

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Script.Unit_Management_System.Animation.Profile_Script
 {
-    [CreateAssetMenu(menuName = "Animation/Lancer Animation Profile")]
+    [CreateAssetMenu(menuName = "CustomAnimation/Lancer Animation Profile")]
     public class LancerAnimProfile : ScriptableObject, IAnimationProfile
     {
         [System.Serializable]
