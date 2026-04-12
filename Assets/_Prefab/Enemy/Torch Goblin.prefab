@@ -123,8 +123,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.0028238297, y: -0.025000572}
-  m_Size: {x: 0.56222725, y: 0.7422466}
+  m_Offset: {x: 0.012404152, y: -0.04894938}
+  m_Size: {x: 0.581388, y: 0.9817423}
   m_Direction: 0
 --- !u!50 &32078924950680455
 Rigidbody2D:
@@ -217,6 +217,10 @@ MonoBehaviour:
   characterMovement: {fileID: 0}
   spriteRenderer: {fileID: 0}
   floorAgent: {fileID: 0}
+  viewDistance: 6
+  viewAngle: 180
+  attackRange: 2
+  attackAngle: 180
   currentTarget: {fileID: 0}
   layerIndex: 0
 --- !u!1 &3122822280748698295

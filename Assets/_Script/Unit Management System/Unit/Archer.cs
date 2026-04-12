@@ -41,7 +41,8 @@ public class Archer : Unit
     public ArcherBlackBoard archerBlackBoard {get; set;}
     
     private DynamicSortingYX sortingYX;
-    
+
+    private RaycastHit2D[] raycastResults = new RaycastHit2D[10];
 
     protected override void Awake()
     {
@@ -254,54 +255,78 @@ public class Archer : Unit
             enemyLayer);
 
         dir.Normalize();
-
-        if (Camera.main == null) return enemiesInRange;
-        Vector2 cameraPos = Camera.main.transform.position;
+        Vector2 myPos = transform.position;
 
         for (var i = 0; i < size; i++)
         {
-            var hit = results[i];
-            if (hit == null || !hit.CompareTag("Enemy"))
+            var enemyHit = results[i];
+            if (enemyHit == null || !enemyHit.CompareTag("Enemy"))
                 continue;
 
-            Vector2 dirToEnemy = (hit.transform.position - transform.position).normalized;
+            Vector2 dirToEnemy = (enemyHit.transform.position - (Vector3)myPos).normalized;
             if (Vector2.Dot(dir, dirToEnemy) <= 0)
                 continue;
 
-            Bounds b = hit.bounds;
-
+            Bounds b = enemyHit.bounds;
             Vector2[] samplePoints =
             {
                 b.center,
-                new Vector2(b.center.x, b.max.y),
-                new Vector2(b.center.x, b.min.y),
-                new Vector2(b.min.x, b.center.y),
-                new Vector2(b.max.x, b.center.y)
+                new (b.center.x, b.max.y),
+                new (b.center.x, b.min.y),
+                new (b.min.x, b.center.y),
+                new (b.max.x, b.center.y)
             };
 
             bool visible = false;
 
             foreach (var point in samplePoints)
             {
-                Vector2 dirRay = point - cameraPos;
+                Vector2 dirRay = point - myPos;
                 float dist = dirRay.magnitude;
                 dirRay.Normalize();
 
-                var ray = Physics2D.Raycast(
-                    cameraPos,
-                    dirRay,
-                    dist,
-                    obstacleLayer);
-
-                if (ray.collider == null)
+                if (assignedBuilding != null)
                 {
-                    visible = true;
-                    break;
+                    int hitCount = Physics2D.RaycastNonAlloc(myPos, dirRay, raycastResults, dist, obstacleLayer);
+                    bool isBlockedByOther = false;
+
+                    for (int j = 0; j < hitCount; j++)
+                    {
+                        GameObject hitObj = raycastResults[j].collider.gameObject;
+                       
+                        Transform parentTransform = hitObj.transform.parent;
+                        GameObject parentObj = (parentTransform != null) ? parentTransform.gameObject : null;
+
+                        if (parentObj != assignedBuilding.gameObject && hitObj != gameObject)
+                        {
+                            isBlockedByOther = true;
+                            break;
+                        }
+                    }
+
+                    if (!isBlockedByOther)
+                    {
+                        visible = true;
+                        Debug.DrawLine(myPos, point, Color.green);
+                        break;
+                    }
+                }
+                else
+                {
+                    var ray = Physics2D.Raycast(myPos, dirRay, dist, obstacleLayer);
+
+                    if (ray.collider == null)
+                    {
+                        visible = true;
+                        break;
+                    }
                 }
             }
 
-            if (!visible) continue;
-            enemiesInRange.Add(hit.gameObject);
+            if (visible)
+            {
+                enemiesInRange.Add(enemyHit.gameObject);
+            }
         }
 
         return enemiesInRange;

@@ -61,6 +61,7 @@ public class Monk : Unit
     public List<GameObject> DetectEnemies(float range, Vector2 dir)
     {
         List<GameObject> enemiesInRange = new List<GameObject>();
+
         int size = Physics2D.OverlapCircleNonAlloc(
             transform.position,
             range,
@@ -69,8 +70,7 @@ public class Monk : Unit
 
         dir.Normalize();
 
-        if (Camera.main == null) return enemiesInRange;
-        Vector2 cameraPos = Camera.main.transform.position;
+        Vector2 myPos = transform.position;
 
         for (var i = 0; i < size; i++)
         {
@@ -78,35 +78,30 @@ public class Monk : Unit
             if (hit == null || !hit.CompareTag("Enemy"))
                 continue;
 
-            Vector2 dirToEnemy = (hit.transform.position - transform.position).normalized;
-            /*if (Vector2.Dot(dir, dirToEnemy) <= 0)
-                continue;*/
-
-            float angle = Vector2.Angle(dir, dirToEnemy);
-            if (angle > viewAngle / 2f)
+            Vector2 dirToEnemy = (hit.transform.position - (Vector3)myPos).normalized;
+            if (Vector2.Dot(dir, dirToEnemy) <= 0)
                 continue;
 
             Bounds b = hit.bounds;
-
             Vector2[] samplePoints =
             {
                 b.center,
-                new Vector2(b.center.x, b.max.y),
-                new Vector2(b.center.x, b.min.y),
-                new Vector2(b.min.x, b.center.y),
-                new Vector2(b.max.x, b.center.y)
+                new (b.center.x, b.max.y),
+                new (b.center.x, b.min.y),
+                new (b.min.x, b.center.y),
+                new (b.max.x, b.center.y)
             };
 
             bool visible = false;
 
             foreach (var point in samplePoints)
             {
-                Vector2 dirRay = point - cameraPos;
+                Vector2 dirRay = point - myPos;
                 float dist = dirRay.magnitude;
                 dirRay.Normalize();
 
                 var ray = Physics2D.Raycast(
-                    cameraPos,
+                    myPos,
                     dirRay,
                     dist,
                     obstacleLayer);
@@ -118,8 +113,10 @@ public class Monk : Unit
                 }
             }
 
-            if (!visible) continue;
-            enemiesInRange.Add(hit.gameObject);
+            if (visible)
+            {
+                enemiesInRange.Add(hit.gameObject);
+            }
         }
 
         return enemiesInRange;
