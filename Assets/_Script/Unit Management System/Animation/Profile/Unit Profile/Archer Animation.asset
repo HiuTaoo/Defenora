@@ -121,3 +121,27 @@ MonoBehaviour:
     unitState: 5
     fireDirection: 4
     animationName: Idle
+  - animState: 6
+    unitState: 9
+    fireDirection: 0
+    animationName: Dead
+  - animState: 6
+    unitState: 9
+    fireDirection: 1
+    animationName: Dead
+  - animState: 6
+    unitState: 9
+    fireDirection: 2
+    animationName: Dead
+  - animState: 6
+    unitState: 9
+    fireDirection: 3
+    animationName: Dead
+  - animState: 6
+    unitState: 9
+    fireDirection: 4
+    animationName: Dead
+  - animState: 6
+    unitState: 9
+    fireDirection: 5
+    animationName: Dead

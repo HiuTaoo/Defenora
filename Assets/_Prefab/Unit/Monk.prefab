@@ -1,5 +1,50 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3128324029174405333
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5079871736237895250}
+  - component: {fileID: 8953604183946357820}
+  m_Layer: 8
+  m_Name: Health
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5079871736237895250
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128324029174405333}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -10.77747, y: 13.303047, z: -3.8371255}
+  m_LocalScale: {x: 1.5384616, y: 1.5384616, z: 1.5384616}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 977264512724078209}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8953604183946357820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128324029174405333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f811e94f443b4183af745a6ddf5a6b09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
 --- !u!1 &6060272414933211326
 GameObject:
   m_ObjectHideFlags: 0
@@ -123,6 +168,7 @@ Transform:
   m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 5079871736237895250}
   - {fileID: 1821064037934257138}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -277,10 +323,7 @@ MonoBehaviour:
   unitType: 5
   currentState: 0
   animState: 0
-  health: 100
-  maxHealth: 100
-  targetDestination: {fileID: 0}
-  stoppingDistance: 0.1
+  layerIndex: 0
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
@@ -294,15 +337,19 @@ MonoBehaviour:
   obstacleLayer: 0
   enemyLayer: 0
   results: []
-  aggroTimer: 0
-  aggroDuration: 5
   currentTarget: {fileID: 0}
+  currentTargetLayerIndex: 0
   lastSeenPosition: {x: 0, y: 0}
   lastSeenLayerIndex: 0
   isAlerted: 0
+  aggroTimer: 0
+  aggroDuration: 5
   detectTimer: 0
   detectInterval: 0.25
   hearRange: 15
+  animFSM: {fileID: 0}
+  sortingYX: {fileID: 0}
+  health: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -311,7 +358,6 @@ MonoBehaviour:
   healCooldown: 5
   viewDistance: 3
   viewAngle: 180
-  animFSM: {fileID: 0}
 --- !u!114 &183254153025691274
 MonoBehaviour:
   m_ObjectHideFlags: 0

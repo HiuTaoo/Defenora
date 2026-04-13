@@ -37,6 +37,7 @@ Transform:
   m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 496981800093518762}
   - {fileID: 8250754444523929379}
   - {fileID: 5304657630165761042}
   m_Father: {fileID: 0}
@@ -234,10 +235,8 @@ MonoBehaviour:
   unitType: 2
   currentState: 0
   animState: 0
-  health: 100
-  maxHealth: 100
-  targetDestination: {fileID: 0}
-  stoppingDistance: 0.1
+  layerIndex: 0
+  currentHealth: 0
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
@@ -251,23 +250,33 @@ MonoBehaviour:
   obstacleLayer: 0
   enemyLayer: 0
   results: []
-  aggroTimer: 0
-  aggroDuration: 3
   currentTarget: {fileID: 0}
+  currentTargetLayerIndex: 0
   lastSeenPosition: {x: 0, y: 0}
   lastSeenLayerIndex: 0
   isAlerted: 0
+  aggroTimer: 0
+  aggroDuration: 3
   detectTimer: 0
   detectInterval: 0.25
   hearRange: 15
+  animFSM: {fileID: 0}
+  sortingYX: {fileID: 0}
+  health: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
+  attackCooldown: 0.75
+  lastAttackTime: -999
+  isKnockedBack: 0
+  hitStunDuration: 0.1
   attackRange: 1
+  attackDamage: 5
   viewDistance: 3
   detectPoint: {fileID: 8250754444523929379}
   viewAngle: 180
-  animFSM: {fileID: 0}
+  warriorDirection: 0
+  attackLayerMask: 0
 --- !u!1 &2804461022730358203
 GameObject:
   m_ObjectHideFlags: 0
@@ -341,6 +350,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 2
   rb: {fileID: 0}
+  stopRequested: 0
   moving: 0
 --- !u!114 &4281134691819306975
 MonoBehaviour:
@@ -385,3 +395,48 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3755721970266095713}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6462886036677471358
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 496981800093518762}
+  - component: {fileID: 4126251551279297894}
+  m_Layer: 8
+  m_Name: Health
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &496981800093518762
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6462886036677471358}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -2.4461536, y: 14.953847, z: -0.02259548}
+  m_LocalScale: {x: 1.5384616, y: 1.5384616, z: 1.5384616}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3755721970266095713}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4126251551279297894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6462886036677471358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f811e94f443b4183af745a6ddf5a6b09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100

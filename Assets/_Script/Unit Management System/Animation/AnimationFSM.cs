@@ -1,4 +1,5 @@
-﻿using _Script.Unit_Management_System.Animation.Profile_Script;
+﻿using _Script.Enum;
+using _Script.Unit_Management_System.Animation.Profile_Script;
 using UnityEngine;
 
 namespace _Script.Unit_Management_System.Animation
@@ -86,6 +87,14 @@ namespace _Script.Unit_Management_System.Animation
             }
 
             return WarriorDirection.None;
+        }
+
+        public void SetEnemyDirection(EnemyDirection enemyDirection)
+        {
+            if (animationProfile is TorchGoblinAnimProfile torchGoblinAnimProfile)
+            {
+                torchGoblinAnimProfile.SetEnemyDirection(enemyDirection);
+            }
         }
     }
 }

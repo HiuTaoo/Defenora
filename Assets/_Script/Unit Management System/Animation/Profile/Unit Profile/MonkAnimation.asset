@@ -22,3 +22,6 @@ MonoBehaviour:
   - unitState: 5
     animState: 5
     animationName: Heal
+  - unitState: 9
+    animState: 6
+    animationName: Dead

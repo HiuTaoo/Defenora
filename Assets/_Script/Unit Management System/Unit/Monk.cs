@@ -20,7 +20,6 @@ public class Monk : Unit
 
     private BehaviourTree bt;
     public MonkBlackBoard monkBlackBoard;
-    public AnimationFSM animFSM;
 
     protected override void Awake()
     {
@@ -28,11 +27,11 @@ public class Monk : Unit
         unitType = UnitType.Monk;
         bt = CreateBehaviorTree(this);
         monkBlackBoard = new MonkBlackBoard();
-        animFSM = GetComponent<AnimationFSM>();
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
         CheckEnemyDirection();

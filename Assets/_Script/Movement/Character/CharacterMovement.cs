@@ -17,7 +17,7 @@ public class CharacterMovement : MonoBehaviour
     private Camera cam;
     public PathFinding currentPath = null;
     public Coroutine moveCoroutine;
-    private bool stopRequested = false;
+    public bool stopRequested = false;
 
     public bool moving = false;
     public Vector2 direction { get; private set; } = Vector2.zero;
@@ -132,8 +132,6 @@ public class CharacterMovement : MonoBehaviour
             for (int i = 0; i < segment.positions.Count; i++)
             {
                 var tilePos = segment.positions[i];
-
-                _currentLayer = segment.layerIndex;
                 
                 Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
                 targetCenter.z = transform.parent.position.z;
@@ -184,6 +182,7 @@ public class CharacterMovement : MonoBehaviour
                     rb.MovePosition(nextPosition);
                     yield return null;
                 }
+                _currentLayer = segment.layerIndex;
             }
         }
 

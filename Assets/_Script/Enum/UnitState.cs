@@ -8,5 +8,6 @@
     Defend,
     Working,
     Patrolling,
-    Heal
+    Heal,
+    Dead
 }

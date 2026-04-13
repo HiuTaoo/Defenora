@@ -34,13 +34,8 @@ public class Archer : Unit
     public float viewDistance = 5f;
     [Range(0, 360)]
     public float viewAngle;
-    
-    [Header("Animation FSM")]
-    public AnimationFSM animFSM;
 
     public ArcherBlackBoard archerBlackBoard {get; set;}
-    
-    private DynamicSortingYX sortingYX;
 
     private RaycastHit2D[] raycastResults = new RaycastHit2D[10];
 
@@ -48,16 +43,17 @@ public class Archer : Unit
     {
         base.Awake();
         unitType = UnitType.Archer;
-        sortingYX = GetComponent<DynamicSortingYX>();
+
         archerBlackBoard = new ArcherBlackBoard();
-        animFSM = GetComponent<AnimationFSM>();
+    
 
 
         bt = CreateBehaviourTree(this);
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
         UpdateIsStationed();
         CheckIsStationed();
         UpdateSensors();

@@ -5,8 +5,6 @@ namespace _Script.BT.Node.WarriorNode.WarriorCombat.WarriorChaseEnemy
     public class WarriorChaseEnemy : BTActionNode
     {
         private Warrior warrior;
-        private Vector2 lastTargetPosition;
-        private float repathTimer = 0f;
 
         private bool hasStartedMove = false;
         private Transform currentTarget;

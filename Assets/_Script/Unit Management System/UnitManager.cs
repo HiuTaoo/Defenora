@@ -216,6 +216,11 @@ public class UnitManager : MonoBehaviour
             case UnitType.Warrior: return PrefabConfig.Instance.warriorPrefab;
             case UnitType.Builder: return PrefabConfig.Instance.builderPrefab;
             case UnitType.Lancer: return PrefabConfig.Instance.lancerPrefab;
+            
+            //Enemy case
+            case UnitType.TorchGoblin: return PrefabConfig.Instance.torchGoblinPrefab;
+            case UnitType.TNTGoblin: return PrefabConfig.Instance.tntGoblinPrefab;
+            case UnitType.Barrel: return PrefabConfig.Instance.barrelPrefab;
             default: return null;
         }
     }

@@ -26,6 +26,7 @@ public class Lancer : Unit
     public float viewDistance = 3f;
     public int minRadius = 1;
     public int maxRadius = 2;
+    public LancerDirection lancerDirection;
     
     [Header("Detect Point")]
     public Transform detectPoint;
@@ -33,19 +34,18 @@ public class Lancer : Unit
     public float viewAngle;
     
     public LancerBlackBoard lancerBlackBoard;
-    public AnimationFSM animFSM;
 
     protected override void Awake()
     {
         base.Awake();
         unitType = UnitType.Lancer;
         lancerBlackBoard = new LancerBlackBoard();
-        animFSM = GetComponent<AnimationFSM>();
         bt = CreateBehaviourTree(this);
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
         bt?.Tick();
         CheckEnemyAggro();
         UpdateDetectPointPosition();
@@ -279,6 +279,7 @@ public class Lancer : Unit
     private void UpdateDirection(Vector2 from, Vector2 to)
     {
         var dir = GetDirection(from, to);
+        lancerDirection = dir;
         animFSM.SetLancerDirection(dir);
     }
     

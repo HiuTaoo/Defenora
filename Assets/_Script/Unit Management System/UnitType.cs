@@ -8,5 +8,9 @@ public enum UnitType
     Warrior,   
     Builder, 
     Lancer,
-    Monk
+    Monk,
+    //Enemy
+    TorchGoblin,
+    TNTGoblin,
+    Barrel
 }

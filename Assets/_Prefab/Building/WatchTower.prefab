@@ -1,5 +1,50 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3184329179953160531
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3726201342056396235}
+  - component: {fileID: 9105127493200875991}
+  m_Layer: 8
+  m_Name: Health
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3726201342056396235
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3184329179953160531}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -4.77, y: 1.4300001, z: 0.021740437}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3831376056333300775}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9105127493200875991
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3184329179953160531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f811e94f443b4183af745a6ddf5a6b09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
 --- !u!1 &3354269745625136149
 GameObject:
   m_ObjectHideFlags: 0
@@ -71,6 +116,7 @@ Transform:
   - {fileID: 8559164744609574262}
   - {fileID: 2003971139306908848}
   - {fileID: 6134585652059151641}
+  - {fileID: 3726201342056396235}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &3275162544013634755
@@ -196,8 +242,6 @@ MonoBehaviour:
   buildingName: WatchTower
   maxCapacity: 3
   range: 5
-  maxHealth: 10
-  currentHealth: 10
   currentCapacity: 0
   buildingType: 1
   buildingState: 0
@@ -214,6 +258,7 @@ MonoBehaviour:
     currentProgress: 0
     builders: []
   layerIndex: 0
+  health: {fileID: 0}
 --- !u!114 &4274527819006447420
 MonoBehaviour:
   m_ObjectHideFlags: 0

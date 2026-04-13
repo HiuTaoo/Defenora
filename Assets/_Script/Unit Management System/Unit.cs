@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.GlobalAlarm;
+using _Script.Unit_Management_System.Animation;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -13,14 +16,8 @@ public abstract class Unit : MonoBehaviour
     public UnitType unitType;
     public UnitState currentState = UnitState.Idle;
     public AnimState animState = AnimState.Idle;
-
-    [Header("Stats")]
-    public float health = 100f;
-    public float maxHealth = 100f;
-
-    [Header("Movement")]
-    public Transform targetDestination;
-    public float stoppingDistance = 0.1f;
+    public int layerIndex;
+    public float currentHealth;
 
     [Header("Task")]
     public Task currentTask;
@@ -33,39 +30,58 @@ public abstract class Unit : MonoBehaviour
     public int obstacleLayer;
     public int enemyLayer;
     
-    [Header("Enemy")]
+    [Header("Array Non Alloc")]
     public Collider2D[] results;
     
-    [Header("Aggro")]
-    public float aggroTimer;
-    public float aggroDuration = 5f;
+    [Header("Target")]
     public Transform currentTarget;
+    public int currentTargetLayerIndex;
     public Vector2 lastSeenPosition;
     public int lastSeenLayerIndex;
     public bool isAlerted;
+    public float aggroTimer;
+    public float aggroDuration = 5f;
     
     [Header("Sensor")]
     public float detectTimer = 0f;
     public float detectInterval = 0.25f;
     public float hearRange = 15f;
+    
+    [Header("Animation FSM")]
+    public AnimationFSM animFSM;
 
     protected BehaviourTree bt;
-
     private Rigidbody2D rb;
-    protected Animator animator;
+    public DynamicSortingYX sortingYX;
+    public Health health;
+    
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public CharacterMovement characterMovement;
     [HideInInspector] public FloorAgent floorAgent;
+
+    [Header("Combat Stats")]
+    public float attackCooldown = 1f; 
+    public float lastAttackTime = -999f;
+    public bool isKnockedBack = false;
+    public float hitStunDuration = 0.1f;
+    
+    [Header("Effects")]
+    private Coroutine damageEffectCoroutine; 
+    private Coroutine hitStunCoroutine;
+    public bool isAttacking { get; protected set; }
+    public bool isInWindup { get; protected set; }
 
     public System.Action<Unit> OnUnitDestroyed;
 
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         characterMovement = GetComponentInChildren<CharacterMovement>();
         floorAgent = GetComponentInChildren<FloorAgent>();
+        animFSM = GetComponent<AnimationFSM>();
+        sortingYX = GetComponent<DynamicSortingYX>();
+        health = GetComponentInChildren<Health>();
                         
         enemyLayer = LayerMask.GetMask("NPC");
         obstacleLayer = LayerMask.GetMask("VisionBlocker");
@@ -78,9 +94,11 @@ public abstract class Unit : MonoBehaviour
         unitName = gameObject.name;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         SynchronizedLayerIndex();
+        layerIndex = floorAgent.currentFloorIndex;
+        currentHealth = health.CurrentHealth;
     }
 
     // =========================
@@ -96,6 +114,33 @@ public abstract class Unit : MonoBehaviour
         new Vector3Int( 0, 1, 0),
         new Vector3Int( 0,-1, 0),*/
     };
+    
+    private static readonly Vector3Int[] OrthogonalDirs = new Vector3Int[]
+    {
+        Vector3Int.up,
+        Vector3Int.down,
+        Vector3Int.left,
+        Vector3Int.right
+    };
+
+    public List<Vector3Int> BuildOrthogonalPerimeterOffsets(ObjectFootprint fp)
+    {
+        var occupied = new HashSet<Vector3Int>();
+        foreach (var c in fp.occupiedCells)
+            occupied.Add(new Vector3Int(c.x, c.y, 0));
+
+        var perimeter = new HashSet<Vector3Int>();
+        foreach (var cell in occupied)
+        {
+            foreach (var d in OrthogonalDirs)
+            {
+                var nb = cell + d;
+                if (occupied.Contains(nb)) continue;
+                perimeter.Add(nb);
+            }
+        }
+        return new List<Vector3Int>(perimeter);
+    }
 
     private List<Vector3Int> BuildPerimeterNeighborOffsets(ObjectFootprint fp)
     {
@@ -115,6 +160,63 @@ public abstract class Unit : MonoBehaviour
         }
         return new List<Vector3Int>(perimeter);
     }
+    
+    public PathFinding FindBestPathToAnyAdjacentWithoutDiagonal(GameObject target, int layerIndex)
+{
+    if (target == null)
+        return null;
+
+    var graph = GraphNode.Instance.layerGraphs[layerIndex];
+    var fp = target.GetComponent<ObjectFootprint>();
+    var targetPosWorld = Vector3Int.FloorToInt(target.transform.position);
+    targetPosWorld.z = 0;
+
+    var neighborOffsets = BuildOrthogonalPerimeterOffsets(fp);
+    if (neighborOffsets == null || neighborOffsets.Count == 0)
+        return null;
+
+    Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+    currentGridPos.z = 0;
+
+    var sortedValidNeighbors = neighborOffsets
+        .Select(off => 
+        {
+            Vector3Int worldPos = targetPosWorld + off;
+            worldPos.z = 0;
+            return worldPos;
+        })
+        .Where(pos => graph.nodes.TryGetValue(pos, out Node node) && node.isWalkable)
+        .OrderBy(pos => (pos - currentGridPos).sqrMagnitude) 
+        .ToList();
+
+    float bestCost = float.MaxValue;
+    PathFinding bestPath = null;
+    
+    int maxPathsToCheck = 3; 
+    int pathsChecked = 0;
+
+    foreach (var neighborWorld in sortedValidNeighbors)
+    {
+        var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
+            currentGridPos, floorAgent.currentFloorIndex,
+            neighborWorld, layerIndex);
+
+        if (path == null || path.segments.Count == 0)
+            continue;
+
+        if (path.totalCost < bestCost)
+        {
+            bestCost = path.totalCost;
+            bestPath = path;
+        }
+
+        pathsChecked++;
+        if (pathsChecked >= maxPathsToCheck) 
+            break; 
+    }
+
+    return bestPath;
+}
 
     public PathFinding FindBestPathToAnyAdjacent(Task task)
     {
@@ -286,49 +388,21 @@ public abstract class Unit : MonoBehaviour
 
         return bestPath;
     }
-    public virtual bool MoveToTargetPosition()
-    {
-        var path = FindBestPathToAnyAdjacent(currentTask);
-        if (path == null)
-            return false;
 
-        characterMovement.currentPath = path;
-        StopAllCoroutines();
-        characterMovement.moveCoroutine =
-            StartCoroutine(characterMovement.FollowPathCoroutine(path));
-
-        currentState = UnitState.Move;
-        animState = AnimState.Moving;
-        return true;
-    }
-    
     public virtual void MoveToTargetPosition(PathFinding path)
     {
         if (path == null) return;
         
         characterMovement.currentPath = path;
-        StopAllCoroutines();
+        if (characterMovement.moveCoroutine != null)
+        {
+            StopCoroutine(characterMovement.moveCoroutine);
+        }
         characterMovement.moveCoroutine =
             StartCoroutine(characterMovement.FollowPathCoroutine(path));
 
         currentState = UnitState.Move;
         animState = AnimState.Moving;
-    }
-    
-    public bool IsCollidingWithTarget(GameObject target)
-    {
-        if (target == null )
-            return false;
-
-        var pawnCol = GetComponent<CircleCollider2D>();
-        var targetCol = target.GetComponent<Collider2D>();
-
-        if (pawnCol == null || targetCol == null)
-            return false;
-
-        ColliderDistance2D dist = pawnCol.Distance(targetCol);
-
-        return dist.distance <= 0.05f; 
     }
     
     public void MoveDirectlyToTarget(GameObject target)
@@ -362,6 +436,21 @@ public abstract class Unit : MonoBehaviour
     // =========================
 
     #region Method
+    public bool IsCollidingWithTarget(GameObject target)
+    {
+        if (target == null )
+            return false;
+
+        var currentCol = GetComponent<Collider2D>();
+        var targetCol = target.GetComponent<Collider2D>();
+
+        if (currentCol == null || targetCol == null)
+            return false;
+
+        ColliderDistance2D dist = currentCol.Distance(targetCol);
+
+        return dist.distance <= 0.05f; 
+    }
     public virtual void UpdateFacing(Vector3 dir)
     {
         Vector3 scale = transform.localScale;
@@ -419,8 +508,7 @@ public abstract class Unit : MonoBehaviour
 
         return Vector3Int.zero;
     }
-
-      
+    
     public bool IsStopped()
     {
         return currentState != UnitState.Move;
@@ -438,33 +526,15 @@ public abstract class Unit : MonoBehaviour
             characterMovement.RequestStopMoving();
     }
     
-    protected virtual void OnEnable()
-    {
-        GlobalAlarmSystem.OnEnemySpotted += HandleGlobalAlarm;
-    }
-
-    protected virtual void OnDisable()
-    {
-        GlobalAlarmSystem.OnEnemySpotted -= HandleGlobalAlarm;
-    }
-
-    protected virtual void HandleGlobalAlarm(GameObject spottedEnemy, Vector3 spottedPosition)
-    {
-        if (currentTarget != null) return; 
-        if (spottedEnemy == null) return;
-        
-        if (Vector2.Distance(transform.position, spottedPosition) > hearRange) return;
-
-        lastSeenPosition = spottedPosition;
-        lastSeenLayerIndex = spottedEnemy.GetComponentInChildren<FloorAgent>()?._currentFloorIndex ?? 0;
-    
-        isAlerted = true; 
-        aggroTimer = aggroDuration; 
-    }
-    
     public void EndAnim()
     {
         animState = AnimState.Idle;
+    }
+
+    public void ResetAnim()
+    {
+        animState = AnimState.Idle;
+        currentState = UnitState.Idle;
     }
 
     public virtual UnitState GetState()
@@ -478,31 +548,271 @@ public abstract class Unit : MonoBehaviour
         lastSeenPosition = Vector2.zero;
         lastSeenLayerIndex = -1;
     }
+    
+    private void ChangeTransparent(float cap)
+    {
+        Color c = spriteRenderer.color;
+        c.a = cap;
+        spriteRenderer.color = c;
+    }
+    
+    protected void DisableAll()
+    {
+        var col = GetComponent<Collider2D>();
+        col.enabled = false;
+        foreach (Transform child in transform)
+        {
+            child.gameObject.SetActive(false);
+        }
+    }
+    
+    #region Enemy Method
+
+    public Building FindNearestBuilding(Vector3 currentPosition)
+    {
+        var closestBuildings = UnitManager.Instance.buildings
+            .OrderBy(b => (b.transform.position - currentPosition).sqrMagnitude)
+            .Take(5); 
+
+        float minCost = float.MaxValue; 
+        Building nearest = null;
+
+        foreach (var building in closestBuildings)
+        {
+            if(building == null || building.buildingState == BuildingState.Destroyed)
+                continue;
+            
+            var path = FindBestPathToAnyAdjacent(building.gameObject, building.layerIndex);
+            if (path == null)
+                continue;
+
+            if (path.totalCost < minCost)
+            {
+                minCost = path.totalCost;
+                nearest = building;
+            }
+        }
+
+        return nearest;
+    }
+
+    public List<GameObject> DetectNPCs(float range, Vector2 dir)
+    {
+        List<GameObject> npcsInRange = new List<GameObject>();
+
+        int size = Physics2D.OverlapCircleNonAlloc(
+            transform.position,
+            range,
+            results,
+            LayerMask.GetMask("NPC"));
+
+        dir.Normalize();
+
+        Vector2 myPos = transform.position;
+
+        for (var i = 0; i < size; i++)
+        {
+            var hit = results[i];
+            if (hit == null || !hit.CompareTag("NPC"))
+                continue;
+
+            Vector2 dirToNPC = (hit.transform.position - (Vector3)myPos).normalized;
+            if (Vector2.Dot(dir, dirToNPC) <= 0)
+                continue;
+
+            Bounds b = hit.bounds;
+            Vector2[] samplePoints =
+            {
+                b.center,
+                new(b.center.x, b.max.y),
+                new(b.center.x, b.min.y),
+                new(b.min.x, b.center.y),
+                new(b.max.x, b.center.y)
+            };
+
+            bool visible = false;
+
+            foreach (var point in samplePoints)
+            {
+                Vector2 dirRay = point - myPos;
+                float dist = dirRay.magnitude;
+                dirRay.Normalize();
+
+                var ray = Physics2D.Raycast(
+                    myPos,
+                    dirRay,
+                    dist,
+                    obstacleLayer);
+
+                if (ray.collider == null)
+                {
+                    visible = true;
+                    break;
+                }
+            }
+
+            if (visible)
+            {
+                npcsInRange.Add(hit.gameObject);
+            }
+        }
+
+        return npcsInRange;
+    }
+
 
     #endregion
     
-    
-    // =========================
-    // LIFE
-    // =========================
+    #endregion
 
-    #region LIFE
-    public virtual void TakeDamage(float damage)
+    #region Attack Flag
+    public virtual bool HasTarget()
     {
-        health -= damage;
-        health = Mathf.Clamp(health, 0, maxHealth);
-
-        if (health <= 0)
-            Die();
+        return currentTarget != null;
     }
 
-    protected virtual void Die()
+    public virtual void SetTarget(Transform target)
     {
-        OnUnitDestroyed?.Invoke(this);
-        Destroy(gameObject);
+        currentTarget = target;
+    }
+
+    public virtual void ClearTarget()
+    {
+        currentTarget = null;
+    }
+        
+    public virtual void StartAttackSignal()
+    {
+        isAttacking = true;
+        isInWindup = true;
+    }
+
+    public virtual void EndWindupSignal()
+    {
+        isInWindup = false;
+    }
+
+    public virtual void EndAttackSignal()
+    {
+        isAttacking = false;
+        isInWindup = false;
+    }
+    
+
+    #endregion
+
+    #region Handle Event
+    
+    protected virtual void HandleGlobalAlarm(GameObject spottedEnemy, Vector3 spottedPosition)
+    {
+        if (currentTarget != null) return; 
+        if (spottedEnemy == null) return;
+        if (CompareTag("Enemy")) return;
+        
+        if (Vector2.Distance(transform.position, spottedPosition) > hearRange) return;
+
+        lastSeenPosition = spottedPosition;
+        lastSeenLayerIndex = spottedEnemy.GetComponentInChildren<FloorAgent>()?._currentFloorIndex ?? 0;
+    
+        isAlerted = true; 
+        aggroTimer = aggroDuration; 
+    }
+    
+    protected virtual void HandleHealthChanged(float current, float max)
+    {
+        
+    }
+
+    protected virtual void HandleTakeDamage(float damage)
+    {
+        if (gameObject.activeInHierarchy && health.CurrentHealth > 0) 
+        {
+            if (damageEffectCoroutine != null)
+            {
+                StopCoroutine(damageEffectCoroutine);
+            }
+            damageEffectCoroutine = StartCoroutine(DamageEffect());
+
+            if (currentState != UnitState.Dead && !isKnockedBack)
+            {
+                if (hitStunCoroutine != null)
+                {
+                    StopCoroutine(hitStunCoroutine);
+                }
+                hitStunCoroutine = StartCoroutine(HitStunRoutine());
+            }
+        }
+    }
+
+    protected virtual void HandleDeath()
+    {
+        DisableAll();
+        
+        currentState = UnitState.Dead;
+        animState = AnimState.Dead;
+        animFSM.ChangeState(currentState, animState);
+        
+        this.enabled = false;
+    }
+
+    public void Die()
+    {
+        PoolManager.Instance.Despawn(transform.gameObject);
+    }
+    
+    private IEnumerator DamageEffect()
+    {
+        spriteRenderer.color = Color.red;
+        
+        yield return new WaitForSeconds(0.1f);
+        
+        spriteRenderer.color = Color.white;
+        
+        damageEffectCoroutine = null; 
+    }
+    
+    
+    private IEnumerator HitStunRoutine()
+    {
+        isKnockedBack = true;
+
+        EndAttackSignal();
+        
+        StopMove(); 
+
+        currentState = UnitState.Idle;
+        animState = AnimState.Idle;
+        animFSM.ChangeState(currentState, animState);
+
+        yield return new WaitForSeconds(hitStunDuration);
+
+        isKnockedBack = false;
     }
     #endregion
     
 
     public abstract void UseSpecialAbility();
+    
+    protected virtual void OnEnable()
+    {
+        GlobalAlarmSystem.OnEnemySpotted += HandleGlobalAlarm;
+        if (health != null)
+        {
+            health.OnHealthChanged += HandleHealthChanged;
+            health.OnTakeDamage += HandleTakeDamage;
+            health.OnDie += HandleDeath;
+        }
+    }
+
+    protected virtual void OnDisable()
+    {
+        GlobalAlarmSystem.OnEnemySpotted -= HandleGlobalAlarm;
+        if (health != null)
+        {
+            health.OnHealthChanged -= HandleHealthChanged;
+            health.OnTakeDamage -= HandleTakeDamage;
+            health.OnDie -= HandleDeath;
+        }
+    }
+    
 }

@@ -5,5 +5,6 @@
     Defending,
     Attacking,
     Working,
-    Heal
+    Heal,
+    Dead
 }

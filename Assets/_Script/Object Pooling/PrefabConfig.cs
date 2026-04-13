@@ -13,6 +13,11 @@ namespace _Script.Object_Pooling
         public GameObject warriorPrefab;
         public GameObject builderPrefab;
         public GameObject lancerPrefab;
+        
+        [Header("Enemy Prefab")]
+        public GameObject torchGoblinPrefab;
+        public GameObject tntGoblinPrefab;
+        public GameObject barrelPrefab;
 
         [Header("Building Prefab")]
         public GameObject fortressPrefab;
@@ -58,6 +63,10 @@ namespace _Script.Object_Pooling
             AddPrefab(warriorPrefab);
             AddPrefab(builderPrefab);
             AddPrefab(lancerPrefab);
+            
+            AddPrefab(torchGoblinPrefab);
+            AddPrefab(tntGoblinPrefab);
+            AddPrefab(barrelPrefab);
 
             AddPrefab(fortressPrefab);
             AddPrefab(watchTowerPrefab);

@@ -14,13 +14,45 @@ namespace _Script.BT.Node.WarriorNode.WarriorCombat
 
         public override BTStatus Tick()
         {
-            if (!warrior.IsEnemyInAttackRange())
+            if (warrior.isKnockedBack)
+            {
+                ResetState();
                 return BTStatus.Failure;
+            }
+            
+            if (!warrior.IsEnemyInAttackRange())
+            {
+                ResetState();
+                return BTStatus.Failure;
+            }
 
-            warrior.currentState = UnitState.Defend;
-            warrior.animState = AnimState.Attacking;
-            //Debug.Log(warrior.animFSM.GetWarriorDirection());
+            if (warrior.isAttacking)
+            {
+                return BTStatus.Running;
+            }
+
+            if (Time.time >= warrior.lastAttackTime + warrior.attackCooldown)
+            {
+                warrior.lastAttackTime = Time.time; 
+                warrior.StartAttackSignal(); 
+                
+                warrior.currentState = UnitState.Defend; 
+                warrior.animState = AnimState.Attacking;
+            }
+            else
+            {
+                warrior.currentState = UnitState.Defend;
+                warrior.animState = AnimState.Idle;
+            }
+
             return BTStatus.Running;
+        }
+
+        private void ResetState()
+        {
+            warrior.EndAttackSignal(); 
+            warrior.currentState = UnitState.Idle;
+            warrior.animState = AnimState.Idle;
         }
     }
 }

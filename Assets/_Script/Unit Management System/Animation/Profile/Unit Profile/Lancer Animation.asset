@@ -125,3 +125,27 @@ MonoBehaviour:
     animState: 0
     animationName: Lancer_Idle_Blue
     lancerDirection: 5
+  - UnitState: 9
+    animState: 6
+    animationName: Dead
+    lancerDirection: 0
+  - UnitState: 9
+    animState: 6
+    animationName: Dead
+    lancerDirection: 1
+  - UnitState: 9
+    animState: 6
+    animationName: Dead
+    lancerDirection: 2
+  - UnitState: 9
+    animState: 6
+    animationName: Dead
+    lancerDirection: 3
+  - UnitState: 9
+    animState: 6
+    animationName: Dead
+    lancerDirection: 4
+  - UnitState: 9
+    animState: 6
+    animationName: Dead
+    lancerDirection: 5

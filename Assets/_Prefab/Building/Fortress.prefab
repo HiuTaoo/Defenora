@@ -1,5 +1,50 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2092513223074583684
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4920810165927358324}
+  - component: {fileID: 262181690850877742}
+  m_Layer: 8
+  m_Name: Health
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4920810165927358324
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092513223074583684}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4314993419544914435}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &262181690850877742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092513223074583684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f811e94f443b4183af745a6ddf5a6b09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
 --- !u!1 &2763980288031389717
 GameObject:
   m_ObjectHideFlags: 0
@@ -188,6 +233,7 @@ Transform:
   - {fileID: 4683972446093655670}
   - {fileID: 7882686240740825521}
   - {fileID: 7073989146696087627}
+  - {fileID: 4920810165927358324}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4265928666619269684
@@ -230,7 +276,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -628924309
   m_SortingLayer: 4
-  m_SortingOrder: 300
+  m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 6725cf5fef510df4d98370556d04bdbb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -313,8 +359,6 @@ MonoBehaviour:
   buildingName: Fortress
   maxCapacity: 5
   range: 5
-  maxHealth: 10
-  currentHealth: 10
   currentCapacity: 0
   buildingType: 0
   buildingState: 0
@@ -331,6 +375,7 @@ MonoBehaviour:
     currentProgress: 0
     builders: []
   layerIndex: 0
+  health: {fileID: 0}
 --- !u!114 &1731817293600673060
 MonoBehaviour:
   m_ObjectHideFlags: 0

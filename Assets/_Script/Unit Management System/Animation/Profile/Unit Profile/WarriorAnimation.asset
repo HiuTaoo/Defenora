@@ -103,3 +103,23 @@ MonoBehaviour:
     direction: 2
     animationName:
     - Idle
+  - unitState: 9
+    animState: 6
+    direction: 3
+    animationName:
+    - Dead
+  - unitState: 9
+    animState: 6
+    direction: 0
+    animationName:
+    - Dead
+  - unitState: 9
+    animState: 6
+    direction: 1
+    animationName:
+    - Dead
+  - unitState: 9
+    animState: 6
+    direction: 2
+    animationName:
+    - Dead

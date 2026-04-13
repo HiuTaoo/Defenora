@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1038808143267822050}
   - component: {fileID: 4701604024333632985}
   - component: {fileID: 345671078015859506}
+  - component: {fileID: 1453032743043013705}
   m_Layer: 10
   m_Name: Torch Goblin
   m_TagString: Enemy
@@ -37,6 +38,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5557901588853837072}
+  - {fileID: 116173502985285412}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2111751339273235960
@@ -214,15 +216,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4be625aef7e4a98b1a0babf33c5606a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterMovement: {fileID: 0}
+  unitName: 
+  unitType: 0
+  currentState: 0
+  animState: 0
+  layerIndex: 0
+  currentHealth: 0
+  currentTask:
+    targetGameObject: {fileID: 0}
+    taskType: 0
+    layerIndex: 0
+    taskStatus: 0
+    maxBuilders: 0
+    requiredProgress: 0
+    currentProgress: 0
+    builders: []
+  assignedBuilding: {fileID: 0}
+  obstacleLayer: 0
+  enemyLayer: 0
+  results: []
+  currentTarget: {fileID: 0}
+  currentTargetLayerIndex: 0
+  lastSeenPosition: {x: 0, y: 0}
+  lastSeenLayerIndex: 0
+  isAlerted: 0
+  aggroTimer: 0
+  aggroDuration: 5
+  detectTimer: 0
+  detectInterval: 0.25
+  hearRange: 15
+  animFSM: {fileID: 0}
+  sortingYX: {fileID: 0}
+  health: {fileID: 0}
   spriteRenderer: {fileID: 0}
+  characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
+  enemyDirection: 0
   viewDistance: 6
   viewAngle: 180
-  attackRange: 2
-  attackAngle: 180
-  currentTarget: {fileID: 0}
-  layerIndex: 0
+  attackDamage: 10
+  attackRange: 1
+  attackLayerMask: 0
+--- !u!114 &1453032743043013705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2449667762679695024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d2babb833e41d7a39ecf236e85d6a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationProfileSO: {fileID: 11400000, guid: 9017a994a0d42ec4d866deb5832adeb8, type: 2}
 --- !u!1 &3122822280748698295
 GameObject:
   m_ObjectHideFlags: 0
@@ -309,3 +356,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9c79e264e334eb43b6e68c699901814, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &4885960461151801684
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 116173502985285412}
+  - component: {fileID: 5289447423572105249}
+  m_Layer: 8
+  m_Name: Health
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &116173502985285412
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4885960461151801684}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 16.842857, y: 25.399996, z: -0.02061445}
+  m_LocalScale: {x: 1.4285713, y: 1.4285713, z: 1.4285713}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1922496696619107386}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5289447423572105249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4885960461151801684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f811e94f443b4183af745a6ddf5a6b09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100

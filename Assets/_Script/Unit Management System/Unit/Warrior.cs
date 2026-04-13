@@ -13,6 +13,7 @@ using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorArlert;
 using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorChaseEnemy;
 using _Script.BT.Node.WarriorNode.WarriorIdle;
 using _Script.Unit_Management_System.Animation;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,6 +21,7 @@ public class Warrior : Unit
 {
     [Header("Warrior Specific")]
     public float attackRange = 1f;
+    public float attackDamage = 10f;
     public float viewDistance = 3f;
     
     [Header("Detect Point")]
@@ -28,8 +30,9 @@ public class Warrior : Unit
     [Range(0, 360)]
     public float viewAngle;
     
+    public WarriorDirection warriorDirection;
     public WarriorBlackBoard warriorBlackBoard;
-    public AnimationFSM animFSM;
+    public int attackLayerMask;
     
     private BehaviourTree bt;
     
@@ -38,13 +41,14 @@ public class Warrior : Unit
     {
         base.Awake();
         unitType = UnitType.Warrior;
-        animFSM = gameObject.GetComponent<AnimationFSM>();
         bt = CreateBehaviourTree(this);
         warriorBlackBoard = new WarriorBlackBoard();
+        attackLayerMask = LayerMask.GetMask("NPC");
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
         bt?.Tick();
         CheckEnemyAggro();
 		UpdateDetectPointPosition();
@@ -310,6 +314,7 @@ public class Warrior : Unit
     private void UpdateDirection(Vector2 from, Vector2 to)
     {
         var dir = GetDirection(from, to);
+        warriorDirection = dir;
         animFSM.SetWarriorDirection(dir);
     }
     
@@ -342,6 +347,54 @@ public class Warrior : Unit
             }
         }
     }
+    
+    public void DealDamage()
+    {
+        float damageRadius = attackRange;
+        Vector2 facingDir = GetCurrentFacingVector();
+
+        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, damageRadius, results, attackLayerMask);
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D hitCol = results[i];
+
+            if (hitCol.gameObject == gameObject) continue;
+
+            if (hitCol.isTrigger) continue;
+            
+            if(hitCol.gameObject.CompareTag("NPC") || 
+               hitCol.gameObject.CompareTag("Player") ||
+               hitCol.gameObject.CompareTag("Building")) continue;
+
+            var targetHealth = hitCol.GetComponentInChildren<Health>();
+            
+            if (targetHealth == null || targetHealth.CurrentHealth <= 0) continue;
+
+            Vector2 closest = hitCol.ClosestPoint(transform.position);
+            Vector2 dirToTarget = (closest - (Vector2)transform.position).normalized;
+
+            float angle = Vector2.Angle(facingDir, dirToTarget);
+
+            if (angle <= (viewAngle / 2f))
+            {
+                targetHealth.TakeDamage(attackDamage);
+                
+                results[i] = null; 
+            }
+        }
+    }
+
+    private Vector2 GetCurrentFacingVector()
+    {
+        if (warriorDirection == WarriorDirection.Up) 
+            return Vector2.up;
+        
+        if (warriorDirection == WarriorDirection.Down) 
+            return Vector2.down;
+
+        return transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+    }
 
     #endregion
     
@@ -371,6 +424,7 @@ public class Warrior : Unit
         }
         
         DrawVisionCone();
+        DrawAttackCone();
     }
     private void DrawVisionCone()
     {
@@ -394,7 +448,37 @@ public class Warrior : Unit
         Gizmos.DrawLine(origin, origin + leftBoundary * viewDistance);
         Gizmos.DrawLine(origin, origin + rightBoundary * viewDistance);
     }
+    
+    private void DrawAttackCone()
+    {
+        Vector3 origin = transform.position;
+        float damageRange = attackRange;
+        
+        Vector3 direction = Vector3.right;
+        if (warriorDirection == WarriorDirection.Up) direction = Vector3.up;
+        else if (warriorDirection == WarriorDirection.Down) direction = Vector3.down;
+        else direction = transform.localScale.x > 0 ? Vector3.right : Vector3.left;
+
+            Handles.color = new Color(1f, 0f, 0f, 0.2f); 
+            Handles.DrawSolidArc(
+                origin,
+                Vector3.forward, 
+                Quaternion.Euler(0, 0, -viewAngle / 2) * direction,
+                viewAngle,
+                damageRange
+            );
+
+            Gizmos.color = Color.red;
+
+            Vector3 leftBoundary = Quaternion.Euler(0, 0, -viewAngle / 2) * direction;
+            Vector3 rightBoundary = Quaternion.Euler(0, 0, viewAngle / 2) * direction;
+
+            Gizmos.DrawLine(origin, origin + leftBoundary * damageRange);
+            Gizmos.DrawLine(origin, origin + rightBoundary * damageRange);
+            
+        }
+    }
 
 #endif
 
-}
+

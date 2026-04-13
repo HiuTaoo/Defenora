@@ -1,13 +1,15 @@
-﻿using UnityEngine;
+﻿
+using _Script.Unit_Management_System.HealthComponent;
+using UnityEngine;
 
 namespace _Script.ItemScript
 {
     public class ArrowProjectile : MonoBehaviour, IProjectile
     {
         private Vector2 direction;
-        private float damage;
 
         [Header("Projectile Settings")]
+        public float damage;
         public float speed = 5f;
         public float lifeTime = 3f;
         public float hitDelay = 0.5f;
@@ -90,6 +92,11 @@ namespace _Script.ItemScript
             isHit = true;
             hitTimer = 0f;
             GetComponent<Collider2D>().enabled = false;
+
+            var health = target.GetComponentInChildren<Health>();
+            if (health == null)
+                return;
+            health.TakeDamage(damage);
         }
 
         public void ResetProjectile()

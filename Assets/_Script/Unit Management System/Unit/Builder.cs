@@ -22,9 +22,6 @@ public class Builder : Unit
     public ToolType currentTool = ToolType.None;
     public ResourceType currentResource = ResourceType.None;
     
-    [Header("Animation FSM")]
-    public AnimationFSM animFSM;
-    
     public BuilderBlackBoard builderBlackBoard { get; private set; }
     
     [Header("Tartget Game Object")]
@@ -38,13 +35,13 @@ public class Builder : Unit
     {
         base.Awake();
         bt = CreateBuilderBT(this);
-        animFSM = GetComponent<AnimationFSM>();
         builderBlackBoard = new BuilderBlackBoard();
         currentInventory = GetComponentInChildren<Inventory>();
     }
     
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
     }

@@ -154,9 +154,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 position = unit.transform.position,
                 assignedBuilding = unit.assignedBuilding?.name,
                 currentState = unit.currentState,
-                health = unit.health,
+                health = unit.health.CurrentHealth,
                 layerIndex = unit.floorAgent.currentFloorIndex,
-                maxHealth = unit.maxHealth
+                maxHealth = unit.health.maxHealth
             });
         }
 
@@ -178,8 +178,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 buildingType = building.buildingType,
                 position = building.transform.position,
                 buildingState = building.buildingState,
-                maxHealth = building.maxHealth,
-                currentHealth = building.currentHealth,
+                maxHealth = building.health.maxHealth,
+                currentHealth = building.health.CurrentHealth,
                 unitNames = building.stationedUnits
                     .Where(unit => unit != null)
                     .Select(unit => unit.unitName)
@@ -215,8 +215,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             building.buildingState = buildingDatum.buildingState;
             building.maxCapacity = buildingDatum.maxCapacity;
             building.currentCapacity = buildingDatum.currentCapacity;
-            building.maxHealth = buildingDatum.maxHealth;
-            building.currentHealth = buildingDatum.currentHealth;
+            building.health.maxHealth = buildingDatum.maxHealth;
+            building.health.SetCurrentHealth(buildingDatum.currentHealth);
             #endregion
 
             var customRender = building.transform.Find("Custom Render Sprite");

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using _Script.Task;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 
 public abstract class Building : MonoBehaviour, IBuildable
@@ -11,9 +12,8 @@ public abstract class Building : MonoBehaviour, IBuildable
     public string buildingName;
     public int maxCapacity = 5;
     public float range = 5f;
-    public float maxHealth = 10f;
-    public float currentHealth = 10f; 
     public int currentCapacity = 0;
+    public float currentHealth;
     public BuildingType buildingType;
     public BuildingState buildingState;
 
@@ -39,6 +39,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     private GameObject customRenderer;
     private Coroutine buildEffectCoroutine;
     public Action<IBuildable> OnBuiltObject { get; set; }
+    public Health health;
 
     private bool isBeingBuilded = false;
     private bool hasBeenBuilded = false;
@@ -58,6 +59,7 @@ public abstract class Building : MonoBehaviour, IBuildable
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
         buildingCollider = GetComponent<CapsuleCollider2D>();
+        health = GetComponentInChildren<Health>();
 
         customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
 
@@ -75,6 +77,8 @@ public abstract class Building : MonoBehaviour, IBuildable
                 OnBuild();
             }
         }
+
+        currentHealth = health.CurrentHealth;
     }
 
     private void UpdateAnimation()
@@ -263,7 +267,6 @@ public abstract class Building : MonoBehaviour, IBuildable
         unit.assignedBuilding = null;
         currentCapacity--;
 
-        // 🔽 Hook
         OnUnitRemoved(unit);
 
         return true;
@@ -274,7 +277,6 @@ public abstract class Building : MonoBehaviour, IBuildable
     protected virtual void OnUnitRemoved(Unit unit) { }
 
     #endregion
-
 
     #region RANDOM POSITION
     public Vector3 GetRandomPositionAroundBuilding()
@@ -555,4 +557,69 @@ public abstract class Building : MonoBehaviour, IBuildable
     }
     
     #endregion
+
+    #region Action
+
+    protected virtual void HandleHealthChanged(float current, float max)
+    {
+        
+    }
+
+    protected virtual void HandleTakeDamage(float damage)
+    {
+        if (gameObject.activeInHierarchy && !isBeingBuilded) 
+        {
+            StartCoroutine(DamageEffect());
+        }
+    }
+
+    protected virtual void HandleDeath()
+    {
+        buildingState = BuildingState.Destroyed;
+
+        EvacuateAllUnits();
+    }
+
+    private IEnumerator DamageEffect()
+    {
+        spriteRenderer.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        
+        if (buildingState == BuildingState.Pending)
+            ChangeTransparent(0.5f);
+        else
+            spriteRenderer.color = Color.white;
+    }
+
+    private void EvacuateAllUnits()
+    {
+        for (int i = stationedUnits.Count - 1; i >= 0; i--)
+        {
+            Unit unit = stationedUnits[i];
+            RemoveUnit(unit);
+        }
+    }
+
+    #endregion
+    
+    protected virtual void OnEnable()
+    {
+        if (health != null)
+        {
+            health.OnHealthChanged += HandleHealthChanged;
+            health.OnTakeDamage += HandleTakeDamage;
+            health.OnDie += HandleDeath;
+        }
+    }
+
+    protected virtual void OnDisable()
+    {
+        if (health != null)
+        {
+            health.OnHealthChanged -= HandleHealthChanged;
+            health.OnTakeDamage -= HandleTakeDamage;
+            health.OnDie -= HandleDeath;
+        }
+    }
+
 }
