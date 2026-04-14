@@ -465,6 +465,7 @@ MonoBehaviour:
   detectInterval: 0.25
   hearRange: 15
   animFSM: {fileID: 0}
+  enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
   spriteRenderer: {fileID: 0}
@@ -475,7 +476,7 @@ MonoBehaviour:
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
-  explosionDamage: 100
+  explosionDamage: 50
   explosionRadius: 2
   fuseTime: 3
   damageLayerMask:

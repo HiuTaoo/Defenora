@@ -20,12 +20,25 @@ namespace _Script.BT.Node.EnemyNode.TorchGoblinNode
                 return BTStatus.Failure;
             }
 
-            var npcs = torchGoblin.DetectNPCs(torchGoblin.attackRange, torchGoblin.GetCurrentFacingVector());
-            if (npcs.Count == 0)
+            if (torchGoblin.currentTarget == null || !torchGoblin.currentTarget.gameObject.activeInHierarchy || !torchGoblin.currentTarget.CompareTag("NPC"))
             {
+                torchGoblin.currentTarget = null;
                 ResetState();
                 return BTStatus.Failure;
             }
+
+            var targetCol = torchGoblin.currentTarget.GetComponent<Collider2D>();
+            float dist = Vector2.Distance(torchGoblin.transform.position, 
+                targetCol != null ? targetCol.ClosestPoint(torchGoblin.transform.position) : torchGoblin.currentTarget.position);
+
+            if (dist > torchGoblin.attackRange)
+            {
+                torchGoblin.currentTarget = null;
+                ResetState();
+                return BTStatus.Failure;
+            }
+
+            torchGoblin.characterMovement.RequestStopMoving();
 
             if (torchGoblin.isAttacking)
             {

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using _Script.BT;
+using _Script.BT.Node.BuilderNode;
+using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.TorchGoblinNode;
 using _Script.BT.Node.EnemyNode.unitNode;
@@ -65,11 +68,21 @@ namespace _Script.Unit_Management_System.Enemy
                 new TorchGoblinAttackNPCNode(torchGoblin)           
             );
 
-            var root = new SequenceNode(
-                new IsNightStartNode(torchGoblin),
-                new SelectorNode(
-                    attackNPCSequence,
-                    attackBuildingSequence));
+            var backToSpawnPointSequence = new SequenceNode(
+                new IsDawnNode(torchGoblin),
+                new ResetStateNode(torchGoblin), 
+                new MoveToSpawnPointNode(torchGoblin), 
+                new DespawnNode(torchGoblin));
+
+            var root = new SelectorNode( 
+                backToSpawnPointSequence,
+                new SequenceNode(        
+                    new IsNightStartNode(torchGoblin),
+                    new SelectorNode(
+                        attackNPCSequence,
+                        attackBuildingSequence)
+                )
+            );
 
             return new BehaviourTree(root);
         }
@@ -200,6 +213,22 @@ namespace _Script.Unit_Management_System.Enemy
         {
             var npcs = DetectNPCs(attackRange, GetCurrentFacingVector());
             return npcs.Count > 0;
+        }
+        public List<GameObject> DetectAllNPCsInRange(float range)
+        {
+            List<GameObject> npcs = new List<GameObject>();
+            int size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results, 
+                LayerMask.GetMask("NPC"));
+
+            for (var i = 0; i < size; i++)
+            {
+                var hit = results[i];
+                if (hit != null && hit.CompareTag("NPC"))
+                {
+                    npcs.Add(hit.gameObject);
+                }
+            }
+            return npcs;
         }
         
         

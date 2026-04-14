@@ -7,9 +7,12 @@ using _Script.BT.Node.BuilderNode;
 using _Script.BT.Node.BuilderNode.Build;
 using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
 using _Script.BT.Node.BuilderNode.Idle;
+using _Script.BT.Node.BuilderNode.RepairStructure;
+using _Script.BT.Node.MonkNode.MonkIdle;
 using _Script.Object_Pooling;
 using _Script.Task;
 using _Script.Unit_Management_System.Animation;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 
 public class Builder : Unit
@@ -98,6 +101,15 @@ public class Builder : Unit
             new BuildNode(builder)
         );
 
+        var repairStuctureSequence = new SequenceNode(
+            new IsDawnNode(builder),
+            new IsIdleNode(builder),
+            new HasBrokenBuildingNode(builder),
+            new AssignTaskNode(builder),
+            new CheckPathToAdjacentTargetNode(builder),
+            new MoveToTargetNode(builder),
+            new RepairNode(builder));
+
         var idleSequence = new SequenceNode(
             new HasIdleTimeNode(builder),
             new MoveFollowAvaiablePathNode(builder),
@@ -109,6 +121,7 @@ public class Builder : Unit
                 new IsInventoryFullNode(builder),
                 transportItemSequence
             ),
+            repairStuctureSequence,
             collectItemSequence,
             new SelectorNode(
                 buildStructureSequence,
@@ -241,22 +254,83 @@ public class Builder : Unit
         return false;
     }
     
+    public bool IsCompletedRepair()
+    {
+        if (currentTask == null || currentTask.targetGameObject == null)
+            return true;
+
+        Vector3 targetPos = currentTask.targetGameObject.transform.position;
+        Vector3 dir = targetPos - transform.position;
+
+        if (dir.x != 0)
+        {
+            Vector3 scale = transform.localScale;
+            scale.x = dir.x < 0
+                ? -Mathf.Abs(scale.x)
+                : Mathf.Abs(scale.x);
+
+            transform.localScale = scale;
+        }
+
+        if (currentTask.IsCompleted)
+        {
+            currentTask = null;
+            return true;
+        }
+
+        var building = currentTask.targetGameObject.GetComponent<Building>();
+
+        if (building.buildingState == BuildingState.Completed 
+            && building.health.CurrentHealth == building.health.maxHealth)
+        {
+            currentTask.taskStatus = TaskStatus.Completed;
+            TaskManager.Instance.RemoveTask(currentTask);
+            return true;
+        }
+
+        return false;
+    }
+    
     public void TryBuild()
     {
+        if (currentTask == null) return; 
+
         var facingDir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
         var origin = (Vector2)transform.position + facingDir * workRange;
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(origin, workBoxSize, 0f);
-        
+    
         foreach (var hit in hits)
         {
             if (hit?.gameObject == null)
                 continue;
-            if (hit.CompareTag("Building") && hit.gameObject == currentTask.targetGameObject)
+
+            if (hit.gameObject != currentTask.targetGameObject)
+                continue;
+        
+            var building = hit.gameObject.GetComponent<Building>();
+        
+            if (currentTask.taskType == TaskType.BuildStructure)
             {
-                var building = hit.gameObject.GetComponent<Building>();
-                building.HandleBuilt();
-                break;
+                if (building != null) 
+                {
+                    building.HandleBuilt();
+                    break;
+                }
+            }
+        
+            if (currentTask.taskType == TaskType.RepairStructure)
+            {
+                var health = hit.gameObject.GetComponentInChildren<Health>();
+
+                if (health != null && building != null) 
+                {
+                    if (health.CurrentHealth < health.maxHealth)
+                    {
+                        building.HandleRepair();
+                        break;
+                    }
+                }
             }
         }
     }
@@ -373,6 +447,78 @@ public class Builder : Unit
         UpdateAnim();
         animFSM.ChangeState(UnitState.Idle, AnimState.Idle);
     }
+    
+    public void UpdateAnim()
+    {
+        animFSM.SetResource(currentResource);
+        animFSM.SetTool(currentTool);
+    }
+    
+    public Building FindBestBuildingToRepair()
+    {
+        List<Building> destroyedBuildings = new List<Building>();
+        List<Building> damagedBuildings = new List<Building>();
+
+        foreach (var b in UnitManager.Instance.buildings)
+        {
+            if (b == null) continue;
+
+            if (b.buildingState == BuildingState.Destroyed)
+            {
+                destroyedBuildings.Add(b);
+            }
+            else
+            {
+                var healthComp = b.GetComponentInChildren<Health>();
+                if (healthComp != null && healthComp.CurrentHealth < healthComp.maxHealth)
+                {
+                    damagedBuildings.Add(b);
+                }
+            }
+        }
+
+        Building FindNearestByPath(List<Building> list)
+        {
+            if (list.Count == 0) return null;
+
+            // TỐI ƯU HÓA: Chỉ lấy 5 nhà gần nhất theo khoảng cách vật lý (đường chim bay)
+            // để chạy thuật toán tìm đường, tránh làm tụt FPS game.
+            var closestCandidates = list
+                .OrderBy(b => (b.transform.position - transform.position).sqrMagnitude)
+                .Take(5);
+
+            Building nearestBuilding = null;
+            float minCost = float.MaxValue;
+
+            // Chạy A* để tìm xem trong 5 nhà này, nhà nào đi tới tốn ít bước nhất
+            foreach (var candidate in closestCandidates)
+            {
+                var path = FindBestPathToAnyAdjacent(candidate.gameObject, candidate.layerIndex);
+                
+                if (path != null && path.totalCost < minCost)
+                {
+                    minCost = path.totalCost;
+                    nearestBuilding = candidate;
+                }
+            }
+
+            return nearestBuilding;
+        }
+
+        // 3. XỬ LÝ ƯU TIÊN
+        
+        // Ưu tiên 1: Quét danh sách nhà bị Sập (Destroyed)
+        Building target = FindNearestByPath(destroyedBuildings);
+
+        // Ưu tiên 2: Nếu không có nhà sập (hoặc nhà sập bị bịt kín không có đường vào)
+        // thì chuyển sang tìm nhà bị xước máu (Damaged)
+        if (target == null)
+        {
+            target = FindNearestByPath(damagedBuildings);
+        }
+
+        return target; // Trả về null nếu toàn bộ nhà đều đầy máu
+    }
     #endregion
     
     #region Move to task target
@@ -423,11 +569,7 @@ public class Builder : Unit
     
     #endregion
 
-    public void UpdateAnim()
-    {
-        animFSM.SetResource(currentResource);
-        animFSM.SetTool(currentTool);
-    }
+    
     public override void UseSpecialAbility()
     {
         throw new System.NotImplementedException();

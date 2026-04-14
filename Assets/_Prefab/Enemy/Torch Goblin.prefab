@@ -238,6 +238,7 @@ MonoBehaviour:
   detectInterval: 0.25
   hearRange: 15
   animFSM: {fileID: 0}
+  enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
   spriteRenderer: {fileID: 0}
@@ -251,7 +252,7 @@ MonoBehaviour:
   enemyDirection: 0
   viewDistance: 6
   viewAngle: 180
-  attackDamage: 10
+  attackDamage: 20
   attackRange: 1
   attackLayerMask: 0
 --- !u!114 &1453032743043013705
@@ -457,7 +458,7 @@ MonoBehaviour:
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
   m_AlphaBlendOnOverlap: 0
-  m_OverlapOperation: 0
+  m_OverlapOperation: 1
   m_NormalMapDistance: 3
   m_NormalMapQuality: 2
   m_UseNormalMap: 0

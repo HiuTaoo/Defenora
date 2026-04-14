@@ -76,6 +76,13 @@ public abstract class Building : MonoBehaviour, IBuildable
             {
                 OnBuild();
             }
+
+            if (currentTask != null && currentTask.taskType == TaskType.RepairStructure
+                && health.IsFull())
+            {
+                OnRepair();
+                currentTask = null;
+            }
         }
 
         currentHealth = health.CurrentHealth;
@@ -488,8 +495,34 @@ public abstract class Building : MonoBehaviour, IBuildable
             buildEffectCoroutine =  StartCoroutine(BuildEffect());
         }
     }
+    
+    public void HandleRepair()
+    {
+        if (health.IsFull() && buildingState == BuildingState.Completed) return;
+
+        health.RepairBuilding(health.maxHealth / 20);
+
+        if (!isBeingBuilded && buildEffectCoroutine == null)
+        {
+            buildEffectCoroutine =  StartCoroutine(BuildEffect());
+        }
+    }
 
     public void OnBuild()
+    {
+        hasBeenBuilded = true;
+        buildingState = BuildingState.Completed;
+
+        if (currentTask != null)
+        {
+            currentTask.Complete();
+            currentTask = null;
+        }
+
+        OnBuiltObject?.Invoke(this);
+    }
+    
+    public void OnRepair()
     {
         hasBeenBuilded = true;
         buildingState = BuildingState.Completed;

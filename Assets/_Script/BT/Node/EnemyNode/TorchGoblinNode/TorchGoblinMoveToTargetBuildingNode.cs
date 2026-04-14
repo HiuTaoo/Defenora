@@ -1,5 +1,4 @@
 ﻿using _Script.Unit_Management_System.Enemy;
-using UnityEngine;
 
 namespace _Script.BT.Node.EnemyNode
 {
@@ -7,34 +6,32 @@ namespace _Script.BT.Node.EnemyNode
     {
         private TorchGoblin goblin;
         private bool hasStartedMove = false;
-        private bool isAligningTarget = false;
 
         public TorchGoblinMoveToTargetBuildingNode(Unit unit) : base(unit)
         {
-            goblin = unit as  TorchGoblin;;
+            goblin = unit as TorchGoblin;
         }
 
         public override BTStatus Tick()
         {
-            if (goblin.isKnockedBack)
+            if (goblin.isKnockedBack || goblin.currentTarget == null)
             {
                 ResetNode();
                 return BTStatus.Failure; 
-            }
-            
-            if (goblin.currentTarget == null)
-            {
-                ResetNode();
-                return BTStatus.Failure;
             }
 
             if (goblin.CheckNPCInAttackRange())
             {
-                goblin.characterMovement.RequestStopMoving();
-                goblin.currentState = UnitState.Idle;
-                goblin.animState = AnimState.Idle;
+                StopGoblin();
                 ResetNode();
                 return BTStatus.Failure; 
+            }
+
+            if (goblin.IsCollidingWithTarget(goblin.currentTarget.gameObject))
+            {
+                StopGoblin();
+                ResetNode();
+                return BTStatus.Success;
             }
 
             if (!hasStartedMove)
@@ -43,80 +40,43 @@ namespace _Script.BT.Node.EnemyNode
                     goblin.currentTarget.gameObject, 
                     goblin.currentTargetLayerIndex);
                 
-                if (path == null)
+                if (path != null && path.segments.Count > 0)
                 {
-                    ResetNode();
-                    return BTStatus.Failure;
+                    goblin.characterMovement.RequestStopMoving();
+                    goblin.MoveToTargetPosition(path);
                 }
-
-                goblin.characterMovement.RequestStopMoving();
-                goblin.MoveToTargetPosition(path);
-
+                
+                hasStartedMove = true;
+                
                 goblin.currentState = UnitState.Move;
                 goblin.animState = AnimState.Moving;
 
-                hasStartedMove = true;
-                isAligningTarget = false;
                 return BTStatus.Running;
             }
 
-            if (!isAligningTarget && goblin.characterMovement.moving)
+            if (goblin.characterMovement.moving)
+            {
                 return BTStatus.Running;
-
-            if (!isAligningTarget && !goblin.characterMovement.moving)
-            {
-                if (!goblin.IsInAttackPosition()) 
-                {
-                    if (goblin.CheckTargetBuildingInAttackRange())
-                    {
-                        isAligningTarget = true;
-                        return BTStatus.Running;
-                    }
-                    else
-                    {
-                        ResetNode();
-                        return BTStatus.Running;
-                    }
-                }
-                else
-                {
-                    FinishMove();
-                    return BTStatus.Success;
-                }
             }
 
-            if (isAligningTarget)
-            {
-                if (!goblin.IsInAttackPosition())
-                {
-                    if (goblin.CheckTargetBuildingInAttackRange())
-                    {
-                        goblin.MoveDirectlyToTarget(goblin.currentTarget.gameObject);
-                        return BTStatus.Running;
-                    }
-                    else
-                    {
-                        ResetNode();
-                        return BTStatus.Running;
-                    }
-                }
-
-                FinishMove();
-                return BTStatus.Success;
-            }
+            goblin.MoveDirectlyToTarget(goblin.currentTarget.gameObject);
+            
+            goblin.currentState = UnitState.Move;
+            goblin.animState = AnimState.Moving;
 
             return BTStatus.Running;
+        }
+
+        private void StopGoblin()
+        {
+            goblin.characterMovement.RequestStopMoving();
+            goblin.currentState = UnitState.Idle;
+            goblin.animState = AnimState.Idle;
         }
 
         private void ResetNode()
         {
             hasStartedMove = false;
-            isAligningTarget = false;
-        }
-
-        private void FinishMove()
-        {
-            ResetNode();
         }
     }
 }

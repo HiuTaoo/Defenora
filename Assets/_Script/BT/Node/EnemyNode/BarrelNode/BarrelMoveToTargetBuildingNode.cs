@@ -23,16 +23,16 @@ namespace _Script.BT.Node.EnemyNode.BarrelNode
                 return BTStatus.Failure;
             }
 
-            if (barrel.CheckTargetBuildingInAttackRange())
+            if (barrel.CheckAndSetCloserBuildingTarget())
+            {
+                hasStartedMove = false; 
+            }
+
+            if (barrel.IsCollidingWithTarget(barrel.currentTarget.gameObject))
             {
                 StopBarrel();
                 ResetNode();
                 return BTStatus.Success;
-            }
-
-            if (barrel.CheckAndSetCloserBuildingTarget())
-            {
-                hasStartedMove = false; 
             }
 
             if (!hasStartedMove)
@@ -41,14 +41,11 @@ namespace _Script.BT.Node.EnemyNode.BarrelNode
                     barrel.currentTarget.gameObject,
                     barrel.currentTargetLayerIndex);
 
-                if (path == null)
+                if (path != null && path.segments.Count > 0)
                 {
-                    ResetNode();
-                    return BTStatus.Failure; 
+                    barrel.characterMovement.RequestStopMoving();
+                    barrel.MoveToTargetPosition(path);
                 }
-
-                barrel.characterMovement.RequestStopMoving();
-                barrel.MoveToTargetPosition(path);
 
                 barrel.currentState = UnitState.Move;
                 barrel.animState = AnimState.Moving;
@@ -57,11 +54,19 @@ namespace _Script.BT.Node.EnemyNode.BarrelNode
                 return BTStatus.Running;
             }
 
-            if (!barrel.characterMovement.moving)
+            if (barrel.characterMovement.moving)
             {
-                ResetNode();
-                return BTStatus.Failure;
+                return BTStatus.Running;
             }
+ 
+            var building = barrel.currentTarget.GetComponent<Building>();
+            if (building != null && barrel.layerIndex == building.layerIndex)
+            {
+                barrel.MoveDirectlyToTarget(barrel.currentTarget.gameObject);
+            }
+
+            barrel.currentState = UnitState.Move;
+            barrel.animState = AnimState.Moving;
 
             return BTStatus.Running;
         }

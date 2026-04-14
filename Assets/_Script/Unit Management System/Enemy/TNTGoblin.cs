@@ -1,4 +1,5 @@
 ﻿using _Script.BT;
+using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.TNTGoblinNode;
 using _Script.BT.Node.EnemyNode.TNTtntGoblinNode;
@@ -50,12 +51,21 @@ namespace _Script.Unit_Management_System.Enemy
                 new HasNPCInTNTGoblinAttackRangeNode(tntGoblin),                 
                 new TNTGoblinAttackNPCNode(tntGoblin)           
             );
+            
+            var backToSpawnPointSequence = new SequenceNode(
+                new IsDawnNode(tntGoblin),
+                new ResetStateNode(tntGoblin), 
+                new MoveToSpawnPointNode(tntGoblin), 
+                new DespawnNode(tntGoblin));
 
-            var root = new SequenceNode(
-                new IsNightStartNode(tntGoblin),
-                new SelectorNode(
-                    attackNPCSequence,
-                    attackBuildingSequence));
+            var root = new SelectorNode(
+                backToSpawnPointSequence,
+                new SequenceNode(
+                    new IsNightStartNode(tntGoblin),
+                    new SelectorNode(
+                        attackNPCSequence,
+                        attackBuildingSequence)));
+            
             return new  BehaviourTree(root);
         }
 

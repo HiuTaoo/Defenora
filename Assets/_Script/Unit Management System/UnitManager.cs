@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using _Script.Object_Pooling;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static UnityEditor.ObjectChangeEventStream;
@@ -190,6 +191,15 @@ public class UnitManager : MonoBehaviour
         }
         return buildings;
     }
+
+    public List<Building> FindBuildingNeedRepair()
+    {
+        return buildings.Where(b => b != null && 
+                                    (b.buildingState == BuildingState.Destroyed || 
+                                     (b.GetComponentInChildren<Health>() != null && b.GetComponentInChildren<Health>().CurrentHealth < b.GetComponentInChildren<Health>().maxHealth)))
+            .ToList();
+    }
+    
 
     #endregion
 

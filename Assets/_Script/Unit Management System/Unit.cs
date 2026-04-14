@@ -47,6 +47,8 @@ public abstract class Unit : MonoBehaviour
     [Header("Animation FSM")]
     public AnimationFSM animFSM;
 
+    public GameObject enemySpawnPoint;
+
     protected BehaviourTree bt;
     private Rigidbody2D rb;
     public DynamicSortingYX sortingYX;
@@ -679,8 +681,13 @@ public abstract class Unit : MonoBehaviour
             _ => EnemyDirection.Up           
         };
     }
-    
 
+    public void EnemyResetState()
+    {
+        ResetAnim();
+        currentTarget = null;
+        currentTargetLayerIndex = -1;
+    }
 
     #endregion
     
@@ -780,6 +787,9 @@ public abstract class Unit : MonoBehaviour
         {
             assignedBuilding.RemoveUnit(this);
         }
+
+        if (UnitManager.Instance.allUnits.Contains(this))
+            UnitManager.Instance.allUnits.Remove(this);
         
         this.enabled = false;
     }

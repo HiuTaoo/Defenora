@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using _Script.BT;
+using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.BarrelNode;
 using _Script.BT.Node.EnemyNode.unitNode;
@@ -18,7 +19,7 @@ namespace _Script.Unit_Management_System.Enemy
         
         [Header("Detection Settings")]
         public float viewDistance = 5f; // Tầm nhìn quét nhà xung quanh
-        public float triggerRange = 0.5f;
+        public float triggerRange = 0.1f;
 
         private bool isExploding = false;
         private Animator animator;
@@ -50,10 +51,18 @@ namespace _Script.Unit_Management_System.Enemy
                 new BarrelExplodeNode(barrel)            
             );
 
-            var root = new SequenceNode(
-                new IsNightStartNode(barrel),            
-                attackBuildingSequence                  
-            );
+            var backToSpawnPointSequence = new SequenceNode(
+                new IsDawnNode(barrel),
+                new ResetStateNode(barrel), 
+                new MoveToSpawnPointNode(barrel), 
+                new DespawnNode(barrel));
+
+            var root = new SelectorNode(
+                backToSpawnPointSequence,
+                new SequenceNode(
+                    new IsNightStartNode(barrel),
+                    attackBuildingSequence
+                ));
     
             return new BehaviourTree(root);
         }
