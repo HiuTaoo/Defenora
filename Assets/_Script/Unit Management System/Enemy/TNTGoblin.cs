@@ -34,6 +34,7 @@ namespace _Script.Unit_Management_System.Enemy
             bt?.Tick();
             UpdateDirection();
             animFSM.ChangeState(currentState, animState);
+            UpdateFaceToTarget();
         }
 
         private BehaviourTree CreateBehaviourTree(TNTGoblin tntGoblin)
@@ -109,6 +110,14 @@ namespace _Script.Unit_Management_System.Enemy
         {
             var npcs = DetectNPCs(attackRange, GetCurrentFacingVector());
             return npcs.Count > 0;
+        }
+        
+        private void UpdateFaceToTarget()
+        {
+            if(currentTarget == null)
+                return;
+            var dir = - transform.position + currentTarget.transform.position;
+            UpdateFacing(dir);
         }
         
         public Vector2 GetCurrentFacingVector()
