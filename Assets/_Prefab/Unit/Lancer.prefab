@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8712816101424553586}
   - component: {fileID: 8007488394374180988}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,7 +89,7 @@ GameObject:
   - component: {fileID: 4538678827117339300}
   - component: {fileID: 5488923657142795939}
   - component: {fileID: 6097418133404243465}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Lancer Movement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -359,15 +359,6 @@ MonoBehaviour:
   animState: 0
   layerIndex: 0
   currentHealth: 0
-  currentTask:
-    targetGameObject: {fileID: 0}
-    taskType: 0
-    layerIndex: 0
-    taskStatus: 0
-    maxBuilders: 0
-    requiredProgress: 0
-    currentProgress: 0
-    builders: []
   assignedBuilding: {fileID: 0}
   obstacleLayer: 0
   enemyLayer: 0
@@ -398,15 +389,21 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
-  attackCooldown: 0.5
+  attackCooldown: 0.75
   lastAttackTime: -999
   isKnockedBack: 0
+  hitStunDuration: 0.1
+  knockbackCooldown: 3
   attackRange: 1.5
+  attackDamage: 10
+  attackAngle: 30
   viewDistance: 3
   minRadius: 1
   maxRadius: 2
+  lancerDirection: 0
   detectPoint: {fileID: 2082031161799423126}
   viewAngle: 180
+  attackLayerMask: 0
 --- !u!114 &2837562405334351045
 MonoBehaviour:
   m_ObjectHideFlags: 0

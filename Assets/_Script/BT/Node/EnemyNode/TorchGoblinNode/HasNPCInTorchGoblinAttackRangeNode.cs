@@ -2,11 +2,11 @@
 
 namespace _Script.BT.Node.EnemyNode.TorchGoblinNode
 {
-    public class HasNPCInAttackRangeNode:BTActionNode
+    public class HasNPCInTorchGoblinAttackRangeNode:BTActionNode
     {
         private TorchGoblin  torchGoblin;
 
-        public HasNPCInAttackRangeNode(Unit unit) : base(unit)
+        public HasNPCInTorchGoblinAttackRangeNode(Unit unit) : base(unit)
         {
             torchGoblin = unit as TorchGoblin;
         }

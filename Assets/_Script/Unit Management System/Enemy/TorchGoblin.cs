@@ -2,6 +2,7 @@
 using _Script.BT;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.TorchGoblinNode;
+using _Script.BT.Node.EnemyNode.unitNode;
 using _Script.Enum;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEditor;
@@ -33,7 +34,7 @@ namespace _Script.Unit_Management_System.Enemy
         protected override void Update()
         {
             base.Update();
-            if (currentTarget == null)
+            /*if (currentTarget == null)
             {
                 var building = FindNearestBuilding(transform.position);
                 if (building != null)
@@ -41,7 +42,7 @@ namespace _Script.Unit_Management_System.Enemy
                     currentTarget = building.transform;
                     currentTargetLayerIndex = building.layerIndex;
                 }
-            }
+            }*/
             bt?.Tick();
             UpdateDirection();
             animFSM.ChangeState(currentState, animState);
@@ -52,21 +53,23 @@ namespace _Script.Unit_Management_System.Enemy
         private BehaviourTree CreateBehaviourTree(TorchGoblin torchGoblin)
         {
             
-            var attackBuildinSequence = new SequenceNode(
-                new HasTargetBuildingNode(torchGoblin),
-                new MoveToTargetBuildingNode(torchGoblin), 
+            var attackBuildingSequence = new SequenceNode(
+                new FindNearestBuildingNode(torchGoblin),
+                new TorchGoblinMoveToTargetBuildingNode(torchGoblin), 
                 new TorchGoblinAttack(torchGoblin),        
                 new ClearBuildingTargetNode(torchGoblin)  
             );
 
             var attackNPCSequence = new SequenceNode(
-                new HasNPCInAttackRangeNode(torchGoblin),                 
-                new AttackNPCNode(torchGoblin)           
+                new HasNPCInTorchGoblinAttackRangeNode(torchGoblin),                 
+                new TorchGoblinAttackNPCNode(torchGoblin)           
             );
-            
-            var root = new SelectorNode(
-                attackNPCSequence,
-                attackBuildinSequence);
+
+            var root = new SequenceNode(
+                new IsNightStartNode(torchGoblin),
+                new SelectorNode(
+                    attackNPCSequence,
+                    attackBuildingSequence));
 
             return new BehaviourTree(root);
         }
@@ -92,26 +95,7 @@ namespace _Script.Unit_Management_System.Enemy
             return dist <= (attackRange * 0.75);
         }
         
-        public EnemyDirection GetDirection(Vector2 from, Vector2 to)
-        {
-            var dir = to - from;
-
-            if (dir.sqrMagnitude < 0.0001f)
-                return EnemyDirection.None;
-
-            dir.Normalize();
-
-            var dirRight = new Vector2(Mathf.Abs(dir.x), dir.y);
-
-            var angle = Vector2.Angle(Vector2.down, dirRight);
-
-            return angle switch
-            {
-                <= 45f => EnemyDirection.Down,   
-                <= 135f => EnemyDirection.Right, 
-                _ => EnemyDirection.Up           
-            };
-        }
+        
 
         public void UpdateDirection()
         {
@@ -225,7 +209,7 @@ namespace _Script.Unit_Management_System.Enemy
         {
             throw new NotImplementedException();
         }
-
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             // 1. Vẽ vùng nhìn (Màu vàng)
@@ -246,7 +230,7 @@ namespace _Script.Unit_Management_System.Enemy
             else if (enemyDirection == EnemyDirection.Down) direction = Vector3.down;
             else direction = transform.localScale.x > 0 ? Vector3.right : Vector3.left;
 
-#if UNITY_EDITOR
+
             Handles.color = new Color(1f, 0f, 0f, 0.2f); 
             Handles.DrawSolidArc(
                 origin,
@@ -255,7 +239,7 @@ namespace _Script.Unit_Management_System.Enemy
                 viewAngle,
                 damageRange
             );
-#endif
+
 
             Gizmos.color = Color.red;
 
@@ -267,4 +251,5 @@ namespace _Script.Unit_Management_System.Enemy
         
         }
     }
+#endif
 }

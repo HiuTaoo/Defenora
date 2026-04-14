@@ -103,7 +103,7 @@ public class Warrior : Unit
         var combatSequence = new SequenceNode(
             new SelectorNode(
                 attackSequence,
-                holdBorderSequence,
+                //holdBorderSequence,
                 chaseSequence,
                 searchLastSeenPositionSequence
                 //, new WarriorDefendNode(warrior)

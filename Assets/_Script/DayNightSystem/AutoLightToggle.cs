@@ -16,7 +16,7 @@ public class AutoLightToggle : MonoBehaviour
     {
         GetTimeOfDaySystem();
 
-        pointLight.enabled = timeSystem.currentTime is >= 18 or < 6;
+        pointLight.enabled = timeSystem.GetCurrentTime() is >= 18 or < 6;
     }
 
     private TimeOfDaySystem GetTimeOfDaySystem()

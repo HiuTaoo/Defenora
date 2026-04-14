@@ -3,15 +3,15 @@ using UnityEngine;
 
 namespace _Script.BT.Node.EnemyNode
 {
-    public class MoveToTargetBuildingNode : BTActionNode
+    public class TorchGoblinMoveToTargetBuildingNode : BTActionNode
     {
         private TorchGoblin goblin;
         private bool hasStartedMove = false;
         private bool isAligningTarget = false;
 
-        public MoveToTargetBuildingNode(Unit unit) : base(unit)
+        public TorchGoblinMoveToTargetBuildingNode(Unit unit) : base(unit)
         {
-            goblin = (TorchGoblin)unit;
+            goblin = unit as  TorchGoblin;;
         }
 
         public override BTStatus Tick()

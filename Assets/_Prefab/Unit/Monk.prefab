@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5079871736237895250}
   - component: {fileID: 8953604183946357820}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -58,7 +58,7 @@ GameObject:
   - component: {fileID: 4127238130065142063}
   - component: {fileID: 4517221900178260869}
   - component: {fileID: 422397805910114956}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Monk Movement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,6 +130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 1.5
   rb: {fileID: 0}
+  stopRequested: 0
   moving: 0
 --- !u!1 &6602815683075122701
 GameObject:
@@ -324,15 +325,7 @@ MonoBehaviour:
   currentState: 0
   animState: 0
   layerIndex: 0
-  currentTask:
-    targetGameObject: {fileID: 0}
-    taskType: 0
-    layerIndex: 0
-    taskStatus: 0
-    maxBuilders: 0
-    requiredProgress: 0
-    currentProgress: 0
-    builders: []
+  currentHealth: 0
   assignedBuilding: {fileID: 0}
   obstacleLayer: 0
   enemyLayer: 0
@@ -353,6 +346,11 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
+  attackCooldown: 1
+  lastAttackTime: -999
+  isKnockedBack: 0
+  hitStunDuration: 0.1
+  knockbackCooldown: 3
   healAmount: 20
   healRange: 3
   healCooldown: 5

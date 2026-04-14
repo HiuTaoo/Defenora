@@ -18,6 +18,10 @@ public class Builder : Unit
     public Vector2 workBoxSize = new Vector2(1f, 1f);
     public float workRange = 1f;
     
+    [Header("Task")]
+    public Task currentTask;
+    public bool IsBusy => currentTask != null && !currentTask.IsCompleted  && currentTask.targetGameObject != null;
+    
     [Header("Carry Item")]
     public ToolType currentTool = ToolType.None;
     public ResourceType currentResource = ResourceType.None;

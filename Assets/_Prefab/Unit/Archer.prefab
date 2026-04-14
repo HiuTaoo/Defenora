@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5022609131375487718}
   - component: {fileID: 4114209612446939412}
   - component: {fileID: 7759679723960676305}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: Archer Movement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -73,6 +73,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 3
   rb: {fileID: 0}
+  stopRequested: 0
   moving: 0
 --- !u!114 &7759679723960676305
 MonoBehaviour:
@@ -96,7 +97,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5015956630848349757}
   - component: {fileID: 5503113157240371683}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -356,15 +357,7 @@ MonoBehaviour:
   currentState: 0
   animState: 0
   layerIndex: 0
-  currentTask:
-    targetGameObject: {fileID: 0}
-    taskType: 0
-    layerIndex: 0
-    taskStatus: 0
-    maxBuilders: 0
-    requiredProgress: 0
-    currentProgress: 0
-    builders: []
+  currentHealth: 0
   assignedBuilding: {fileID: 0}
   obstacleLayer: 0
   enemyLayer: 0
@@ -395,9 +388,14 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
+  attackCooldown: 1
+  lastAttackTime: -999
+  isKnockedBack: 0
+  hitStunDuration: 0.1
+  knockbackCooldown: 3
   attackDamage: 2
   attackRange: 5
-  fireRate: 5
+  fireRate: 3
   nextFireTime: 0
   firePoint: {fileID: 1642505350253639894}
   isStationed: 0

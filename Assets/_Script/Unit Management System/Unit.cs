@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.GlobalAlarm;
+using _Script.Enum;
 using _Script.Unit_Management_System.Animation;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
@@ -18,11 +19,7 @@ public abstract class Unit : MonoBehaviour
     public AnimState animState = AnimState.Idle;
     public int layerIndex;
     public float currentHealth;
-
-    [Header("Task")]
-    public Task currentTask;
-    public bool IsBusy => currentTask != null && !currentTask.IsCompleted  && currentTask.targetGameObject != null;
-
+    
     [Header("Deployment")]
     public Building assignedBuilding;  
     
@@ -64,6 +61,8 @@ public abstract class Unit : MonoBehaviour
     public float lastAttackTime = -999f;
     public bool isKnockedBack = false;
     public float hitStunDuration = 0.1f;
+    public float knockbackCooldown = 3f; 
+    private float lastKnockbackTime = -999f;
     
     [Header("Effects")]
     private Coroutine damageEffectCoroutine; 
@@ -659,6 +658,28 @@ public abstract class Unit : MonoBehaviour
 
         return npcsInRange;
     }
+    
+    public EnemyDirection GetDirection(Vector2 from, Vector2 to)
+    {
+        var dir = to - from;
+
+        if (dir.sqrMagnitude < 0.0001f)
+            return EnemyDirection.None;
+
+        dir.Normalize();
+
+        var dirRight = new Vector2(Mathf.Abs(dir.x), dir.y);
+
+        var angle = Vector2.Angle(Vector2.down, dirRight);
+
+        return angle switch
+        {
+            <= 45f => EnemyDirection.Down,   
+            <= 135f => EnemyDirection.Right, 
+            _ => EnemyDirection.Up           
+        };
+    }
+    
 
 
     #endregion
@@ -733,12 +754,15 @@ public abstract class Unit : MonoBehaviour
             }
             damageEffectCoroutine = StartCoroutine(DamageEffect());
 
-            if (currentState != UnitState.Dead && !isKnockedBack)
+            if (currentState != UnitState.Dead && !isKnockedBack 
+                && Time.time >= lastKnockbackTime + knockbackCooldown)
             {
                 if (hitStunCoroutine != null)
                 {
                     StopCoroutine(hitStunCoroutine);
                 }
+                
+                lastKnockbackTime = Time.time; 
                 hitStunCoroutine = StartCoroutine(HitStunRoutine());
             }
         }
@@ -751,6 +775,11 @@ public abstract class Unit : MonoBehaviour
         currentState = UnitState.Dead;
         animState = AnimState.Dead;
         animFSM.ChangeState(currentState, animState);
+
+        if (assignedBuilding != null)
+        {
+            assignedBuilding.RemoveUnit(this);
+        }
         
         this.enabled = false;
     }

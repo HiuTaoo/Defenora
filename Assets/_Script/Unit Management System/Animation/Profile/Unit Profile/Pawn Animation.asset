@@ -118,3 +118,8 @@ MonoBehaviour:
     tool: 3
     resource: 3
     animationName: Pawn_Interact Pickaxe_Blue
+  - unitState: 9
+    animState: 6
+    tool: 4
+    resource: 3
+    animationName: Dead

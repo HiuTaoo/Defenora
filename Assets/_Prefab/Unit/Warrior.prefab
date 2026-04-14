@@ -237,15 +237,6 @@ MonoBehaviour:
   animState: 0
   layerIndex: 0
   currentHealth: 0
-  currentTask:
-    targetGameObject: {fileID: 0}
-    taskType: 0
-    layerIndex: 0
-    taskStatus: 0
-    maxBuilders: 0
-    requiredProgress: 0
-    currentProgress: 0
-    builders: []
   assignedBuilding: {fileID: 0}
   obstacleLayer: 0
   enemyLayer: 0
@@ -270,6 +261,7 @@ MonoBehaviour:
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
+  knockbackCooldown: 3
   attackRange: 1
   attackDamage: 5
   viewDistance: 3
@@ -290,7 +282,7 @@ GameObject:
   - component: {fileID: 1500993250772291340}
   - component: {fileID: 5040010967329960600}
   - component: {fileID: 4281134691819306975}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Warrior Movement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -405,7 +397,7 @@ GameObject:
   m_Component:
   - component: {fileID: 496981800093518762}
   - component: {fileID: 4126251551279297894}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}

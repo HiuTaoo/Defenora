@@ -178,11 +178,13 @@ public class CharacterMovement : MonoBehaviour
                         rb.position,
                         targetCenter,
                         moveSpeed * Time.fixedDeltaTime);
-
+                    
                     rb.MovePosition(nextPosition);
+                    if(!_currentLayer.Equals(segment.layerIndex))
+                        _currentLayer = segment.layerIndex;
                     yield return null;
                 }
-                _currentLayer = segment.layerIndex;
+                
             }
         }
 

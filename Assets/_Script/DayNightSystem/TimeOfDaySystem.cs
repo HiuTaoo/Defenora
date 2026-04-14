@@ -11,11 +11,11 @@ public class TimeOfDaySystem : MonoBehaviour
     public Light2D globalLight; 
 
     public Gradient dayColorGradient;         
-    public AnimationCurve intensityCurve;     
+    public AnimationCurve intensityCurve;
 
-    [Header("Time Settings")]
-    [Range(0f, 24f)]
-    public float currentTime = 6f;            
+    [Header("Time Settings")] [Range(0f, 24f)]
+    [SerializeField]
+    private float currentTime = 6f;           
     public float dayLengthInMinutes = 5f;     
 
     private float timeMultiplier;
@@ -73,6 +73,11 @@ public class TimeOfDaySystem : MonoBehaviour
         {
             timeDisplayText.text = formattedTime;
         }
+    }
+
+    public float GetCurrentTime()
+    {
+        return currentTime;
     }
 
 }

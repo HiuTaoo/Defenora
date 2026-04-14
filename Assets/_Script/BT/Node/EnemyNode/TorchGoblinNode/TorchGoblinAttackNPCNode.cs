@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace _Script.BT.Node.EnemyNode.TorchGoblinNode
 {
-    public class AttackNPCNode: BTActionNode
+    public class TorchGoblinAttackNPCNode: BTActionNode
     {
         private TorchGoblin torchGoblin;
 
-        public AttackNPCNode(Unit unit) : base(unit)
+        public TorchGoblinAttackNPCNode(Unit unit) : base(unit)
         {
             torchGoblin = unit as TorchGoblin;
         }

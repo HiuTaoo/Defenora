@@ -1,5 +1,50 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &524797884414878043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2299974125110725989}
+  - component: {fileID: 3169165410978068795}
+  m_Layer: 8
+  m_Name: Health
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2299974125110725989
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524797884414878043}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 17.341537, y: 27.501535, z: -0.0237676}
+  m_LocalScale: {x: 1.5384616, y: 1.5384616, z: 1.5384616}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1830401824100954399}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3169165410978068795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524797884414878043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f811e94f443b4183af745a6ddf5a6b09, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
 --- !u!1 &609620206187851552
 GameObject:
   m_ObjectHideFlags: 0
@@ -85,6 +130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 1
   rb: {fileID: 0}
+  stopRequested: 0
   moving: 0
 --- !u!1 &7382410964993336613
 GameObject:
@@ -101,6 +147,7 @@ GameObject:
   - component: {fileID: 4403200281638775051}
   - component: {fileID: 4280554728081832620}
   - component: {fileID: 8064008723657081650}
+  - component: {fileID: 5619581754083769448}
   m_Layer: 10
   m_Name: Barrel
   m_TagString: Enemy
@@ -121,6 +168,7 @@ Transform:
   m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 2299974125110725989}
   - {fileID: 6493492571827503029}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -258,7 +306,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &4280554728081832620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -287,3 +335,46 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bridgeOffset: 1
+--- !u!114 &5619581754083769448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7382410964993336613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83dd2016b26f40bcb1d2e821ee5a470d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitName: Barrel
+  unitType: 7
+  currentState: 0
+  animState: 0
+  layerIndex: 0
+  currentHealth: 0
+  assignedBuilding: {fileID: 0}
+  obstacleLayer: 0
+  enemyLayer: 0
+  results: []
+  currentTarget: {fileID: 0}
+  currentTargetLayerIndex: 0
+  lastSeenPosition: {x: 0, y: 0}
+  lastSeenLayerIndex: 0
+  isAlerted: 0
+  aggroTimer: 0
+  aggroDuration: 5
+  detectTimer: 0
+  detectInterval: 0.25
+  hearRange: 15
+  animFSM: {fileID: 0}
+  sortingYX: {fileID: 0}
+  health: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  characterMovement: {fileID: 0}
+  floorAgent: {fileID: 0}
+  attackCooldown: 1
+  lastAttackTime: -999
+  isKnockedBack: 0
+  hitStunDuration: 0.1
+  knockbackCooldown: 3
