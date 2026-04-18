@@ -23,6 +23,9 @@ namespace _Script.Object_Pooling
         public GameObject fortressPrefab;
         public GameObject watchTowerPrefab;
         public GameObject storagePrefab;
+        public GameObject archeryPrefab;
+        public GameObject barrackPrefab;
+        public GameObject monasteryPrefab;
 
         [Header("Item Prefab")]
         public GameObject woodPrefab;
@@ -72,8 +75,13 @@ namespace _Script.Object_Pooling
             AddPrefab(fortressPrefab);
             AddPrefab(watchTowerPrefab);
             AddPrefab(storagePrefab);
+            AddPrefab(archeryPrefab);
+            AddPrefab(barrackPrefab);
+            AddPrefab(monasteryPrefab);
 
             AddPrefab(woodPrefab);
+            AddPrefab(dynamitePrefab);
+            AddPrefab(arrowPrefab);
 
             AddPrefabArray(treePrefabs);
             AddPrefabArray(rockPrefabs);

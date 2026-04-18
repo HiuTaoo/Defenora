@@ -14,21 +14,8 @@ public class UnitManager : MonoBehaviour
     public List<Building> buildings = new List<Building>();
     public Dictionary<string, GameObject> buildingPrefabs;
 
-    /*[Header("Unit Prefabs")]
-    public GameObject archerPrefab;
-    public GameObject monkPrefab;
-    public GameObject warriorPrefab;
-    public GameObject builderPrefab;
-    public GameObject lancerPrefab;
-
-    [Header("Building Prefab")]
-    public GameObject fortressPrefab;
-    public GameObject watchTowerPrefab;
-    public GameObject storagePrefab;*/
-
     private Transform unitParent;
     private Transform buildingParent;
-
     
     public static UnitManager Instance { get; private set; }
 
@@ -56,7 +43,10 @@ public class UnitManager : MonoBehaviour
         buildingPrefabs = new Dictionary<string, GameObject> {
             { "Fortress", PrefabConfig.Instance.fortressPrefab },
             { "WatchTower", PrefabConfig.Instance.watchTowerPrefab },
-            { "Storage", PrefabConfig.Instance.storagePrefab }
+            { "Storage", PrefabConfig.Instance.storagePrefab },
+            { "Archery", PrefabConfig.Instance.archeryPrefab },
+            { "Barrack", PrefabConfig.Instance.barrackPrefab},
+            { "Monastery", PrefabConfig.Instance.monasteryPrefab }
         };
 
         unitParent = transform.Find("Unit");
@@ -242,6 +232,9 @@ public class UnitManager : MonoBehaviour
             case BuildingType.Fortress: return PrefabConfig.Instance.fortressPrefab;
             case BuildingType.WatchTower: return PrefabConfig.Instance.watchTowerPrefab;
             case BuildingType.Storage: return PrefabConfig.Instance.storagePrefab;
+            case BuildingType.Archery: return PrefabConfig.Instance.archeryPrefab;
+            case BuildingType.Barrack: return PrefabConfig.Instance.barrackPrefab;
+            case BuildingType.Monastery: return PrefabConfig.Instance.monasteryPrefab;
             default: return null;
         }
     }

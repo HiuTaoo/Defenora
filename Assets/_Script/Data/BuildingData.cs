@@ -29,7 +29,10 @@ public enum BuildingType
     Fortress,
     WatchTower,
     WorkShop,
-    Storage
+    Storage,
+    Archery,
+    Barrack,
+    Monastery
 }
 
 public enum BuildingState

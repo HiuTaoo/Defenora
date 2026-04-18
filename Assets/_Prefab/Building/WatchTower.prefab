@@ -165,7 +165,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.28, y: 2.56}
+  m_Size: {x: 2, y: 4}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -243,6 +243,7 @@ MonoBehaviour:
   maxCapacity: 3
   range: 5
   currentCapacity: 0
+  currentHealth: 0
   buildingType: 1
   buildingState: 0
   currentBuildProgress: 0
