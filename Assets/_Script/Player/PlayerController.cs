@@ -38,7 +38,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInput()
     {
-        MovementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+        MovementInput = GameManager.Instance.gameContext.InputManager.GetMovementInput();
     }
 
     public int GetCurrentLayerIndex()
@@ -64,7 +64,7 @@ public class PlayerController : MonoBehaviour
 
         bool isBlocked = agentPhysics2D.IsBlock(currentPosition, direction, moveDistance + 0.05f, GetComponent<CircleCollider2D>());
 
-        if (!isBlocked && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+        if (!isBlocked && GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             animator.Play("Walk");
             Vector2 newPosition = currentPosition + direction * moveDistance;

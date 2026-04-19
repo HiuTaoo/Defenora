@@ -55,8 +55,8 @@ public class PlayerInteraction : MonoBehaviour
         currentObject = null;
 
         #region Raycast Building
-        if(GameLoop.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
-            direction = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+        if(GameManager.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
+            direction = GameManager.Instance.gameContext.InputManager.GetMovementInput();
 
         if (direction != Vector2.zero)
         {
@@ -127,8 +127,8 @@ public class PlayerInteraction : MonoBehaviour
 
     private void CheckFButtonPressed()
     {
-        if(GameLoop.Instance.gameContext.InputManager.GetKeyDown(KeyCode.F)
-            && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing
+        if(GameManager.Instance.gameContext.InputManager.GetKeyDown(KeyCode.F)
+            && GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Playing
             && currentObject != null && interactButton.activeInHierarchy)
         {
             OnInteractButtonPressed?.Invoke(currentObject, interactButtonState);
@@ -153,7 +153,7 @@ public class PlayerInteraction : MonoBehaviour
     {
         if(interactButton == null)
         {
-            interactButton = GameLoop.Instance.gameContext.UIManager.GetUI(GameStateType.Playing, "InteractButton");
+            interactButton = GameManager.Instance.gameContext.UIManager.GetUI(GameStateType.Playing, "InteractButton");
             interactButton.SetActive(false);
             interactButtonScript = interactButton.GetComponent<InteractButton>();
         }

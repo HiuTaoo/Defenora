@@ -23,7 +23,7 @@ public class CustomRender : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D col)
     {
         // Không xử lý trong Editor Mode
-        if (GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Editor)
+        if (GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Editor)
             return;
 
         // Không quan tâm NPC

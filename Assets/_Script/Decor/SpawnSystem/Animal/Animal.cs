@@ -93,7 +93,7 @@ public abstract class Animal : MonoBehaviour
 
         bool isBlocked = agentPhysics2D.IsBlock(currentPosition, runDirection, moveDistance + 0.05f, animalCollider2D);
 
-        if (!isBlocked && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+        if (!isBlocked && GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             Vector2 newPosition = currentPosition + runDirection * moveDistance;
             rb.MovePosition(newPosition);

@@ -33,12 +33,12 @@ public class CameraManager
             // Stop current transition if any
             if (currentTransition != null)
             {
-                GameLoop.Instance.StopCoroutine(currentTransition);
+                GameManager.Instance.StopCoroutine(currentTransition);
             }
 
             if (config.SmoothTransition)
             {
-                currentTransition = GameLoop.Instance.StartCoroutine(TransitionToConfig(config));
+                currentTransition = GameManager.Instance.StartCoroutine(TransitionToConfig(config));
             }
             else
             {

@@ -36,7 +36,7 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        if(GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Editor) {
+        if(GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Editor) {
             CameraDragging();
             CameraZoom();
         }

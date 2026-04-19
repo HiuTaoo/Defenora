@@ -43,7 +43,7 @@ public class SelectUnitSystem : MonoBehaviour
 
     private void Update()
     {
-        if (GameLoop.Instance.StateMachine.CurrentStateType != GameStateType.Editor)
+        if (GameManager.Instance.StateMachine.CurrentStateType != GameStateType.Editor)
             return;
 
         HandleMouseInput();
@@ -91,7 +91,7 @@ public class SelectUnitSystem : MonoBehaviour
                 Vector2 offset = currentMousePosition - initialMousePosition;
                 MoveByCell(initialUnitPosition + offset);
                 OnDragUnit?.Invoke(true);
-                selectUnitSpriteRenderer.sortingOrder = 100;
+                selectUnitSpriteRenderer.sortingOrder = 99999;
 
             }
 
@@ -125,15 +125,28 @@ public class SelectUnitSystem : MonoBehaviour
                 //OnSelectUnit?.Invoke(false, false);
             }
 
-            if (selectedUnit != null && !isDragging && !isPlacing) {
+            /*if (selectedUnit != null && !isDragging && !isPlacing) {
                 OnSelectUnit?.Invoke(selectedUnit);
                 OnLerpToSelectedUnit?.Invoke(selectedUnit.transform.position);
+            }*/
+            
+            if (!isDragging && !isPlacing) 
+            {
+                if (selectedUnit != null) 
+                {
+                    OnSelectUnit?.Invoke(selectedUnit);
+                    OnLerpToSelectedUnit?.Invoke(selectedUnit.transform.position);
+                }
+                else if (targetBuilding != null) 
+                {
+                    OnSelectUnit?.Invoke(targetBuilding);
+                    OnLerpToSelectedUnit?.Invoke(targetBuilding.transform.position);
+                }
             }
 
             isMouseDown = false;
             isDragging = false;
             canMoveSelectedUnit = false;
-            selectedUnit = null;
         }
     }
 
@@ -182,7 +195,7 @@ public class SelectUnitSystem : MonoBehaviour
         MenuEditorController.Instance.cancelEditBuildingMode.SetActive(false);
     }
     #region Check
-    private void CheckTargetUnit()
+    /*private void CheckTargetUnit()
     {
         LayerMask combinedLayerMask = LayerMask.GetMask("NPC", "Building");
         GameObject targetUnit = FindTargetUnit(combinedLayerMask);
@@ -208,6 +221,40 @@ public class SelectUnitSystem : MonoBehaviour
         {
             isBuilding = false;
             selectedUnit = null;
+        }
+    }*/
+    
+    private void CheckTargetUnit()
+    {
+        LayerMask combinedLayerMask = LayerMask.GetMask("NPC", "Building");
+        GameObject clickedObj = FindTargetUnit(combinedLayerMask);
+
+        if (clickedObj != null)
+        {
+            if (clickedObj.layer == LayerMask.NameToLayer("NPC"))
+            {
+                selectedUnit = clickedObj;
+                targetBuilding = null; 
+                isBuilding = false;
+                
+                selectUnitSpriteRenderer = selectedUnit.GetComponent<SpriteRenderer>();
+                floorAgent = selectedUnit.GetComponentInChildren<FloorAgent>();
+            }
+            else if (clickedObj.layer == LayerMask.NameToLayer("Building"))
+            {
+                targetBuilding = clickedObj;
+                selectedUnit = null; 
+                isBuilding = true;
+                
+                selectUnitSpriteRenderer = targetBuilding.GetComponent<SpriteRenderer>();
+                floorAgent = targetBuilding.GetComponentInChildren<FloorAgent>();
+            }
+        }
+        else
+        {
+            isBuilding = false;
+            selectedUnit = null;
+            targetBuilding = null;
         }
     }
     private void CheckTargetLayer(Vector3 targetPosition)

@@ -240,7 +240,7 @@ public class AgentPhysics2D : MonoBehaviour
         #region Player Enter Stair
         if(gameObject.GetComponent<CharacterMovement>() != null)
         {
-            Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+            Vector2 movementInput = GameManager.Instance.gameContext.InputManager.GetMovementInput();
             if (movementInput.y > 0.1f)
                 intoStairDirection = Vector2.up;
             if (movementInput.y < -0.1f)
@@ -266,7 +266,7 @@ public class AgentPhysics2D : MonoBehaviour
         {
             characterMovement.UpdateLayerIndex();
 
-            Vector2 movementInput = GameLoop.Instance.gameContext.InputManager.GetMovementInput();
+            Vector2 movementInput = GameManager.Instance.gameContext.InputManager.GetMovementInput();
 
             if (movementInput.y > 0.1f && intoStairDirection == Vector2.up)
             {

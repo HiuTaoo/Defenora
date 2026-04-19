@@ -60,7 +60,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     private void LateUpdate()
     {
         if (autoSave && Time.time - lastAutoSaveTime > autoSaveInterval 
-            && GameLoop.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+            && GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
         {
             //SaveGame();
             lastAutoSaveTime = Time.time;
