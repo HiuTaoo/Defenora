@@ -1,9 +1,25 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIManager
+public class UIManager: MonoBehaviour
 {
+    public static UIManager Instance { get; private set; }
+
+    [Header("UI References")]
+    [SerializeField] private GameObject playingHUD;
+    [SerializeField] private GameObject interactButton;
+    
+    [SerializeField] private GameObject editorGUI;
+    [SerializeField] private GameObject selectUnitGUI;
+    [SerializeField] private GameObject deleteButton;
+    
+    //Pause
+    [SerializeField] private GameObject pausedGUI;
+    [SerializeField] private GameObject listButtonPauseMenuGUI;
+    [SerializeField] private GameObject settingGUI;
+    
     public Dictionary<GameStateType, Dictionary<string, GameObject>> stateUIs;
     private Dictionary<GameStateType, UIConfig> stateConfigs;
     private Dictionary<string, UIConfig> individualUIConfigs;
@@ -13,6 +29,30 @@ public class UIManager
         stateUIs = new Dictionary<GameStateType, Dictionary<string, GameObject>>();
         stateConfigs = new Dictionary<GameStateType, UIConfig>();
         individualUIConfigs = new Dictionary<string, UIConfig>();
+    }
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+        
+        RegisterUI(GameStateType.Playing, UINames.GameplayHUD ,playingHUD, new UIConfig { FadeIn = true });
+        RegisterUI(GameStateType.Playing, UINames.InteractButton, interactButton, new UIConfig { FadeIn = true });
+        RegisterUI(GameStateType.Paused, UINames.PauseMenu ,pausedGUI, new UIConfig { FadeIn = true });
+        RegisterUI(GameStateType.Paused, UINames.PauseButton ,listButtonPauseMenuGUI, new UIConfig { FadeIn = true });
+        RegisterUI(GameStateType.Paused, UINames.PauseMenuSetting ,settingGUI, new UIConfig { FadeIn = true });
+        RegisterUI(GameStateType.Editor, UINames.EditorMenu, editorGUI, new UIConfig { Scale = Vector3.one * 0.9f });
+        RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });
+    }
+    
+    private void Start()
+    {
+        // UIManager TỰ LẮNG NGHE SỰ KIỆN ĐỂ BẬT TẮT UI
+        if (SelectUnitSystem.Instance != null)
+        {
+            SelectUnitSystem.Instance.OnSelectUnit += HandleSelectUnitUI;
+            SelectUnitSystem.Instance.OnDragUnit += HandleDragUnitUI;
+        }
     }
 
     /// <summary>
@@ -232,6 +272,38 @@ public class UIManager
         return $"{stateType}_{uiName}";
     }
 
+    #region Event
+
+    private void HandleSelectUnitUI(GameObject selectedUnit)
+    {
+        if (selectedUnit != null)
+        {
+            var isUnit = selectedUnit.GetComponent<Unit>() != null;
+            var isBuilding = selectedUnit.GetComponent<Building>() != null;
+
+            selectUnitGUI.SetActive(true);
+            editorGUI.SetActive(false);
+            deleteButton.SetActive(!isUnit && isBuilding);
+        }
+        else
+        {
+            selectUnitGUI.SetActive(false);
+            editorGUI.SetActive(true);
+        }
+    }
+
+    private void HandleDragUnitUI(bool isDrag)
+    {
+        if (isDrag)
+        {
+            selectUnitGUI.SetActive(false);
+            editorGUI.SetActive(false);
+        }
+    }
+
+    #endregion
+
+    
 
 }
 
@@ -246,12 +318,16 @@ public static class UINames
 
     // Gameplay UI
     public const string GameplayHUD = "GameplayHUD";
-    public const string PauseMenu = "PauseMenu";
     public const string Inventory = "InventoryPanel";
+    
+    //pause
+    public const string PauseMenu = "PauseMenu";
+    public const string PauseButton = "PauseMenuButton";
+    public const string PauseMenuSetting = "PauseMenuSetting";
 
     // Menu UI
     public const string MainMenu = "MainMenu";
-    public const string SettingsMenu = "SettingsMenu";
+    //public const string SettingsMenu = "SettingsMenu";
 
     //Playing UI
     public const string InteractButton = "InteractButton";

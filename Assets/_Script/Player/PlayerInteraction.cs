@@ -15,10 +15,21 @@ public class PlayerInteraction : MonoBehaviour
     public Vector2 direction;
     private int layerIndex = -1;
     private int playerLayerIndex = -1;
+    
+    [Header("Non-Alloc Arrays (Tối ưu Memory)")]
+    // Khởi tạo sẵn các mảng với kích thước cố định (ví dụ 10 phần tử là quá đủ cho vùng gần player)
+    private Collider2D[] interactResults = new Collider2D[10];
+    private Collider2D[] playerResults = new Collider2D[10];
+    private RaycastHit2D[] raycastResults = new RaycastHit2D[5];
 
     public System.Action<GameObject, InteractButtonState> OnInteractButtonPressed;
 
     public static PlayerInteraction Instance { get; private set; }
+
+    [Header("UI Positioning")]
+    public Vector3 buttonOffset = new Vector3(0, 0.25f, 0); 
+    private Camera mainCamera;
+    private RectTransform interactButtonRect;
 
     private void Awake()
     {
@@ -36,6 +47,11 @@ public class PlayerInteraction : MonoBehaviour
         playerCollider = transform.parent.GetComponent<CircleCollider2D>();
     }
 
+    private void Start()
+    {
+        mainCamera = Camera.main; 
+    }
+
     private void Update()
     {
         if (interactButton == null)
@@ -50,11 +66,36 @@ public class PlayerInteraction : MonoBehaviour
         playerLayerIndex = transform.parent.Find("Player Movement").GetComponent<FloorAgent>().currentFloorIndex;
     }
 
+    private void LateUpdate()
+    {
+        UpdateInteractButtonPosition();
+    }
+
+    private void UpdateInteractButtonPosition()
+    {
+        if (currentObject != null && interactButton != null && interactButton.activeSelf)
+        {
+            if (mainCamera == null) mainCamera = Camera.main; 
+
+            Vector3 worldPosition = currentObject.transform.position + buttonOffset;
+            Vector3 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
+
+            if (screenPosition.z < 0)
+            {
+                interactButtonRect.position = new Vector3(-9999, -9999, 0); 
+            }
+            else
+            {
+                interactButtonRect.position = screenPosition;
+            }
+        }
+    }
+
     private void CheckCollideWithObject()
     {
         currentObject = null;
 
-        #region Raycast Building
+        #region Raycast Building (Đã tối ưu NonAlloc)
         if(GameManager.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
             direction = GameManager.Instance.gameContext.InputManager.GetMovementInput();
 
@@ -63,10 +104,13 @@ public class PlayerInteraction : MonoBehaviour
             Vector2 origin = transform.position;
             float rayDistance = interactionCollider.radius * 0.65f;
 
-            RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, rayDistance, LayerMask.GetMask("Default"));
+            // Dùng RaycastNonAlloc thay vì RaycastAll
+            int hitCount = Physics2D.RaycastNonAlloc(origin, direction, raycastResults, rayDistance, LayerMask.GetMask("Default"));
 
-            foreach (RaycastHit2D hit in hits)
+            // Dùng vòng lặp for dựa trên hitCount
+            for (int i = 0; i < hitCount; i++)
             {
+                RaycastHit2D hit = raycastResults[i];
                 if (hit.collider != null && hit.collider.gameObject.CompareTag("Door"))
                 {
                     currentObject = hit.collider.transform.parent?.gameObject ?? hit.collider.gameObject;
@@ -78,27 +122,35 @@ public class PlayerInteraction : MonoBehaviour
                         break; 
                     }
                     else
+                    {
                         currentObject = null;
+                    }
                 }
             }
         }
         #endregion
 
-        #region Raycast Other Objects
+        #region Raycast Other Objects (Đã tối ưu NonAlloc)
         if (currentObject == null)
         {
-            Collider2D[] interactColliders = Physics2D.OverlapCircleAll(transform.position, interactionCollider.radius);
-            Collider2D[] playerColliders = Physics2D.OverlapCircleAll(transform.position, playerCollider.radius * 1.25f);
+            // Trả về số lượng object thực sự chạm vào mảng
+            int interactCount = Physics2D.OverlapCircleNonAlloc(transform.position, interactionCollider.radius, interactResults);
+            int playerCount = Physics2D.OverlapCircleNonAlloc(transform.position, playerCollider.radius * 1.25f, playerResults);
 
-            foreach (Collider2D interactCollider in interactColliders)
+            // Bắt buộc dùng vòng lặp for với biến đếm Count
+            for (int i = 0; i < interactCount; i++)
             {
-                foreach (Collider2D collider in playerColliders)
+                Collider2D interactCol = interactResults[i];
+
+                for (int j = 0; j < playerCount; j++)
                 {
-                    if (interactCollider != playerCollider && interactCollider == collider)
+                    Collider2D pCol = playerResults[j];
+
+                    if (interactCol != playerCollider && interactCol == pCol)
                     {
-                        if (interactCollider.CompareTag("Tree"))
+                        if (interactCol.CompareTag("Tree"))
                         {
-                            currentObject = interactCollider.gameObject;
+                            currentObject = interactCol.gameObject;
                             var tree = currentObject.GetComponent<Tree>();
                             LookUpLayerIndex();
                             var task = tree.GetTask();
@@ -108,14 +160,17 @@ public class PlayerInteraction : MonoBehaviour
                             {
                                 interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
                                 interactButtonState = InteractButtonState.Cut;
-                                break;
+                                break; // Break khỏi vòng lặp trong
                             }
                             else
+                            {
                                 currentObject = null;
+                            }
                         }
                     }
                 }
 
+                // Nếu đã tìm thấy object, break khỏi vòng lặp ngoài luôn cho nhẹ máy
                 if (currentObject != null)
                     break;
             }
@@ -153,9 +208,12 @@ public class PlayerInteraction : MonoBehaviour
     {
         if(interactButton == null)
         {
-            interactButton = GameManager.Instance.gameContext.UIManager.GetUI(GameStateType.Playing, "InteractButton");
-            interactButton.SetActive(false);
+            interactButton = GameManager.Instance.gameContext.UIManager.GetUI(GameStateType.Playing, UINames.InteractButton);
+            if(interactButton.activeInHierarchy)
+                interactButton.SetActive(false);
+            
             interactButtonScript = interactButton.GetComponent<InteractButton>();
+            interactButtonRect = interactButton.GetComponent<RectTransform>();
         }
     }
 }

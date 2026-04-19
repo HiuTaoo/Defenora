@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AudioManager 
+public class AudioManager: MonoBehaviour
 {
+    public static AudioManager Instance;
+    
     private AudioSource musicSource;
     private AudioSource sfxSource;
     private Dictionary<string, AudioClip> audioClips;
@@ -15,6 +17,12 @@ public class AudioManager
         audioClips = new Dictionary<string, AudioClip>();
     }
 
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+    
     public void RegisterAudio(string key, AudioClip clip)
     {
         audioClips[key] = clip;

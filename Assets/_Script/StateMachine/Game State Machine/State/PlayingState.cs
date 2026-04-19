@@ -8,7 +8,7 @@ public class PlayingState : IGameState
     {
         Debug.Log($"Game State: Playing");
         context.UIManager.HideAllUIs();
-        context.UIManager.ShowUI(GameStateType.Playing, UINames.MainMenu);
+        context.UIManager.ShowUI(GameStateType.Playing, UINames.GameplayHUD);
         context.CameraManager.ApplyCameraSettings(GameStateType.Playing);
         //context.AudioManager?.PlayMusic("gameplay_music");
     }

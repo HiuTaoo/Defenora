@@ -3,22 +3,70 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraManager
+public class CameraManager: MonoBehaviour
 {
+    public static CameraManager Instance { get; private set; }
+
+    [Header("References")]
     public Camera mainCamera;
     public CinemachineVirtualCamera virtualCamera;
+    [SerializeField] private Transform playerTransform;
 
-    private Transform playerTransform;
     private Dictionary<GameStateType, CameraConfig> cameraConfigs;
     public Coroutine currentTransition;
-
     public bool isFollowingPlayer = false;
 
-    public CameraManager(Camera camera)
+    private void Awake()
     {
-        mainCamera = camera;
-        virtualCamera = camera.GetComponentInChildren<CinemachineVirtualCamera>();
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
         cameraConfigs = new Dictionary<GameStateType, CameraConfig>();
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (virtualCamera == null) virtualCamera = GetComponentInChildren<CinemachineVirtualCamera>();
+        RegisterCameraConFig();
+    }
+
+    private void Start()
+    {
+        if (SelectUnitSystem.Instance != null)
+        {
+            SelectUnitSystem.Instance.OnLerpToSelectedUnit += LerpToPosition;
+        }
+    }
+
+    private void RegisterCameraConFig()
+    {
+        SetPlayerTransform(playerTransform);
+
+        RegisterCameraConfig(GameStateType.Playing, new CameraConfig
+        {
+            FollowPlayer = true,
+            SmoothTransition = true,
+            OrthographicSize = 5,
+            TransitionDuration = 1f
+        });
+
+        RegisterCameraConfig(GameStateType.Editor, new CameraConfig
+        {
+            FollowPlayer = false,
+            SmoothTransition = true,
+            TransitionDuration = 1.5f
+        });
+
+        RegisterCameraConfig(GameStateType.Paused, new CameraConfig
+        {
+            FollowPlayer = true, 
+            SmoothTransition = false
+        });
+    }
+
+    private void OnDestroy()
+    {
+        if (SelectUnitSystem.Instance != null)
+        {
+            SelectUnitSystem.Instance.OnLerpToSelectedUnit -= LerpToPosition;
+        }
     }
 
     #region ApplyCameraSettings
@@ -38,7 +86,7 @@ public class CameraManager
 
             if (config.SmoothTransition)
             {
-                currentTransition = GameManager.Instance.StartCoroutine(TransitionToConfig(config));
+                currentTransition = StartCoroutine(TransitionToConfig(config));
             }
             else
             {
@@ -152,10 +200,51 @@ public class CameraManager
         playerTransform = player;
     }
 
+    // 4. Hàm này giờ có thể TỰ GỌI Coroutine vì nó là MonoBehaviour
     public void LerpToPosition(Vector3 position)
     {
-
+        if (currentTransition != null)
+        {
+            StopCoroutine(currentTransition);
+        }
+        currentTransition = StartCoroutine(LerpPositionWithDisabledVCam(position, 0.5f));
     }
 
+    private IEnumerator LerpPositionWithDisabledVCam(Vector3 targetPosition, float duration)
+    {
+        // ... (Giữ nguyên nội dung hàm Lerp cũ của bạn, vì giờ nó tự gọi StartCoroutine được rồi) ...
+        bool wasFollowing = virtualCamera.Follow != null;
+        Transform originalFollow = virtualCamera.Follow;
+
+        virtualCamera.gameObject.SetActive(false);
+        isFollowingPlayer = false;
+
+        yield return null;
+
+        Vector3 startPos = mainCamera.transform.position;
+        float elapsed = 0f;
+        float originalZ = startPos.z;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            Vector3 lerpedPosition = Vector3.Lerp(startPos, targetPosition, t);
+            lerpedPosition.z = originalZ;
+            mainCamera.transform.position = lerpedPosition;
+            yield return null;
+        }
+
+        mainCamera.transform.position = new Vector3(targetPosition.x, targetPosition.y, originalZ);
+        virtualCamera.gameObject.SetActive(true);
+
+        if (wasFollowing)
+        {
+            virtualCamera.Follow = originalFollow;
+            isFollowingPlayer = true;
+        }
+
+        currentTransition = null;
+    }
     #endregion
 }
