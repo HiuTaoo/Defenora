@@ -10,7 +10,7 @@ public class UnitStatsManager : MonoBehaviour
     public float MaxHealth { get; private set; }
     public float AttackDamage { get; private set; }
     public float ViewDistance { get; private set; }
-
+    
     public event Action OnLevelUp;
     public event Action OnStatsUpdated;
 
@@ -39,6 +39,11 @@ public class UnitStatsManager : MonoBehaviour
         currentLevel++;
         CalculateStats();
         OnLevelUp?.Invoke();
+    }
+
+    public bool IsMaxLevelUp()
+    {
+        return currentLevel >= unitData.maxLevel;
     }
 
     public UnitStatsSO GetBaseData() => unitData;

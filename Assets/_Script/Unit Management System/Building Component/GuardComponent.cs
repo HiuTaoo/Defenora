@@ -43,7 +43,6 @@ namespace _Script.Unit_Management_System.Building
 
             Vector3 spot = GetAvailableSpot();
             unit.transform.position = spot;
-            unit.spriteRenderer.sortingOrder = buildingRenderer.sortingOrder + 10;
 
             listArcherPositions.Add(new SpotData
             {

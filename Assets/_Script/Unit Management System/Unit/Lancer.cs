@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
@@ -443,6 +444,15 @@ public class Lancer : Unit
         return facingDir;
     }
 
+    public override List<(string name, string value)> GetSpecialStats()
+    {
+        var extraStats = new List<(string name, string value)>();
+        
+        extraStats.Add(("Attack Damage", attackDamage.ToString(CultureInfo.InvariantCulture))); 
+        extraStats.Add(("Attack CD", attackCooldown.ToString(CultureInfo.InvariantCulture)));
+        
+        return extraStats;
+    }
     #endregion
     
 #if UNITY_EDITOR

@@ -1,9 +1,12 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
 using _Script.BT;
 using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.BarrelNode;
 using _Script.BT.Node.EnemyNode.unitNode;
+using _Script.ScriptableObjectScript;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 
@@ -12,7 +15,6 @@ namespace _Script.Unit_Management_System.Enemy
     public class Barrel : Unit
     {
         [Header("Explosion Settings")]
-        public float explosionDamage = 50f;
         public float explosionRadius = 2.5f;
         public float fuseTime = 3f; 
         public LayerMask damageLayerMask; 
@@ -20,6 +22,19 @@ namespace _Script.Unit_Management_System.Enemy
         [Header("Detection Settings")] 
         public float triggerRange = 0.1f;
 
+        public float explosionDamage {
+            get
+            {
+                if (statsManager.GetBaseData() is BarrelStatsSO barrelData)
+                {
+                    int levelMultiplier = statsManager.currentLevel - 1;
+                    return barrelData.explosionDamage + (barrelData.explosionDamagePerLevel * levelMultiplier);
+                }
+            
+                Debug.LogError($"[Builder] Quên gắn file BuilderStatsSO cho {gameObject.name}!");
+                return 0f; 
+            }
+        }
         private bool isExploding = false;
         private Animator animator;
 
@@ -137,6 +152,16 @@ namespace _Script.Unit_Management_System.Enemy
             TriggerExplosion();
         }
 
+        public override List<(string name, string value)> GetSpecialStats()
+        {
+            var extraStats = new List<(string name, string value)>();
+        
+            extraStats.Add(("Explosion Damage", explosionDamage.ToString(CultureInfo.InvariantCulture))); 
+            extraStats.Add(("Explosion Radius", explosionRadius.ToString(CultureInfo.InvariantCulture)));
+            extraStats.Add(("Fuse Time", fuseTime.ToString(CultureInfo.InvariantCulture))); 
+            
+            return extraStats;
+        }
         protected override void HandleDeath()
         {
             var col = GetComponent<Collider2D>();

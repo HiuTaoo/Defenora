@@ -9,19 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fd19e65aa2c43b0998de1dd6608ec84, type: 3}
-  m_Name: MonkSO
+  m_Script: {fileID: 11500000, guid: 52476017d72340299438cbe9cb950a25, type: 3}
+  m_Name: BarrelSO
   m_EditorClassIdentifier: 
-  unitName: Monk
-  unitIcon: {fileID: 21300000, guid: f846c6072ceb0445bbcb59c41b57a5cb, type: 3}
+  unitName: Barrel
+  unitIcon: {fileID: 21300000, guid: 2adf134bf181b462381328428b219753, type: 3}
   maxLevel: 10
-  baseMaxHealth: 50
+  baseMaxHealth: 30
   baseAttackDamage: 0
-  baseViewDistance: 3
-  healthPerLevel: 10
+  baseViewDistance: 2
+  healthPerLevel: 5
   attackDamagePerLevel: 0
   viewDistancePerLevel: 0.25
-  baseHealAmount: 30
-  baseHealRange: 3
-  healAmountPerLevel: 5
-  healRangePerLevel: 0.25
+  explosionDamage: 50
+  explosionDamagePerLevel: 5

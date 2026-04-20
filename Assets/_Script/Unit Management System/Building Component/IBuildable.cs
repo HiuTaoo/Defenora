@@ -6,5 +6,5 @@ public interface IBuildable
 {
     System.Action<IBuildable> OnBuiltObject { get; set; }
     void OnBuild();
-    void HandleBuilt();
+    void HandleBuilt(float workRate);
 }

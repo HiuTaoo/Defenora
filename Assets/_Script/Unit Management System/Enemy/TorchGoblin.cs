@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using _Script.BT;
 using _Script.BT.Node.BuilderNode;
 using _Script.BT.Node.BuilderNode.RepairStructure;
@@ -232,6 +233,16 @@ namespace _Script.Unit_Management_System.Enemy
         public override void UseSpecialAbility()
         {
             throw new NotImplementedException();
+        }
+        
+        public override List<(string name, string value)> GetSpecialStats()
+        {
+            var extraStats = new List<(string name, string value)>();
+        
+            extraStats.Add(("Attack Damage", attackDamage.ToString(CultureInfo.InvariantCulture))); 
+            extraStats.Add(("Attack CD", attackCooldown.ToString(CultureInfo.InvariantCulture)));
+            
+            return extraStats;
         }
 #if UNITY_EDITOR
         private void OnDrawGizmos()

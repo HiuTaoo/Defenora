@@ -50,9 +50,17 @@ public class ObjectPool
 
     public void Return(GameObject obj)
     {
+        if (objects.Contains(obj)) return; 
+
         obj.GetComponent<IPoolable>()?.OnDespawned();
 
         obj.SetActive(false);
+        
+        if (parent != null)
+        {
+            obj.transform.SetParent(parent, false);
+        }
+
         objects.Enqueue(obj);
     }
 }

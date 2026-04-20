@@ -436,14 +436,12 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
-  attackDamage: 2
   attackRange: 5
   attackCooldown: 1
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
-  viewDistance: 5
   viewAngle: 180
   nextFireTime: 0
   firePoint: {fileID: 1642505350253639894}

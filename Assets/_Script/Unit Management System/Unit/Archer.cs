@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
@@ -457,6 +458,17 @@ public class Archer : Unit
                 archerBlackBoard.detectedEnemy = newTarget; 
             }
         }
+    }
+    
+    public override List<(string name, string value)> GetSpecialStats()
+    {
+        var extraStats = new List<(string name, string value)>();
+        
+        extraStats.Add(("Attack Damage", attackDamage.ToString(CultureInfo.InvariantCulture)));
+        extraStats.Add(("Attack Range", attackRange.ToString(CultureInfo.InvariantCulture))); 
+        extraStats.Add(("Fire Rate", attackCooldown.ToString(CultureInfo.InvariantCulture))); 
+        
+        return extraStats;
     }
     #endregion
 

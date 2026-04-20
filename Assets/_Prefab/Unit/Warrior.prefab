@@ -260,14 +260,12 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
-  attackDamage: 5
   attackRange: 1
   attackCooldown: 0.75
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
-  viewDistance: 3
   viewAngle: 180
   detectPoint: {fileID: 8250754444523929379}
   warriorDirection: 0
@@ -368,7 +366,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2908073665739722039}
-  - component: {fileID: 217653914777967534}
+  - component: {fileID: 6940417809460249219}
   m_Layer: 10
   m_Name: StatManager
   m_TagString: Untagged
@@ -391,7 +389,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3755721970266095713}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &217653914777967534
+--- !u!114 &6940417809460249219
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

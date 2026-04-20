@@ -1,26 +1,28 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace _Script.UI.UI_Script
 {
-    public class UnitDetailPanel: MonoBehaviour
-    { 
-        [Header("UI Elements")]
+    public class UnitDetailPanel : MonoBehaviour
+    {
+        [Header("Basic Info UI")]
         public GameObject panel;
         public Image unitIcon;
         public TextMeshProUGUI nameText;
         public TextMeshProUGUI levelText;
-        public TextMeshProUGUI hpText;
-        public TextMeshProUGUI attackText;
-        public TextMeshProUGUI viewDistance;
+        public GameObject upgradeButton;
+
+        [Header("Dynamic Stats UI")]
+        public Transform statsContainer; 
+        public GameObject statPrefab;    
 
         private Unit currentSelectedUnit;
 
         public void ShowUnitInfo(Unit unit)
         {
-            // Nếu đang chọn unit cũ, hủy đăng ký event để tránh memory leak
             if (currentSelectedUnit != null)
             {
                 currentSelectedUnit.statsManager.OnStatsUpdated -= UpdateUI;
@@ -34,40 +36,83 @@ namespace _Script.UI.UI_Script
                 panel.SetActive(false);
                 return;
             }
-
+            upgradeButton.SetActive(true);
             panel.SetActive(true);
 
-            // Lấy dữ liệu SO để hiện tên và Icon
             UnitStatsSO baseData = currentSelectedUnit.statsManager.GetBaseData();
             nameText.text = baseData.unitName;
             unitIcon.sprite = baseData.unitIcon;
 
-            // Đăng ký sự kiện
+            if (currentSelectedUnit.CompareTag("Enemy") || (currentSelectedUnit.CompareTag("NPC") 
+              && currentSelectedUnit.statsManager.IsMaxLevelUp()) )
+            {
+                upgradeButton.SetActive(false);
+            }
+            
             currentSelectedUnit.statsManager.OnStatsUpdated += UpdateUI;
             currentSelectedUnit.health.OnHealthChanged += UpdateHealthUI;
 
-            // Cập nhật UI lần đầu tiên
             UpdateUI();
-            UpdateHealthUI(currentSelectedUnit.health.CurrentHealth, 
-                currentSelectedUnit.statsManager.MaxHealth);
         }
 
-        // Hàm này tự động chạy mỗi khi Unit lên level hoặc thay đổi chỉ số
         private void UpdateUI()
         {
             if (currentSelectedUnit == null) return;
 
             levelText.text = "Level: " + currentSelectedUnit.statsManager.currentLevel;
-            attackText.text = currentSelectedUnit.statsManager.AttackDamage.ToString(CultureInfo.InvariantCulture);
-            viewDistance.text = "" + currentSelectedUnit.statsManager.ViewDistance;
+
+            string hpValue = $"{currentSelectedUnit.health.CurrentHealth}/{currentSelectedUnit.statsManager.MaxHealth}";
+    
+            var statsList = new List<(string name, string value)>
+            {
+                ("HP", hpValue),
+                ("View Distance", currentSelectedUnit.statsManager.ViewDistance.ToString(CultureInfo.InvariantCulture)),
+                ("Speed", currentSelectedUnit.characterMovement.moveSpeed.ToString(CultureInfo.InvariantCulture))
+            };
+
+            var specialStats = currentSelectedUnit.GetSpecialStats();
+    
+            if (specialStats != null && specialStats.Count > 0)
+            {
+                statsList.AddRange(specialStats);
+            }
+
+            RenderDynamicStats(statsList);
         }
 
         private void UpdateHealthUI(float currentHp, float maxHp)
         {
-            hpText.text = $"{currentHp}/{maxHp}";
+            UpdateUI();
         }
 
-        // Nút Level Up trên UI gọi hàm này
+        private void RenderDynamicStats(List<(string name, string value)> stats)
+        {
+            for (int i = statsContainer.childCount - 1; i >= 0; i--)
+            {
+                Transform child = statsContainer.GetChild(i);
+                
+                if (child.gameObject.activeSelf) 
+                {
+                    PoolManager.Instance.Despawn(child.gameObject); 
+                }
+            }
+
+            foreach (var stat in stats)
+            {
+                GameObject obj = PoolManager.Instance.Spawn(statPrefab, statsContainer.position, Quaternion.identity);
+                
+                obj.transform.SetParent(statsContainer, false);
+                obj.transform.localScale = Vector3.one;
+                obj.transform.SetAsLastSibling(); 
+
+                StatUIItem statItem = obj.GetComponent<StatUIItem>();
+                if (statItem != null)
+                {
+                    statItem.Setup(stat.name, stat.value);
+                }
+            }
+        }
+
         public void Button_LevelUpClicked()
         {
             if (currentSelectedUnit != null)

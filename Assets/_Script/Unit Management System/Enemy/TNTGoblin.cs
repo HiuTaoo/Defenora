@@ -1,4 +1,6 @@
-﻿using _Script.BT;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using _Script.BT;
 using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.TNTGoblinNode;
@@ -168,6 +170,16 @@ namespace _Script.Unit_Management_System.Enemy
                     dynamiteComp.Init(transform.position, currentTarget.transform.position, attackDamage);
                 }
             }
+        }
+        
+        public override List<(string name, string value)> GetSpecialStats()
+        {
+            var extraStats = new List<(string name, string value)>();
+        
+            extraStats.Add(("Attack Damage", attackDamage.ToString(CultureInfo.InvariantCulture))); 
+            extraStats.Add(("Attack CD", attackCooldown.ToString(CultureInfo.InvariantCulture))); 
+            
+            return extraStats;
         }
 #if UNITY_EDITOR
         private void OnDrawGizmos()

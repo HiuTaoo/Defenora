@@ -395,7 +395,7 @@ MonoBehaviour:
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
   attackRange: 0
-  attackCooldown: 1
+  attackCooldown: 3
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1

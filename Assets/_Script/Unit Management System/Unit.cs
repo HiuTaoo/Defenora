@@ -863,6 +863,11 @@ public abstract class Unit : MonoBehaviour
 
     public abstract void UseSpecialAbility();
     
+    public virtual List<(string name, string value)> GetSpecialStats()
+    {
+        return null;
+    }
+    
     protected virtual void OnEnable()
     {
         GlobalAlarmSystem.OnEnemySpotted += HandleGlobalAlarm;

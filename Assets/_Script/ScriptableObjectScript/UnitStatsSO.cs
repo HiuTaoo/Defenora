@@ -13,7 +13,6 @@ public class UnitStatsSO : ScriptableObject
     public float baseAttackDamage;
     public float baseViewDistance;
 
-
     [Header("Growth Per Level")]
     public float healthPerLevel;
     public float attackDamagePerLevel;

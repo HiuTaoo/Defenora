@@ -20,7 +20,6 @@ public abstract class Building : MonoBehaviour, IBuildable
     [Header("Build Progress")]
     [Range(0f, 100f)]
     public float currentBuildProgress = 0f; 
-    public float buildSpeedPerHit = 10f; 
 
     [Header("Unit Management")]
     public List<Unit> stationedUnits = new List<Unit>();
@@ -484,11 +483,11 @@ public abstract class Building : MonoBehaviour, IBuildable
     #endregion
 
     #region Build
-    public void HandleBuilt()
+    public void HandleBuilt(float buildSpeed)
     {
         if (currentBuildProgress >= 100f) return;
 
-        currentBuildProgress = currentBuildProgress + buildSpeedPerHit;
+        currentBuildProgress = currentBuildProgress + buildSpeed;
 
         if (!isBeingBuilded && buildEffectCoroutine == null)
         {

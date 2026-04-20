@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
@@ -10,6 +11,7 @@ using _Script.BT.Node.BuilderNode.Idle;
 using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.MonkNode.MonkIdle;
 using _Script.Object_Pooling;
+using _Script.ScriptableObjectScript;
 using _Script.Task;
 using _Script.Unit_Management_System.Animation;
 using _Script.Unit_Management_System.HealthComponent;
@@ -20,6 +22,20 @@ public class Builder : Unit
     [Header("Builder Info")]
     public Vector2 workBoxSize = new Vector2(1f, 1f);
     public float workRange = 1f;
+    public float CurrentWorkRate
+    {
+        get
+        {
+            if (statsManager.GetBaseData() is BuilderStatsSO builderData)
+            {
+                int levelMultiplier = statsManager.currentLevel - 1;
+                return builderData.baseWorkRate + (builderData.workRatePerLevel * levelMultiplier);
+            }
+            
+            Debug.LogError($"[Builder] Quên gắn file BuilderStatsSO cho {gameObject.name}!");
+            return 0f; 
+        }
+    }
     
     [Header("Task")]
     public Task currentTask;
@@ -314,7 +330,7 @@ public class Builder : Unit
             {
                 if (building != null) 
                 {
-                    building.HandleBuilt();
+                    building.HandleBuilt(CurrentWorkRate);
                     break;
                 }
             }
@@ -481,8 +497,6 @@ public class Builder : Unit
         {
             if (list.Count == 0) return null;
 
-            // TỐI ƯU HÓA: Chỉ lấy 5 nhà gần nhất theo khoảng cách vật lý (đường chim bay)
-            // để chạy thuật toán tìm đường, tránh làm tụt FPS game.
             var closestCandidates = list
                 .OrderBy(b => (b.transform.position - transform.position).sqrMagnitude)
                 .Take(5);
@@ -490,7 +504,6 @@ public class Builder : Unit
             Building nearestBuilding = null;
             float minCost = float.MaxValue;
 
-            // Chạy A* để tìm xem trong 5 nhà này, nhà nào đi tới tốn ít bước nhất
             foreach (var candidate in closestCandidates)
             {
                 var path = FindBestPathToAnyAdjacent(candidate.gameObject, candidate.layerIndex);
@@ -505,20 +518,17 @@ public class Builder : Unit
             return nearestBuilding;
         }
 
-        // 3. XỬ LÝ ƯU TIÊN
-        
-        // Ưu tiên 1: Quét danh sách nhà bị Sập (Destroyed)
         Building target = FindNearestByPath(destroyedBuildings);
 
-        // Ưu tiên 2: Nếu không có nhà sập (hoặc nhà sập bị bịt kín không có đường vào)
-        // thì chuyển sang tìm nhà bị xước máu (Damaged)
         if (target == null)
         {
             target = FindNearestByPath(damagedBuildings);
         }
 
-        return target; // Trả về null nếu toàn bộ nhà đều đầy máu
+        return target;
     }
+    
+    
     #endregion
     
     #region Move to task target
@@ -573,6 +583,15 @@ public class Builder : Unit
     public override void UseSpecialAbility()
     {
         throw new System.NotImplementedException();
+    }
+    
+    public override List<(string name, string value)> GetSpecialStats()
+    {
+        var extraStats = new List<(string name, string value)>();
+        
+        extraStats.Add(("Work Rate", CurrentWorkRate.ToString(CultureInfo.InvariantCulture))); 
+        
+        return extraStats;
     }
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()

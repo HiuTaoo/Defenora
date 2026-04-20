@@ -1,19 +1,49 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.MonkNode.MonkIdle;
+using _Script.ScriptableObjectScript;
 using _Script.Unit_Management_System.Animation;
 using UnityEditor;
 using UnityEngine;
 
 public class Monk : Unit
 {
-    [Header("Priest Specific")] public float healAmount = 20f;
-    public float healRange = 3f;
-    public float healCooldown = 5f;
+    [Header("Priest Specific")] 
+    public float healCooldown;
+    public float healAmount
+    {
+        get
+        {
+            if (statsManager.GetBaseData() is MonkStatsSO monkData)
+            {
+                int levelMultiplier = statsManager.currentLevel - 1;
+                return monkData.baseHealAmount + (monkData.healAmountPerLevel * levelMultiplier);
+            }
+            
+            Debug.LogError($"[Builder] Quên gắn file BuilderStatsSO cho {gameObject.name}!");
+            return 0f; 
+        }
+    }
+    
+    public float healRange
+    {
+        get
+        {
+            if (statsManager.GetBaseData() is MonkStatsSO monkData)
+            {
+                int levelMultiplier = statsManager.currentLevel - 1;
+                return monkData.baseHealRange + (monkData.healRangePerLevel * levelMultiplier);
+            }
+            
+            Debug.LogError($"[Builder] Quên gắn file BuilderStatsSO cho {gameObject.name}!");
+            return 0f; 
+        }
+    }
     private float nextHealTime;
 
     public MonkBlackBoard monkBlackBoard;
@@ -24,6 +54,7 @@ public class Monk : Unit
         unitType = UnitType.Monk;
         bt = CreateBehaviorTree(this);
         monkBlackBoard = new MonkBlackBoard();
+ 
     }
 
     protected override void Update()
@@ -162,6 +193,17 @@ public class Monk : Unit
 
     public override void UseSpecialAbility()
     {
+    }
+    
+    public override List<(string name, string value)> GetSpecialStats()
+    {
+        var extraStats = new List<(string name, string value)>();
+        
+        extraStats.Add(("Heal Amount", healAmount.ToString(CultureInfo.InvariantCulture))); 
+        extraStats.Add(("Heal Range", healRange.ToString(CultureInfo.InvariantCulture)));
+        extraStats.Add(("Heal Cooldown", healCooldown.ToString(CultureInfo.InvariantCulture)));
+        
+        return extraStats;
     }
 
 #if UNITY_EDITOR
