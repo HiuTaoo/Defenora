@@ -24,6 +24,8 @@ public class UIManager: MonoBehaviour
     public Dictionary<GameStateType, Dictionary<string, GameObject>> stateUIs;
     private Dictionary<GameStateType, UIConfig> stateConfigs;
     private Dictionary<string, UIConfig> individualUIConfigs;
+    private UnitDetailPanel unitDetailPanel;
+    private BuildingDetailPanel buildingDetailPanel;
 
     public UIManager()
     {
@@ -54,6 +56,9 @@ public class UIManager: MonoBehaviour
             SelectUnitSystem.Instance.OnSelectUnit += HandleSelectUnitUI;
             SelectUnitSystem.Instance.OnDragUnit += HandleDragUnitUI;
         }
+        
+        unitDetailPanel = selectUnitGUI.GetComponent<UnitDetailPanel>();
+        buildingDetailPanel = selectUnitGUI.GetComponent<BuildingDetailPanel>();
     }
 
     /// <summary>
@@ -280,22 +285,32 @@ public class UIManager: MonoBehaviour
         if (selectedUnit != null)
         {
             var unit = selectedUnit.GetComponent<Unit>();
-            var building = selectedUnit.GetComponent<Building>() ;
+            var building = selectedUnit.GetComponent<Building>();
 
             selectUnitGUI.SetActive(true);
             editorGUI.SetActive(false);
+        
             deleteButton.SetActive(unit == null && building != null 
-            && building.buildingState == BuildingState.Placing);
+                                                && building.buildingState == BuildingState.Placing);
 
-            var  unitDetailPanel = selectUnitGUI.gameObject.GetComponent<UnitDetailPanel>();
-            if (unitDetailPanel == null)
-                return;
-            unitDetailPanel.ShowUnitInfo(unit);
+            if (unit != null)
+            {
+                if (unitDetailPanel != null) unitDetailPanel.ShowUnitInfo(unit);
+                if (buildingDetailPanel != null) buildingDetailPanel.ShowBuildingInfo(null); 
+            }
+            else if (building != null)
+            {
+                if (buildingDetailPanel != null) buildingDetailPanel.ShowBuildingInfo(building);
+                if (unitDetailPanel != null) unitDetailPanel.ShowUnitInfo(null); 
+            }
         }
         else
         {
             selectUnitGUI.SetActive(false);
             editorGUI.SetActive(true);
+        
+            if (unitDetailPanel != null) unitDetailPanel.ShowUnitInfo(null);
+            if (buildingDetailPanel != null) buildingDetailPanel.ShowBuildingInfo(null);
         }
     }
 

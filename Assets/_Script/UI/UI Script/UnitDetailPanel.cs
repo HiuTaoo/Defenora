@@ -8,15 +8,16 @@ namespace _Script.UI.UI_Script
 {
     public class UnitDetailPanel : MonoBehaviour
     {
-        [Header("Basic Info UI")]
-        public GameObject panel;
+        [Header("Basic Info Unit UI")]
+        public GameObject unitpanel;
         public Image unitIcon;
-        public TextMeshProUGUI nameText;
+        public TextMeshProUGUI unitNameText;
         public TextMeshProUGUI levelText;
         public GameObject upgradeButton;
+        public Transform unitStatsContainer; 
 
         [Header("Dynamic Stats UI")]
-        public Transform statsContainer; 
+        
         public GameObject statPrefab;    
 
         private Unit currentSelectedUnit;
@@ -33,14 +34,14 @@ namespace _Script.UI.UI_Script
 
             if (currentSelectedUnit == null)
             {
-                panel.SetActive(false);
+                unitpanel.SetActive(false);
                 return;
             }
             upgradeButton.SetActive(true);
-            panel.SetActive(true);
+            unitpanel.SetActive(true);
 
             UnitStatsSO baseData = currentSelectedUnit.statsManager.GetBaseData();
-            nameText.text = baseData.unitName;
+            unitNameText.text = baseData.unitName;
             unitIcon.sprite = baseData.unitIcon;
 
             if (currentSelectedUnit.CompareTag("Enemy") || (currentSelectedUnit.CompareTag("NPC") 
@@ -87,9 +88,9 @@ namespace _Script.UI.UI_Script
 
         private void RenderDynamicStats(List<(string name, string value)> stats)
         {
-            for (int i = statsContainer.childCount - 1; i >= 0; i--)
+            for (int i = unitStatsContainer.childCount - 1; i >= 0; i--)
             {
-                Transform child = statsContainer.GetChild(i);
+                Transform child = unitStatsContainer.GetChild(i);
                 
                 if (child.gameObject.activeSelf) 
                 {
@@ -99,9 +100,9 @@ namespace _Script.UI.UI_Script
 
             foreach (var stat in stats)
             {
-                GameObject obj = PoolManager.Instance.Spawn(statPrefab, statsContainer.position, Quaternion.identity);
+                GameObject obj = PoolManager.Instance.Spawn(statPrefab, unitStatsContainer.position, Quaternion.identity);
                 
-                obj.transform.SetParent(statsContainer, false);
+                obj.transform.SetParent(unitStatsContainer, false);
                 obj.transform.localScale = Vector3.one;
                 obj.transform.SetAsLastSibling(); 
 
