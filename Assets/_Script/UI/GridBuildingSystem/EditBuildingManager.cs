@@ -44,21 +44,26 @@ public class EditBuildingManager : MonoBehaviour
     /// <summary>
     /// Đánh dấu ô là đã chiếm.
     /// </summary>
-    public void PlaceBuilding(Vector2Int anchorCell, ObjectFootprint footprint)
+    public void PlaceBuilding(Vector2Int anchorCell, GameObject buildingPrefab)
     {
+        ObjectFootprint footprint = buildingPrefab.GetComponent<ObjectFootprint>();
         var cells = footprint.GetAbsoluteGridPositions(anchorCell);
         foreach (var cell in cells)
         {
             occupiedCells.Add(cell);
         }
 
-        GameObject currentbuilding =  Instantiate(footprint.gameObject, CellToWorld(anchorCell), Quaternion.identity);
+        GameObject currentbuilding = PoolManager.Instance.Spawn(footprint.gameObject, CellToWorld(anchorCell), Quaternion.identity);
         currentbuilding.transform.SetParent(this.gameObject.transform);
 
         Building building = currentbuilding.GetComponent<Building>();
         building.LayerIndex = LayerManager.Instance.layerIndex;
         building.buildingState = BuildingState.Placing;
 
+        Color color =  new Color(0, 1, 0, 0.75f);
+        var renderer = currentbuilding.GetComponent<SpriteRenderer>();
+        renderer.color = color;
+        
         currentbuilding.transform.name = $"{building.buildingType}: {System.Guid.NewGuid()}";
         Debug.Log($"Building: {building.name} is in Placing State");
 

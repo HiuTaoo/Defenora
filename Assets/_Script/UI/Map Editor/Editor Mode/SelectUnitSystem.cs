@@ -69,7 +69,7 @@ public class SelectUnitSystem : MonoBehaviour
                 initialUnitPosition = selectedUnit.transform.position;
                 previousLayerIndex = floorAgent.currentFloorIndex;
             }
-            else if (selectedUnit == null)
+            else if (selectedUnit == null &&  targetBuilding == null)
             {
                 OnSelectUnit?.Invoke(selectedUnit);
             }
@@ -77,6 +77,9 @@ public class SelectUnitSystem : MonoBehaviour
 
         if (Input.GetMouseButton(0) && isMouseDown && selectedUnit != null)
         {
+            if (selectedUnit.gameObject.CompareTag("Enemy"))
+                return;
+            
             Vector2 currentMousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             float dragDistance = Vector2.Distance(initialMousePosition, currentMousePosition);
 
@@ -130,7 +133,7 @@ public class SelectUnitSystem : MonoBehaviour
                 OnLerpToSelectedUnit?.Invoke(selectedUnit.transform.position);
             }*/
             
-            if (!isDragging && !isPlacing) 
+            if (!isDragging && !isPlacing && isMouseDown) 
             {
                 if (selectedUnit != null) 
                 {
@@ -193,37 +196,11 @@ public class SelectUnitSystem : MonoBehaviour
         MenuItem menuItem = FindObjectOfType<MenuItem>();
         menuItem.DeSelectAllTileItem();
         MenuEditorController.Instance.cancelEditBuildingMode.SetActive(false);
+        
+        targetBuilding = null;
+        selectedUnit = null;
     }
     #region Check
-    /*private void CheckTargetUnit()
-    {
-        LayerMask combinedLayerMask = LayerMask.GetMask("NPC", "Building");
-        GameObject targetUnit = FindTargetUnit(combinedLayerMask);
-
-        if (targetUnit != null)
-        {
-            if (targetUnit.layer == LayerMask.NameToLayer("NPC"))
-            {
-                selectedUnit = targetUnit;
-                isBuilding = false;
-                selectUnitSpriteRenderer = selectedUnit.GetComponent<SpriteRenderer>();
-                floorAgent = selectedUnit.GetComponentInChildren<FloorAgent>();
-            }
-            else if (targetUnit.layer == LayerMask.NameToLayer("Building"))
-            {
-                selectedUnit = targetUnit;
-                selectUnitSpriteRenderer = selectedUnit.GetComponent<SpriteRenderer>();
-                floorAgent = selectedUnit.GetComponentInChildren<FloorAgent>();
-                isBuilding = true;
-            }
-        }
-        else
-        {
-            isBuilding = false;
-            selectedUnit = null;
-        }
-    }*/
-    
     private void CheckTargetUnit()
     {
         LayerMask combinedLayerMask = LayerMask.GetMask("NPC", "Building");
@@ -351,6 +328,18 @@ public class SelectUnitSystem : MonoBehaviour
             floorAgent.MoveToFloor(previousLayerIndex);
         }
 
+    }
+
+    public void DeleteBuilding()
+    {
+        if(targetBuilding == null) return;
+        var building = targetBuilding.GetComponent<Building>();
+        if(building == null || building.buildingState != BuildingState.Placing)
+            return;
+        PoolManager.Instance.Despawn(targetBuilding);
+        targetBuilding = null;
+    
+        OnSelectUnit?.Invoke(null);
     }
     #endregion
 }

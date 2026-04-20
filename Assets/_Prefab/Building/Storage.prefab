@@ -138,6 +138,7 @@ GameObject:
   - component: {fileID: 8699020775138910166}
   - component: {fileID: 7744562848832361240}
   - component: {fileID: 659560381163937438}
+  - component: {fileID: 1103345420223540084}
   m_Layer: 8
   m_Name: Storage
   m_TagString: Building
@@ -325,10 +326,10 @@ MonoBehaviour:
   maxCapacity: 3
   range: 3
   currentCapacity: 0
+  currentHealth: 0
   buildingType: 3
   buildingState: 0
   currentBuildProgress: 0
-  buildSpeedPerHit: 10
   stationedUnits: []
   currentTask:
     targetGameObject: {fileID: 0}
@@ -358,6 +359,20 @@ MonoBehaviour:
   yFactor: 10
   baseOrder: 0
   isStaticDecor: 0
+--- !u!114 &1103345420223540084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4317628030385230672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eaff2ebe7664dfd81b37d4e728d8d10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionSpots: []
+  listArcherPositions: []
 --- !u!1 &6365253327673594782
 GameObject:
   m_ObjectHideFlags: 0

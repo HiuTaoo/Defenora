@@ -284,7 +284,8 @@ public class UIManager: MonoBehaviour
 
             selectUnitGUI.SetActive(true);
             editorGUI.SetActive(false);
-            deleteButton.SetActive(unit == null && building != null);
+            deleteButton.SetActive(unit == null && building != null 
+            && building.buildingState == BuildingState.Placing);
 
             var  unitDetailPanel = selectUnitGUI.gameObject.GetComponent<UnitDetailPanel>();
             if (unitDetailPanel == null)

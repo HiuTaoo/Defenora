@@ -81,7 +81,6 @@ public class GameManager : MonoBehaviour
     {
         SaveLoadSystem.Instance.SaveGame();
     }
-    
 
     #endregion
 }

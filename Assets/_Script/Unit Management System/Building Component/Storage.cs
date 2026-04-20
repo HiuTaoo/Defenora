@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using _Script.Resourse;
+using _Script.Unit_Management_System.Building;
 using UnityEngine;
 
 [System.Serializable]
@@ -76,6 +77,15 @@ public class Storage : Building, IStorage
     public int GetAmount(ResourceType type)
     {
         return storage.TryGetValue(type, out int value) ? value : 0;
+    }
+    protected override void OnUnitAdded(Unit unit)
+    {
+        GetComponent<GuardComponent>()?.OnUnitAdded(unit);
+    }
+
+    protected override void OnUnitRemoved(Unit unit)
+    {
+        GetComponent<GuardComponent>()?.OnUnitRemoved(unit);
     }
 
     #region Debug Sync

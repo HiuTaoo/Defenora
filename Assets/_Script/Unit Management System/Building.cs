@@ -278,8 +278,14 @@ public abstract class Building : MonoBehaviour, IBuildable
         return true;
     }
 
-// 🔑 HOOK — mặc định không làm gì
-    protected virtual void OnUnitAdded(Unit unit) { }
+    protected virtual void OnUnitAdded(Unit unit) 
+    { 
+        Vector3 availableSpot = GetRandomPositionAroundBuilding();
+        if (availableSpot != null)
+        {
+            unit.transform.position = availableSpot;
+        }
+    }
     protected virtual void OnUnitRemoved(Unit unit) { }
 
     #endregion

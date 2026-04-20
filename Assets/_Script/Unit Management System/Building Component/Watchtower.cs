@@ -23,4 +23,6 @@ public class Watchtower : Building
     {
         GetComponent<GuardComponent>()?.OnUnitRemoved(unit);
     }
+    
+    
 }

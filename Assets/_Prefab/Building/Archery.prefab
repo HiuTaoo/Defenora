@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5938138430383266855}
   - component: {fileID: 363881072144313266}
   - component: {fileID: 3157883669210192142}
+  - component: {fileID: 474028450045567545}
   m_Layer: 8
   m_Name: Archery
   m_TagString: Building
@@ -205,6 +206,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &474028450045567545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330605155036816449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eaff2ebe7664dfd81b37d4e728d8d10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionSpots: []
+  listArcherPositions: []
 --- !u!1 &3041970773385430338
 GameObject:
   m_ObjectHideFlags: 0

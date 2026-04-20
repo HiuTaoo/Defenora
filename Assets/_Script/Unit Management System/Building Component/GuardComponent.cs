@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -38,17 +39,17 @@ namespace _Script.Unit_Management_System.Building
 
         public void OnUnitAdded(Unit unit)
         {
-            if (unit.unitType != UnitType.Archer)
-                return;
-
             Vector3 spot = GetAvailableSpot();
             unit.transform.position = spot;
-
-            listArcherPositions.Add(new SpotData
-            {
-                position = spot,
-                unitName = unit.unitName
-            });
+            
+            if (unit.unitType != UnitType.Archer)
+                return;
+            if(positionSpots.Length > listArcherPositions.Count)
+                listArcherPositions.Add(new SpotData
+                {
+                    position = spot,
+                    unitName = unit.unitName
+                });
         }
 
         public void OnUnitRemoved(Unit unit)
@@ -74,6 +75,7 @@ namespace _Script.Unit_Management_System.Building
 
             return building.GetRandomPositionAroundBuilding();
         }
+        
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
@@ -89,4 +91,5 @@ namespace _Script.Unit_Management_System.Building
 #endif
     }
 
+    
 }

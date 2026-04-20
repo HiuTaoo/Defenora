@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 923117026244740957}
   - component: {fileID: 8391888400523060542}
-  m_Layer: 10
+  m_Layer: 12
   m_Name: StatManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -58,7 +58,7 @@ GameObject:
   - component: {fileID: 7168366781338832354}
   - component: {fileID: 8920342483767949588}
   - component: {fileID: 2426809125888630144}
-  m_Layer: 10
+  m_Layer: 12
   m_Name: Builder Movement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -371,7 +371,6 @@ MonoBehaviour:
   viewAngle: 0
   workBoxSize: {x: 1, y: 1}
   workRange: 0.2
-  workRate: 1
   currentTask:
     targetGameObject: {fileID: 0}
     taskType: 0
@@ -436,7 +435,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4529321241409971695}
   - component: {fileID: 1287960773851700773}
-  m_Layer: 10
+  m_Layer: 12
   m_Name: Finding Target Object Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -503,7 +502,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2996283553820869325}
   - component: {fileID: 256425167450453000}
-  m_Layer: 10
+  m_Layer: 12
   m_Name: Inventory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -549,7 +548,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8060712465209299380}
   - component: {fileID: 1329483314330567465}
-  m_Layer: 10
+  m_Layer: 12
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}

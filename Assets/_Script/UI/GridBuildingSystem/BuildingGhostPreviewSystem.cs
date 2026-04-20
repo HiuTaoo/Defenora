@@ -19,6 +19,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     private EditBuildingManager gridManager;
     public MenuItem menuItem;
     private ObjectFootprint currentFootprint;
+    private GameObject currentBuildingPrefab;
 
     private void Awake()
     {
@@ -31,7 +32,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     void Start()
     {
         gridManager = FindObjectOfType<EditBuildingManager>();
-
 
     }
 
@@ -71,6 +71,8 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     public void SpawnGhost(GameObject ghostPrefabToSpawn)
     {
         CancelGhost();
+        
+        currentBuildingPrefab = ghostPrefabToSpawn;
         currentGhost = PoolManager.Instance.Spawn(ghostPrefabToSpawn, transform.position, Quaternion.identity);
         currentFootprint = currentGhost.GetComponent<ObjectFootprint>();
         spriteRenderer = currentGhost.GetComponent<SpriteRenderer>();
@@ -100,7 +102,7 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
     private void PlaceBuilding(Vector2Int anchorCell)
     {
-        gridManager.PlaceBuilding(anchorCell, currentFootprint);
+        gridManager.PlaceBuilding(anchorCell, currentBuildingPrefab);
         //CancelGhost();
     }
 
