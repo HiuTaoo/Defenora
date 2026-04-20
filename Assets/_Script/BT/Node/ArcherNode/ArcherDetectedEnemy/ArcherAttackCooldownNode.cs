@@ -21,7 +21,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
             if(archer.archerBlackBoard.detectedEnemy == null)
                 return BTStatus.Success;
 
-            if (timer >= archer.fireRate)
+            if (timer >= archer.attackCooldown)
             {
                 timer = 0f;
                 return BTStatus.Success;

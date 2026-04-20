@@ -1,47 +1,48 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class PlayingState : IGameState
+namespace _Script.StateMachine.Game_State_Machine.State
 {
-    public void Enter(GameStateContext context)
+    public class PlayingState : IGameState
     {
-        Debug.Log($"Game State: Playing");
-        context.UIManager.HideAllUIs();
-        context.UIManager.ShowUI(GameStateType.Playing, UINames.GameplayHUD);
-        context.CameraManager.ApplyCameraSettings(GameStateType.Playing);
-        //context.AudioManager?.PlayMusic("gameplay_music");
-    }
-
-    public void Exit(GameStateContext context)
-    {
-        context.UIManager.HideUI(GameStateType.Playing, UINames.MainMenu);
-    }
-
-    public void Tick(GameStateContext context)
-    {
-        if (context.InputManager.GetKeyDown(KeyCode.Escape))
+        public void Enter(GameStateContext context)
         {
-            context.StateMachine.ChangeState(GameStateType.Paused);
+            Debug.Log($"Game State: Playing");
+            context.UIManager.HideAllUIs();
+            context.UIManager.ShowUI(GameStateType.Playing, UINames.GameplayHUD);
+            context.CameraManager.ApplyCameraSettings(GameStateType.Playing);
+            //context.AudioManager?.PlayMusic("gameplay_music");
         }
 
-        if (context.InputManager.GetKeyUp(KeyCode.F7) )
+        public void Exit(GameStateContext context)
         {
-            if (context.InputManager.GetMovementInput() == Vector2.zero)
-                context.StateMachine.ChangeState(GameStateType.Editor);
-            else
-                Debug.Log("Không thể mở editor trong trạng thái này!");
+            context.UIManager.HideUI(GameStateType.Playing, UINames.MainMenu);
         }
 
+        public void Tick(GameStateContext context)
+        {
+            if (context.InputManager.GetKeyDown(KeyCode.Escape))
+            {
+                context.StateMachine.ChangeState(GameStateType.Paused);
+            }
 
-        // Game logic có thể thêm ở đây
-        HandleGameplayInput(context);
-    }
+            if (context.InputManager.GetKeyUp(KeyCode.F7) )
+            {
+                if (context.InputManager.GetMovementInput() == Vector2.zero)
+                    context.StateMachine.ChangeState(GameStateType.Editor);
+                else
+                    Debug.Log("Không thể mở editor trong trạng thái này!");
+            }
 
-    public void HandleGameplayInput(GameStateContext context)
-    {
-        // Example: Handle player movement, interactions, etc.
-        Vector2 movement = context.InputManager.GetMovementInput();
 
+            // Game logic có thể thêm ở đây
+            HandleGameplayInput(context);
+        }
+
+        public void HandleGameplayInput(GameStateContext context)
+        {
+            // Example: Handle player movement, interactions, etc.
+            Vector2 movement = context.InputManager.GetMovementInput();
+
+        }
     }
 }

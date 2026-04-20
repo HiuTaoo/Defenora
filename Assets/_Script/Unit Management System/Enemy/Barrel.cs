@@ -17,8 +17,7 @@ namespace _Script.Unit_Management_System.Enemy
         public float fuseTime = 3f; 
         public LayerMask damageLayerMask; 
         
-        [Header("Detection Settings")]
-        public float viewDistance = 5f; // Tầm nhìn quét nhà xung quanh
+        [Header("Detection Settings")] 
         public float triggerRange = 0.1f;
 
         private bool isExploding = false;

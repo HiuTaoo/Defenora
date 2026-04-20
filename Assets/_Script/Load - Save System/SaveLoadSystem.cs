@@ -242,6 +242,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             unit.gameObject.name = unitDatum.unitName;
             unit.characterMovement.CurrentLayer = unitDatum.layerIndex;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
+            unit.health.SetCurrentHealth(unitDatum.health);
             unit.currentState = unitDatum.currentState;
             
             foreach (var building in unitManager.buildings) {

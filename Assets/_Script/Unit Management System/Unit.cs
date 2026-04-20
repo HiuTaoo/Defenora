@@ -46,6 +46,9 @@ public abstract class Unit : MonoBehaviour
     
     [Header("Animation FSM")]
     public AnimationFSM animFSM;
+    
+    [Header("Stats System")]
+    public UnitStatsManager statsManager;
 
     public GameObject enemySpawnPoint;
 
@@ -58,13 +61,21 @@ public abstract class Unit : MonoBehaviour
     [HideInInspector] public CharacterMovement characterMovement;
     [HideInInspector] public FloorAgent floorAgent;
 
-    [Header("Combat Stats")]
+    [Header("Combat Stats")] 
+    public float attackRange = 0f;
     public float attackCooldown = 1f; 
     public float lastAttackTime = -999f;
     public bool isKnockedBack = false;
     public float hitStunDuration = 0.1f;
     public float knockbackCooldown = 3f; 
     private float lastKnockbackTime = -999f;
+    
+    [Header("Vision")]
+    [Range(0, 360)]
+    public float viewAngle;
+    
+    public float attackDamage => statsManager != null ? statsManager.AttackDamage : 0;
+    public float viewDistance => statsManager != null ? statsManager.ViewDistance : 0;
     
     [Header("Effects")]
     private Coroutine damageEffectCoroutine; 
@@ -83,6 +94,7 @@ public abstract class Unit : MonoBehaviour
         animFSM = GetComponent<AnimationFSM>();
         sortingYX = GetComponent<DynamicSortingYX>();
         health = GetComponentInChildren<Health>();
+        statsManager = GetComponentInChildren<UnitStatsManager>();
                         
         enemyLayer = LayerMask.GetMask("NPC");
         obstacleLayer = LayerMask.GetMask("VisionBlocker");
@@ -93,6 +105,7 @@ public abstract class Unit : MonoBehaviour
 
         rb.gravityScale = 0f;
         unitName = gameObject.name;
+        UpdateHealth();
     }
 
     protected virtual void Update()
@@ -100,6 +113,9 @@ public abstract class Unit : MonoBehaviour
         SynchronizedLayerIndex();
         layerIndex = floorAgent.currentFloorIndex;
         currentHealth = health.CurrentHealth;
+        
+        if(attackRange > viewDistance)
+            attackRange =  viewDistance;
     }
 
     // =========================
@@ -566,6 +582,14 @@ public abstract class Unit : MonoBehaviour
             child.gameObject.SetActive(false);
         }
     }
+
+    private void UpdateHealth()
+    {
+        if (health != null && statsManager != null)
+        {
+            health.maxHealth = statsManager.MaxHealth;
+        }
+    }
     
     #region Enemy Method
 
@@ -793,6 +817,13 @@ public abstract class Unit : MonoBehaviour
         
         this.enabled = false;
     }
+    
+    private void HandleLevelUp()
+    {
+        // Ví dụ: Khi lên cấp thì cập nhật lại Max HP và bơm đầy máu
+        // health.SetMaxHealth(statsManager.MaxHealth);
+        // health.HealToFull();
+    }
 
     public void Die()
     {
@@ -841,6 +872,11 @@ public abstract class Unit : MonoBehaviour
             health.OnTakeDamage += HandleTakeDamage;
             health.OnDie += HandleDeath;
         }
+        if (statsManager != null)
+        {
+            statsManager.OnLevelUp += HandleLevelUp;
+        }
+        
     }
 
     protected virtual void OnDisable()
@@ -852,6 +888,13 @@ public abstract class Unit : MonoBehaviour
             health.OnTakeDamage -= HandleTakeDamage;
             health.OnDie -= HandleDeath;
         }
+        
+        if (statsManager != null)
+        {
+            statsManager.OnLevelUp -= HandleLevelUp;
+        }
     }
+    
+    
     
 }

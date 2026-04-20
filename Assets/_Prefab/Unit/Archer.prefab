@@ -132,6 +132,51 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+--- !u!1 &4322703178997503400
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6755902969914627428}
+  - component: {fileID: 8909957945401131090}
+  m_Layer: 10
+  m_Name: StatManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6755902969914627428
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4322703178997503400}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5324220452094368532}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8909957945401131090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4322703178997503400}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5eb3493d4c3a4701a5b183f9fe0f6dee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitData: {fileID: 11400000, guid: 33badb8e9c2096c4599f4796d4a55365, type: 2}
 --- !u!1 &6465090153343079755
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,6 +248,7 @@ Transform:
   - {fileID: 3367794133413154289}
   - {fileID: 1642505350253639894}
   - {fileID: 5015956630848349757}
+  - {fileID: 6755902969914627428}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &9086398698701681295
@@ -352,7 +398,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbb3de1c19f72f04dbe1f84f6bc875ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: 
+  unitName: Archer
   unitType: 0
   currentState: 0
   animState: 0
@@ -383,24 +429,25 @@ MonoBehaviour:
   detectInterval: 0.25
   hearRange: 15
   animFSM: {fileID: 0}
+  statsManager: {fileID: 0}
+  enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
+  attackDamage: 2
+  attackRange: 5
   attackCooldown: 1
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
-  attackDamage: 2
-  attackRange: 5
-  fireRate: 3
+  viewDistance: 5
+  viewAngle: 180
   nextFireTime: 0
   firePoint: {fileID: 1642505350253639894}
   isStationed: 0
-  viewDistance: 5
-  viewAngle: 180
 --- !u!114 &7621971442396312281
 MonoBehaviour:
   m_ObjectHideFlags: 0

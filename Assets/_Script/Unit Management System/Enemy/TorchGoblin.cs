@@ -17,11 +17,6 @@ namespace _Script.Unit_Management_System.Enemy
     {
         [Header("Torch Goblin Stat")] 
         public EnemyDirection enemyDirection;
-        public float viewDistance = 5f;
-        [Range(0, 360)]
-        public float viewAngle;
-        public float attackDamage = 10f;
-        public float attackRange = 2f;
         
         [Header("Combat Layers")]
         public int attackLayerMask;

@@ -29,7 +29,7 @@ namespace _Script.ItemScript
             animator = GetComponent<Animator>();
         }
 
-        public void Init(Vector2 startPos, Vector2 targetPos)
+        public void Init(Vector2 startPos, Vector2 targetPos, float damage)
         {
             transform.position = startPos;
             startPosition = startPos;

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using _Script.StateMachine.Game_State_Machine.State;
+using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,8 +13,7 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
-
-        InitializeStateMachine();
+        
     }
 
     private void InitializeStateMachine()
@@ -41,6 +41,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        InitializeStateMachine();
         StateMachine.ChangeState(GameStateType.Playing);
     }
 

@@ -14,11 +14,8 @@ public class Monk : Unit
     [Header("Priest Specific")] public float healAmount = 20f;
     public float healRange = 3f;
     public float healCooldown = 5f;
-    public float viewDistance = 3f;
     private float nextHealTime;
-    [Range(0, 360)] public float viewAngle;
 
-    private BehaviourTree bt;
     public MonkBlackBoard monkBlackBoard;
 
     protected override void Awake()

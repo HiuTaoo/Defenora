@@ -20,8 +20,9 @@ namespace _Script.ItemScript
         private Vector2 lastPosition;
         private bool isHit;
 
-        public void Init(Vector2 startPos, Vector2 shootDir)
+        public void Init(Vector2 startPos, Vector2 shootDir, float damage)
         {
+            SetDamage(damage);
             transform.position = startPos;
 
             direction = shootDir.normalized;

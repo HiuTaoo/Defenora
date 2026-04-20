@@ -23,18 +23,14 @@ using Random = UnityEngine.Random;
 public class Lancer : Unit
 {
     [Header("Lancer Specific")] 
-    public float attackRange = 1f;
-    public float attackDamage = 10f; 
     public float attackAngle = 30f;
-    public float viewDistance = 3f;
     public int minRadius = 1;
     public int maxRadius = 2;
     public LancerDirection lancerDirection;
     
     [Header("Detect Point")]
     public Transform detectPoint;
-    [Range(0, 360)]
-    public float viewAngle;
+
     
     public int attackLayerMask;
     

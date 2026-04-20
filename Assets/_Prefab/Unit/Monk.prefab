@@ -45,6 +45,51 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+--- !u!1 &5738347786236180291
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7931293986641207638}
+  - component: {fileID: 8327656051733954794}
+  m_Layer: 0
+  m_Name: StatManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7931293986641207638
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5738347786236180291}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.5384616, y: 1.5384616, z: 1.5384616}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 977264512724078209}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8327656051733954794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5738347786236180291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5eb3493d4c3a4701a5b183f9fe0f6dee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitData: {fileID: 11400000, guid: 92edf951cea53b147a61192a6456982e, type: 2}
 --- !u!1 &6060272414933211326
 GameObject:
   m_ObjectHideFlags: 0
@@ -171,6 +216,7 @@ Transform:
   m_Children:
   - {fileID: 5079871736237895250}
   - {fileID: 1821064037934257138}
+  - {fileID: 7931293986641207638}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5780811099626661717
@@ -341,21 +387,23 @@ MonoBehaviour:
   detectInterval: 0.25
   hearRange: 15
   animFSM: {fileID: 0}
+  statsManager: {fileID: 0}
+  enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
+  attackRange: 0
   attackCooldown: 1
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
+  viewAngle: 180
   healAmount: 20
   healRange: 3
   healCooldown: 5
-  viewDistance: 3
-  viewAngle: 180
 --- !u!114 &183254153025691274
 MonoBehaviour:
   m_ObjectHideFlags: 0

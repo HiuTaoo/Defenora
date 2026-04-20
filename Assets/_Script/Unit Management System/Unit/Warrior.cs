@@ -19,24 +19,13 @@ using UnityEngine;
 
 public class Warrior : Unit
 {
-    [Header("Warrior Specific")]
-    public float attackRange = 1f;
-    public float attackDamage = 10f;
-    public float viewDistance = 3f;
-    
     [Header("Detect Point")]
     public Transform detectPoint;
-
-    [Range(0, 360)]
-    public float viewAngle;
     
     public WarriorDirection warriorDirection;
     public WarriorBlackBoard warriorBlackBoard;
     public int attackLayerMask;
     
-    private BehaviourTree bt;
-    
-
     protected override void Awake()
     {
         base.Awake();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.UI.UI_Script;
 using UnityEngine;
 
 public class UIManager: MonoBehaviour
@@ -278,12 +279,17 @@ public class UIManager: MonoBehaviour
     {
         if (selectedUnit != null)
         {
-            var isUnit = selectedUnit.GetComponent<Unit>() != null;
-            var isBuilding = selectedUnit.GetComponent<Building>() != null;
+            var unit = selectedUnit.GetComponent<Unit>();
+            var building = selectedUnit.GetComponent<Building>() ;
 
             selectUnitGUI.SetActive(true);
             editorGUI.SetActive(false);
-            deleteButton.SetActive(!isUnit && isBuilding);
+            deleteButton.SetActive(unit == null && building != null);
+
+            var  unitDetailPanel = selectUnitGUI.gameObject.GetComponent<UnitDetailPanel>();
+            if (unitDetailPanel == null)
+                return;
+            unitDetailPanel.ShowUnitInfo(unit);
         }
         else
         {
@@ -303,6 +309,10 @@ public class UIManager: MonoBehaviour
 
     #endregion
 
+    public GameObject GetInteractButton()
+    {
+        return interactButton;
+    }
     
 
 }

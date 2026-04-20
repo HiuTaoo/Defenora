@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening; // Nhớ thêm thư viện DOTween
 
 public class LayerManager : MonoBehaviour
 {
@@ -8,12 +9,14 @@ public class LayerManager : MonoBehaviour
 
     [Header("List ribbon")]
     [SerializeField] private GameObject[] ribbons;
+    
+    [Header("Animation Settings")]
+    [SerializeField] private float moveDuration = 0.15f;
 
     public int layerIndex = 0;
     private Vector3[] originalPositions;
 
     public System.Action<int> OnLayerIndexChange;
-
 
     private void Awake()
     {
@@ -21,8 +24,8 @@ public class LayerManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
-
     }
+
     private void Start()
     {
         GetOriginalPosition();
@@ -52,7 +55,6 @@ public class LayerManager : MonoBehaviour
 
         MoveRibbonToLeft(0);
     }
-
 
     public void ChangeLayer()
     {
@@ -85,29 +87,44 @@ public class LayerManager : MonoBehaviour
 
     public void MoveRibbonToLeft(int activeIndex)
     {
+        for (int i = 0; i < ribbons.Length; i++)
+        {
+            ribbons[i].transform.SetSiblingIndex(ribbons.Length - i);
+        }
+        
         ribbons[activeIndex].transform.SetSiblingIndex(ribbons.Length);
 
         for (int i = 0; i < ribbons.Length; i++)
         {
-            Vector2 original = originalPositions[i];
+            Vector3 original = originalPositions[i];
+            
+            ribbons[i].transform.DOKill();
+
             RectTransform rect = ribbons[i].GetComponent<RectTransform>();
             if (rect != null)
             {
                 if (i == activeIndex)
                 {
-                    rect.anchoredPosition = new Vector2(
-                        original.x - 50f, 
-                        original.y      
-                    );
+                    Vector2 targetPos = new Vector2(original.x - 50f, original.y);
+                    rect.DOAnchorPos(targetPos, moveDuration).SetEase(Ease.OutCubic);
                 }
                 else
                 {
-                    rect.anchoredPosition = original;
+                    rect.DOAnchorPos(original, moveDuration).SetEase(Ease.OutCubic);
+                }
+            }
+            else 
+            {
+                if (i == activeIndex)
+                {
+                    Vector3 targetPos = new Vector3(original.x - 50f, original.y, original.z);
+                    ribbons[i].transform.DOLocalMove(targetPos, moveDuration).SetEase(Ease.OutCubic);
+                }
+                else
+                {
+                    ribbons[i].transform.DOLocalMove(original, moveDuration).SetEase(Ease.OutCubic);
                 }
             }
         }
-
     }
-
-
 }

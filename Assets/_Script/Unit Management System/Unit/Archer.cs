@@ -17,23 +17,16 @@ using _Script.Unit_Management_System.Animation;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Archer : Unit
 {
-    [Header("Archer Stat")]
-    public float attackDamage = 10f;
-    public float attackRange = 2f;
-    public float fireRate = 1f;
+    [Header("Archer Combat Stat")]
     public float nextFireTime = 0f;
     
     [Header("Archer Specific")]
     public Transform firePoint;
     public bool isStationed = false;
-    
-    [Header("Vision")]
-    public float viewDistance = 5f;
-    [Range(0, 360)]
-    public float viewAngle;
 
     public ArcherBlackBoard archerBlackBoard {get; set;}
 
@@ -133,7 +126,7 @@ public class Archer : Unit
 
         Vector2 dir = (predictedPos - (Vector2)firePoint.position).normalized;
 
-        arrowComponent.Init(firePoint.position, dir);
+        arrowComponent.Init(firePoint.position, dir, attackDamage);
 
     }
 

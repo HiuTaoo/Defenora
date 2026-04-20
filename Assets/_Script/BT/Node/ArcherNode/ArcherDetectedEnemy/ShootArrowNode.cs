@@ -29,7 +29,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
             {
                 archer.animFSM.SetFireDirection(archer.archerBlackBoard.fireDirection);
                 archer.animState = AnimState.Attacking;
-                archer.nextFireTime = Time.time + archer.fireRate;
+                archer.nextFireTime = Time.time + archer.attackCooldown;
                 
                 hasShot = true;
                 timer = 0f;

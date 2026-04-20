@@ -17,8 +17,6 @@ namespace _Script.Unit_Management_System.Enemy
     {
         [Header("Torch Goblin Stat")] 
         public EnemyDirection enemyDirection;
-        public float viewDistance = 6f;
-        public float attackRange = 3f;
 
         public GameObject subTarget;
 
@@ -163,11 +161,11 @@ namespace _Script.Unit_Management_System.Enemy
             {
                 if (subTarget != null && subTarget.activeInHierarchy)
                 {
-                    dynamiteComp.Init(transform.position, subTarget.transform.position);
+                    dynamiteComp.Init(transform.position, subTarget.transform.position, attackDamage);
                 }
                 else if (currentTarget != null)
                 {
-                    dynamiteComp.Init(transform.position, currentTarget.transform.position);
+                    dynamiteComp.Init(transform.position, currentTarget.transform.position, attackDamage);
                 }
             }
         }
