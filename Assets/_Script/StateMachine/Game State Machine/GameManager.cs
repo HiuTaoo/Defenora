@@ -59,7 +59,9 @@ public class GameManager : MonoBehaviour
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
     }
-    
+
+    #region GUI
+
     public void OpenSettingInPauseMenu()
     {
         UIManager.Instance.HideUI(GameStateType.Paused, UINames.PauseButton);
@@ -77,10 +79,17 @@ public class GameManager : MonoBehaviour
         gameContext.StateMachine.ChangeState(GameStateType.Playing);
     }
 
+    public void OpenAvailableUnitGUI()
+    {
+        UIManager.Instance.ShowUI(GameStateType.Editor, UINames.AvailableUnitsGUI);
+    }
+
     public void SaveGame()
     {
         SaveLoadSystem.Instance.SaveGame();
     }
+
+    #endregion
 
     #endregion
 }

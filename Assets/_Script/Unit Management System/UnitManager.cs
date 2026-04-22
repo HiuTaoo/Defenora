@@ -189,6 +189,14 @@ public class UnitManager : MonoBehaviour
                                      (b.GetComponentInChildren<Health>() != null && b.GetComponentInChildren<Health>().CurrentHealth < b.GetComponentInChildren<Health>().maxHealth)))
             .ToList();
     }
+
+    public List<Unit> GetAvailableUnits()
+    {
+        return allUnits.Where(u => u.assignedBuilding == null 
+                                   && u.CompareTag("NPC") 
+                                   && u.unitType != UnitType.Builder)
+            .ToList();
+    }
     
 
     #endregion

@@ -12,6 +12,10 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
 
         public override BTStatus Tick()
         {
+            if (lancer.assignedBuilding == null)
+            {
+                return BTStatus.Failure;
+            }
             var nextPosition = lancer.FindPatrolPosition(
                 Vector3Int.FloorToInt(lancer.assignedBuilding.transform.position)
                 , lancer.minRadius, lancer.maxRadius);

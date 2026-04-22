@@ -31,6 +31,11 @@ namespace _Script.Object_Pooling
         public GameObject woodPrefab;
         public GameObject arrowPrefab;
         public GameObject dynamitePrefab;
+        
+        [Header("GUI Prefab")]
+        public GameObject addUnitButtonPrefab;
+        public GameObject unitIconPrefab;
+        public GameObject statDetailGUIPrefab;
 
         [Header("Tree Prefab")]
         public GameObject[] treePrefabs;

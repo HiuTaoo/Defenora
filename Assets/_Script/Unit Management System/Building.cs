@@ -34,14 +34,16 @@ public abstract class Building : MonoBehaviour, IBuildable
     private ObjectFootprint buildingFootprint;
     private Animator animator;
     private CapsuleCollider2D buildingCollider;
+    public Health health;
 
     private GameObject customRenderer;
     private Coroutine buildEffectCoroutine;
-    public Action<IBuildable> OnBuiltObject { get; set; }
-    public Health health;
-
+    
     private bool isBeingBuilded = false;
     private bool hasBeenBuilded = false;
+    
+    public Action<IBuildable> OnBuiltObject { get; set; }
+    public Action OnStationedUnitsChanged;
 
     public int LayerIndex
     {
@@ -262,6 +264,7 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         // 🔽 Hook cho component khác
         OnUnitAdded(unit);
+        OnStationedUnitsChanged?.Invoke();
     }
 
     public virtual bool RemoveUnit(Unit unit)
@@ -274,6 +277,7 @@ public abstract class Building : MonoBehaviour, IBuildable
         currentCapacity--;
 
         OnUnitRemoved(unit);
+        OnStationedUnitsChanged?.Invoke();
 
         return true;
     }

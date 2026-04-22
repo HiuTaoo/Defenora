@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using _Script.UI.UI_Script;
+using _Script.UI.UI_Script.PanelScript;
 using UnityEngine;
 
 public class UIManager: MonoBehaviour
@@ -21,11 +22,15 @@ public class UIManager: MonoBehaviour
     [SerializeField] private GameObject listButtonPauseMenuGUI;
     [SerializeField] private GameObject settingGUI;
     
+    //editor
+    [SerializeField] private GameObject availableUnitGUI;
+    
     public Dictionary<GameStateType, Dictionary<string, GameObject>> stateUIs;
     private Dictionary<GameStateType, UIConfig> stateConfigs;
     private Dictionary<string, UIConfig> individualUIConfigs;
     private UnitDetailPanel unitDetailPanel;
     private BuildingDetailPanel buildingDetailPanel;
+    public AvailableUnitPanel availableUnitPanel;
 
     public UIManager()
     {
@@ -46,6 +51,8 @@ public class UIManager: MonoBehaviour
         RegisterUI(GameStateType.Paused, UINames.PauseMenuSetting ,settingGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Editor, UINames.EditorMenu, editorGUI, new UIConfig { Scale = Vector3.one * 0.9f });
         RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });
+        RegisterUI(GameStateType.Editor, UINames.AvailableUnitsGUI, availableUnitGUI, new UIConfig { FadeIn = true });
+        
     }
     
     private void Start()
@@ -59,6 +66,7 @@ public class UIManager: MonoBehaviour
         
         unitDetailPanel = selectUnitGUI.GetComponent<UnitDetailPanel>();
         buildingDetailPanel = selectUnitGUI.GetComponent<BuildingDetailPanel>();
+        availableUnitPanel =  selectUnitGUI.GetComponent<AvailableUnitPanel>();
     }
 
     /// <summary>
@@ -289,6 +297,7 @@ public class UIManager: MonoBehaviour
 
             selectUnitGUI.SetActive(true);
             editorGUI.SetActive(false);
+            availableUnitGUI.SetActive(false);
         
             deleteButton.SetActive(unit == null && building != null 
                                                 && building.buildingState == BuildingState.Placing);
@@ -296,11 +305,17 @@ public class UIManager: MonoBehaviour
             if (unit != null)
             {
                 if (unitDetailPanel != null) unitDetailPanel.ShowUnitInfo(unit);
-                if (buildingDetailPanel != null) buildingDetailPanel.ShowBuildingInfo(null); 
+                if (buildingDetailPanel != null)
+                {
+                    buildingDetailPanel.ShowBuildingInfo(null);
+                    availableUnitPanel.ShowAvailableUnitInfo(null);
+                }
             }
             else if (building != null)
             {
-                if (buildingDetailPanel != null) buildingDetailPanel.ShowBuildingInfo(building);
+                if (buildingDetailPanel != null)
+                    buildingDetailPanel.ShowBuildingInfo(building);
+              
                 if (unitDetailPanel != null) unitDetailPanel.ShowUnitInfo(null); 
             }
         }
@@ -325,7 +340,7 @@ public class UIManager: MonoBehaviour
 
     #endregion
 
-    public GameObject GetInteractButton()
+    public GameObject Show()
     {
         return interactButton;
     }
@@ -341,6 +356,7 @@ public static class UINames
     public const string EditorMenu = "EditorMenu";
     public const string SelectUnitGUI = "SelectUnitGUI";
     public const string BuildingPanel = "BuildingPanel";
+    public const string AvailableUnitsGUI = "AvailableUnitsGUI";
 
     // Gameplay UI
     public const string GameplayHUD = "GameplayHUD";

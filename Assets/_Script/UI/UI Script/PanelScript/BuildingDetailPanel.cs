@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using _Script.Object_Pooling;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,8 +19,7 @@ namespace _Script.UI.UI_Script
         [Header("Dynamic Stats UI")]
         public Transform buildingStatsContainer;
         public Transform capacityDetailContainer;
-        public GameObject statPrefab;
-        public GameObject capacityDetailPrefab;
+
 
         private Building currentSelectedBuilding;
 
@@ -37,6 +37,7 @@ namespace _Script.UI.UI_Script
             {
                 if (currentSelectedBuilding.health != null)
                     currentSelectedBuilding.health.OnHealthChanged -= UpdateHealthUI;
+                currentSelectedBuilding.OnStationedUnitsChanged -= RefreshUnitList;
             }
 
             currentSelectedBuilding = building;
@@ -48,7 +49,6 @@ namespace _Script.UI.UI_Script
             }
 
             buildingPanel.SetActive(true);
-
             buildingNameText.text = currentSelectedBuilding.buildingType.ToString();
 
             if (currentSelectedBuilding.health != null)
@@ -56,6 +56,8 @@ namespace _Script.UI.UI_Script
                 currentSelectedBuilding.health.OnHealthChanged += UpdateHealthUI;
             }
 
+            currentSelectedBuilding.OnStationedUnitsChanged += RefreshUnitList;
+            
             UpdateUI();
         }
 
@@ -105,7 +107,7 @@ namespace _Script.UI.UI_Script
 
             foreach (var stat in stats)
             {
-                GameObject obj = PoolManager.Instance.Spawn(statPrefab, buildingStatsContainer.position, Quaternion.identity);
+                GameObject obj = PoolManager.Instance.Spawn(PrefabConfig.Instance.statDetailGUIPrefab, buildingStatsContainer.position, Quaternion.identity);
                 
                 obj.transform.SetParent(buildingStatsContainer, false);
                 obj.transform.localScale = Vector3.one;
@@ -121,7 +123,7 @@ namespace _Script.UI.UI_Script
 
         private void RenderStationedUnits()
         {
-            if (capacityDetailContainer == null || capacityDetailPrefab == null) return;
+            if (capacityDetailContainer == null || PrefabConfig.Instance.unitIconPrefab == null) return;
 
             for (int i = capacityDetailContainer.childCount - 1; i >= 0; i--)
             {
@@ -132,12 +134,12 @@ namespace _Script.UI.UI_Script
                 }
             }
 
-            if (currentSelectedBuilding.stationedUnits == null || currentSelectedBuilding.stationedUnits.Count == 0)
+            if (currentSelectedBuilding.stationedUnits == null)
                 return;
 
             foreach (var unit in currentSelectedBuilding.stationedUnits)
             {
-                GameObject obj = PoolManager.Instance.Spawn(capacityDetailPrefab, capacityDetailContainer.position, Quaternion.identity);
+                GameObject obj = PoolManager.Instance.Spawn(PrefabConfig.Instance.unitIconPrefab, capacityDetailContainer.position, Quaternion.identity);
                 
                 obj.transform.SetParent(capacityDetailContainer, false);
                 obj.transform.localScale = Vector3.one;
@@ -146,9 +148,37 @@ namespace _Script.UI.UI_Script
                 UnitSlotUI slotUI = obj.GetComponent<UnitSlotUI>();
                 if (slotUI != null)
                 {
-                    slotUI.Setup(unit);
+                    slotUI.Setup(unit, FocusUnitCamera);
                 }
             }
+
+            if (currentSelectedBuilding.stationedUnits.Count < currentSelectedBuilding.maxCapacity)
+            {
+                GameObject obj = PoolManager.Instance.Spawn(PrefabConfig.Instance.addUnitButtonPrefab, capacityDetailContainer.position, Quaternion.identity);
+                
+                obj.transform.SetParent(capacityDetailContainer, false);
+                obj.transform.localScale = Vector3.one;
+                obj.transform.SetAsLastSibling(); 
+            }
+        }
+        
+        private void FocusUnitCamera(Unit clickedUnit)
+        {
+            /*SelectUnitSystem.Instance.selectedUnit = clickedUnit.gameObject;
+            SelectUnitSystem.Instance.targetBuilding = null; 
+            SelectUnitSystem.Instance.OnSelectUnit?.Invoke(clickedUnit.gameObject);*/
+            SelectUnitSystem.Instance.OnLerpToSelectedUnit?.Invoke(clickedUnit.transform.position);
+            UIManager.Instance.availableUnitPanel.availableUnitPanel.SetActive(false);
+        }
+        
+        private void RefreshUnitList()
+        {
+            if (capacityText != null)
+            {
+                capacityText.text = $"Capacity: {currentSelectedBuilding.currentCapacity}/{currentSelectedBuilding.maxCapacity}";
+            }
+    
+            RenderStationedUnits();
         }
     }
 }

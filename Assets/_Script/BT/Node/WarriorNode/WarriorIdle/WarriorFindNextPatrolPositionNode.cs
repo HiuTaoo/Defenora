@@ -13,9 +13,14 @@ namespace _Script.BT.Node.WarriorNode.WarriorIdle
 
         public override BTStatus Tick()
         {
+            if (warrior.assignedBuilding == null)
+            {
+                return BTStatus.Failure;
+            }
+            
             var nextPosition = warrior.FindPatrolPosition(
-                Vector3Int.FloorToInt(warrior.assignedBuilding.transform.position)
-                , 1, 2);
+                    Vector3Int.FloorToInt(warrior.assignedBuilding.transform.position)
+                    , 1, 2);
             
             if (nextPosition == Vector3Int.zero)
                 return BTStatus.Failure;
