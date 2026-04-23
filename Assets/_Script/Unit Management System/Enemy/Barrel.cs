@@ -182,6 +182,9 @@ namespace _Script.Unit_Management_System.Enemy
             if (health != null) health.enabled = false;
 
             StopMove();
+            
+            if (UnitManager.Instance.allUnits.Contains(this))
+                UnitManager.Instance.allUnits.Remove(this);
 
             currentState = UnitState.Defend; 
             animState = AnimState.Defending;      

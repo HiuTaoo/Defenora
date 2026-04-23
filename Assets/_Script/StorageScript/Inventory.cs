@@ -1,26 +1,22 @@
-﻿using System.Collections.Generic;
-using _Script.Unit_Management_System.Animation;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using _Script.Resourse;
+using _Script.Storage;
 using UnityEngine;
-
-[System.Serializable]
-    public struct InventoryEntry
-    {
-        public ResourceType type;
-        public int amount;
-    }
 
     public class Inventory : MonoBehaviour
     {
-        [Header("Config")]
-        [SerializeField] private int maxCapacity = 1;
-
+        public int maxCapacity;
         [Header("Debug View (Read Only)")]
         [SerializeField] private List<InventoryEntry> debugItems = new List<InventoryEntry>();
 
         private Dictionary<ResourceType, int> items
             = new Dictionary<ResourceType, int>();
 
-        public int MaxCapacity => maxCapacity;
+        public int MaxCapacity => UnitManager.Instance.buildings
+            .Where(b => b.buildingType == BuildingType.Storage) 
+            .Sum(b => b.maxCapacity);
 
         public int CurrentCapacity
         {
@@ -33,8 +29,13 @@ using UnityEngine;
             }
         }
 
-        public bool IsFull => CurrentCapacity >= maxCapacity;
+        public bool IsFull => CurrentCapacity >= MaxCapacity;
         public bool IsEmpty => CurrentCapacity == 0;
+
+        private void Update()
+        {
+            maxCapacity = MaxCapacity;
+        }
 
         #region Core Methods
 
@@ -42,7 +43,7 @@ using UnityEngine;
         {
             if (amount <= 0) return 0;
 
-            int spaceLeft = maxCapacity - CurrentCapacity;
+            int spaceLeft = MaxCapacity - CurrentCapacity;
             int addAmount = Mathf.Min(spaceLeft, amount);
 
             if (addAmount <= 0) return 0;

@@ -155,8 +155,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 assignedBuilding = unit.assignedBuilding?.name,
                 currentState = unit.currentState,
                 health = unit.health.CurrentHealth,
-                layerIndex = unit.floorAgent.currentFloorIndex,
-                maxHealth = unit.health.maxHealth
+                layerIndex = unit.floorAgent.currentFloorIndex
             });
         }
 

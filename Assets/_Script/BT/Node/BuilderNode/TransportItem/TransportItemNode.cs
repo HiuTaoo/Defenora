@@ -22,7 +22,7 @@ namespace _Script.BT.Node.BuilderNode
             if (builder.currentTask == null || builder.currentTask.targetGameObject == null)
                 return BTStatus.Failure;
 
-            var storage = builder.currentTask.targetGameObject.GetComponent<Storage>();
+            var storage = builder.currentTask.targetGameObject.GetComponent<global::Storage>();
             if (storage == null)
                 return BTStatus.Failure;
             

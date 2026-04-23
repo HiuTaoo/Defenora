@@ -56,6 +56,7 @@ public abstract class Unit : MonoBehaviour
     private Rigidbody2D rb;
     public DynamicSortingYX sortingYX;
     public Health health;
+    public UnitStatsManager unitStatsManager;
     
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public CharacterMovement characterMovement;
@@ -95,6 +96,7 @@ public abstract class Unit : MonoBehaviour
         sortingYX = GetComponent<DynamicSortingYX>();
         health = GetComponentInChildren<Health>();
         statsManager = GetComponentInChildren<UnitStatsManager>();
+        unitStatsManager = GetComponentInChildren<UnitStatsManager>();
                         
         enemyLayer = LayerMask.GetMask("NPC");
         obstacleLayer = LayerMask.GetMask("VisionBlocker");
@@ -106,6 +108,12 @@ public abstract class Unit : MonoBehaviour
         rb.gravityScale = 0f;
         unitName = gameObject.name;
         UpdateHealth();
+    }
+
+    private void Start()
+    {
+        health.maxHealth = unitStatsManager.MaxHealth;
+        health.SetCurrentHealth(unitStatsManager.MaxHealth);
     }
 
     protected virtual void Update()

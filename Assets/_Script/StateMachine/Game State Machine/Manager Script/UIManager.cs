@@ -64,9 +64,9 @@ public class UIManager: MonoBehaviour
             SelectUnitSystem.Instance.OnDragUnit += HandleDragUnitUI;
         }
         
-        unitDetailPanel = selectUnitGUI.GetComponent<UnitDetailPanel>();
-        buildingDetailPanel = selectUnitGUI.GetComponent<BuildingDetailPanel>();
-        availableUnitPanel =  selectUnitGUI.GetComponent<AvailableUnitPanel>();
+        unitDetailPanel = GetComponentInChildren<UnitDetailPanel>();
+        buildingDetailPanel = GetComponentInChildren<BuildingDetailPanel>();
+        availableUnitPanel =  GetComponentInChildren<AvailableUnitPanel>();
     }
 
     /// <summary>
@@ -298,6 +298,7 @@ public class UIManager: MonoBehaviour
             selectUnitGUI.SetActive(true);
             editorGUI.SetActive(false);
             availableUnitGUI.SetActive(false);
+            availableUnitPanel.noticeText.gameObject.SetActive(false);
         
             deleteButton.SetActive(unit == null && building != null 
                                                 && building.buildingState == BuildingState.Placing);

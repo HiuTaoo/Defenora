@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using _Script.UI.UI_Script.ButtonScript;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +15,7 @@ namespace _Script.UI.UI_Script
         public TextMeshProUGUI unitNameText;
         public TextMeshProUGUI levelText;
         public GameObject upgradeButton;
-        public Transform unitStatsContainer; 
+        public Transform unitStatsContainer;
 
         [Header("Dynamic Stats UI")]
         
@@ -37,18 +38,12 @@ namespace _Script.UI.UI_Script
                 unitpanel.SetActive(false);
                 return;
             }
-            upgradeButton.SetActive(true);
+            
             unitpanel.SetActive(true);
 
             UnitStatsSO baseData = currentSelectedUnit.statsManager.GetBaseData();
             unitNameText.text = baseData.unitName;
             unitIcon.sprite = baseData.unitIcon;
-
-            if (currentSelectedUnit.CompareTag("Enemy") || (currentSelectedUnit.CompareTag("NPC") 
-              && currentSelectedUnit.statsManager.IsMaxLevelUp()) )
-            {
-                upgradeButton.SetActive(false);
-            }
             
             currentSelectedUnit.statsManager.OnStatsUpdated += UpdateUI;
             currentSelectedUnit.health.OnHealthChanged += UpdateHealthUI;
@@ -76,6 +71,18 @@ namespace _Script.UI.UI_Script
             if (specialStats != null && specialStats.Count > 0)
             {
                 statsList.AddRange(specialStats);
+            }
+            
+            if (currentSelectedUnit.CompareTag("Enemy") || (currentSelectedUnit.CompareTag("NPC") 
+                                                            && currentSelectedUnit.statsManager.IsMaxLevelUp()) )
+            {
+                upgradeButton.SetActive(false);
+            }
+            else
+            {
+                upgradeButton.SetActive(true);
+                var upgradeButtonScript = upgradeButton.GetComponent<UpgradeButton>();
+                upgradeButtonScript.SetUpButton(currentSelectedUnit);
             }
 
             RenderDynamicStats(statsList);
@@ -113,13 +120,6 @@ namespace _Script.UI.UI_Script
                 }
             }
         }
-
-        public void Button_LevelUpClicked()
-        {
-            if (currentSelectedUnit != null)
-            {
-                currentSelectedUnit.statsManager.LevelUp();
-            }
-        }
+        
     }
 }

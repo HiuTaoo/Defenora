@@ -1,4 +1,4 @@
-﻿namespace _Script.Resourse
+﻿namespace _Script.Storage
 {
     public enum ResourceType
     {

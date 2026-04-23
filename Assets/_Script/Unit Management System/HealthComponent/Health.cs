@@ -11,6 +11,8 @@ namespace _Script.Unit_Management_System.HealthComponent
         public float CurrentHealth { get; private set; }
 
         public bool IsDead => CurrentHealth <= 0;
+        
+        private UnitStatsManager statsManager;
 
         public event Action<float, float> OnHealthChanged; 
         public event Action<float> OnTakeDamage;           
@@ -20,6 +22,7 @@ namespace _Script.Unit_Management_System.HealthComponent
         private void Awake()
         {
             CurrentHealth = maxHealth;
+            statsManager = transform.parent.GetComponentInChildren<UnitStatsManager>();
         }
 
         public void TakeDamage(float damage)
@@ -69,6 +72,31 @@ namespace _Script.Unit_Management_System.HealthComponent
         public bool IsFull()
         {
             return CurrentHealth == maxHealth;
+        }
+        
+        private void OnEnable()
+        {
+            if (statsManager != null)
+            {
+                statsManager.OnLevelUp += HandleLevelUp; 
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (statsManager != null)
+            {
+                statsManager.OnLevelUp -= HandleLevelUp; 
+            }
+        }
+
+        private void HandleLevelUp()
+        {
+            this.maxHealth = statsManager.MaxHealth; 
+        
+            this.CurrentHealth = this.maxHealth; 
+
+            OnHealthChanged?.Invoke(this.CurrentHealth, this.maxHealth);
         }
     }
 }

@@ -194,6 +194,7 @@ public class UnitManager : MonoBehaviour
     {
         return allUnits.Where(u => u.assignedBuilding == null 
                                    && u.CompareTag("NPC") 
+                                   && !u.CompareTag("Enemy") 
                                    && u.unitType != UnitType.Builder)
             .ToList();
     }

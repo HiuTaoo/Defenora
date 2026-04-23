@@ -79,9 +79,17 @@ namespace _Script.UI.UI_Script.PanelScript
                 UnitSlotUI slotUI = obj.GetComponent<UnitSlotUI>();
                 if (slotUI != null)
                 {
-                    slotUI.Setup(unit, AssignUnitToBuilding);
+                    slotUI.Setup(unit, ShowConfirmDialog);
                 }
             }
+        }
+
+        private void ShowConfirmDialog(Unit clickedUnit)
+        {
+            var str = $"Do you want to add {clickedUnit.unitType} to {currentSelectedBuilding.buildingType}?";
+    
+            // Dùng () => để tạo một hàm ẩn danh (không tham số) bọc cái hàm có tham số của bạn lại
+            ConfirmDialog.Instance.Show(str, () => AssignUnitToBuilding(clickedUnit));
         }
 
         private void AssignUnitToBuilding(Unit clickedUnit)
