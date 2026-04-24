@@ -50,10 +50,12 @@ namespace _Script.BT.Node.BuilderNode
                 if (added > 0)
                 {
                     builder.currentInventory.Remove(type, added);
-                    builder.currentTask.taskStatus = TaskStatus.Completed;
-                    TaskManager.Instance.RemoveTask(builder.currentTask);
-                    builder.ResetState();
                 }
+
+                builder.currentTask.taskStatus = TaskStatus.Completed;
+                TaskManager.Instance.RemoveTask(builder.currentTask);
+                builder.ResetState();
+                
             }
             
             isDepositing = false;

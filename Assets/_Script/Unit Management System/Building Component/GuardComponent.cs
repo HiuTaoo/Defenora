@@ -37,7 +37,7 @@ namespace _Script.Unit_Management_System.Building
             positionSpots = spots.ToArray();
         }
 
-        public void OnUnitAdded(Unit unit)
+        public void OnUnitAdded(global::Unit unit)
         {
             Vector3 spot = GetAvailableSpot();
             unit.transform.position = spot;
@@ -52,7 +52,7 @@ namespace _Script.Unit_Management_System.Building
                 });
         }
 
-        public void OnUnitRemoved(Unit unit)
+        public void OnUnitRemoved(global::Unit unit)
         {
             if (unit.unitType != UnitType.Archer)
                 return;

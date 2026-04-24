@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace _Script.Unit_Management_System.Enemy
 {
-    public class Barrel : Unit
+    public class Barrel : global::Unit
     {
         [Header("Explosion Settings")]
         public float explosionRadius = 2.5f;

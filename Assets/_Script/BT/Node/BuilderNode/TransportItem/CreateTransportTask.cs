@@ -26,6 +26,9 @@ namespace _Script.BT.Node.BuilderNode
 
             foreach (var building in buildings)
             {
+                if(building.buildingState != BuildingState.Completed)
+                    continue;
+                
                 if (!building.TryGetComponent(out global::Storage storage))
                     continue;
 

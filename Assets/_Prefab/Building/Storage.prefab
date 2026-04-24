@@ -342,7 +342,7 @@ MonoBehaviour:
     builders: []
   layerIndex: 0
   health: {fileID: 0}
-  maxStoreageCapacity: 100
+  maxStoreageCapacity: 3
   debugStorage: []
 --- !u!114 &659560381163937438
 MonoBehaviour:

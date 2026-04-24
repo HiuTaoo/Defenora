@@ -19,7 +19,7 @@ public class Item : MonoBehaviour
     private float height;
 
     private float elapsed;
-    private bool isDropping;
+    public bool isDropping;
 
     public void StartDrop(Vector3 start, Vector3 target, float dropDuration = 0.6f, float arcHeight = 1.5f)
     {
@@ -66,5 +66,15 @@ public class Item : MonoBehaviour
         }
 
         return false;
+    }
+    
+    public bool IsAvailableFor(Builder builder)
+    {
+        return assignBuilder == null || assignBuilder == builder;
+    }
+
+    public void ReserveFor(Builder builder)
+    {
+        assignBuilder = builder;
     }
 }

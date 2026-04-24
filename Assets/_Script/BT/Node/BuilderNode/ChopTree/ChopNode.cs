@@ -6,7 +6,7 @@ namespace _Script.BT.Node.BuilderNode
     public class ChopNode : BTActionNode
     {
         private Builder builder;
-        private float delay = 0.5f;
+        private float delay = 1f;
         private float timer = 0f;
         private bool isFinishing = false;
 

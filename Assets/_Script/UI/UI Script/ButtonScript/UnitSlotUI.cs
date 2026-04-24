@@ -44,9 +44,7 @@ namespace _Script.UI.UI_Script
 
         private void OnSlotClicked()
         {
-            // Tùy chọn: Nếu bạn không muốn kích hoạt sự kiện click bình thường 
-            // khi người chơi đã nhấn giữ đủ 2 giây, hãy bỏ comment dòng dưới đây:
-            // if (hasTriggeredHold) return; 
+            if (hasTriggeredHold) return; 
 
             if (currentUnit == null) return;
             onClickCallback?.Invoke(currentUnit); 
@@ -84,6 +82,13 @@ namespace _Script.UI.UI_Script
         private void OnHoldAction()
         {
             if(currentUnit == null || currentUnit.assignedBuilding == null) return;
+            
+            var str = $"Do you want to remove {currentUnit.unitType} from {currentUnit.assignedBuilding.buildingType}?";
+            ConfirmDialog.Instance.Show(str, RemoveUnit);
+        }
+
+        private void RemoveUnit()
+        {
             currentUnit.assignedBuilding.RemoveUnit(currentUnit);
         }
     }

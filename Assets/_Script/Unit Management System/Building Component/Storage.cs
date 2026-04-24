@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using _Script.Resourse;
 using _Script.Unit_Management_System.Building;
 using UnityEngine;
@@ -20,6 +21,8 @@ public class Storage : Building, IStorage
 
     private Dictionary<ResourceType, int> storage
         = new Dictionary<ResourceType, int>();
+    
+    public event Action OnContentChanged;
 
     private void Start()
     {
@@ -55,7 +58,8 @@ public class Storage : Building, IStorage
             storage[type] = 0;
 
         storage[type] += addAmount;
-
+        OnContentChanged?.Invoke();
+        
         SyncDebugView();
         return addAmount;
     }
@@ -68,10 +72,28 @@ public class Storage : Building, IStorage
         storage[type] -= removeAmount;
 
         if (storage[type] <= 0)
+        {
             storage.Remove(type);
+            OnContentChanged?.Invoke();
+        }
 
         SyncDebugView();
         return removeAmount;
+    }
+
+    private void DestroyStorage()
+    {
+        if (storage != null)
+        {
+            storage.Clear();            
+            SyncDebugView();            
+            OnContentChanged?.Invoke(); 
+        }
+    }
+    
+    public Dictionary<ResourceType, int> GetAllItems()
+    {
+        return new Dictionary<ResourceType, int>(storage);
     }
 
     public int GetAmount(ResourceType type)
@@ -86,6 +108,12 @@ public class Storage : Building, IStorage
     protected override void OnUnitRemoved(Unit unit)
     {
         GetComponent<GuardComponent>()?.OnUnitRemoved(unit);
+    }
+
+    protected override void HandleDeath()
+    {
+        base.HandleDeath();
+        DestroyStorage();
     }
 
     #region Debug Sync

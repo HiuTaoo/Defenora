@@ -5,146 +5,219 @@ using _Script.Resourse;
 using _Script.Storage;
 using UnityEngine;
 
-    public class Inventory : MonoBehaviour
+public class Inventory : MonoBehaviour
+{
+    public static Inventory Instance;
+    [Header("Debug View")]
+    [SerializeField] private List<InventoryEntry> debugItems = new List<InventoryEntry>();
+
+    private Dictionary<ResourceType, int> _cachedTotalItems = new Dictionary<ResourceType, int>();
+    private int _cachedMaxCapacity;
+    private int _cachedCurrentCapacity;
+    private bool _isDirty = true; 
+
+    private List<Storage> _activeStorages = new List<Storage>();
+
+    public int MaxCapacity { get { CheckRefresh(); return _cachedMaxCapacity; } }
+    public int CurrentCapacity { get { CheckRefresh(); return _cachedCurrentCapacity; } }
+
+    private void Awake()
     {
-        public int maxCapacity;
-        [Header("Debug View (Read Only)")]
-        [SerializeField] private List<InventoryEntry> debugItems = new List<InventoryEntry>();
-
-        private Dictionary<ResourceType, int> items
-            = new Dictionary<ResourceType, int>();
-
-        public int MaxCapacity => UnitManager.Instance.buildings
-            .Where(b => b.buildingType == BuildingType.Storage) 
-            .Sum(b => b.maxCapacity);
-
-        public int CurrentCapacity
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+    }
+    
+    private void Start()
+    {
+        Invoke(nameof(RefreshStorageSubscriptions), 3.0f);
+    }
+    
+    private void Update()
+    {
+        if (_isDirty)
         {
-            get
+            CheckRefresh();
+        }
+    }
+
+    public void RefreshStorageSubscriptions()
+    {
+        if (UnitManager.Instance == null)
+        {
+            return;
+        }
+    
+        if (UnitManager.Instance.buildings == null)
+        {
+            return;
+        }
+
+        foreach (var s in _activeStorages) s.OnContentChanged -= SetDirty;
+
+        _activeStorages = UnitManager.Instance.buildings
+            .OfType<Storage>()
+            .Where(b => b.buildingState == BuildingState.Completed)
+            .ToList();
+
+        foreach (var s in _activeStorages)
+        {
+            s.OnContentChanged += SetDirty;
+            Debug.Log($"[Inventory-CHECK 3] Đã đăng ký thành công sự kiện cho kho: {s.gameObject.name}");
+        }
+    
+        SetDirty();
+    }
+
+    private void SetDirty()
+    {
+        _isDirty = true;
+    }
+
+    private void CheckRefresh()
+    {
+        if (_isDirty) RebuildCache();
+    }
+
+    private void RebuildCache()
+    {
+        _cachedTotalItems.Clear();
+        _cachedMaxCapacity = 0;
+        _cachedCurrentCapacity = 0;
+
+        foreach (var storage in _activeStorages)
+        {
+            _cachedMaxCapacity += storage.maxStoreageCapacity;
+            
+            foreach (var pair in storage.GetAllItems())
             {
-                int total = 0;
-                foreach (var pair in items)
-                    total += pair.Value;
-                return total;
+                if (!_cachedTotalItems.ContainsKey(pair.Key))
+                    _cachedTotalItems[pair.Key] = 0;
+                
+                _cachedTotalItems[pair.Key] += pair.Value;
+                _cachedCurrentCapacity += pair.Value;
             }
         }
 
-        public bool IsFull => CurrentCapacity >= MaxCapacity;
-        public bool IsEmpty => CurrentCapacity == 0;
+        _isDirty = false;
+        SyncDebugView();
+        Debug.Log("[Inventory] Cache đã được làm mới!");
+    }
 
-        private void Update()
+    public Dictionary<ResourceType, int> GetAll()
+    {
+        CheckRefresh();
+        return new Dictionary<ResourceType, int>(_cachedTotalItems);
+    }
+    
+
+    #region Core Methods - Điều phối Storage
+
+    public int Add(ResourceType type, int amount)
+    {
+        if (amount <= 0) return 0;
+
+        int remainingAmount = amount;
+
+        foreach (var storage in _activeStorages)
         {
-            maxCapacity = MaxCapacity;
+            if (remainingAmount <= 0) break;
+
+            if (storage.CanStore(type, 1)) 
+            {
+                int added = storage.Add(type, remainingAmount);
+                remainingAmount -= added;
+            }
         }
 
-        #region Core Methods
+        return amount - remainingAmount; 
+    }
 
-        public int Add(ResourceType type, int amount)
+    public int Remove(ResourceType type, int amount)
+    {
+        int remainingToTake = amount;
+
+        foreach (var storage in _activeStorages)
         {
-            if (amount <= 0) return 0;
+            if (remainingToTake <= 0) break;
 
-            int spaceLeft = MaxCapacity - CurrentCapacity;
-            int addAmount = Mathf.Min(spaceLeft, amount);
-
-            if (addAmount <= 0) return 0;
-
-            if (!items.ContainsKey(type))
-                items[type] = 0;
-
-            items[type] += addAmount;
-
-            SyncDebugView();
-            return addAmount;
+            int amountInStorage = storage.GetAmount(type);
+            if (amountInStorage > 0)
+            {
+                int removed = storage.Remove(type, remainingToTake);
+                remainingToTake -= removed;
+            }
         }
 
-        public int Remove(ResourceType type, int amount)
+        return amount - remainingToTake; 
+    }
+
+    public int GetAmount(ResourceType type)
+    {
+        return _activeStorages.Sum(s => s.GetAmount(type));
+    }
+
+    #endregion
+
+    #region Advanced Query
+
+    public bool TryTakeOneStack(out ResourceType type, out int amount)
+    {
+        foreach (var storage in _activeStorages)
         {
-            if (!items.ContainsKey(type)) return 0;
-
-            int removeAmount = Mathf.Min(items[type], amount);
-            items[type] -= removeAmount;
-
-            if (items[type] <= 0)
-                items.Remove(type);
-
-            SyncDebugView();
-            return removeAmount;
-        }
-
-        public bool TryTakeOneStack(out ResourceType type, out int amount)
-        {
-            foreach (var pair in items)
+            var itemsInStorage = storage.GetAllItems();
+            foreach (var pair in itemsInStorage)
             {
                 type = pair.Key;
                 amount = pair.Value;
                 return true;
             }
-
-            type = default;
-            amount = 0;
-            return false;
-        }
-        
-        public bool TryGetMostAbundant(out ResourceType type)
-        {
-            type = ResourceType.None;
-
-            if (items.Count == 0)
-                return false;
-
-            /*foreach (var pair in items)
-            {
-                Debug.Log($"Inventory contains: {pair.Key} x{pair.Value}");
-            }*/
-
-            int maxAmount = int.MinValue;
-
-            foreach (var pair in items)
-            {
-                if (pair.Value > maxAmount)
-                {
-                    maxAmount = pair.Value;
-                    type = pair.Key;
-                }
-            }
-
-            //Debug.Log($"Most abundant selected: {type}");
-            return true;
         }
 
-        public int GetAmount(ResourceType type)
-        {
-            return items.TryGetValue(type, out int value) ? value : 0;
-        }
-
-        public Dictionary<ResourceType, int> GetAll()
-        {
-            return new Dictionary<ResourceType, int>(items);
-        }
-
-        public void Clear()
-        {
-            items.Clear();
-            SyncDebugView();
-        }
-
-        #endregion
-
-        #region Debug Sync
-
-        private void SyncDebugView()
-        {
-            debugItems.Clear();
-
-            foreach (var pair in items)
-            {
-                debugItems.Add(new InventoryEntry
-                {
-                    type = pair.Key,
-                    amount = pair.Value
-                });
-            }
-        }
-
-        #endregion
+        type = default;
+        amount = 0;
+        return false;
     }
+    
+    public bool TryGetMostAbundant(out ResourceType type)
+    {
+        type = ResourceType.None;
+        var allItems = GetAll();
+
+        if (allItems.Count == 0) return false;
+
+        int maxAmount = int.MinValue;
+
+        foreach (var pair in allItems)
+        {
+            if (pair.Value > maxAmount)
+            {
+                maxAmount = pair.Value;
+                type = pair.Key;
+            }
+        }
+
+        return true;
+    }
+
+    #endregion
+
+    #region Debug Sync
+
+    private void SyncDebugView()
+    {
+        debugItems.Clear();
+        
+        foreach (var pair in _cachedTotalItems)
+        {
+            debugItems.Add(new InventoryEntry
+            {
+                type = pair.Key,
+                amount = pair.Value
+            });
+        }
+    }
+
+    #endregion
+}

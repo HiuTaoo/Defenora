@@ -45,6 +45,88 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitData: {fileID: 11400000, guid: 57ca7f0a6b75bf8448d504cf242683f3, type: 2}
+--- !u!1 &3405907980869787621
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4311823781005159656}
+  - component: {fileID: 3795309847153274424}
+  - component: {fileID: 1384013943028296088}
+  m_Layer: 10
+  m_Name: Builder Pick Up Item
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4311823781005159656
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3405907980869787621}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3994323704272870010}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &3795309847153274424
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3405907980869787621}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 1
+--- !u!114 &1384013943028296088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3405907980869787621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad1992aba9f44fd9a1890b83f5858c00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pickupRadius: 0.5656
+  scanInterval: 0.05
 --- !u!1 &4175003084946207960
 GameObject:
   m_ObjectHideFlags: 0
@@ -174,6 +256,7 @@ Transform:
   - {fileID: 4529321241409971695}
   - {fileID: 2996283553820869325}
   - {fileID: 923117026244740957}
+  - {fileID: 4311823781005159656}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1345350723061293064
@@ -359,6 +442,7 @@ MonoBehaviour:
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -501,7 +585,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2996283553820869325}
-  - component: {fileID: 256425167450453000}
+  - component: {fileID: 9001087790412517113}
   m_Layer: 12
   m_Name: Inventory
   m_TagString: Untagged
@@ -524,7 +608,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3994323704272870010}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &256425167450453000
+--- !u!114 &9001087790412517113
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -533,10 +617,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 7113368161375225473}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90f458ef9e994dae9ffa422b05721d6f, type: 3}
+  m_Script: {fileID: 11500000, guid: 792201de7b7a4147a3b65271563ec7da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxCapacity: 2
+  maxCapacity: 10
   debugItems: []
 --- !u!1 &8488806960564834416
 GameObject:

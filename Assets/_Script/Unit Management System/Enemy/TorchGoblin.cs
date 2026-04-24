@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace _Script.Unit_Management_System.Enemy
 {
-    public class TorchGoblin: Unit
+    public class TorchGoblin: global::Unit
     {
         [Header("Torch Goblin Stat")] 
         public EnemyDirection enemyDirection;

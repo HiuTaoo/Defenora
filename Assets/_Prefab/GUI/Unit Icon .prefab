@@ -134,6 +134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c85f6651e4042a9b15dfa1f582e782c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  holdRequiredTime: 0.5
   unitIcon: {fileID: 5277566795173534713}
   clickButton: {fileID: 2153727199978615384}
 --- !u!1 &6022096826814615710

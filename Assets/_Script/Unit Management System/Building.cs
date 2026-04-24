@@ -67,7 +67,7 @@ public abstract class Building : MonoBehaviour, IBuildable
         buildingName = gameObject.name;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         UpdateAnimation();
 
@@ -152,93 +152,6 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         Debug.Log($"[Building] Created BuildStructure task for {buildingName}");
     }
-
-
-    /*#region Unit Management
-    public bool CanAddUnit(Unit unit)
-    {
-        if (currentCapacity >= maxCapacity)
-        {
-            Debug.Log($"Trạm {buildingName} đã đầy!");
-            return false;
-        }
-        if (unit.unitType == UnitType.Builder && buildingType != BuildingType.WorkShop)
-            return false;
-
-        if (unit.unitType != UnitType.Builder && buildingType == BuildingType.WorkShop)
-            return false;
-
-        return !stationedUnits.Contains(unit);
-    }
-
-    public virtual void AddUnit(Unit unit)
-    {
-        stationedUnits.Add(unit);
-        unit.floorAgent.MoveToFloor(LayerIndex);
-        unit.assignedBuilding = this;
-        currentCapacity++;
-
-        Debug.Log($"Register {unit.name} to Building: {this.name}");
-
-        if (GameLoop.Instance.StateMachine.CurrentState is EditorState)
-            RegisterUnitPosition(unit);
-
-        unit.currentState = UnitState.Stationed;
-        //unit.floorAgent.MoveToFloor(LayerIndex);
-    }
-
-    private void RegisterUnitPosition(Unit unit)
-    {
-        if (unit.unitType == UnitType.Archer)
-        {
-            Vector3 spot = GetAvailableSpot();
-            if (spot != null)
-            {
-                unit.transform.position = spot;
-                unit.spriteRenderer.sortingOrder = spriteRenderer.sortingOrder + 10;
-
-                listArcherPositions.Add(new SpotData
-                {
-                    position = spot,
-                    unitName = unit.gameObject.name
-                });
-            }
-        }
-        else
-        {
-            Vector3 availableSpot = GetRandomPositionAroundBuilding();
-            if (availableSpot != null)
-            {
-                unit.transform.position = availableSpot;
-            }
-        }
-    }
-
-    public virtual bool RemoveUnit(Unit unit)
-    {
-        if (stationedUnits.Contains(unit))
-        {
-            stationedUnits.Remove(unit);
-            unit.currentState = UnitState.Idle;
-            unit.assignedBuilding = null;
-            currentCapacity--;
-
-            if (unit.unitType == UnitType.Archer)
-            {
-                int index = listArcherPositions.FindIndex(s => s.unitName == unit.unitName);
-                if (index >= 0)
-                {
-                    var removed = listArcherPositions[index];
-                    listArcherPositions.RemoveAt(index);
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    
-    #endregion*/
     
     #region Unit Management
     public virtual bool CanAddUnit(Unit unit)
@@ -526,6 +439,11 @@ public abstract class Building : MonoBehaviour, IBuildable
         {
             currentTask.Complete();
             currentTask = null;
+        }
+        
+        if (buildingType == BuildingType.Storage)
+        {
+            Inventory.Instance.RefreshStorageSubscriptions();
         }
 
         OnBuiltObject?.Invoke(this);

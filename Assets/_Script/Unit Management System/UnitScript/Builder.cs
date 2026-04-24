@@ -52,14 +52,14 @@ public class Builder : Unit
     
     private IChoppable currentTarget;
     [Header("Inventory")]
-    public Inventory currentInventory;
+    public UnitInventory currentInventory;
 
     protected override void Awake()
     {
         base.Awake();
         bt = CreateBuilderBT(this);
         builderBlackBoard = new BuilderBlackBoard();
-        currentInventory = GetComponentInChildren<Inventory>();
+        currentInventory = GetComponentInChildren<UnitInventory>();
     }
     
     protected override void Update()
@@ -88,6 +88,15 @@ public class Builder : Unit
             new ChopNode(builder)
         );
         
+        var emergencyTransportSequence = new SequenceNode(
+            new HasItemInInventoryNode(builder),
+            new CreateTransportTask(builder),
+            new AssignTaskNode(builder),
+            new CheckPathToFrontTargetNode(builder),
+            new MoveToTargetNode(builder),
+            new TransportItemNode(builder)
+        );
+
         var transportItemSequence = new SequenceNode(
             new HasItemInInventoryNode(builder),
             new CreateTransportTask(builder),
@@ -95,7 +104,7 @@ public class Builder : Unit
             new CheckPathToFrontTargetNode(builder),
             new MoveToTargetNode(builder),
             new TransportItemNode(builder)
-            );
+        );
 
         var clearObstacleLoop = new RepeatUntilFailureNode(
             new SequenceNode(
@@ -135,14 +144,14 @@ public class Builder : Unit
         var root = new SelectorNode(
             new SequenceNode(
                 new IsInventoryFullNode(builder),
-                transportItemSequence
+                emergencyTransportSequence
             ),
+            //collectItemSequence,
             repairStuctureSequence,
-            collectItemSequence,
             new SelectorNode(
                 buildStructureSequence,
                 chopTreeSequence
-            ),
+            ),           
             transportItemSequence,
             idleSequence
             //new IdleNode(builder)
@@ -359,14 +368,18 @@ public class Builder : Unit
     #region Methods
     public Item FindItemAround()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 1f);
+        var size = Physics2D.OverlapCircleNonAlloc(transform.position, 1.5f, results);
 
-        foreach (var hit in hits)
+        for (int i = 0; i < size; i++)
         {
-            if (hit.TryGetComponent<Item>(out Item item))
+            var hit = results[i];
+
+            if (hit != null && hit.TryGetComponent<Item>(out Item item))
             {
-                if(item.TryJoin(this) || item.assignBuilder == this)
+                if (item.TryJoin(this) || item.assignBuilder == this)
+                {
                     return item;
+                }
             }
         }
         return null;
@@ -558,8 +571,6 @@ public class Builder : Unit
         var spawnedObj = PoolManager.Instance.Spawn(obj, 
             worldPosition, Quaternion.identity);
         
-        
-
         if (worldPosition.x > transform.position.x)
             spawnedObj.transform.localScale = new Vector3(-1, 1, 1);
         
