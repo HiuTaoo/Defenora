@@ -24,6 +24,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     [Header("Load Optimization")]
     public int objectsPerFrame = 50; 
     public bool useObjectPooling = true;
+    public int backgroundObjectsPerFrame = 2;
     public bool loadAsync = true;
 
     private Transform decorObjectParent;
@@ -98,18 +99,15 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         string json = File.ReadAllText(saveFilePath);
         GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
 
+        // 1. Load các Saveable cơ bản (Unit, Building) trước
         foreach (var saveAble in saveables)
         {
             saveAble.LoadFromSaveData(saveData);
             yield return null; 
         }
 
-        yield return StartCoroutine(LoadSpawnDataOptimized(saveData));
-
-        UnitManager.Instance.UpdateGraphNodeWhenStart();
-
-        Debug.Log($"Game loaded asynchronously from {saveFilePath}");
-        OnLoaded?.Invoke();
+        // 2. CHẠY HỆ THỐNG LOAD TỪNG Ô (Thay thế toàn bộ logic cũ)
+        yield return StartCoroutine(LoadSpawnDataGridBased(saveData.objectSpawnData));
     }
 
     public void LoadGame()
@@ -351,140 +349,160 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             }
         }
     }
-
-    public IEnumerator LoadSpawnDataOptimized(GameSaveData gameSaveData)
+    
+    private IEnumerator LoadSpawnDataGridBased(ObjectSpawnData saveData)
     {
-        if (gameSaveData?.objectSpawnData == null)
+        if (saveData == null) yield break;
+
+        Dictionary<Vector2Int, List<System.Action<bool>>> regionTasks =
+            new Dictionary<Vector2Int, List<System.Action<bool>>>();
+
+        void AddTaskToRegion(Vector3 pos, System.Action<bool> loadTask)
         {
-            Debug.LogError("Failed to load spawn data: objectSpawnData is null");
-            yield break;
+            if (RegionManager.Instance == null)
+            {
+                Debug.LogError("RegionManager.Instance is null. Cannot group decor objects by region.");
+                return;
+            }
+
+            Vector2Int key = RegionManager.Instance.GetRegionKey(pos);
+
+            if (!RegionManager.Instance.HasRegion(key))
+            {
+                Debug.LogWarning($"Object at {pos} is outside map region. Region key: {key}");
+                return;
+            }
+
+            if (!regionTasks.ContainsKey(key))
+                regionTasks[key] = new List<System.Action<bool>>();
+
+            regionTasks[key].Add(loadTask);
         }
-
-        ObjectSpawnData saveData = gameSaveData.objectSpawnData;
-        ObjectSpawner.Instance.ClearAllObjects();
-
-        int processedCount = 0;
 
         foreach (var layerData in saveData.layerData)
         {
-            yield return StartCoroutine(LoadLayerWithErrorHandling(layerData));
+            int currentLayerIndex = layerData.layerIndex;
 
-            processedCount++;
-            if (processedCount % 2 == 0) 
-                yield return null;
-        }
-    }
+            List<TreeCluster> clusters = new List<TreeCluster>();
+            foreach (var clusterData in layerData.clusters)
+                clusters.Add(clusterData.ToTreeCluster());
 
-    private IEnumerator LoadLayerWithErrorHandling(LayerSpawnData layerData)
-    {
-        bool success = false;
-        try
-        {
-            yield return StartCoroutine(LoadLayerDataOptimized(layerData));
-            success = true;
-        }
-        finally
-        {
-            if (!success)
+            ObjectSpawner.Instance.layerClusters[currentLayerIndex] = clusters;
+            ObjectSpawner.Instance.spawnedTrees[currentLayerIndex] = new List<SpawnedTree>();
+            ObjectSpawner.Instance.spawnedBushes[currentLayerIndex] = new List<SpawnedBush>();
+            ObjectSpawner.Instance.spawnedRocks[currentLayerIndex] = new List<SpawnedRock>();
+            ObjectSpawner.Instance.spawnedAnimals[currentLayerIndex] = new List<SpawnedAnimal>();
+
+            var currentClustersRef = ObjectSpawner.Instance.layerClusters[currentLayerIndex];
+
+            foreach (var data in layerData.trees)
             {
-                Debug.LogError($"Failed to load layer data for layer {layerData?.layerIndex}");
+                Vector3 worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
+
+                AddTaskToRegion(worldPos, (isHidden) =>
+                {
+                    var obj = LoadTree(data, currentClustersRef, isHidden);
+                    if (obj != null)
+                        ObjectSpawner.Instance.spawnedTrees[currentLayerIndex].Add(obj);
+                });
+            }
+
+            foreach (var data in layerData.bushes)
+            {
+                Vector3 worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
+
+                AddTaskToRegion(worldPos, (isHidden) =>
+                {
+                    var obj = LoadBush(data, currentClustersRef, isHidden);
+                    if (obj != null)
+                        ObjectSpawner.Instance.spawnedBushes[currentLayerIndex].Add(obj);
+                });
+            }
+
+            foreach (var data in layerData.rocks)
+            {
+                Vector3 worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
+
+                AddTaskToRegion(worldPos, (isHidden) =>
+                {
+                    var obj = LoadRock(data, currentClustersRef, isHidden);
+                    if (obj != null)
+                        ObjectSpawner.Instance.spawnedRocks[currentLayerIndex].Add(obj);
+                });
+            }
+
+            foreach (var data in layerData.animals)
+            {
+                Vector3 worldPos = data.currentPosition;
+
+                AddTaskToRegion(worldPos, (isHidden) =>
+                {
+                    var obj = LoadAnimal(data, isHidden);
+                    if (obj != null)
+                        ObjectSpawner.Instance.spawnedAnimals[currentLayerIndex].Add(obj);
+                });
             }
         }
-    }
 
-    public void LoadSpawnData(GameSaveData gameSaveData)
-    {
-        if (loadAsync)
-        {
-            StartCoroutine(LoadSpawnDataOptimized(gameSaveData));
-            return;
-        }
+        yield return new WaitForEndOfFrame();
 
-        try
-        {
-            ObjectSpawnData saveData = gameSaveData.objectSpawnData;
-            ObjectSpawner.Instance.ClearAllObjects();
+        List<Vector2Int> firstRegionKeys = RegionManager.Instance.GetRegionKeysAroundCamera(true);
 
-            foreach (var layerData in saveData.layerData)
-            {
-                LoadLayerData(layerData);
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Failed to load spawn data: {e.Message}");
-        }
-    }
+        Vector2 cameraPos = Camera.main != null
+            ? (Vector2)Camera.main.transform.position
+            : Vector2.zero;
 
-    private IEnumerator LoadLayerDataOptimized(LayerSpawnData layerData)
-    {
-        int layerIndex = layerData.layerIndex;
+        List<Vector2Int> remainingRegionKeys = regionTasks.Keys
+            .Where(key => !firstRegionKeys.Contains(key))
+            .OrderBy(key => ((Vector2)RegionManager.Instance.GetRegionCenter(key) - cameraPos).sqrMagnitude)
+            .ToList();
 
-        #region Load Clusters
-        List<TreeCluster> clusters = new List<TreeCluster>();
-        foreach (var clusterData in layerData.clusters)
-        {
-            clusters.Add(clusterData.ToTreeCluster());
-        }
-        ObjectSpawner.Instance.layerClusters[layerIndex] = clusters;
-        #endregion
-
-        yield return StartCoroutine(LoadObjectsOptimized<SpawnedTreeData, SpawnedTree>(
-            layerData.trees,
-            (data) => LoadTree(data, clusters),
-            (list) => ObjectSpawner.Instance.spawnedTrees[layerIndex] = list));
-
-        yield return StartCoroutine(LoadObjectsOptimized<SpawnedBushData, SpawnedBush>(
-            layerData.bushes,
-            (data) => LoadBush(data, clusters),
-            (list) => ObjectSpawner.Instance.spawnedBushes[layerIndex] = list));
-
-        yield return StartCoroutine(LoadObjectsOptimized<SpawnedRockData, SpawnedRock>(
-            layerData.rocks,
-            (data) => LoadRock(data, clusters),
-            (list) => ObjectSpawner.Instance.spawnedRocks[layerIndex] = list));
-
-        yield return StartCoroutine(LoadObjectsOptimized<SpawnedAnimalData, SpawnedAnimal>(
-            layerData.animals,
-            (data) => LoadAnimal(data),
-            (list) => ObjectSpawner.Instance.spawnedAnimals[layerIndex] = list));
-    }
-
-    private IEnumerator LoadObjectsOptimized<TData, TObject>(
-        List<TData> dataList,
-        System.Func<TData, TObject> loadFunction,
-        System.Action<List<TObject>> setResult)
-    {
-        List<TObject> objects = new List<TObject>();
         int processedCount = 0;
 
-        foreach (var data in dataList)
+        foreach (var key in firstRegionKeys)
         {
-            TObject obj = default(TObject);
-            try
-            {
-                obj = loadFunction(data);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Failed to load object: {e.Message}");
+            if (!regionTasks.ContainsKey(key))
                 continue;
-            }
 
-            if (obj != null)
+            foreach (var loadTask in regionTasks[key])
             {
-                objects.Add(obj);
-            }
+                loadTask.Invoke(false);
 
-            processedCount++;
-            if (processedCount >= objectsPerFrame)
-            {
-                processedCount = 0;
-                yield return null; 
+                processedCount++;
+                if (processedCount >= objectsPerFrame * 2)
+                {
+                    processedCount = 0;
+                    yield return null;
+                }
             }
         }
 
-        setResult(objects);
+        UnitManager.Instance.UpdateGraphNodeWhenStart();
+
+        Debug.Log($"[Phase 1] Loaded {firstRegionKeys.Count} regions around camera.");
+        OnLoaded?.Invoke();
+
+        processedCount = 0;
+
+        foreach (var key in remainingRegionKeys)
+        {
+            if (!regionTasks.ContainsKey(key))
+                continue;
+
+            foreach (var loadTask in regionTasks[key])
+            {
+                loadTask.Invoke(true);
+
+                processedCount++;
+                if (processedCount >= backgroundObjectsPerFrame)
+                {
+                    processedCount = 0;
+                    yield return null;
+                }
+            }
+        }
+
+        Debug.Log("[Phase 2] Finished loading remaining regions.");
     }
 
     private void LoadLayerData(LayerSpawnData layerData)
@@ -554,7 +572,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     }
 
     #region Load Object Methods
-    private SpawnedTree LoadTree(SpawnedTreeData treeData, List<TreeCluster> clusters)
+    private SpawnedTree LoadTree(SpawnedTreeData treeData, List<TreeCluster> clusters, bool startHidden = false)
     {
         if (treeData.prefabIndex < 0 || treeData.prefabIndex >= PrefabConfig.Instance.treePrefabs.Length)
         {
@@ -568,6 +586,29 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject treeObj = PoolManager.Instance.Spawn(treePrefab, worldPosition, Quaternion.identity);
         treeObj.transform.SetParent(this.transform);
         treeObj.transform.SetParent(decorObjectParent);
+        
+        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
+        var sr = treeObj.GetComponent<SpriteRenderer>();
+        if (sr != null) sr.enabled = !startHidden;
+
+        var anim = treeObj.GetComponent<Animator>();
+        if (anim != null) anim.enabled = !startHidden;
+
+        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
+        var regionObj = treeObj.GetComponent<RegionObject>();
+        if (regionObj != null) 
+        {
+            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
+            regionObj.UpdateRegion(); 
+
+            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
+            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
+            var currentRegion = RegionManager.Instance.GetRegionAtPosition(treeObj.transform.position);
+            if (currentRegion != null && currentRegion.isActive)
+            {
+                regionObj.OnRegionActivated();
+            }
+        }
 
         if (treeObj.TryGetComponent<Tree>(out Tree treeComponent))
         {
@@ -605,7 +646,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         return new SpawnedTree(treeComponent, treeData.gridPosition, treeData.layerIndex, parentCluster);
     }
 
-    private SpawnedBush LoadBush(SpawnedBushData bushData, List<TreeCluster> clusters)
+    private SpawnedBush LoadBush(SpawnedBushData bushData, List<TreeCluster> clusters, bool startHidden = false)
     {
         if (bushData.prefabIndex < 0 || bushData.prefabIndex >= PrefabConfig.Instance.bushPrefabs.Length)
         {
@@ -619,6 +660,29 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject bushObj = PoolManager.Instance.Spawn(bushPrefab, worldPosition, Quaternion.identity);
         bushObj.transform.SetParent(this.transform);
         bushObj.transform.SetParent(decorObjectParent);
+        
+        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
+        var sr = bushObj.GetComponent<SpriteRenderer>();
+        if (sr != null) sr.enabled = !startHidden;
+
+        var anim = bushObj.GetComponent<Animator>();
+        if (anim != null) anim.enabled = !startHidden;
+
+        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
+        var regionObj = bushObj.GetComponent<RegionObject>();
+        if (regionObj != null) 
+        {
+            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
+            regionObj.UpdateRegion(); 
+
+            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
+            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
+            var currentRegion = RegionManager.Instance.GetRegionAtPosition(bushObj.transform.position);
+            if (currentRegion != null && currentRegion.isActive)
+            {
+                regionObj.OnRegionActivated();
+            }
+        }
 
         if (bushObj.TryGetComponent<Bush>(out Bush bushComponent))
         {
@@ -637,7 +701,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         return new SpawnedBush(bushObj, bushData.gridPosition, bushData.layerIndex, parentCluster);
     }
 
-    private SpawnedRock LoadRock(SpawnedRockData rockData, List<TreeCluster> clusters)
+    private SpawnedRock LoadRock(SpawnedRockData rockData, List<TreeCluster> clusters, bool startHidden = false)
     {
         if (rockData.prefabIndex < 0 || rockData.prefabIndex >= PrefabConfig.Instance.rockPrefabs.Length)
         {
@@ -651,6 +715,29 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject rockObj = PoolManager.Instance.Spawn(rockPrefab, worldPosition, Quaternion.identity);
         rockObj.transform.SetParent(this.transform);
         rockObj.transform.SetParent(decorObjectParent);
+        
+        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
+        var sr = rockObj.GetComponent<SpriteRenderer>();
+        if (sr != null) sr.enabled = !startHidden;
+
+        var anim = rockObj.GetComponent<Animator>();
+        if (anim != null) anim.enabled = !startHidden;
+
+        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
+        var regionObj = rockObj.GetComponent<RegionObject>();
+        if (regionObj != null) 
+        {
+            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
+            regionObj.UpdateRegion(); 
+
+            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
+            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
+            var currentRegion = RegionManager.Instance.GetRegionAtPosition(rockObj.transform.position);
+            if (currentRegion != null && currentRegion.isActive)
+            {
+                regionObj.OnRegionActivated();
+            }
+        }
 
         if (rockObj.TryGetComponent<Rock>(out Rock rockComponent))
         {
@@ -677,7 +764,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         return new SpawnedRock(rockObj, rockData.gridPosition, rockData.layerIndex, parentCluster);
     }
 
-    private SpawnedAnimal LoadAnimal(SpawnedAnimalData animalData)
+    private SpawnedAnimal LoadAnimal(SpawnedAnimalData animalData, bool startHidden = false)
     {
         if (animalData.prefabIndex < 0 || animalData.prefabIndex >= PrefabConfig.Instance.animalPrefabs.Length)
         {
@@ -689,6 +776,29 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject animalObj = PoolManager.Instance.Spawn(animalPrefab, animalData.currentPosition, Quaternion.identity);
         animalObj.transform.SetParent(this.transform);
         animalObj.transform.SetParent(decorObjectParent);
+        
+        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
+        var sr = animalObj.GetComponent<SpriteRenderer>();
+        if (sr != null) sr.enabled = !startHidden;
+
+        var anim = animalObj.GetComponent<Animator>();
+        if (anim != null) anim.enabled = !startHidden;
+
+        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
+        var regionObj = animalObj.GetComponent<RegionObject>();
+        if (regionObj != null) 
+        {
+            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
+            regionObj.UpdateRegion(); 
+
+            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
+            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
+            var currentRegion = RegionManager.Instance.GetRegionAtPosition(animalObj.transform.position);
+            if (currentRegion != null && currentRegion.isActive)
+            {
+                regionObj.OnRegionActivated();
+            }
+        }
 
         if (animalObj.TryGetComponent<Animal>(out Animal animalComponent))
         {
@@ -741,5 +851,28 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
     }
     #endregion
+    #endregion
+
+    #region Helper
+    private Bounds GetCameraBounds()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return new Bounds(Vector3.zero, new Vector3(100, 100, 0));
+
+        float cameraSize = cam.orthographicSize;
+        float cameraAspect = cam.aspect;
+        float cullingBuffer = 20f; 
+
+        return new Bounds(
+            cam.transform.position,
+            new Vector3(
+                (cameraSize * cameraAspect + cullingBuffer) * 2f,
+                (cameraSize + cullingBuffer) * 2f,
+                0f
+            )
+        );
+    }
+    
+
     #endregion
 }

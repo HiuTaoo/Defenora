@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RegionManager : MonoBehaviour
@@ -115,7 +116,7 @@ public class RegionManager : MonoBehaviour
         }
     }
 
-    Vector2Int GetRegionKey(Vector2 worldPosition)
+    public Vector2Int GetRegionKey(Vector2 worldPosition)
     {
         Vector2 localPos = worldPosition - (mapCenter - mapSize * 0.5f);
         int x = Mathf.FloorToInt(localPos.x / regionSize.x);
@@ -170,6 +171,79 @@ public class RegionManager : MonoBehaviour
         }
 
         activeRegionKeys = newActiveRegions;
+    }
+    
+    public bool HasRegion(Vector2Int key)
+    {
+        return regions.ContainsKey(key);
+    }
+
+    public MapRegion GetRegion(Vector2Int key)
+    {
+        return regions.TryGetValue(key, out MapRegion region) ? region : null;
+    }
+
+    public Vector2 GetRegionCenter(Vector2Int key)
+    {
+        if (regions.TryGetValue(key, out MapRegion region))
+            return region.bounds.center;
+
+        return Vector2.zero;
+    }
+
+    public List<Vector2Int> GetRegionKeysAroundCamera(bool includeBuffer = true)
+    {
+        if (mainCamera == null)
+            mainCamera = Camera.main;
+
+        List<Vector2Int> result = new List<Vector2Int>();
+
+        if (mainCamera == null)
+            return result;
+
+        Vector2 cameraPos = mainCamera.transform.position;
+        float cameraSize = mainCamera.orthographicSize;
+        float cameraAspect = mainCamera.aspect;
+
+        float buffer = includeBuffer ? cullingBuffer : 0f;
+
+        Rect cameraRect = new Rect(
+            cameraPos.x - cameraSize * cameraAspect - buffer,
+            cameraPos.y - cameraSize - buffer,
+            cameraSize * cameraAspect * 2f + buffer * 2f,
+            cameraSize * 2f + buffer * 2f
+        );
+
+        foreach (var kvp in regions)
+        {
+            Vector2Int key = kvp.Key;
+            MapRegion region = kvp.Value;
+
+            Rect regionRect = new Rect(
+                region.bounds.min.x,
+                region.bounds.min.y,
+                region.bounds.size.x,
+                region.bounds.size.y
+            );
+
+            if (cameraRect.Overlaps(regionRect))
+            {
+                result.Add(key);
+            }
+        }
+
+        result = result
+            .OrderBy(key => ((Vector2)GetRegionCenter(key) - cameraPos).sqrMagnitude)
+            .ToList();
+
+        return result;
+    }
+
+    public List<Vector2Int> GetAllRegionKeysOrderedByDistance(Vector2 position)
+    {
+        return regions.Keys
+            .OrderBy(key => ((Vector2)GetRegionCenter(key) - position).sqrMagnitude)
+            .ToList();
     }
 
     void OnDrawGizmos()
