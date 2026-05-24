@@ -9,7 +9,7 @@ public class FloorEnvironmentObject : MonoBehaviour
     private void Start()
     {
         Collider2D col = GetComponent<Collider2D>();
-        if (col != null)
+        if (col != null && FloorCollisionManager.Instance != null)
         {
             FloorCollisionManager.Instance.RegisterCollider(col, floorIndex);
         }

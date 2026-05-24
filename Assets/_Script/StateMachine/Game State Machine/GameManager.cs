@@ -6,9 +6,6 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public GameStateMachine StateMachine { get; private set; }
     public GameStateContext gameContext { get; private set; }
-
-    // XÓA TẤT CẢ các biến UI, Audio, Camera ở đây! Đã có các Manager khác lo.
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -82,6 +79,12 @@ public class GameManager : MonoBehaviour
     public void OpenAvailableUnitGUI()
     {
         UIManager.Instance.ShowUI(GameStateType.Editor, UINames.AvailableUnitsGUI);
+    }
+
+    public void OpenInventoryGUI()
+    {
+        UIManager.Instance.HideStateUI(GameStateType.Playing);
+        UIManager.Instance.ShowUI(GameStateType.Playing, UINames.Inventory);
     }
 
     public void SaveGame()

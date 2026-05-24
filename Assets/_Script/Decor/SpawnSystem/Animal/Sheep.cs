@@ -23,7 +23,8 @@ public class Sheep : Animal
             }
         }
 
-        layerIndex = floorAgent.currentFloorIndex;
+        if(floorAgent != null && layerIndex != floorAgent.currentFloorIndex)
+            layerIndex = floorAgent.currentFloorIndex;
         HandleFlipDirection();
     }
 

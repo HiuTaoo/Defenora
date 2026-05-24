@@ -21,13 +21,15 @@ public class UIManager: MonoBehaviour
     [SerializeField] private GameObject pausedGUI;
     [SerializeField] private GameObject listButtonPauseMenuGUI;
     [SerializeField] private GameObject settingGUI;
-    
+
+    [SerializeField] private GameObject inventoryGUI;
     //editor
     [SerializeField] private GameObject availableUnitGUI;
     
     public Dictionary<GameStateType, Dictionary<string, GameObject>> stateUIs;
     private Dictionary<GameStateType, UIConfig> stateConfigs;
     private Dictionary<string, UIConfig> individualUIConfigs;
+    private Stack<(GameStateType state, string uiName)> uiHistory = new Stack<(GameStateType, string)>();
     private UnitDetailPanel unitDetailPanel;
     private BuildingDetailPanel buildingDetailPanel;
     public AvailableUnitPanel availableUnitPanel;
@@ -52,7 +54,7 @@ public class UIManager: MonoBehaviour
         RegisterUI(GameStateType.Editor, UINames.EditorMenu, editorGUI, new UIConfig { Scale = Vector3.one * 0.9f });
         RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Editor, UINames.AvailableUnitsGUI, availableUnitGUI, new UIConfig { FadeIn = true });
-        
+        RegisterUI(GameStateType.Playing, UINames.Inventory, inventoryGUI, new UIConfig {FadeIn = true});
     }
     
     private void Start()
@@ -123,9 +125,6 @@ public class UIManager: MonoBehaviour
                     ApplyUIConfig(uiGameObject, configToApply);
             }
         }
-        else
-        {
-        }
     }
 
     /// <summary>
@@ -137,6 +136,8 @@ public class UIManager: MonoBehaviour
         {
             GameObject uiGameObject = stateUIs[stateType][uiName];
             uiGameObject.SetActive(true);
+            
+            uiHistory.Push((stateType, uiName));
 
             UIConfig config = GetUIConfig(stateType, uiName) ??
                             (stateConfigs.ContainsKey(stateType) ? stateConfigs[stateType] : null);
@@ -212,6 +213,24 @@ public class UIManager: MonoBehaviour
         if (stateUIs.ContainsKey(stateType) && stateUIs[stateType].ContainsKey(uiName))
             return stateUIs[stateType][uiName];
         return null;
+    }
+    
+    /// <summary>
+    /// Đóng UI vừa được mở gần đây nhất (Dùng cho nút Close chung hoặc phím ESC)
+    /// </summary>
+    public void CloseTopUI()
+    {
+        while (uiHistory.Count > 0)
+        {
+            var topUI = uiHistory.Pop();
+
+            if (IsUIActive(topUI.state, topUI.uiName))
+            {
+                HideUI(topUI.state, topUI.uiName);
+                
+                break; 
+            }
+        }
     }
 
     /// <summary>
@@ -361,7 +380,7 @@ public static class UINames
 
     // Gameplay UI
     public const string GameplayHUD = "GameplayHUD";
-    public const string Inventory = "InventoryPanel";
+    public const string Inventory = "InventoryGUI";
     
     //pause
     public const string PauseMenu = "PauseMenu";

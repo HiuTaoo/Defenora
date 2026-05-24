@@ -33,6 +33,11 @@ namespace _Script.StateMachine.Game_State_Machine.State
                     Debug.Log("Không thể mở editor trong trạng thái này!");
             }
 
+            if (context.InputManager.GetKeyUp(KeyCode.B))
+            {
+                GameManager.Instance.OpenInventoryGUI();
+            }
+
 
             // Game logic có thể thêm ở đây
             HandleGameplayInput(context);
