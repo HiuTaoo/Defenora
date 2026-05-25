@@ -6,6 +6,7 @@ using UnityEngine;
 public class Task
 {
     [Header("Core Info")]
+    public string id; // <-- THÊM ID CHO TASK
     public GameObject targetGameObject;
     public TaskType taskType;
     public int layerIndex;
@@ -30,11 +31,18 @@ public class Task
         int maxBuilders = 1,
         int layerIndex = 0)
     {
+        this.id = System.Guid.NewGuid().ToString(); // <-- TỰ ĐỘNG TẠO ID DUY NHẤT
         targetGameObject = target;
         taskType = type;
         this.maxBuilders = maxBuilders;
         this.layerIndex = layerIndex;
         taskStatus = TaskStatus.NotStarted;
+    }
+
+    // Hàm bổ sung giúp set ID khi load từ file save
+    public void SetId(string savedId)
+    {
+        this.id = savedId;
     }
 
     // =============================

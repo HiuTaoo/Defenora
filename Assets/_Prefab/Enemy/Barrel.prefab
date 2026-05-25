@@ -289,6 +289,7 @@ GameObject:
   - component: {fileID: 8064008723657081650}
   - component: {fileID: 5619581754083769448}
   - component: {fileID: 5271174614838196880}
+  - component: {fileID: 4326371950566282043}
   m_Layer: 10
   m_Name: Barrel
   m_TagString: Enemy
@@ -515,6 +516,7 @@ MonoBehaviour:
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -544,3 +546,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationProfileSO: {fileID: 11400000, guid: f793433870487e44aa147d37a7abfa50, type: 2}
+--- !u!114 &4326371950566282043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7382410964993336613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: f97bcd56-a83f-4f49-b010-6597d4cd7f41

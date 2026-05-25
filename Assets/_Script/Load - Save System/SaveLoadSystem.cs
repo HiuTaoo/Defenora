@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
+using _Script.Data;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.Building;
 
@@ -108,6 +109,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         // 2. CHẠY HỆ THỐNG LOAD TỪNG Ô (Thay thế toàn bộ logic cũ)
         yield return StartCoroutine(LoadSpawnDataGridBased(saveData.objectSpawnData));
+        LoadTaskDataOnly(saveData);
     }
 
     public void LoadGame()
@@ -132,6 +134,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             saveAble.LoadFromSaveData(saveData);
         }
 
+        LoadTaskDataOnly(saveData);
+
         UnitManager.Instance.UpdateGraphNodeWhenStart();
 
         Debug.Log($"Game loaded from {saveFilePath}");
@@ -147,11 +151,11 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             unitData.units.Add(new UnitData
             {
-                id = unit.id,
+                id = unit.GetId(),
                 unitName = unit.unitName,
                 unitType = unit.unitType,
                 position = unit.transform.position,
-                assignedBuilding = unit.assignedBuilding?.id,
+                assignedBuilding = unit.assignedBuilding?.GetId(),
                 currentHealth = unit.health.CurrentHealth,
                 layerIndex = unit.floorAgent.currentFloorIndex,
                 level = unit.unitStatsManager.currentLevel
@@ -168,7 +172,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             var guardComponent = building.gameObject.GetComponent<GuardComponent>();
             buildingData.buildings.Add(new BuildingData
             {
-                buildingID = building.id,
+                buildingID = building.GetId(),
                 buildingName = building.name,
                 currentCapacity = building.currentCapacity,
                 maxCapacity = building.maxCapacity,
@@ -180,10 +184,37 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 currentHealth = building.health.CurrentHealth,
                 unitID = building.stationedUnits
                     .Where(unit => unit != null)
-                    .Select(unit => unit.id)
+                    .Select(unit => unit.GetId())
                     .ToList()
             });
         }
+        #endregion
+        
+        #region Save Task Data
+        var taskSaveData = new TaskSaveData();
+        if (TaskManager.Instance != null)
+        {
+            foreach (var task in TaskManager.Instance.AllTasks)
+            {
+                // Tìm ID liên kết của mục tiêu (ví dụ: mục tiêu là một Building)
+                string targetID = "";
+                if (task.targetGameObject != null)
+                    targetID = task.targetGameObject.GetId();
+
+                taskSaveData.tasks.Add(new TaskData
+                {
+                    id = task.id,
+                    taskType = task.taskType,
+                    layerIndex = task.layerIndex,
+                    taskStatus = task.taskStatus,
+                    maxBuilders = task.maxBuilders,
+                    requiredProgress = task.requiredProgress,
+                    currentProgress = task.currentProgress,
+                    targetGameObjectID = targetID // Lưu lại để map lại khi load
+                });
+            }
+        }
+        saveData.taskSaveData = taskSaveData; // Gán vào struct tổng
         #endregion
 
         #region Save Object Spawn Data
@@ -207,7 +238,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             Building building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
 
             #region Load Data
-            building.SetID(buildingDatum.buildingID); 
+            building.OverrideId(buildingDatum.buildingID); 
             building.name = buildingDatum.buildingName;
             building.buildingName = buildingDatum.buildingName;
             building.LayerIndex = buildingDatum.layerIndex;
@@ -235,7 +266,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         foreach (var unitDatum in unitData.units)
         {
             Unit unit = unitManager.CreateUnit(unitDatum.unitType, unitDatum.position);
-            unit.SetId(unitDatum.id);
+            unit.OverrideId(unitDatum.id);
             unit.unitName = unitDatum.unitName;
             unit.unitType = unitDatum.unitType;
             unit.gameObject.name = unitDatum.unitName;
@@ -252,7 +283,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             
             foreach (var building in unitManager.buildings) {
                 var guardComponent = building.gameObject.GetComponent<GuardComponent>();
-                if(building.id == unitDatum.assignedBuilding)
+                if(building.GetId() == unitDatum.assignedBuilding)
                 {
                     unit.assignedBuilding = building;
                     building.stationedUnits.Add(unit);
@@ -271,8 +302,60 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
         #endregion
     }
+    
+    private void LoadTaskDataOnly(GameSaveData saveData)
+    {
+        #region Load Task Data (Được gọi sau khi map đã dựng xong hoàn toàn)
+        if (TaskManager.Instance != null && saveData.taskSaveData != null)
+        {
+            Debug.Log("[Load System] Bắt đầu khôi phục danh sách nhiệm vụ toàn cục...");
+            
+            // 1. Xóa sạch các Task cũ còn sót lại trên Blackboard khi bắt đầu load
+            var activeTasks = TaskManager.Instance.AllTasks.ToList();
+            foreach (var t in activeTasks)
+            {
+                TaskManager.Instance.RemoveTask(t);
+            }
 
-    #region SAVE/LOAD Spawn Object - Optimized
+            // 2. Tìm TẤT CẢ các UniqueId đang có thực tế trên Scene lúc này (Gồm cả Decor Object vừa spawn xong)
+            UniqueId[] allUniqueIdsInScene = FindObjectsOfType<UniqueId>();
+
+            // 3. Khôi phục lại từng Task từ dữ liệu đã lưu
+            foreach (var taskDatum in saveData.taskSaveData.tasks)
+            {
+                GameObject targetObj = null;
+
+                if (!string.IsNullOrEmpty(taskDatum.targetGameObjectID))
+                {
+                    // Tìm UniqueId trùng khớp
+                    UniqueId matchedComponent = allUniqueIdsInScene.FirstOrDefault(u => u.Id == taskDatum.targetGameObjectID);
+            
+                    if (matchedComponent != null)
+                    {
+                        targetObj = matchedComponent.gameObject;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[Load Task] Không tìm thấy mục tiêu trên bản đồ cho Task ID: {taskDatum.targetGameObjectID}");
+                    }
+                }
+
+                // Tạo mới đối tượng Task bằng constructor
+                Task newTask = new Task(targetObj, taskDatum.taskType, taskDatum.maxBuilders, taskDatum.layerIndex);
+        
+                newTask.SetId(taskDatum.id);
+                newTask.taskStatus = taskDatum.taskStatus;
+                newTask.requiredProgress = taskDatum.requiredProgress;
+                newTask.currentProgress = taskDatum.currentProgress;
+
+                // Đưa Task trở lại Global Blackboard (TaskManager)
+                TaskManager.Instance.AddTask(newTask);
+            }
+        }
+        #endregion
+    }
+    
+    #region SAVE/LOAD Spawn Object 
     public void SaveSpawnData(GameSaveData gameSaveData)
     {
         try
@@ -312,9 +395,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (tree.treeComponent != null)
                 {
+                    string objectId = tree.treeComponent.GetId();
                     int prefabIndex = GetPrefabIndex(tree.treeComponent.gameObject, PrefabConfig.Instance.treePrefabs);
                     int clusterIndex = clusters.IndexOf(tree.parentCluster);
-                    layerData.trees.Add(new SpawnedTreeData(tree, prefabIndex, clusterIndex));
+                    layerData.trees.Add(new SpawnedTreeData(tree, prefabIndex, clusterIndex, objectId));
                 }
             }
         }
@@ -325,9 +409,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (bush.bushObject != null)
                 {
+                    string objectId = bush.bushObject.GetId();
                     int prefabIndex = GetPrefabIndex(bush.bushObject, PrefabConfig.Instance.bushPrefabs);
                     int clusterIndex = bush.parentCluster != null ? clusters.IndexOf(bush.parentCluster) : -1;
-                    layerData.bushes.Add(new SpawnedBushData(bush, prefabIndex, clusterIndex));
+                    layerData.bushes.Add(new SpawnedBushData(bush, prefabIndex, clusterIndex, objectId));
                 }
             }
         }
@@ -338,9 +423,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (rock.rockObject != null)
                 {
+                    string objectId = rock.rockObject.GetId();
                     int prefabIndex = GetPrefabIndex(rock.rockObject, PrefabConfig.Instance.rockPrefabs);
                     int clusterIndex = rock.parentCluster != null ? clusters.IndexOf(rock.parentCluster) : -1;
-                    layerData.rocks.Add(new SpawnedRockData(rock, prefabIndex, clusterIndex));
+                    layerData.rocks.Add(new SpawnedRockData(rock, prefabIndex, clusterIndex, objectId));
                 }
             }
         }
@@ -351,8 +437,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 if (animal.animalObject != null && animal.animalComponent != null)
                 {
+                    string objectId = animal.animalObject.GetId();
                     int prefabIndex = GetPrefabIndex(animal.animalObject, PrefabConfig.Instance.animalPrefabs);
-                    layerData.animals.Add(new SpawnedAnimalData(animal, prefabIndex));
+                    layerData.animals.Add(new SpawnedAnimalData(animal, prefabIndex, objectId));
                 }
             }
         }
@@ -484,12 +571,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 }
             }
         }
-
-        UnitManager.Instance.UpdateGraphNodeWhenStart();
-
-        Debug.Log($"[Phase 1] Loaded {firstRegionKeys.Count} regions around camera.");
-        OnLoaded?.Invoke();
-
+        
         processedCount = 0;
 
         foreach (var key in remainingRegionKeys)
@@ -510,7 +592,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             }
         }
 
-        Debug.Log("[Phase 2] Finished loading remaining regions.");
+        UnitManager.Instance.UpdateGraphNodeWhenStart();
+
+        OnLoaded?.Invoke();
     }
 
     private void LoadLayerData(LayerSpawnData layerData)
@@ -594,6 +678,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject treeObj = PoolManager.Instance.Spawn(treePrefab, worldPosition, Quaternion.identity);
         treeObj.transform.SetParent(this.transform);
         treeObj.transform.SetParent(decorObjectParent);
+        treeObj.OverrideId(treeData.id);
         
         // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
         var sr = treeObj.GetComponent<SpriteRenderer>();
@@ -625,6 +710,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             treeComponent.treeState = treeData.treeState;
             treeComponent.currentChopHit = treeData.currentChopHit;
             treeComponent.maxChopHit = treeData.maxChopHit;
+         
 
             string layerName = $"Layer {treeData.layerIndex + 1}";
             int layerIndex = LayerMask.NameToLayer(layerName);
@@ -668,6 +754,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject bushObj = PoolManager.Instance.Spawn(bushPrefab, worldPosition, Quaternion.identity);
         bushObj.transform.SetParent(this.transform);
         bushObj.transform.SetParent(decorObjectParent);
+        bushObj.OverrideId(bushData.id);
         
         // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
         var sr = bushObj.GetComponent<SpriteRenderer>();
@@ -723,6 +810,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject rockObj = PoolManager.Instance.Spawn(rockPrefab, worldPosition, Quaternion.identity);
         rockObj.transform.SetParent(this.transform);
         rockObj.transform.SetParent(decorObjectParent);
+        rockObj.OverrideId(rockData.id);
         
         // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
         var sr = rockObj.GetComponent<SpriteRenderer>();
@@ -784,6 +872,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         GameObject animalObj = PoolManager.Instance.Spawn(animalPrefab, animalData.currentPosition, Quaternion.identity);
         animalObj.transform.SetParent(this.transform);
         animalObj.transform.SetParent(decorObjectParent);
+        animalObj.OverrideId(animalData.id);
         
         // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
         var sr = animalObj.GetComponent<SpriteRenderer>();

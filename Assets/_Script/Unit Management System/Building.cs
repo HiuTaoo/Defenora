@@ -17,7 +17,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     public BuildingType buildingType;
     public BuildingState buildingState;
 
-    public string id { get; private set; }
+    //public string id { get; private set; }
 
     [Header("Build Progress")]
     [Range(0f, 100f)]
@@ -564,10 +564,10 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     #endregion
 
-    public void SetID(string buildingID)
+    /*public void SetID(string buildingID)
     {
         id = buildingID;
-    }
+    }*/
     protected virtual void OnEnable()
     {
         if (health != null)

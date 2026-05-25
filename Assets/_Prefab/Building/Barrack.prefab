@@ -152,6 +152,7 @@ GameObject:
   - component: {fileID: 523715707923579839}
   - component: {fileID: 2038028745528792166}
   - component: {fileID: 5353879271876449470}
+  - component: {fileID: 2938893326997499473}
   m_Layer: 8
   m_Name: Barrack
   m_TagString: Building
@@ -352,3 +353,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   positionSpots: []
   listArcherPositions: []
+--- !u!114 &2938893326997499473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7961245244231145619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: c19ec3d4-c727-4316-b5f7-4c52f729f0a5

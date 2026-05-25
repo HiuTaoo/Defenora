@@ -194,6 +194,7 @@ GameObject:
   - component: {fileID: 183254153025691274}
   - component: {fileID: 4635585049436068879}
   - component: {fileID: 5000977805069631393}
+  - component: {fileID: 2051456350500491990}
   m_Layer: 10
   m_Name: Monk
   m_TagString: NPC
@@ -366,8 +367,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8424c9a5546c81d4093be97bf45052e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: 
-  unitType: 5
+  unitName: Monk
+  unitType: 4
   currentState: 0
   animState: 0
   layerIndex: 0
@@ -391,6 +392,7 @@ MonoBehaviour:
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -401,8 +403,6 @@ MonoBehaviour:
   hitStunDuration: 0.1
   knockbackCooldown: 3
   viewAngle: 180
-  healAmount: 20
-  healRange: 3
   healCooldown: 5
 --- !u!114 &183254153025691274
 MonoBehaviour:
@@ -445,3 +445,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationProfileSO: {fileID: 11400000, guid: fd130453ad8753d4ca37112976b344e7, type: 2}
+--- !u!114 &2051456350500491990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6602815683075122701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: eee4345a-5259-4a5d-8b25-0f683a34ca9d

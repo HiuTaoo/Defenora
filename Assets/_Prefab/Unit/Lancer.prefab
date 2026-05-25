@@ -180,6 +180,7 @@ GameObject:
   - component: {fileID: 2837562405334351045}
   - component: {fileID: 4903893649108744999}
   - component: {fileID: 7414797695237030093}
+  - component: {fileID: 528695461405676746}
   m_Layer: 10
   m_Name: Lancer
   m_TagString: NPC
@@ -354,8 +355,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5799a8e174bf6084082f48a591dbbac5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: 
-  unitType: 4
+  unitName: Lancer
+  unitType: 3
   currentState: 0
   animState: 0
   layerIndex: 0
@@ -389,6 +390,7 @@ MonoBehaviour:
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -446,6 +448,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationProfileSO: {fileID: 11400000, guid: 970c1e4cf88372a4db8f268e5e52b10f, type: 2}
+--- !u!114 &528695461405676746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4124294002956455345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: e5e7bfe6-e3b1-48b1-8f12-c36aebebb515
 --- !u!1 &6458543768792682216
 GameObject:
   m_ObjectHideFlags: 0

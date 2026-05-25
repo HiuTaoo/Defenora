@@ -17,7 +17,7 @@ namespace _Script.BT.Node.BuilderNode
         {
             if (builder.currentTask.targetGameObject == null)
             {
-                Debug.Log("CurrentTask null");
+                Debug.Log("targetGameObject null");
                 return BTStatus.Failure;
             }
             

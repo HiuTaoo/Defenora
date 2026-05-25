@@ -23,4 +23,13 @@ public class SequenceNode : BTComposite
         currentIndex = 0;
         return BTStatus.Success;
     }
+    
+    public override void ClearState()
+    {
+        currentIndex = 0;
+        foreach (var child in children)
+        {
+            child.ClearState();
+        }
+    }
 }

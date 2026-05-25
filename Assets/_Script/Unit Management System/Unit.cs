@@ -20,7 +20,7 @@ public abstract class Unit : MonoBehaviour
     public int layerIndex;
     public float currentHealth;
     
-    public string id { get; private set; }
+    //public string id { get; private set; }
     
     [Header("Deployment")]
     public Building assignedBuilding;  
@@ -878,7 +878,7 @@ public abstract class Unit : MonoBehaviour
         return null;
     }
     
-    public void SetId(string newId) => id = newId;
+    //public void SetId(string newId) => id = newId;
     
     protected virtual void OnEnable()
     {

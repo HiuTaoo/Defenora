@@ -62,6 +62,7 @@ GameObject:
   - component: {fileID: 4701604024333632985}
   - component: {fileID: 345671078015859506}
   - component: {fileID: 1453032743043013705}
+  - component: {fileID: 131003130809898399}
   m_Layer: 10
   m_Name: Torch Goblin
   m_TagString: Enemy
@@ -288,6 +289,7 @@ MonoBehaviour:
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -313,6 +315,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationProfileSO: {fileID: 11400000, guid: 9017a994a0d42ec4d866deb5832adeb8, type: 2}
+--- !u!114 &131003130809898399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2449667762679695024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 3aec4fae-ae81-4fc0-9526-162a5a65d852
 --- !u!1 &3122822280748698295
 GameObject:
   m_ObjectHideFlags: 0

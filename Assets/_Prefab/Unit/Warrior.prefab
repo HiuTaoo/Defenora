@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 8050703228285986877}
   - component: {fileID: 8606747695470908351}
   - component: {fileID: 5869277206965500433}
+  - component: {fileID: 6545048252322826778}
   m_Layer: 10
   m_Name: Warrior
   m_TagString: NPC
@@ -232,8 +233,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11929574c6c3e9d4a860ff15fc5ebef7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: 
-  unitType: 2
+  unitName: Warrior
+  unitType: 1
   currentState: 0
   animState: 0
   layerIndex: 0
@@ -257,6 +258,7 @@ MonoBehaviour:
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -270,6 +272,19 @@ MonoBehaviour:
   detectPoint: {fileID: 8250754444523929379}
   warriorDirection: 0
   attackLayerMask: 0
+--- !u!114 &6545048252322826778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2417399181293632922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: a5de9ba0-efd1-4350-89d0-ad9e6777f77e
 --- !u!1 &2804461022730358203
 GameObject:
   m_ObjectHideFlags: 0

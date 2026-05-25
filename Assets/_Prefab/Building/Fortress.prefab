@@ -210,6 +210,7 @@ GameObject:
   - component: {fileID: 746064543262414782}
   - component: {fileID: 6154862175739829330}
   - component: {fileID: 8847610691692393152}
+  - component: {fileID: 331845937551578765}
   m_Layer: 8
   m_Name: Fortress
   m_TagString: Building
@@ -366,6 +367,7 @@ MonoBehaviour:
   currentBuildProgress: 0
   stationedUnits: []
   currentTask:
+    id: 
     targetGameObject: {fileID: 0}
     taskType: 0
     layerIndex: 0
@@ -438,6 +440,19 @@ MonoBehaviour:
   yFactor: 10
   baseOrder: 0
   isStaticDecor: 0
+--- !u!114 &331845937551578765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3379170715116996560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: bd0e1a72-7f76-4825-8fa8-dd52924d20f9
 --- !u!1 &6952107171530182966
 GameObject:
   m_ObjectHideFlags: 0

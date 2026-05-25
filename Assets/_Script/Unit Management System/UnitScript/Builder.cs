@@ -71,94 +71,134 @@ public class Builder : Unit
     
     #region BT
     public BehaviourTree CreateBuilderBT(Builder builder)
-    {
-        var collectItemSequence = new SequenceNode(
-            new IsIdleNode(builder),
-            new HasEmptySpaceNode(builder),
-            new HasItemAroundNode(builder),
-            new CollectItemNode(builder));
-        
-        var chopTreeSequence = new SequenceNode(
-            new IsIdleNode(builder),
-            new HasChopTaskNode(builder),
-            new FindChopTaskNode(builder),
-            new AssignTaskNode(builder),
-            new CheckPathToAdjacentTargetNode(builder),
-            new MoveToTargetNode(builder),
+{
+    // ==========================================
+    // 1. CHOP TREE BRANCH (Nhánh chặt cây)
+    // ==========================================
+    var continueChopSequence = new SequenceNode(
+        new HasCurrentTaskOfTypeNode(builder, TaskType.ChopTree), 
+        new CheckPathToAdjacentTargetNode(builder),
+        new MoveToTargetNode(builder),
+        new ChopNode(builder)
+    );
+
+    var findNewChopSequence = new SequenceNode(
+        new IsIdleNode(builder),
+        new HasChopTaskNode(builder),
+        new FindChopTaskNode(builder),
+        new AssignTaskNode(builder),
+        new CheckPathToAdjacentTargetNode(builder),
+        new MoveToTargetNode(builder),
+        new ChopNode(builder)
+    );
+
+    // Dùng Selector: Ưu tiên làm tiếp task cũ, nếu không có mới tìm task mới
+    var chopTreeSelector = new SelectorNode(continueChopSequence, findNewChopSequence);
+
+
+    // ==========================================
+    // 2. BUILD STRUCTURE BRANCH (Nhánh xây nhà)
+    // ==========================================
+    var clearObstacleLoop = new RepeatUntilFailureNode(
+        new SequenceNode(
+            new HasObstacleNode(builder),
+            new FindPathToObstacleNode(builder),
+            new MoveToObstacleNode(builder),
             new ChopNode(builder)
-        );
-        
-        var emergencyTransportSequence = new SequenceNode(
-            new HasItemInInventoryNode(builder),
-            new CreateTransportTask(builder),
-            new AssignTaskNode(builder),
-            new CheckPathToFrontTargetNode(builder),
-            new MoveToTargetNode(builder),
-            new TransportItemNode(builder)
-        );
+        )
+    );
 
-        var transportItemSequence = new SequenceNode(
-            new HasItemInInventoryNode(builder),
-            new CreateTransportTask(builder),
-            new AssignTaskNode(builder),
-            new CheckPathToFrontTargetNode(builder),
-            new MoveToTargetNode(builder),
-            new TransportItemNode(builder)
-        );
+    var continueBuildSequence = new SequenceNode(
+        new HasCurrentTaskOfTypeNode(builder, TaskType.BuildStructure), 
+        new CheckPathToAdjacentTargetNode(builder),
+        clearObstacleLoop,
+        new MoveToTargetNode(builder),
+        new BuildNode(builder)
+    );
 
-        var clearObstacleLoop = new RepeatUntilFailureNode(
-            new SequenceNode(
-                new HasObstacleNode(builder),
-                new FindPathToObstacleNode(builder),
-                new MoveToObstacleNode(builder),
-                new ChopNode(builder)
-            )
-        );
+    var findNewBuildSequence = new SequenceNode(
+        new IsIdleNode(builder),
+        new HasBuildTaskNode(builder),
+        new FindBuildTaskNode(builder),
+        new AssignTaskNode(builder),
+        new CheckPathToAdjacentTargetNode(builder),
+        clearObstacleLoop,
+        new MoveToTargetNode(builder),
+        new BuildNode(builder)
+    );
 
-        var buildStructureSequence = new SequenceNode(
-            new IsIdleNode(builder),
-            new HasBuildTaskNode(builder),
-            new FindBuildTaskNode(builder),
-            new AssignTaskNode(builder),
-            new CheckPathToAdjacentTargetNode(builder),
-            clearObstacleLoop,
-            new MoveToTargetNode(builder),
-            new BuildNode(builder)
-        );
+    var buildStructureSelector = new SelectorNode(continueBuildSequence, findNewBuildSequence);
 
-        var repairStuctureSequence = new SequenceNode(
-            new IsDawnNode(builder),
-            new IsIdleNode(builder),
-            new HasBrokenBuildingNode(builder),
-            new AssignTaskNode(builder),
-            new CheckPathToAdjacentTargetNode(builder),
-            new MoveToTargetNode(builder),
-            new RepairNode(builder));
 
-        var idleSequence = new SequenceNode(
-            new HasIdleTimeNode(builder),
-            new MoveFollowAvaiablePathNode(builder),
-            new WaitRandomTimeNode(builder));
-        
-        //Root
-        var root = new SelectorNode(
-            new SequenceNode(
-                new IsInventoryFullNode(builder),
-                emergencyTransportSequence
-            ),
-            //collectItemSequence,
-            repairStuctureSequence,
-            new SelectorNode(
-                buildStructureSequence,
-                chopTreeSequence
-            ),           
-            transportItemSequence,
-            idleSequence
-            //new IdleNode(builder)
-        );
+    // ==========================================
+    // 3. REPAIR STRUCTURE BRANCH (Nhánh sửa nhà)
+    // ==========================================
+    var continueRepairSequence = new SequenceNode(
+        new HasCurrentTaskOfTypeNode(builder, TaskType.RepairStructure),
+        new CheckPathToAdjacentTargetNode(builder),
+        new MoveToTargetNode(builder),
+        new RepairNode(builder)
+    );
 
-        return new BehaviourTree(root);
-    }
+    var findNewRepairSequence = new SequenceNode(
+        new IsDawnNode(builder),
+        new IsIdleNode(builder),
+        new HasBrokenBuildingNode(builder),
+        new AssignTaskNode(builder),
+        new CheckPathToAdjacentTargetNode(builder),
+        new MoveToTargetNode(builder),
+        new RepairNode(builder)
+    );
+
+    var repairStructureSelector = new SelectorNode(continueRepairSequence, findNewRepairSequence);
+
+
+    // ==========================================
+    // 4. CÁC NHÁNH KHÁC 
+    // ==========================================
+    var emergencyTransportSequence = new SequenceNode(
+        new HasItemInInventoryNode(builder),
+        new CreateTransportTask(builder),
+        new AssignTaskNode(builder),
+        new CheckPathToFrontTargetNode(builder),
+        new MoveToTargetNode(builder),
+        new TransportItemNode(builder)
+    );
+
+    var transportItemSequence = new SequenceNode(
+        new HasItemInInventoryNode(builder),
+        new CreateTransportTask(builder),
+        new AssignTaskNode(builder),
+        new CheckPathToFrontTargetNode(builder),
+        new MoveToTargetNode(builder),
+        new TransportItemNode(builder)
+    );
+
+    var idleSequence = new SequenceNode(
+        new HasIdleTimeNode(builder),
+        new MoveFollowAvaiablePathNode(builder),
+        new WaitRandomTimeNode(builder)
+    );
+    
+    // ==========================================
+    // ROOT SELECTOR
+    // ==========================================
+    var root = new SelectorNode(
+        new SequenceNode(
+            new IsInventoryFullNode(builder),
+            emergencyTransportSequence
+        ),
+        repairStructureSelector,      
+        new SelectorNode(
+            buildStructureSelector,    
+            chopTreeSelector         
+        ),           
+        transportItemSequence,
+        idleSequence
+    );
+
+    return new BehaviourTree(root);
+}
     
     #region Do Task
     public bool IsChopped()

@@ -118,6 +118,7 @@ GameObject:
   - component: {fileID: 2980963257859456482}
   - component: {fileID: 7368342568351913103}
   - component: {fileID: 6289067416928931937}
+  - component: {fileID: 1483951178614245089}
   m_Layer: 8
   m_Name: Monastery
   m_TagString: Building
@@ -317,6 +318,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   positionSpots: []
   listArcherPositions: []
+--- !u!114 &1483951178614245089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2382392070799091013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: bcb596a4-77aa-4745-b17a-86c4f501df18
 --- !u!1 &6390640710993591764
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,4 +5,5 @@ using UnityEngine;
 public abstract class BTNode
 {
     public abstract BTStatus Tick();
+    public virtual void ClearState() {} 
 }

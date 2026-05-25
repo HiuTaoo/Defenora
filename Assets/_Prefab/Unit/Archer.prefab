@@ -225,6 +225,7 @@ GameObject:
   - component: {fileID: 7621971442396312281}
   - component: {fileID: 8961981535275278551}
   - component: {fileID: 105630551468891021}
+  - component: {fileID: 1000000427318151363}
   m_Layer: 10
   m_Name: Archer
   m_TagString: NPC
@@ -433,6 +434,7 @@ MonoBehaviour:
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
@@ -487,3 +489,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationProfileSO: {fileID: 11400000, guid: f14f2f93bd1d6a34288359de55fbe6b4, type: 2}
+--- !u!114 &1000000427318151363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9163186071473850716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 2dcc0928-9f20-40ca-ac27-e9ea9d3986cd

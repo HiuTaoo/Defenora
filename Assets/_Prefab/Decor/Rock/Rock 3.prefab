@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8861735865809960788}
   - component: {fileID: 8976375715414720005}
   - component: {fileID: 6329295446962908966}
+  - component: {fileID: 3653233264644234516}
   m_Layer: 11
   m_Name: Rock 3
   m_TagString: Rock
@@ -186,3 +187,16 @@ MonoBehaviour:
   yFactor: 10
   baseOrder: 0
   isStaticDecor: 0
+--- !u!114 &3653233264644234516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5751919396076328951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 70556330-e880-4fb1-bdd5-a9ce9cf42863

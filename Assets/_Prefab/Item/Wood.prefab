@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6622330194523358206}
   - component: {fileID: 281708428742736450}
   - component: {fileID: 6682270675238724222}
+  - component: {fileID: 2314300539845448742}
   m_Layer: 11
   m_Name: Wood
   m_TagString: Item
@@ -152,6 +153,7 @@ MonoBehaviour:
   amount: 0
   layerIndex: 0
   assignBuilder: {fileID: 0}
+  isDropping: 0
 --- !u!114 &6682270675238724222
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,3 +169,16 @@ MonoBehaviour:
   yFactor: 10
   baseOrder: 0
   isStaticDecor: 0
+--- !u!114 &2314300539845448742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7863484325131383881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  id: 
