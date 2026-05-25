@@ -46,5 +46,14 @@ public class UnitStatsManager : MonoBehaviour
         return currentLevel >= unitData.maxLevel;
     }
 
+    public void SetLevel(int level)
+    {
+        if (unitData == null)
+            return;
+
+        currentLevel = Mathf.Clamp(level, 1, unitData.maxLevel);
+        CalculateStats();
+    }
+
     public UnitStatsSO GetBaseData() => unitData;
 }

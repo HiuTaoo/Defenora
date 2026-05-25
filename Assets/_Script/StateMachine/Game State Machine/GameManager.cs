@@ -1,5 +1,6 @@
 ﻿using _Script.StateMachine.Game_State_Machine.State;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -50,11 +51,10 @@ public class GameManager : MonoBehaviour
     #region Method
     public void QuitGame()
     {
-        Application.Quit();
+        //Application.Quit();
+        SceneManager.LoadScene(0);
 
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
+
     }
 
     #region GUI

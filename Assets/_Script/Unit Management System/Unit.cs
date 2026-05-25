@@ -12,13 +12,15 @@ using Random = UnityEngine.Random;
 
 public abstract class Unit : MonoBehaviour
 {
-    [Header("Unit Info")]
+    [Header("Unit Info")] 
     public string unitName;
     public UnitType unitType;
     public UnitState currentState = UnitState.Idle;
     public AnimState animState = AnimState.Idle;
     public int layerIndex;
     public float currentHealth;
+    
+    public string id { get; private set; }
     
     [Header("Deployment")]
     public Building assignedBuilding;  
@@ -110,11 +112,11 @@ public abstract class Unit : MonoBehaviour
         UpdateHealth();
     }
 
-    private void Start()
+    /*private void Start()
     {
         health.maxHealth = unitStatsManager.MaxHealth;
         health.SetCurrentHealth(unitStatsManager.MaxHealth);
-    }
+    }*/
 
     protected virtual void Update()
     {
@@ -875,6 +877,8 @@ public abstract class Unit : MonoBehaviour
     {
         return null;
     }
+    
+    public void SetId(string newId) => id = newId;
     
     protected virtual void OnEnable()
     {

@@ -4,12 +4,12 @@ using UnityEngine;
 [System.Serializable]
 public struct BuildingData
 {
+    public string buildingID;
     public string buildingName;
     public int currentCapacity;
     public int maxCapacity;
-    public float maxHealth;
     public float currentHealth;
-    public List<string> unitNames;
+    public List<string> unitID;
     public List<SpotData> archerPositions;
     public int layerIndex;
     public BuildingType buildingType;

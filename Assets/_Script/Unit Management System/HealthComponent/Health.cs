@@ -6,7 +6,7 @@ namespace _Script.Unit_Management_System.HealthComponent
     public class Health: MonoBehaviour
     {
         [Header("Health Settings")]
-        public float maxHealth = 100f;
+        public float maxHealth = 1f;
         
         public float CurrentHealth { get; private set; }
 
@@ -21,7 +21,6 @@ namespace _Script.Unit_Management_System.HealthComponent
 
         private void Awake()
         {
-            CurrentHealth = maxHealth;
             statsManager = transform.parent.GetComponentInChildren<UnitStatsManager>();
         }
 
@@ -61,7 +60,8 @@ namespace _Script.Unit_Management_System.HealthComponent
 
         public void SetCurrentHealth(float health)
         {
-            CurrentHealth = health;
+            CurrentHealth = Mathf.Clamp(health, 0f, maxHealth);
+            OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
         }
 
         private void Die()
@@ -92,11 +92,23 @@ namespace _Script.Unit_Management_System.HealthComponent
 
         private void HandleLevelUp()
         {
-            this.maxHealth = statsManager.MaxHealth; 
+            SetMaxHealth(statsManager.MaxHealth, true);
+        }
         
-            this.CurrentHealth = this.maxHealth; 
+        public void SetMaxHealth(float newMaxHealth, bool refillHealth)
+        {
+            maxHealth = newMaxHealth;
 
-            OnHealthChanged?.Invoke(this.CurrentHealth, this.maxHealth);
+            if (refillHealth)
+            {
+                CurrentHealth = maxHealth;
+            }
+            else
+            {
+                CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, maxHealth);
+            }
+
+            OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
         }
     }
 }

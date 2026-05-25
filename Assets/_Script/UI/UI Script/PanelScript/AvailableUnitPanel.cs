@@ -109,7 +109,7 @@ namespace _Script.UI.UI_Script.PanelScript
 
         private void OnDisable()
         {
-            noticeText.gameObject.SetActive(false);
+            if (noticeText != null) noticeText.gameObject.SetActive(false);
         }
         
     }

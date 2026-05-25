@@ -52,7 +52,7 @@ public class PathfindingAlgorithm : MonoBehaviour
             result.totalCost = path[^1].gCost;
             result.isValid = true;
         }
-
+      
         return result;
     }
 

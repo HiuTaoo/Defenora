@@ -3,12 +3,12 @@ using UnityEngine;
 [System.Serializable]
 public struct UnitData
 {
+    public string id;
     public string unitName;
     public UnitType unitType;
-    public UnitState currentState;
+    public int level;
     public int layerIndex;
-    public float health;
-    public float maxHealth;
+    public float currentHealth;
     public Vector3 position;
     public string assignedBuilding;
 }

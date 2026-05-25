@@ -36,13 +36,18 @@ public class MainMenuManager : MonoBehaviour
 
     [Header("UI Khác")]
     [Tooltip("Chữ 'Click to Start' (sẽ bị tắt khi bấm)")]
-    [SerializeField] private TextMeshProUGUI text;
+    [SerializeField] private GameObject hideUI;
 
     private bool isTransitioning = false;
 
+    private void Awake()
+    {
+        Time.timeScale = 1f;
+        Time.fixedDeltaTime = 0.02f;
+    }
+    
     private void Start()
     {
-        // Ẩn thanh loading khi vừa vào Main Menu
         if (loadingGroup != null)
         {
             loadingGroup.SetActive(false);
@@ -55,7 +60,7 @@ public class MainMenuManager : MonoBehaviour
         {
             if (!IsPointerOverUI() && !isTransitioning)
             {
-                if (text != null) text.gameObject.SetActive(false);
+                if (hideUI != null) hideUI.gameObject.SetActive(false);
                 StartWhiteWipeTransition();
             }
         }
@@ -81,7 +86,6 @@ public class MainMenuManager : MonoBehaviour
         rightWhitePanel.DOAnchorPosX(targetRight, transitionDuration).SetEase(Ease.InOutSine)
             .OnComplete(() =>
             {
-                // Khi 2 tấm panel trắng đã đóng sầm lại xong -> Bắt đầu load ngầm Scene mới
                 StartCoroutine(LoadSceneAsync());
             });
     }
@@ -91,44 +95,41 @@ public class MainMenuManager : MonoBehaviour
     /// </summary>
     private IEnumerator LoadSceneAsync()
     {
-        // 1. Bật giao diện Loading lên (Nằm đè lên lớp nền trắng)
         if (loadingGroup != null) loadingGroup.SetActive(true);
 
-        // 2. Bắt đầu tải Scene trong nền
         AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(nextSceneIndex);
 
-        // Chặn Unity không cho phép tự động chuyển Scene ngay cả khi đã tải xong ngầm 
-        // (Để ta có thể giữ thanh progress ở 100% một lúc cho đẹp, thay vì giật chớp nhoáng)
         asyncOperation.allowSceneActivation = false;
 
-        // Vòng lặp chạy liên tục mỗi khung hình cho đến khi load xong
         while (!asyncOperation.isDone)
         {
-            // Đoạn này khắc phục "cú lừa 0.9" của Unity. Ép tiến độ về khoảng 0 -> 1
             float progress = Mathf.Clamp01(asyncOperation.progress / 0.9f);
 
-            // Cập nhật Slider UI
             if (progressBar != null)
             {
                 progressBar.value = progress;
             }
 
-            // Cập nhật Text %
             if (progressText != null)
             {
-                // Chuyển sang dạng % nguyên (ví dụ: 85%)
                 progressText.text = "Loading... " + (progress * 100f).ToString("F0") + "%";
             }
 
-            // Khi Unity đã tải ngầm xong (progress thực tế đạt 0.9)
             if (asyncOperation.progress >= 0.9f)
             {
-                // Ở đây bạn có thể cho đợi thêm 0.5 giây để người chơi nhìn thấy số 100%
-                // Tuy nhiên hiện tại mình sẽ cho nó mở Scene luôn.
                 asyncOperation.allowSceneActivation = true;
             }
 
-            yield return null; // Chờ đến khung hình tiếp theo
+            yield return null; 
         }
+    }
+
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+    Application.Quit();
+#endif
     }
 }

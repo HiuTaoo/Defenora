@@ -17,6 +17,8 @@ public abstract class Building : MonoBehaviour, IBuildable
     public BuildingType buildingType;
     public BuildingState buildingState;
 
+    public string id { get; private set; }
+
     [Header("Build Progress")]
     [Range(0f, 100f)]
     public float currentBuildProgress = 0f; 
@@ -386,7 +388,7 @@ public abstract class Building : MonoBehaviour, IBuildable
             buildingName = this.buildingName,
             currentCapacity = stationedUnits.Count,
             maxCapacity = this.maxCapacity,
-            unitNames = stationedUnits.Select(u => u.unitName).ToList()
+            unitID = stationedUnits.Select(u => u.unitName).ToList()
         };
     }
 
@@ -561,7 +563,11 @@ public abstract class Building : MonoBehaviour, IBuildable
     }
 
     #endregion
-    
+
+    public void SetID(string buildingID)
+    {
+        id = buildingID;
+    }
     protected virtual void OnEnable()
     {
         if (health != null)

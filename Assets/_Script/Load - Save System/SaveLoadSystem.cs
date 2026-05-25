@@ -147,13 +147,14 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             unitData.units.Add(new UnitData
             {
+                id = unit.id,
                 unitName = unit.unitName,
                 unitType = unit.unitType,
                 position = unit.transform.position,
-                assignedBuilding = unit.assignedBuilding?.name,
-                currentState = unit.currentState,
-                health = unit.health.CurrentHealth,
-                layerIndex = unit.floorAgent.currentFloorIndex
+                assignedBuilding = unit.assignedBuilding?.id,
+                currentHealth = unit.health.CurrentHealth,
+                layerIndex = unit.floorAgent.currentFloorIndex,
+                level = unit.unitStatsManager.currentLevel
             });
         }
 
@@ -167,6 +168,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             var guardComponent = building.gameObject.GetComponent<GuardComponent>();
             buildingData.buildings.Add(new BuildingData
             {
+                buildingID = building.id,
                 buildingName = building.name,
                 currentCapacity = building.currentCapacity,
                 maxCapacity = building.maxCapacity,
@@ -175,11 +177,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 buildingType = building.buildingType,
                 position = building.transform.position,
                 buildingState = building.buildingState,
-                maxHealth = building.health.maxHealth,
                 currentHealth = building.health.CurrentHealth,
-                unitNames = building.stationedUnits
+                unitID = building.stationedUnits
                     .Where(unit => unit != null)
-                    .Select(unit => unit.unitName)
+                    .Select(unit => unit.id)
                     .ToList()
             });
         }
@@ -206,13 +207,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             Building building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
 
             #region Load Data
+            building.SetID(buildingDatum.buildingID); 
             building.name = buildingDatum.buildingName;
             building.buildingName = buildingDatum.buildingName;
             building.LayerIndex = buildingDatum.layerIndex;
             building.buildingState = buildingDatum.buildingState;
             building.maxCapacity = buildingDatum.maxCapacity;
             building.currentCapacity = buildingDatum.currentCapacity;
-            building.health.maxHealth = buildingDatum.maxHealth;
             building.health.SetCurrentHealth(buildingDatum.currentHealth);
             #endregion
 
@@ -234,17 +235,24 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         foreach (var unitDatum in unitData.units)
         {
             Unit unit = unitManager.CreateUnit(unitDatum.unitType, unitDatum.position);
+            unit.SetId(unitDatum.id);
             unit.unitName = unitDatum.unitName;
             unit.unitType = unitDatum.unitType;
             unit.gameObject.name = unitDatum.unitName;
             unit.characterMovement.CurrentLayer = unitDatum.layerIndex;
             unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
-            unit.health.SetCurrentHealth(unitDatum.health);
-            unit.currentState = unitDatum.currentState;
+            unit.unitStatsManager.SetLevel(unitDatum.level);
+            if (unit.health != null && unit.unitStatsManager != null)
+            {
+                unit.health.maxHealth = unit.unitStatsManager.MaxHealth;
+            }
+            unit.health.SetCurrentHealth(unitDatum.currentHealth);
+            unit.currentState = UnitState.Idle;
+            unit.animState = AnimState.Idle;
             
             foreach (var building in unitManager.buildings) {
                 var guardComponent = building.gameObject.GetComponent<GuardComponent>();
-                if(building.name == unitDatum.assignedBuilding)
+                if(building.id == unitDatum.assignedBuilding)
                 {
                     unit.assignedBuilding = building;
                     building.stationedUnits.Add(unit);
