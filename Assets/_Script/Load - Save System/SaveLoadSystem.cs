@@ -95,21 +95,23 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             yield break;
         }
 
-        Debug.Log("Starting async load...");
+        float originalTimeScale = Time.timeScale;
+        Time.timeScale = 0f; 
 
         string json = File.ReadAllText(saveFilePath);
         GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
 
-        // 1. Load các Saveable cơ bản (Unit, Building) trước
         foreach (var saveAble in saveables)
         {
             saveAble.LoadFromSaveData(saveData);
             yield return null; 
         }
 
-        // 2. CHẠY HỆ THỐNG LOAD TỪNG Ô (Thay thế toàn bộ logic cũ)
         yield return StartCoroutine(LoadSpawnDataGridBased(saveData.objectSpawnData));
+    
         LoadTaskDataOnly(saveData);
+
+        Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
     }
 
     public void LoadGame()
@@ -126,6 +128,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             return;
         }
 
+        float originalTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+
         string json = File.ReadAllText(saveFilePath);
         GameSaveData saveData = JsonUtility.FromJson<GameSaveData>(json);
 
@@ -139,6 +144,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         UnitManager.Instance.UpdateGraphNodeWhenStart();
 
         Debug.Log($"Game loaded from {saveFilePath}");
+
+        Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
+
         OnLoaded?.Invoke();
     }
 
@@ -196,10 +204,28 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             foreach (var task in TaskManager.Instance.AllTasks)
             {
-                // Tìm ID liên kết của mục tiêu (ví dụ: mục tiêu là một Building)
                 string targetID = "";
                 if (task.targetGameObject != null)
                     targetID = task.targetGameObject.GetId();
+
+                List<string> builderIDs = new List<string>();
+
+                var activeBuilders = task.GetBuilders(); 
+                
+                if (activeBuilders != null)
+                {
+                    foreach (var builder in activeBuilders)
+                    {
+                        if (builder != null)
+                        {
+                            string bID = builder.GetId();
+                            if (!string.IsNullOrEmpty(bID))
+                            {
+                                builderIDs.Add(bID);
+                            }
+                        }
+                    }
+                }
 
                 taskSaveData.tasks.Add(new TaskData
                 {
@@ -210,11 +236,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                     maxBuilders = task.maxBuilders,
                     requiredProgress = task.requiredProgress,
                     currentProgress = task.currentProgress,
-                    targetGameObjectID = targetID // Lưu lại để map lại khi load
+                    targetGameObjectID = targetID, 
+                    
+                    assignedBuilderIDs = builderIDs 
                 });
             }
         }
-        saveData.taskSaveData = taskSaveData; // Gán vào struct tổng
+        saveData.taskSaveData = taskSaveData; 
         #endregion
 
         #region Save Object Spawn Data
@@ -305,53 +333,84 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     
     private void LoadTaskDataOnly(GameSaveData saveData)
     {
-        #region Load Task Data (Được gọi sau khi map đã dựng xong hoàn toàn)
-        if (TaskManager.Instance != null && saveData.taskSaveData != null)
-        {
-            Debug.Log("[Load System] Bắt đầu khôi phục danh sách nhiệm vụ toàn cục...");
-            
-            // 1. Xóa sạch các Task cũ còn sót lại trên Blackboard khi bắt đầu load
-            var activeTasks = TaskManager.Instance.AllTasks.ToList();
-            foreach (var t in activeTasks)
-            {
-                TaskManager.Instance.RemoveTask(t);
-            }
+        #region Load Task Data (Được gọi sau khi map và unit đã dựng xong)
+        if (TaskManager.Instance == null || saveData.taskSaveData == null) return;
 
-            // 2. Tìm TẤT CẢ các UniqueId đang có thực tế trên Scene lúc này (Gồm cả Decor Object vừa spawn xong)
-            UniqueId[] allUniqueIdsInScene = FindObjectsOfType<UniqueId>();
-
-            // 3. Khôi phục lại từng Task từ dữ liệu đã lưu
-            foreach (var taskDatum in saveData.taskSaveData.tasks)
-            {
-                GameObject targetObj = null;
-
-                if (!string.IsNullOrEmpty(taskDatum.targetGameObjectID))
-                {
-                    // Tìm UniqueId trùng khớp
-                    UniqueId matchedComponent = allUniqueIdsInScene.FirstOrDefault(u => u.Id == taskDatum.targetGameObjectID);
-            
-                    if (matchedComponent != null)
-                    {
-                        targetObj = matchedComponent.gameObject;
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[Load Task] Không tìm thấy mục tiêu trên bản đồ cho Task ID: {taskDatum.targetGameObjectID}");
-                    }
-                }
-
-                // Tạo mới đối tượng Task bằng constructor
-                Task newTask = new Task(targetObj, taskDatum.taskType, taskDatum.maxBuilders, taskDatum.layerIndex);
+        Debug.Log("[Load System] Bắt đầu khôi phục danh sách nhiệm vụ toàn cục...");
         
-                newTask.SetId(taskDatum.id);
-                newTask.taskStatus = taskDatum.taskStatus;
-                newTask.requiredProgress = taskDatum.requiredProgress;
-                newTask.currentProgress = taskDatum.currentProgress;
+        var activeTasks = TaskManager.Instance.AllTasks.ToList();
+        foreach (var t in activeTasks)
+        {
+            TaskManager.Instance.RemoveTask(t);
+        }
 
-                // Đưa Task trở lại Global Blackboard (TaskManager)
-                TaskManager.Instance.AddTask(newTask);
+        UniqueId[] allUniqueIdsInScene = FindObjectsOfType<UniqueId>();
+
+        Dictionary<string, Builder> builderLookup = new Dictionary<string, Builder>();
+        foreach (var uniqueIdComp in allUniqueIdsInScene)
+        {
+            if (uniqueIdComp != null && uniqueIdComp.TryGetComponent<Builder>(out Builder builder))
+            {
+                if (!string.IsNullOrEmpty(uniqueIdComp.Id))
+                {
+                    builderLookup[uniqueIdComp.Id] = builder;
+                }
             }
         }
+
+        List<(Task runtimeTask, List<string> builderIDs)> bindingQueue = new List<(Task, List<string>)>();
+
+        foreach (var taskDatum in saveData.taskSaveData.tasks)
+        {
+            GameObject targetObj = null;
+
+            if (!string.IsNullOrEmpty(taskDatum.targetGameObjectID))
+            {
+                UniqueId matchedComponent = allUniqueIdsInScene.FirstOrDefault(u => u.Id == taskDatum.targetGameObjectID);
+                if (matchedComponent != null)
+                {
+                    targetObj = matchedComponent.gameObject;
+                }
+            }
+
+            Task newTask = new Task(targetObj, taskDatum.taskType, taskDatum.maxBuilders, taskDatum.layerIndex);
+            newTask.SetId(taskDatum.id);
+            newTask.taskStatus = taskDatum.taskStatus;
+            newTask.requiredProgress = taskDatum.requiredProgress;
+            newTask.currentProgress = taskDatum.currentProgress;
+
+            TaskManager.Instance.AddTask(newTask);
+
+            if (taskDatum.assignedBuilderIDs != null && taskDatum.assignedBuilderIDs.Count > 0)
+            {
+                bindingQueue.Add((newTask, taskDatum.assignedBuilderIDs));
+            }
+        }
+
+        foreach (var binding in bindingQueue)
+        {
+            Task currentTask = binding.runtimeTask;
+
+            foreach (string builderID in binding.builderIDs)
+            {
+                if (builderLookup.TryGetValue(builderID, out Builder matchedBuilder))
+                {
+                    currentTask.ForceAssignBuilderOnLoad(matchedBuilder);
+
+                    matchedBuilder.currentTask = currentTask; //
+                    
+                    matchedBuilder.targetGO = currentTask.targetGameObject; //
+
+                    Debug.Log($"[Load Thành Công] Đã khôi phục hoàn chỉnh liên kết: Builder [{builderID}] ➔ Task [{currentTask.id}]");
+                }
+                else
+                {
+                    Debug.LogWarning($"[Load Thất Bại] Không tìm thấy Builder có ID [{builderID}] trên Scene để gán vào Task!");
+                }
+            }
+        }
+
+        Debug.Log("[Load System] Khôi phục danh sách nhiệm vụ và kích hoạt lại AI thành công!");
         #endregion
     }
     
@@ -474,6 +533,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             regionTasks[key].Add(loadTask);
         }
 
+        // Phân loại toàn bộ object vào các Region tương ứng
         foreach (var layerData in saveData.layerData)
         {
             int currentLayerIndex = layerData.layerIndex;
@@ -493,60 +553,48 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             foreach (var data in layerData.trees)
             {
                 Vector3 worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
-
-                AddTaskToRegion(worldPos, (isHidden) =>
-                {
+                AddTaskToRegion(worldPos, (isHidden) => {
                     var obj = LoadTree(data, currentClustersRef, isHidden);
-                    if (obj != null)
-                        ObjectSpawner.Instance.spawnedTrees[currentLayerIndex].Add(obj);
+                    if (obj != null) ObjectSpawner.Instance.spawnedTrees[currentLayerIndex].Add(obj);
                 });
             }
 
             foreach (var data in layerData.bushes)
             {
                 Vector3 worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
-
-                AddTaskToRegion(worldPos, (isHidden) =>
-                {
+                AddTaskToRegion(worldPos, (isHidden) => {
                     var obj = LoadBush(data, currentClustersRef, isHidden);
-                    if (obj != null)
-                        ObjectSpawner.Instance.spawnedBushes[currentLayerIndex].Add(obj);
+                    if (obj != null) ObjectSpawner.Instance.spawnedBushes[currentLayerIndex].Add(obj);
                 });
             }
 
             foreach (var data in layerData.rocks)
             {
                 Vector3 worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
-
-                AddTaskToRegion(worldPos, (isHidden) =>
-                {
+                AddTaskToRegion(worldPos, (isHidden) => {
                     var obj = LoadRock(data, currentClustersRef, isHidden);
-                    if (obj != null)
-                        ObjectSpawner.Instance.spawnedRocks[currentLayerIndex].Add(obj);
+                    if (obj != null) ObjectSpawner.Instance.spawnedRocks[currentLayerIndex].Add(obj);
                 });
             }
 
             foreach (var data in layerData.animals)
             {
                 Vector3 worldPos = data.currentPosition;
-
-                AddTaskToRegion(worldPos, (isHidden) =>
-                {
+                AddTaskToRegion(worldPos, (isHidden) => {
                     var obj = LoadAnimal(data, isHidden);
-                    if (obj != null)
-                        ObjectSpawner.Instance.spawnedAnimals[currentLayerIndex].Add(obj);
+                    if (obj != null) ObjectSpawner.Instance.spawnedAnimals[currentLayerIndex].Add(obj);
                 });
             }
         }
 
         yield return new WaitForEndOfFrame();
 
+        // Lấy các Region xung quanh camera trước để ưu tiên hiển thị sạch sẽ
         List<Vector2Int> firstRegionKeys = RegionManager.Instance.GetRegionKeysAroundCamera(true);
 
-        Vector2 cameraPos = Camera.main != null
-            ? (Vector2)Camera.main.transform.position
-            : Vector2.zero;
+        Vector2 cameraPos = Camera.main != null ? (Vector2)Camera.main.transform.position : Vector2.zero;
 
+        // Sắp xếp các Region còn lại từ gần Camera ra xa dần
         List<Vector2Int> remainingRegionKeys = regionTasks.Keys
             .Where(key => !firstRegionKeys.Contains(key))
             .OrderBy(key => ((Vector2)RegionManager.Instance.GetRegionCenter(key) - cameraPos).sqrMagnitude)
@@ -554,47 +602,37 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         int processedCount = 0;
 
-        foreach (var key in firstRegionKeys)
+        // ĐỒNG BỘ HOÀN TOÀN: Gộp chung cả 2 danh sách Region để load liên tục một mạch cho xong
+        List<Vector2Int> allSortedRegionKeys = new List<Vector2Int>();
+        allSortedRegionKeys.AddRange(firstRegionKeys);
+        allSortedRegionKeys.AddRange(remainingRegionKeys);
+
+        foreach (var key in allSortedRegionKeys)
         {
-            if (!regionTasks.ContainsKey(key))
-                continue;
+            if (!regionTasks.ContainsKey(key)) continue;
+
+            // Xác định xem vùng này có nằm ngoài tầm nhìn camera lúc đầu không (để ẩn tối ưu render nếu cần)
+            bool isBackground = !firstRegionKeys.Contains(key);
 
             foreach (var loadTask in regionTasks[key])
             {
-                loadTask.Invoke(false);
+                loadTask.Invoke(isBackground);
 
                 processedCount++;
-                if (processedCount >= objectsPerFrame * 2)
+                // Dùng biến objectsPerFrame cấu hình sẵn (Ví dụ: 50 hoặc 100) để load dồn dập
+                if (processedCount >= objectsPerFrame)
                 {
                     processedCount = 0;
-                    yield return null;
-                }
-            }
-        }
-        
-        processedCount = 0;
-
-        foreach (var key in remainingRegionKeys)
-        {
-            if (!regionTasks.ContainsKey(key))
-                continue;
-
-            foreach (var loadTask in regionTasks[key])
-            {
-                loadTask.Invoke(true);
-
-                processedCount++;
-                if (processedCount >= backgroundObjectsPerFrame)
-                {
-                    processedCount = 0;
-                    yield return null;
+                    // Vì game đang đóng băng thời gian thực (Time.timeScale = 0),
+                    // ta dùng WaitForSecondsRealtime để nhường frame cho CPU thở mà không bị kẹt vô tận
+                    yield return new WaitForSecondsRealtime(0.001f); 
                 }
             }
         }
 
+        // Cập nhật lại sơ đồ di chuyển (A* Graph) sau khi toàn bộ Map và Decor đã dựng xong hoàn chỉnh
         UnitManager.Instance.UpdateGraphNodeWhenStart();
-
-        OnLoaded?.Invoke();
+        Debug.Log("[SaveLoadSystem] Đã khôi phục xong toàn bộ thực thể Decor trên bản đồ.");
     }
 
     private void LoadLayerData(LayerSpawnData layerData)

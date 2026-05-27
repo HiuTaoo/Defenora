@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using _Script.Task;
 using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
@@ -130,14 +131,12 @@ public class PlayerInteraction : MonoBehaviour
         }
         #endregion
 
-        #region Raycast Other Objects (Đã tối ưu NonAlloc)
+        #region Raycast Other Objects 
         if (currentObject == null)
         {
-            // Trả về số lượng object thực sự chạm vào mảng
             int interactCount = Physics2D.OverlapCircleNonAlloc(transform.position, interactionCollider.radius, interactResults);
             int playerCount = Physics2D.OverlapCircleNonAlloc(transform.position, playerCollider.radius * 1.25f, playerResults);
 
-            // Bắt buộc dùng vòng lặp for với biến đếm Count
             for (int i = 0; i < interactCount; i++)
             {
                 Collider2D interactCol = interactResults[i];
@@ -150,27 +149,41 @@ public class PlayerInteraction : MonoBehaviour
                     {
                         if (interactCol.CompareTag("Tree"))
                         {
-                            currentObject = interactCol.gameObject;
-                            var tree = currentObject.GetComponent<Tree>();
-                            LookUpLayerIndex();
-                            var task = tree.GetTask();
+                            GameObject candidateTreeGO = interactCol.gameObject;
+                            var tree = candidateTreeGO.GetComponent<Tree>();
+                            
+                            if (tree != null && tree.treeState != TreeState.Chopped)
+                            {
+                                currentObject = candidateTreeGO;
+                                LookUpLayerIndex();
+                                
+                                var task = tree.GetTask();
+                                
+                                // KIỂM TRA BẢO HIỂM: Thắt chặt điều kiện nhận diện Task hợp lệ
+                                // Một cái cây ĐƯỢC PHÉP chặt khi:
+                                // 1. Nó không có Task nào gắn vào (task == null)
+                                // 2. Hoặc Task gắn vào nó đã bị hủy mục tiêu (targetGameObject == null)
+                                // 3. Hoặc Task gắn vào nó ĐÃ HOÀN THÀNH (TaskStatus.Completed) nhưng chưa được dọn dẹp
+                                bool isTaskAvailable = (task == null) 
+                                                       || (task.targetGameObject == null) 
+                                                       || (task.taskStatus == TaskStatus.Completed);
 
-                            if (layerIndex == playerLayerIndex &&
-                                (task == null || task.targetGameObject == null) && tree.treeState != TreeState.Chopped)
-                            {
-                                interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
-                                interactButtonState = InteractButtonState.Cut;
-                                break; // Break khỏi vòng lặp trong
-                            }
-                            else
-                            {
-                                currentObject = null;
+                                if (layerIndex == playerLayerIndex && isTaskAvailable)
+                                {
+                                    interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
+                                    interactButtonState = InteractButtonState.Cut;
+                                    break; 
+                                }
+                                else
+                                {
+                                    // Nếu cây thuộc tầng khác hoặc đang có một Builder thực sự làm việc (TaskStatus.InProgress)
+                                    currentObject = null;
+                                }
                             }
                         }
                     }
                 }
 
-                // Nếu đã tìm thấy object, break khỏi vòng lặp ngoài luôn cho nhẹ máy
                 if (currentObject != null)
                     break;
             }

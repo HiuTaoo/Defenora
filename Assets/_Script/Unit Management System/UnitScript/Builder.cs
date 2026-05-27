@@ -427,7 +427,10 @@ public class Builder : Unit
     
     public void PickupItem(Item item)
     {
-        int addedAmount = currentInventory.Add(item.resourceType, item.amount);
+        if (item == null || item.itemData == null) return;
+
+        // Đổi từ item.resourceType sang item.itemData
+        int addedAmount = currentInventory.Add(item.itemData, item.amount);
 
         if (addedAmount > 0)
         {
@@ -439,7 +442,8 @@ public class Builder : Unit
             {
                 item.amount -= addedAmount;
             }
-            Debug.Log($"Collected Item: {item.resourceType}, Amount:  {item.amount}");
+            // Cập nhật lại chuỗi Log sử dụng item.itemData.itemName để hiển thị tên trực quan hơn
+            Debug.Log($"Collected Item: {item.itemData.itemName}, Amount: {addedAmount}, Remaining in world: {item.amount}");
         }
     }
     

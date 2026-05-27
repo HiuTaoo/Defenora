@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 
 public interface IStorage
 {
     event Action OnContentChanged;
     
-    bool CanStore(ResourceType type, int amount);
-    int Add(ResourceType type, int amount);
-    int Remove(ResourceType type, int amount);
-    int GetAmount(ResourceType type);
+    bool CanStore(ItemData itemData, int amount);
+    int Add(ItemData itemData, int amount);
+    int Remove(ItemData itemData, int amount);
+    int GetAmount(ItemData itemData);
+    
+    Dictionary<ItemData, int> GetAllItems();
 }

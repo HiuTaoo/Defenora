@@ -1,4 +1,5 @@
-﻿using _Script.Task;
+﻿using System.Collections.Generic;
+using _Script.Task;
 
 namespace _Script.Data
 {
@@ -12,6 +13,8 @@ namespace _Script.Data
         public int maxBuilders;
         public float requiredProgress;
         public float currentProgress;
-        public string targetGameObjectID; // Liên kết qua ID Object nếu cần, tạm thời lưu vị trí/tên nếu chưa có hệ thống ID toàn cục
+        public string targetGameObjectID;
+
+        public List<string> assignedBuilderIDs = new List<string>();
     }
 }

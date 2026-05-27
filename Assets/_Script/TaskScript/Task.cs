@@ -103,4 +103,19 @@ public class Task
         taskStatus = TaskStatus.Completed;
         builders.Clear();
     }
+    
+    public List<Builder> GetBuilders()
+    {
+        return builders;
+    }
+    
+    public void ForceAssignBuilderOnLoad(Builder builder)
+    {
+        if (builder == null) return;
+    
+        if (!builders.Contains(builder))
+        {
+            builders.Add(builder);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using _Script.Resourse;
 using _Script.Storage;
+using _Script.Storage._Script.Storage;
 using UnityEngine;
 
 public class UnitInventory : MonoBehaviour
@@ -11,14 +12,15 @@ public class UnitInventory : MonoBehaviour
     [Header("Debug View")]
     [SerializeField] private List<InventoryEntry> debugItems = new List<InventoryEntry>();
 
-    private Dictionary<ResourceType, int> items = new Dictionary<ResourceType, int>();
+    // Chuyển đổi hoàn toàn từ Dictionary sang List để đồng bộ thuật toán stack
+    private List<InventorySlot> items = new List<InventorySlot>();
 
     public int CurrentCapacity
     {
         get
         {
             int total = 0;
-            foreach (var amount in items.Values) total += amount;
+            foreach (var slot in items) total += slot.amount;
             return total;
         }
     }
@@ -26,38 +28,74 @@ public class UnitInventory : MonoBehaviour
     public bool IsFull => CurrentCapacity >= maxCapacity;
     public bool IsEmpty => CurrentCapacity == 0;
 
-    public int Add(ResourceType type, int amount)
+    public int Add(ItemData itemData, int amount)
     {
-        if (amount <= 0) return 0;
+        if (amount <= 0 || itemData == null) return 0;
 
         int spaceLeft = maxCapacity - CurrentCapacity;
-        int addAmount = Mathf.Min(spaceLeft, amount);
+        int amountToDistribute = Mathf.Min(spaceLeft, amount);
+        int totalAdded = amountToDistribute;
 
-        if (addAmount <= 0) return 0;
+        if (amountToDistribute <= 0) return 0;
 
-        if (!items.ContainsKey(type)) items[type] = 0;
-        items[type] += addAmount;
+        // 1. Tìm ô có sẵn trong balo để dồn tụ tài nguyên
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (amountToDistribute <= 0) break;
+
+            var slot = items[i];
+            if (slot.itemData == itemData && slot.amount < itemData.maxStackSize)
+            {
+                int remainSpace = itemData.maxStackSize - slot.amount;
+                int toAdd = Mathf.Min(remainSpace, amountToDistribute);
+
+                slot.amount += toAdd;
+                amountToDistribute -= toAdd;
+            }
+        }
+
+        // 2. Tạo ô mới khi vượt ngưỡng stack size của item
+        while (amountToDistribute > 0)
+        {
+            int toAdd = Mathf.Min(itemData.maxStackSize, amountToDistribute);
+            items.Add(new InventorySlot(itemData, toAdd));
+            amountToDistribute -= toAdd;
+        }
         
         SyncDebugView();
-        return addAmount;
+        return totalAdded;
     }
 
-    public int Remove(ResourceType type, int amount)
+    public int Remove(ItemData itemData, int amount)
     {
-        if (!items.ContainsKey(type)) return 0;
+        if (itemData == null || amount <= 0) return 0;
 
-        int removeAmount = Mathf.Min(items[type], amount);
-        items[type] -= removeAmount;
+        int remainingToTake = amount;
+        int totalRemoved = 0;
 
-        if (items[type] <= 0) items.Remove(type);
+        for (int i = items.Count - 1; i >= 0; i--)
+        {
+            if (remainingToTake <= 0) break;
+
+            var slot = items[i];
+            if (slot.itemData == itemData)
+            {
+                int toTake = Mathf.Min(slot.amount, remainingToTake);
+                slot.amount -= toTake;
+                remainingToTake -= toTake;
+                totalRemoved += toTake;
+
+                if (slot.amount <= 0) items.RemoveAt(i);
+            }
+        }
         
-        SyncDebugView();
-        return removeAmount;
+        if (totalRemoved > 0) SyncDebugView();
+        return totalRemoved;
     }
 
-    public Dictionary<ResourceType, int> GetAll()
+    public List<InventorySlot> GetAll()
     {
-        return new Dictionary<ResourceType, int>(items);
+        return items;
     }
 
     public void Clear()
@@ -66,43 +104,43 @@ public class UnitInventory : MonoBehaviour
         SyncDebugView();
     }
     
-    public bool TryGetMostAbundant(out ResourceType type)
+    public bool TryGetMostAbundant(out ItemData itemData)
     {
-        type = ResourceType.None;
+        itemData = null;
+        if (items.Count == 0) return false;
 
-        if (items.Count == 0)
-            return false;
-
-        /*foreach (var pair in items)
+        Dictionary<ItemData, int> combinedAmounts = new Dictionary<ItemData, int>();
+        foreach (var slot in items)
         {
-            Debug.Log($"Inventory contains: {pair.Key} x{pair.Value}");
-        }*/
+            if (slot.itemData == null) continue;
+            if (!combinedAmounts.ContainsKey(slot.itemData)) combinedAmounts[slot.itemData] = 0;
+            combinedAmounts[slot.itemData] += slot.amount;
+        }
 
         int maxAmount = int.MinValue;
-
-        foreach (var pair in items)
+        foreach (var pair in combinedAmounts)
         {
             if (pair.Value > maxAmount)
             {
                 maxAmount = pair.Value;
-                type = pair.Key;
+                itemData = pair.Key;
             }
         }
 
-        //Debug.Log($"Most abundant selected: {type}");
-        return true;
+        return itemData != null;
     }
     
-    public bool TryTakeOneStack(out ResourceType type, out int amount)
+    public bool TryTakeOneStack(out ItemData itemData, out int amount)
     {
-        foreach (var pair in items)
+        if (items.Count > 0)
         {
-            type = pair.Key;
-            amount = pair.Value;
+            var slot = items[0];
+            itemData = slot.itemData;
+            amount = slot.amount;
             return true;
         }
 
-        type = default;
+        itemData = null;
         amount = 0;
         return false;
     }
@@ -110,9 +148,9 @@ public class UnitInventory : MonoBehaviour
     private void SyncDebugView()
     {
         debugItems.Clear();
-        foreach (var pair in items)
+        foreach (var slot in items)
         {
-            debugItems.Add(new InventoryEntry { type = pair.Key, amount = pair.Value });
+            debugItems.Add(new InventoryEntry { itemData = slot.itemData, amount = slot.amount });
         }
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 [System.Serializable]
 public struct StorageEntry
 {
-    public ResourceType type;
+    public ItemData itemData;
     public int amount;
 }
 
@@ -19,8 +19,8 @@ public class Storage : Building, IStorage
     [Header("Debug View (Read Only)")]
     [SerializeField] private List<StorageEntry> debugStorage = new List<StorageEntry>();
 
-    private Dictionary<ResourceType, int> storage
-        = new Dictionary<ResourceType, int>();
+    // XÓA BỎ HOÀN TOÀN Dictionary storage cũ tại đây!
+    private List<InventorySlot> storageSlots = new List<InventorySlot>();
     
     public event Action OnContentChanged;
 
@@ -33,73 +33,134 @@ public class Storage : Building, IStorage
     {
         get
         {
+            // Sửa đổi: Tính toán dung lượng dựa hoàn toàn trên danh sách Slots mới
             int total = 0;
-            foreach (var item in storage)
-                total += item.Value;
+            foreach (var slot in storageSlots)
+            {
+                if (slot != null) total += slot.amount;
+            }
             return total;
         }
     }
 
-    public bool CanStore(ResourceType type, int amount)
+    public bool CanStore(ItemData itemData, int amount)
     {
         return CurrentCapacity + amount <= maxStoreageCapacity;
     }
 
-    public int Add(ResourceType type, int amount)
+    public int Add(ItemData itemData, int amount)
     {
-        if (amount <= 0) return 0;
+        if (amount <= 0 || itemData == null) return 0;
 
         int spaceLeft = maxStoreageCapacity - CurrentCapacity;
-        int addAmount = Mathf.Min(spaceLeft, amount);
+        int amountToDistribute = Mathf.Min(spaceLeft, amount);
+        int totalAdded = amountToDistribute;
 
-        if (addAmount <= 0) return 0;
+        if (amountToDistribute <= 0) return 0;
 
-        if (!storage.ContainsKey(type))
-            storage[type] = 0;
-
-        storage[type] += addAmount;
-        OnContentChanged?.Invoke();
-        
-        SyncDebugView();
-        return addAmount;
-    }
-
-    public int Remove(ResourceType type, int amount)
-    {
-        if (!storage.ContainsKey(type)) return 0;
-
-        int removeAmount = Mathf.Min(storage[type], amount);
-        storage[type] -= removeAmount;
-
-        if (storage[type] <= 0)
+        // 1. Tìm kiếm slot cùng loại tài nguyên còn trống chỗ để gom tụ lại
+        for (int i = 0; i < storageSlots.Count; i++)
         {
-            storage.Remove(type);
-            OnContentChanged?.Invoke();
+            if (amountToDistribute <= 0) break;
+
+            var slot = storageSlots[i];
+            if (slot.itemData == itemData && slot.amount < itemData.maxStackSize)
+            {
+                int remainSpaceInSlot = itemData.maxStackSize - slot.amount;
+                int toAdd = Mathf.Min(remainSpaceInSlot, amountToDistribute);
+
+                slot.amount += toAdd;
+                amountToDistribute -= toAdd;
+            }
         }
 
+        // 2. Nếu vượt ngưỡng maxStackSize hoặc chưa có slot nào, tạo slot tách biệt mới
+        while (amountToDistribute > 0)
+        {
+            int toAdd = Mathf.Min(itemData.maxStackSize, amountToDistribute);
+            storageSlots.Add(new InventorySlot(itemData, toAdd));
+            amountToDistribute -= toAdd;
+        }
+
+        OnContentChanged?.Invoke();
         SyncDebugView();
-        return removeAmount;
+    
+        return totalAdded;
+    }
+
+    public int Remove(ItemData itemData, int amount)
+    {
+        if (itemData == null || amount <= 0) return 0;
+
+        int remainingToTake = amount;
+        int totalRemoved = 0;
+
+        // Trừ cuốn chiếu từ slot cuối cùng trở về đầu để tối ưu dọn dẹp danh sách
+        for (int i = storageSlots.Count - 1; i >= 0; i--)
+        {
+            if (remainingToTake <= 0) break;
+
+            var slot = storageSlots[i];
+            if (slot.itemData == itemData)
+            {
+                int toTake = Mathf.Min(slot.amount, remainingToTake);
+                slot.amount -= toTake;
+                remainingToTake -= toTake;
+                totalRemoved += toTake;
+
+                if (slot.amount <= 0)
+                {
+                    storageSlots.RemoveAt(i);
+                }
+            }
+        }
+
+        if (totalRemoved > 0)
+        {
+            OnContentChanged?.Invoke();
+            SyncDebugView();
+        }
+
+        return totalRemoved;
     }
 
     private void DestroyStorage()
     {
-        if (storage != null)
+        if (storageSlots != null)
         {
-            storage.Clear();            
+            storageSlots.Clear();            
             SyncDebugView();            
             OnContentChanged?.Invoke(); 
         }
     }
     
-    public Dictionary<ResourceType, int> GetAllItems()
+    public List<InventorySlot> GetAllSlots()
     {
-        return new Dictionary<ResourceType, int>(storage);
+        return storageSlots;
     }
 
-    public int GetAmount(ResourceType type)
+    // Cập nhật Interface cũ để giữ an toàn cho luồng dữ liệu liên quan
+    public Dictionary<ItemData, int> GetAllItems()
     {
-        return storage.TryGetValue(type, out int value) ? value : 0;
+        Dictionary<ItemData, int> combined = new Dictionary<ItemData, int>();
+        foreach(var slot in storageSlots)
+        {
+            if(!combined.ContainsKey(slot.itemData)) combined[slot.itemData] = 0;
+            combined[slot.itemData] += slot.amount;
+        }
+        return combined;
     }
+
+    public int GetAmount(ItemData itemData)
+    {
+        int total = 0;
+        foreach (var slot in storageSlots)
+        {
+            if (slot.itemData == itemData) total += slot.amount;
+        }
+        return total;
+    }
+
     protected override void OnUnitAdded(Unit unit)
     {
         GetComponent<GuardComponent>()?.OnUnitAdded(unit);
@@ -121,13 +182,12 @@ public class Storage : Building, IStorage
     private void SyncDebugView()
     {
         debugStorage.Clear();
-
-        foreach (var pair in storage)
+        foreach (var slot in storageSlots)
         {
             debugStorage.Add(new StorageEntry
             {
-                type = pair.Key,
-                amount = pair.Value
+                itemData = slot.itemData,
+                amount = slot.amount
             });
         }
     }

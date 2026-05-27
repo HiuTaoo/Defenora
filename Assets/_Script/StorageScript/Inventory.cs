@@ -3,20 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using _Script.Resourse;
 using _Script.Storage;
+using _Script.Storage._Script.Storage;
 using UnityEngine;
 
 public class Inventory : MonoBehaviour
 {
     public static Inventory Instance;
+    
     [Header("Debug View")]
+    // Đồng bộ lại danh sách debug để hiển thị đúng cấu trúc InventoryEntry trong Inspector
     [SerializeField] private List<InventoryEntry> debugItems = new List<InventoryEntry>();
 
-    private Dictionary<ResourceType, int> _cachedTotalItems = new Dictionary<ResourceType, int>();
+    private List<InventorySlot> _cachedTotalSlots = new List<InventorySlot>();
     private int _cachedMaxCapacity;
     private int _cachedCurrentCapacity;
     private bool _isDirty = true; 
 
     private List<Storage> _activeStorages = new List<Storage>();
+    public event Action OnInventoryChanged;
 
     public int MaxCapacity { get { CheckRefresh(); return _cachedMaxCapacity; } }
     public int CurrentCapacity { get { CheckRefresh(); return _cachedCurrentCapacity; } }
@@ -82,41 +86,73 @@ public class Inventory : MonoBehaviour
 
     private void RebuildCache()
     {
-        _cachedTotalItems.Clear();
+        _cachedTotalSlots.Clear();
         _cachedMaxCapacity = 0;
         _cachedCurrentCapacity = 0;
 
+        // BƯỚC 1: Tạo một Dictionary tạm thời để gom TỔNG SỐ LƯỢNG thực tế của từng loại ItemData
+        Dictionary<ItemData, int> combinedResourceAmounts = new Dictionary<ItemData, int>();
+
         foreach (var storage in _activeStorages)
         {
+            if (storage == null) continue;
+
             _cachedMaxCapacity += storage.maxStoreageCapacity;
-            
-            foreach (var pair in storage.GetAllItems())
+    
+            // Quét qua các slot của từng kho chứa
+            foreach (var slot in storage.GetAllSlots()) 
             {
-                if (!_cachedTotalItems.ContainsKey(pair.Key))
-                    _cachedTotalItems[pair.Key] = 0;
-                
-                _cachedTotalItems[pair.Key] += pair.Value;
-                _cachedCurrentCapacity += pair.Value;
+                if (slot == null || slot.itemData == null || slot.amount <= 0) continue;
+
+                // Cộng dồn số lượng thuần túy của loại tài nguyên này vào Dictionary tạm
+                if (!combinedResourceAmounts.ContainsKey(slot.itemData))
+                {
+                    combinedResourceAmounts[slot.itemData] = 0;
+                }
+                combinedResourceAmounts[slot.itemData] += slot.amount;
+                _cachedCurrentCapacity += slot.amount;
+            }
+        }
+
+        // BƯỚC 2: Từ tổng số lượng đã gom, bắt đầu chia đều vào các Slot tổng dựa theo maxStackSize của từng Item
+        foreach (var pair in combinedResourceAmounts)
+        {
+            ItemData itemData = pair.Key;
+            int totalAmount = pair.Value;
+
+            // Tiến hành chia nhỏ số lượng tổng thành các slot dựa theo giới hạn maxStackSize của SO
+            while (totalAmount > 0)
+            {
+                int amountInSlot = Mathf.Min(itemData.maxStackSize, totalAmount);
+            
+                // Thêm ô sạch vào danh sách cache tổng để UI lấy dữ liệu vẽ chuẩn xác
+                _cachedTotalSlots.Add(new InventorySlot(itemData, amountInSlot));
+            
+                totalAmount -= amountInSlot;
             }
         }
 
         _isDirty = false;
         SyncDebugView();
-        Debug.Log("[Inventory] Cache đã được làm mới!");
+    
+        // Báo cho UIInventoryManager biết dữ liệu tổng đã được làm sạch và gom tụ hoàn hảo!
+        OnInventoryChanged?.Invoke(); 
     }
 
-    public Dictionary<ResourceType, int> GetAll()
+    // Đổi kiểu dữ liệu trả về của hàm GetAll() sang ItemData làm Key
+    public List<InventorySlot> GetAll()
     {
         CheckRefresh();
-        return new Dictionary<ResourceType, int>(_cachedTotalItems);
+        return _cachedTotalSlots;
     }
     
 
     #region Core Methods - Điều phối Storage
 
-    public int Add(ResourceType type, int amount)
+    // Đổi tham số nhận vào từ ResourceType sang ItemData
+    public int Add(ItemData itemData, int amount)
     {
-        if (amount <= 0) return 0;
+        if (amount <= 0 || itemData == null) return 0;
 
         int remainingAmount = amount;
 
@@ -124,9 +160,10 @@ public class Inventory : MonoBehaviour
         {
             if (remainingAmount <= 0) break;
 
-            if (storage.CanStore(type, 1)) 
+            // Lưu ý: Các hàm CanStore và Add trong Storage cần được sửa tham số thành ItemData
+            if (storage.CanStore(itemData, 1)) 
             {
-                int added = storage.Add(type, remainingAmount);
+                int added = storage.Add(itemData, remainingAmount);
                 remainingAmount -= added;
             }
         }
@@ -134,18 +171,21 @@ public class Inventory : MonoBehaviour
         return amount - remainingAmount; 
     }
 
-    public int Remove(ResourceType type, int amount)
+    // Đổi tham số nhận vào từ ResourceType sang ItemData
+    public int Remove(ItemData itemData, int amount)
     {
+        if (itemData == null) return 0;
         int remainingToTake = amount;
 
         foreach (var storage in _activeStorages)
         {
             if (remainingToTake <= 0) break;
 
-            int amountInStorage = storage.GetAmount(type);
+            // Lưu ý: Hàm GetAmount và Remove trong Storage cần sửa đổi tham số thành ItemData
+            int amountInStorage = storage.GetAmount(itemData);
             if (amountInStorage > 0)
             {
-                int removed = storage.Remove(type, remainingToTake);
+                int removed = storage.Remove(itemData, remainingToTake);
                 remainingToTake -= removed;
             }
         }
@@ -153,52 +193,69 @@ public class Inventory : MonoBehaviour
         return amount - remainingToTake; 
     }
 
-    public int GetAmount(ResourceType type)
+    // Đổi tham số nhận vào từ ResourceType sang ItemData
+    public int GetAmount(ItemData itemData)
     {
-        return _activeStorages.Sum(s => s.GetAmount(type));
+        if (itemData == null) return 0;
+        return _activeStorages.Sum(s => s.GetAmount(itemData));
     }
 
     #endregion
 
     #region Advanced Query
 
-    public bool TryTakeOneStack(out ResourceType type, out int amount)
+    // Đổi out parameter 'type' từ ResourceType sang ItemData
+    public bool TryTakeOneStack(out ItemData itemData, out int amount)
     {
         foreach (var storage in _activeStorages)
         {
             var itemsInStorage = storage.GetAllItems();
             foreach (var pair in itemsInStorage)
             {
-                type = pair.Key;
+                itemData = pair.Key;
                 amount = pair.Value;
                 return true;
             }
         }
 
-        type = default;
+        itemData = null;
         amount = 0;
         return false;
     }
     
-    public bool TryGetMostAbundant(out ResourceType type)
+    // Đổi out parameter 'type' từ ResourceType sang ItemData
+    public bool TryGetMostAbundant(out ItemData itemData)
     {
-        type = ResourceType.None;
-        var allItems = GetAll();
+        itemData = null;
+    
+        List<InventorySlot> allSlots = GetAll();
 
-        if (allItems.Count == 0) return false;
+        if (allSlots == null || allSlots.Count == 0) return false;
+
+        Dictionary<ItemData, int> combinedAmounts = new Dictionary<ItemData, int>();
+
+        foreach (var slot in allSlots)
+        {
+            if (slot.itemData == null) continue;
+
+            if (!combinedAmounts.ContainsKey(slot.itemData))
+                combinedAmounts[slot.itemData] = 0;
+
+            combinedAmounts[slot.itemData] += slot.amount;
+        }
 
         int maxAmount = int.MinValue;
 
-        foreach (var pair in allItems)
+        foreach (var pair in combinedAmounts)
         {
             if (pair.Value > maxAmount)
             {
                 maxAmount = pair.Value;
-                type = pair.Key;
+                itemData = pair.Key;
             }
         }
 
-        return true;
+        return itemData != null;
     }
 
     #endregion
@@ -208,13 +265,17 @@ public class Inventory : MonoBehaviour
     private void SyncDebugView()
     {
         debugItems.Clear();
-        
-        foreach (var pair in _cachedTotalItems)
+    
+        if (_cachedTotalSlots == null) return;
+
+        foreach (var slot in _cachedTotalSlots)
         {
+            if (slot.itemData == null) continue;
+
             debugItems.Add(new InventoryEntry
             {
-                type = pair.Key,
-                amount = pair.Value
+                itemData = slot.itemData,
+                amount = slot.amount
             });
         }
     }

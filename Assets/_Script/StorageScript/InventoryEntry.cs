@@ -1,9 +1,12 @@
 ﻿namespace _Script.Storage
 {
-    [System.Serializable]
-    public struct InventoryEntry
+    namespace _Script.Storage
     {
-        public global::ResourceType type;
-        public int amount;
+        [System.Serializable]
+        public struct InventoryEntry
+        {
+            public ItemData itemData; 
+            public int amount;
+        }
     }
 }

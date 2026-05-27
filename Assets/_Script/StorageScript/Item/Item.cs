@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-    public ResourceType resourceType;
+    public ItemData itemData;
     public int amount;
     public int layerIndex;
     public Builder assignBuilder;
