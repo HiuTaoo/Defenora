@@ -240,12 +240,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 893abfe58f69fa045b1eb37a6f17ba73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  configData: {fileID: 11400000, guid: 710969ac202eff447b1e3f9b088db4d5, type: 2}
   buildingName: WatchTower
   maxCapacity: 3
   range: 5
+  buildingType: 1
+  buildWoodCost: 0
+  repairWoodCost: 0
   currentCapacity: 0
   currentHealth: 0
-  buildingType: 1
   buildingState: 0
   currentBuildProgress: 0
   stationedUnits: []
@@ -257,7 +260,7 @@ MonoBehaviour:
     taskStatus: 0
     maxBuilders: 0
     requiredProgress: 0
-    currentProgress: 0
+    _internalProgress: 0
     builders: []
   layerIndex: 0
   health: {fileID: 0}
@@ -331,7 +334,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 9cf58f22-14bf-4ed9-a673-10d35f24a43e
+  id: 
 --- !u!1 &7552566619195896200
 GameObject:
   m_ObjectHideFlags: 0

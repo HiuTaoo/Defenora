@@ -1,4 +1,6 @@
-﻿namespace _Script.BT.Node.EnemyNode.TorchGoblinNode
+﻿using _Script.Enum;
+
+namespace _Script.BT.Node.EnemyNode.TorchGoblinNode
 {
     public class ClearBuildingTargetNode: BTActionNode
     {

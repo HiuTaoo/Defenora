@@ -20,24 +20,22 @@ public abstract class Unit : MonoBehaviour
     public int layerIndex;
     public float currentHealth;
     
-    //public string id { get; private set; }
-    
     [Header("Deployment")]
     public Building assignedBuilding;  
     
     [Header("Layer")]
-    public int obstacleLayer;
-    public int enemyLayer;
+    [HideInInspector] public int obstacleLayer;
+    [HideInInspector] public int enemyLayer;
     
     [Header("Array Non Alloc")]
-    public Collider2D[] results;
+    [HideInInspector] public Collider2D[] results;
     
     [Header("Target")]
     public Transform currentTarget;
     public int currentTargetLayerIndex;
     public Vector2 lastSeenPosition;
     public int lastSeenLayerIndex;
-    public bool isAlerted;
+    [HideInInspector] public bool isAlerted;
     public float aggroTimer;
     public float aggroDuration = 5f;
     
@@ -47,18 +45,18 @@ public abstract class Unit : MonoBehaviour
     public float hearRange = 15f;
     
     [Header("Animation FSM")]
-    public AnimationFSM animFSM;
+    [HideInInspector] public AnimationFSM animFSM;
     
     [Header("Stats System")]
-    public UnitStatsManager statsManager;
+    [HideInInspector] public UnitStatsManager statsManager;
 
     public GameObject enemySpawnPoint;
 
     protected BehaviourTree bt;
     private Rigidbody2D rb;
-    public DynamicSortingYX sortingYX;
-    public Health health;
-    public UnitStatsManager unitStatsManager;
+    [HideInInspector] public DynamicSortingYX sortingYX;
+    [HideInInspector] public Health health;
+    [HideInInspector] public UnitStatsManager unitStatsManager;
     
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public CharacterMovement characterMovement;

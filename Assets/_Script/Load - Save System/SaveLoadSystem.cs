@@ -193,12 +193,12 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         saveData.unitSaveData = unitData;
         #endregion
 
-        #region Save Building Data (Đã cập nhật lưu kèm Storage)
+        #region Save Building Data 
         var buildingData = new BuildingSaveData();
         foreach (var building in unitManager.buildings)
         {
             var guardComponent = building.gameObject.GetComponent<GuardComponent>();
-            var buildingEntry = new BuildingData
+            var buildingEntry = new BuildingSaveLoadData
             {
                 buildingID = building.GetId(),
                 buildingName = building.name,
@@ -229,6 +229,11 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                         });
                     }
                 }
+            }
+            
+            if (building is Archery archeryBuilding)
+            {
+                buildingEntry.traineeSlots = archeryBuilding.GetTraineesSaveData();
             }
 
             buildingData.buildings.Add(buildingEntry);
@@ -383,7 +388,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 if(building.GetId() == unitDatum.assignedBuilding)
                 {
                     unit.assignedBuilding = building;
-                    building.stationedUnits.Add(unit);
+                    if (unit.unitType != UnitType.Civilian)
+                    {
+                        building.stationedUnits.Add(unit);
+                    }
                     if (guardComponent != null)
                     {
                         foreach (var spot in guardComponent.positionSpots)
@@ -394,6 +402,23 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                         }
                     }
                     break;
+                }
+            }
+            
+            foreach (var building in unitManager.buildings) {
+                if(building.GetId() == unitDatum.assignedBuilding)
+                {
+                    if (building is Archery archeryBuilding)
+                    {
+                        var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
+                        var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
+
+                        if (traineeData != null)
+                        {
+                            archeryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -482,6 +507,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         Debug.Log("[Load System] Khôi phục danh sách nhiệm vụ và kích hoạt lại AI thành công!");
         #endregion
     }
+    
+    
     
     #region SAVE/LOAD Spawn Object 
     public void SaveSpawnData(GameSaveData gameSaveData)

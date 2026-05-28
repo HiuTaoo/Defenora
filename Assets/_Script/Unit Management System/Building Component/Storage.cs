@@ -12,8 +12,7 @@ public struct StorageEntry
 
 public class Storage : Building, IStorage
 {
-    [Header("Storage Config")]
-    public int maxStoreageCapacity = 100;
+    [HideInInspector] public int maxStorageCapacity;
 
     [Header("Debug View (Read Only)")]
     [SerializeField] private List<StorageEntry> debugStorage = new List<StorageEntry>();
@@ -41,17 +40,31 @@ public class Storage : Building, IStorage
             return total;
         }
     }
+    
+    public override void Awake()
+        {
+            base.Awake(); 
+    
+            if (configData is StorageData storageConfig)
+            {
+                maxStorageCapacity = storageConfig.maxStorageCapacity;
+            }
+            else
+            {
+                Debug.LogError($"[Storage] {gameObject.name} yêu cầu Config Data phải là loại StorageData!");
+            }
+        }
 
     public bool CanStore(ItemData itemData, int amount)
     {
-        return CurrentCapacity + amount <= maxStoreageCapacity;
+        return CurrentCapacity + amount <= maxStorageCapacity;
     }
 
     public int Add(ItemData itemData, int amount)
     {
         if (amount <= 0 || itemData == null) return 0;
 
-        int spaceLeft = maxStoreageCapacity - CurrentCapacity;
+        int spaceLeft = maxStorageCapacity - CurrentCapacity;
         int amountToDistribute = Mathf.Min(spaceLeft, amount);
         int totalAdded = amountToDistribute;
 

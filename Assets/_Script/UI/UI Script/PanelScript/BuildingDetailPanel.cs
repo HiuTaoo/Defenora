@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using _Script.Enum;
 using _Script.Object_Pooling;
 using TMPro;
 using UnityEngine;

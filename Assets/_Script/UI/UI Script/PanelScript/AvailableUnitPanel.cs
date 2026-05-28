@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace _Script.UI.UI_Script.PanelScript
 {
-    public class AvailableUnitPanel: MonoBehaviour
+    public class AvailableUnitPanel : MonoBehaviour
     {
         public GameObject availableUnitPanel;
         public Transform availableUnitContainer;
@@ -14,6 +14,14 @@ namespace _Script.UI.UI_Script.PanelScript
         
         private Building currentSelectedBuilding;
         private List<Unit> availableUnits;
+
+        private void OnEnable()
+        {
+            if (UnitManager.Instance != null)
+            {
+                UnitManager.Instance.OnUnitRegistered += RefreshAvailableUnitList;
+            }
+        }
 
         public void ShowAvailableUnitInfo(Building building)
         {
@@ -43,6 +51,8 @@ namespace _Script.UI.UI_Script.PanelScript
 
         private void RenderAvailableUnits()
         {
+            if (availableUnitPanel != null && !availableUnitPanel.activeSelf) return;
+
             if (availableUnitContainer != null)
             {
                 for (int i = availableUnitContainer.childCount - 1; i >= 0; i--)
@@ -67,7 +77,7 @@ namespace _Script.UI.UI_Script.PanelScript
 
             foreach (var unit in availableUnits)
             {
-                if (!currentSelectedBuilding.CanAddUnit(unit))
+                if (currentSelectedBuilding == null || !currentSelectedBuilding.CanAddUnit(unit))
                     continue;
 
                 GameObject obj = PoolManager.Instance.Spawn(PrefabConfig.Instance.unitIconPrefab, availableUnitContainer.position, Quaternion.identity);
@@ -86,9 +96,9 @@ namespace _Script.UI.UI_Script.PanelScript
 
         private void ShowConfirmDialog(Unit clickedUnit)
         {
+            if (currentSelectedBuilding == null) return;
+
             var str = $"Do you want to add {clickedUnit.unitType} to {currentSelectedBuilding.buildingType}?";
-    
-            // Dùng () => để tạo một hàm ẩn danh (không tham số) bọc cái hàm có tham số của bạn lại
             ConfirmDialog.Instance.Show(str, () => AssignUnitToBuilding(clickedUnit));
         }
 
@@ -98,7 +108,6 @@ namespace _Script.UI.UI_Script.PanelScript
             {
                 currentSelectedBuilding.AddUnit(clickedUnit);
                 RenderAvailableUnits();
-                //availableUnitPanel.SetActive(false); 
             }
         }
 
@@ -110,7 +119,16 @@ namespace _Script.UI.UI_Script.PanelScript
         private void OnDisable()
         {
             if (noticeText != null) noticeText.gameObject.SetActive(false);
+
+            if (UnitManager.Instance != null)
+            {
+                UnitManager.Instance.OnUnitRegistered -= RefreshAvailableUnitList;
+            }
+
+            if (currentSelectedBuilding != null)
+            {
+                currentSelectedBuilding.OnStationedUnitsChanged -= RefreshAvailableUnitList;
+            }
         }
-        
     }
 }

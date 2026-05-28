@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using _Script.Data;
+using _Script.Enum;
 using UnityEngine;
 
 [System.Serializable]
-public class BuildingData
+public class BuildingSaveLoadData
 {
     public string buildingID;
     public string buildingName;
@@ -18,6 +19,7 @@ public class BuildingData
     public Vector3 position;
     
     public List<SavedInventorySlot> storageSlots = new List<SavedInventorySlot>();
+    public List<TraineeSaveData> traineeSlots = new List<TraineeSaveData>();
 }
 
 [System.Serializable]
@@ -27,22 +29,3 @@ public struct SpotData
     public string unitName;    
 }
 
-public enum BuildingType
-{
-    Fortress,
-    WatchTower,
-    WorkShop,
-    Storage,
-    Archery,
-    Barrack,
-    Monastery
-}
-
-public enum BuildingState
-{
-    Placing,
-    Pending,
-    UnderConstruction,
-    Completed,
-    Destroyed
-}

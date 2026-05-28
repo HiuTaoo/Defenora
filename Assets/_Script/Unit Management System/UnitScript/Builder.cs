@@ -10,6 +10,7 @@ using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
 using _Script.BT.Node.BuilderNode.Idle;
 using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.MonkNode.MonkIdle;
+using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using _Script.Task;

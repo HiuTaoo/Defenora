@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using _Script.Enum;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;

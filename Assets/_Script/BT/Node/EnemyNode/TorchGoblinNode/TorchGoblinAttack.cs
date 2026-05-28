@@ -1,4 +1,5 @@
-﻿using _Script.Unit_Management_System.Enemy;
+﻿using _Script.Enum;
+using _Script.Unit_Management_System.Enemy;
 using UnityEngine; 
 
 namespace _Script.BT.Node.EnemyNode.TorchGoblinNode

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using _Script.Enum;
 using UnityEngine;
 using static UnityEditor.Rendering.ShadowCascadeGUI;
 

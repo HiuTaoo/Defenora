@@ -9,6 +9,7 @@ public enum UnitType
     Builder, 
     Lancer,
     Monk,
+    Civilian,
     //Enemy
     TorchGoblin,
     TNTGoblin,

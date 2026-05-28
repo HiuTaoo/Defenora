@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
@@ -18,6 +20,7 @@ public class UnitManager : MonoBehaviour
     private Transform buildingParent;
     
     public static UnitManager Instance { get; private set; }
+    public Action OnUnitRegistered;
 
     private void Awake()
     {
@@ -77,6 +80,7 @@ public class UnitManager : MonoBehaviour
         if (!allUnits.Contains(unit))
         {
             allUnits.Add(unit);
+            OnUnitRegistered?.Invoke();
         }
 
         unit.OnUnitDestroyed -= OnUnitDestroyed;
@@ -225,6 +229,7 @@ public class UnitManager : MonoBehaviour
             case UnitType.Warrior: return PrefabConfig.Instance.warriorPrefab;
             case UnitType.Builder: return PrefabConfig.Instance.builderPrefab;
             case UnitType.Lancer: return PrefabConfig.Instance.lancerPrefab;
+            case UnitType.Civilian: return PrefabConfig.Instance.civilianPrefab;
             
             //Enemy case
             case UnitType.TorchGoblin: return PrefabConfig.Instance.torchGoblinPrefab;

@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace _Script.Unit_Management_System.Animation.Profile_Script
 {
-    [CreateAssetMenu(menuName = "CustomAnimation/Monk Animation Profile")]
-    public class MonkAnimProfile: ScriptableObject, IAnimationProfile
+    [CreateAssetMenu(menuName = "CustomAnimation/Base Unit Animation Profile")]
+    public class BaseUnitAnimProfile: ScriptableObject, IAnimationProfile
     {
         [System.Serializable]
         public class MonkStateAnimation

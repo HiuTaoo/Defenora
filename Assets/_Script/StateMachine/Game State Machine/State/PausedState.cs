@@ -8,8 +8,8 @@ public class PausedState : IGameState
     {
         Debug.Log($"Game State: Paused");
         context.UIManager.HideAllUIs();
-        context.UIManager.ShowUI(GameStateType.Paused, UINames.PauseMenu);
-        context.UIManager.ShowUI(GameStateType.Paused, UINames.PauseButton);
+        context.UIManager.ShowUINotHideHistory(GameStateType.Paused, UINames.PauseMenu);
+        context.UIManager.ShowUINotHideHistory(GameStateType.Paused, UINames.PauseButton);
         // Pause game time
         Time.timeScale = 0f;
 

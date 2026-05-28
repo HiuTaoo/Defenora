@@ -76,6 +76,11 @@ public class GameManager : MonoBehaviour
         gameContext.StateMachine.ChangeState(GameStateType.Playing);
     }
 
+    public void PauseGame()
+    {
+        gameContext.StateMachine.ChangeState(GameStateType.Paused);
+    }
+
     public void OpenAvailableUnitGUI()
     {
         UIManager.Instance.ShowUI(GameStateType.Editor, UINames.AvailableUnitsGUI);

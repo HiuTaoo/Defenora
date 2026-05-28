@@ -21,7 +21,7 @@ public class UnitSaveData
 [System.Serializable]
 public class BuildingSaveData
 {
-    public List<BuildingData> buildings = new List<BuildingData>();
+    public List<BuildingSaveLoadData> buildings = new List<BuildingSaveLoadData>();
 }
 
 [System.Serializable]

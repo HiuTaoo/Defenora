@@ -2,19 +2,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using _Script.Enum;
 using _Script.Task;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 
 public abstract class Building : MonoBehaviour, IBuildable
 {
-    [Header("Building Info")]
-    public string buildingName;
-    public int maxCapacity = 5;
-    public float range = 5f;
+    [Header("Configuration")]
+    public BuildingData configData; 
+
+    [HideInInspector] public string buildingName;
+    [HideInInspector] public int maxCapacity;
+    [HideInInspector] public float range;
+    [HideInInspector] public BuildingType buildingType;
+    [HideInInspector] public int buildWoodCost;
+    [HideInInspector] public int repairWoodCost;
+    
     public int currentCapacity = 0;
     public float currentHealth;
-    public BuildingType buildingType;
     public BuildingState buildingState;
 
     [Header("Build Progress")]
@@ -34,7 +40,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     private ObjectFootprint buildingFootprint;
     private Animator animator;
     private CapsuleCollider2D buildingCollider;
-    public Health health;
+    [HideInInspector] public Health health;
 
     private GameObject customRenderer;
     private Coroutine buildEffectCoroutine;
@@ -64,7 +70,19 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
 
-        buildingName = gameObject.name;
+        if (configData != null)
+        {
+            buildingName = configData.buildingName;
+            buildingType = configData.buildingType;
+            maxCapacity = configData.maxCapacity;
+            range = configData.range;
+            buildWoodCost = configData.buildWoodCost;
+            repairWoodCost = configData.repairWoodCost;
+        }
+        else
+        {
+            Debug.LogError($"[Building] {gameObject.name} thiếu Config Data!");
+        }
     }
 
     protected virtual void Update()
@@ -389,9 +407,9 @@ public abstract class Building : MonoBehaviour, IBuildable
             buildingFootprint = GetComponent<ObjectFootprint>();
     }
 
-    public BuildingData GetStationInfo()
+    public BuildingSaveLoadData GetStationInfo()
     {
-        return new BuildingData
+        return new BuildingSaveLoadData
         {
             buildingName = this.buildingName,
             currentCapacity = stationedUnits.Count,

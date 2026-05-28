@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.Enum;
 using _Script.UI.UI_Script;
 using _Script.UI.UI_Script.PanelScript;
 using UnityEngine;
@@ -143,6 +144,23 @@ public class UIManager: MonoBehaviour
                 }
             }
 
+            GameObject uiGameObject = stateUIs[stateType][uiName];
+            uiGameObject.SetActive(true);
+            
+            uiHistory.Push((stateType, uiName));
+
+            UIConfig config = GetUIConfig(stateType, uiName) ??
+                              (stateConfigs.ContainsKey(stateType) ? stateConfigs[stateType] : null);
+
+            if (config != null)
+                ApplyUIConfig(uiGameObject, config);
+        }
+    }
+    
+    public void ShowUINotHideHistory(GameStateType stateType, string uiName)
+    {
+        if (stateUIs.ContainsKey(stateType) && stateUIs[stateType].ContainsKey(uiName))
+        {
             GameObject uiGameObject = stateUIs[stateType][uiName];
             uiGameObject.SetActive(true);
             

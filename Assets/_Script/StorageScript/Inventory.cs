@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using _Script.Enum;
 using _Script.Storage;
 using _Script.Storage._Script.Storage;
 using UnityEngine;
@@ -96,7 +97,7 @@ public class Inventory : MonoBehaviour
         {
             if (storage == null) continue;
 
-            _cachedMaxCapacity += storage.maxStoreageCapacity;
+            _cachedMaxCapacity += storage.maxStorageCapacity;
     
             // Quét qua các slot của từng kho chứa
             foreach (var slot in storage.GetAllSlots()) 

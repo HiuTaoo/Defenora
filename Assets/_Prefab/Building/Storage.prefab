@@ -323,12 +323,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 353483fa8f19e0d42889c1a734102aa4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  configData: {fileID: 11400000, guid: f7d75729ac58e564686c346847729b5b, type: 2}
   buildingName: 
   maxCapacity: 3
   range: 3
+  buildingType: 3
+  buildWoodCost: 0
+  repairWoodCost: 0
   currentCapacity: 0
   currentHealth: 0
-  buildingType: 3
   buildingState: 0
   currentBuildProgress: 0
   stationedUnits: []
@@ -344,7 +347,7 @@ MonoBehaviour:
     builders: []
   layerIndex: 0
   health: {fileID: 0}
-  maxStoreageCapacity: 4
+  maxStorageCapacity: 0
   debugStorage: []
 --- !u!114 &659560381163937438
 MonoBehaviour:

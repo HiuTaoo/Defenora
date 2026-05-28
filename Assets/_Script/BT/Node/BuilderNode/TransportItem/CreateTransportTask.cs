@@ -1,4 +1,5 @@
-﻿using _Script.Task;
+﻿using _Script.Enum;
+using _Script.Task;
 using UnityEngine;
 
 namespace _Script.BT.Node.BuilderNode
@@ -32,7 +33,7 @@ namespace _Script.BT.Node.BuilderNode
                 if (!building.TryGetComponent(out global::Storage storage))
                     continue;
 
-                if (storage.CurrentCapacity >= storage.maxStoreageCapacity)
+                if (storage.CurrentCapacity >= storage.maxStorageCapacity)
                     continue;
 
                 float dist = Vector3.SqrMagnitude(

@@ -6,6 +6,7 @@ using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.BarrelNode;
 using _Script.BT.Node.EnemyNode.unitNode;
+using _Script.Enum;
 using _Script.ScriptableObjectScript;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
