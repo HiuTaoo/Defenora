@@ -176,15 +176,7 @@ public class Monastery : Building
                 unit.currentState = UnitState.Idle;
                 unit.assignedBuilding = null;
 
-                // Nếu học viên đang hiện (index 0) rời đi hoặc tốt nghiệp, đôn người tiếp theo lên
-                if (index == 0 && trainingSlots.Count > 0)
-                {
-                    Unit nextTrainee = trainingSlots[0].npcUnit;
-                    nextTrainee.gameObject.SetActive(true); // Bật hiển thị học viên này lên
-                    
-                    // Cập nhật lại vị trí đứng ngẫu nhiên mới quanh Tu viện cho học viên mới đôn lên
-                    nextTrainee.transform.position = GetRandomPositionAroundBuilding();
-                }
+                unit.transform.position = GetRandomPositionAroundBuilding();
 
                 SyncDebugView();
                 return true;
@@ -236,22 +228,14 @@ public class Monastery : Building
 
         unit.floorAgent.MoveToFloor(LayerIndex);
         unit.assignedBuilding = this;
-        unit.transform.position = GetRandomPositionAroundBuilding();
+        unit.transform.position = unit.assignedBuilding.transform.position;
 
-        if (trainingSlots.Count == 1)
-        {
-            unit.gameObject.SetActive(true);
-        }
-        else
-        {
-            unit.gameObject.SetActive(false);
-        }
+        unit.gameObject.SetActive(false);
 
         SyncDebugView();
     }
 
     #region Debug Sync Logic
-
     private void SyncDebugView()
     {
         debugTrainees.Clear();
@@ -259,10 +243,12 @@ public class Monastery : Building
         {
             if (slot != null && slot.npcUnit != null)
             {
+                float flooredHours = Mathf.Floor(slot.currentTrainingHours * 10f) / 10f;
+
                 debugTrainees.Add(new TraineeDebugEntry
                 {
                     unitName = slot.npcUnit.unitName,
-                    progress = $"{slot.currentTrainingHours:F1}h / {trainingDurationInGameHours:F1}h"
+                    progress = $"{flooredHours:F1}h / {trainingDurationInGameHours:F1}h"
                 });
             }
         }

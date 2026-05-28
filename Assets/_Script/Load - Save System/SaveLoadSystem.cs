@@ -198,6 +198,12 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         foreach (var building in unitManager.buildings)
         {
             var guardComponent = building.gameObject.GetComponent<GuardComponent>();
+            List<SpotData> savedPositions = null;
+            if (guardComponent != null && guardComponent.listArcherPositions != null)
+            {
+                savedPositions = new List<SpotData>(guardComponent.listArcherPositions);
+            }
+            
             var buildingEntry = new BuildingSaveLoadData
             {
                 buildingID = building.GetId(),
@@ -205,7 +211,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 currentCapacity = building.currentCapacity,
                 maxCapacity = building.maxCapacity,
                 layerIndex = building.LayerIndex,
-                archerPositions = guardComponent == null ? null : guardComponent.listArcherPositions,
+                archerPositions = savedPositions,
                 buildingType = building.buildingType,
                 position = building.transform.position,
                 buildingState = building.buildingState,
@@ -346,10 +352,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             {
                 customRender.GetComponent<CustomRender>().layerIndex = building.LayerIndex;
             }
+            
         }
+        
+        
         #endregion
 
-        #region Load Unit
+        #region Load Unit 
         var unitData = saveData.unitSaveData;
 
         foreach (var unit in unitManager.allUnits)
@@ -388,55 +397,63 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 }
             }
             
-            foreach (var building in unitManager.buildings) {
-                var guardComponent = building.gameObject.GetComponent<GuardComponent>();
-                if(building.GetId() == unitDatum.assignedBuilding)
+            foreach (var building in unitManager.buildings) 
+            {
+                if (building.GetId() != unitDatum.assignedBuilding) 
+                    continue;
+
+                unit.assignedBuilding = building;
+
+                if (building is Archery archeryBuilding)
                 {
-                    unit.assignedBuilding = building;
-                    if (unit.unitType != UnitType.Civilian)
+                    var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
+                    var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
+
+                    if (traineeData != null)
+                    {
+                        archeryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
+                        break; 
+                    }
+                }
+                else if (building is Monastery monasteryBuilding)
+                {
+                    var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
+                    var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
+
+                    if (traineeData != null)
+                    {
+                        monasteryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
+                        break;
+                    }
+                }
+
+                if (unit.unitType != UnitType.Civilian)
+                {
+                    if (!building.stationedUnits.Contains(unit))
                     {
                         building.stationedUnits.Add(unit);
                     }
-                    if (guardComponent != null)
-                    {
-                        foreach (var spot in guardComponent.positionSpots)
-                        {
-                            if(unit.transform.position == spot.position)
-                                guardComponent.listArcherPositions.Add(new SpotData { position = spot.position, unitName = unit.unitName });
-                            break;
-                        }
-                    }
-                    break;
                 }
-            }
-            
-            foreach (var building in unitManager.buildings) {
-                if(building.GetId() == unitDatum.assignedBuilding)
+
+                var guardComponent = building.gameObject.GetComponent<GuardComponent>();
+                if (guardComponent != null)
                 {
-                    if (building is Archery archeryBuilding)
+                    var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
+                    if (savedBuildingData != null && savedBuildingData.archerPositions != null)
                     {
-                        var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
-                        var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
-
-                        if (traineeData != null)
+                        var matchedSpotData = savedBuildingData.archerPositions.FirstOrDefault(s => s.unitId == unit.GetId());
+                        
+                        if (!string.IsNullOrEmpty(matchedSpotData.unitId))
                         {
-                            archeryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
-                            break;
-                        }
-                    }
-                    
-                    else if (building is Monastery monasteryBuilding)
-                    {
-                        var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
-                        var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
-
-                        if (traineeData != null)
-                        {
-                            monasteryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
-                            break;
+                            guardComponent.listArcherPositions.Add(new SpotData 
+                            { 
+                                position = matchedSpotData.position, 
+                                unitId = unit.GetId()
+                            });
                         }
                     }
                 }
+                break; 
             }
         }
         #endregion

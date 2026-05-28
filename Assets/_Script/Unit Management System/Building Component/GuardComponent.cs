@@ -48,7 +48,7 @@ namespace _Script.Unit_Management_System.Building
                 listArcherPositions.Add(new SpotData
                 {
                     position = spot,
-                    unitName = unit.unitName
+                    unitId = unit.GetId()
                 });
         }
 
@@ -57,7 +57,7 @@ namespace _Script.Unit_Management_System.Building
             if (unit.unitType != UnitType.Archer)
                 return;
 
-            int index = listArcherPositions.FindIndex(s => s.unitName == unit.unitName);
+            int index = listArcherPositions.FindIndex(s => s.unitId == unit.unitName);
             if (index >= 0)
                 listArcherPositions.RemoveAt(index);
         }
@@ -69,7 +69,7 @@ namespace _Script.Unit_Management_System.Building
                 var spotData = listArcherPositions
                     .FirstOrDefault(s => s.position == spot.position);
 
-                if (string.IsNullOrEmpty(spotData.unitName))
+                if (string.IsNullOrEmpty(spotData.unitId))
                     return spot.position;
             }
 

@@ -80,6 +80,7 @@ public class UnitManager : MonoBehaviour
         if (!allUnits.Contains(unit))
         {
             allUnits.Add(unit);
+            unit.transform.SetParent(unitParent);
             OnUnitRegistered?.Invoke();
         }
 

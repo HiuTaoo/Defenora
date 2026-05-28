@@ -26,6 +26,6 @@ public class BuildingSaveLoadData
 public struct SpotData
 {
     public Vector3 position;   
-    public string unitName;    
+    public string unitId;    
 }
 

@@ -263,7 +263,6 @@ public class Archery : Building
     }
 
     #region Debug Sync Logic
-
     private void SyncDebugView()
     {
         debugTrainees.Clear();
@@ -271,10 +270,12 @@ public class Archery : Building
         {
             if (slot != null && slot.npcUnit != null)
             {
+                float flooredHours = Mathf.Floor(slot.currentTrainingHours * 10f) / 10f;
+
                 debugTrainees.Add(new TraineeDebugEntry
                 {
                     unitName = slot.npcUnit.unitName,
-                    progress = $"{slot.currentTrainingHours:F1}h / {trainingDurationInGameHours:F1}h"
+                    progress = $"{flooredHours:F1}h / {trainingDurationInGameHours:F1}h"
                 });
             }
         }
