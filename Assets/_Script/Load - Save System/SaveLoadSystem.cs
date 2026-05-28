@@ -153,6 +153,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     #region Save/ Load Game
     public void PopulateSaveData(GameSaveData saveData)
     {
+        saveData.totalCoins = WalletManager.Instance.CurrentCoins;
+        
         #region Save Unit Data
         var unitData = new UnitSaveData();
         foreach (var unit in unitManager.allUnits)
@@ -254,6 +256,11 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     public void LoadFromSaveData(GameSaveData saveData)
     {
+        if (WalletManager.Instance != null)
+        {
+            WalletManager.Instance.SetCoinsOnLoad(saveData.totalCoins);
+        }
+        
         #region Load Building
         var buildingData = saveData.buildingSaveData;
 

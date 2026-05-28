@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using _Script.Resourse;
-using UnityEngine;
-
 using UnityEngine;
 
 public class Item : MonoBehaviour

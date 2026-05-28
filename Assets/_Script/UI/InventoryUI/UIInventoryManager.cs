@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using _Script.Object_Pooling;
+using TMPro;
 using UnityEngine;
 
 public class UIInventoryManager : MonoBehaviour
@@ -7,6 +8,8 @@ public class UIInventoryManager : MonoBehaviour
     [Header("UI Components")]
     [SerializeField] private GameObject slotPrefab;
     [SerializeField] private Transform gridContainer;
+    
+    [SerializeField] private TextMeshProUGUI coinText;
 
     private List<UIResourceSlot> _spawnedSlots = new List<UIResourceSlot>();
 
@@ -16,7 +19,14 @@ public class UIInventoryManager : MonoBehaviour
         {
             Inventory.Instance.OnInventoryChanged += UpdateInventoryUI;
         }
+        
         UpdateInventoryUI();
+        WalletManager.OnCoinChanged += UpdateCoinUI;
+
+        if (WalletManager.Instance != null)
+        {
+            UpdateCoinUI(WalletManager.Instance.CurrentCoins);
+        }
     }
 
     private void OnDestroy()
@@ -62,6 +72,14 @@ public class UIInventoryManager : MonoBehaviour
                 newSlot.Setup(slotData.itemData, slotData.amount); 
                 _spawnedSlots.Add(newSlot);
             }
+        }
+    }
+    
+    private void UpdateCoinUI(int newCoinAmount)
+    {
+        if (coinText != null)
+        {
+            coinText.text = newCoinAmount.ToString();
         }
     }
 }

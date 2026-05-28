@@ -5,6 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public class GameSaveData
 {
+    public int totalCoins;
     public UnitSaveData unitSaveData = new UnitSaveData();
     public BuildingSaveData buildingSaveData = new BuildingSaveData();
     public ObjectSpawnData objectSpawnData = new ObjectSpawnData();

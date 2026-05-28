@@ -16,7 +16,7 @@ MonoBehaviour:
   unitIcon: {fileID: 21300000, guid: d79309ce9b85f47f5bfffa6659e02bfd, type: 3}
   maxLevel: 10
   baseMaxHealth: 100
-  baseAttackDamage: 20
+  baseAttackDamage: 5
   baseViewDistance: 3
   healthPerLevel: 10
   attackDamagePerLevel: 2

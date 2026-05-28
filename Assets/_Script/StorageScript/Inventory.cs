@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using _Script.Resourse;
 using _Script.Storage;
 using _Script.Storage._Script.Storage;
 using UnityEngine;
