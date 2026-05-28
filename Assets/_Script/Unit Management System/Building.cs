@@ -192,6 +192,9 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         if (unit.unitType != UnitType.Builder && buildingType == BuildingType.WorkShop)
             return false;
+        
+        if (unit.unitType == UnitType.Civilian)
+            return false;
 
         return !stationedUnits.Contains(unit);
     }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c618411f9e84b45bbbdf4dcdef71309, type: 3}
+  m_Name: MonasterySO
+  m_EditorClassIdentifier: 
+  buildingName: Monastery
+  buildingType: 6
+  maxHealth: 300
+  maxCapacity: 3
+  range: 2
+  buildWoodCost: 10
+  repairWoodCost: 8
+  trainingDurationInGameHours: 1
+  maxTraineeCapacity: 2

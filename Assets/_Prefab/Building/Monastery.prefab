@@ -117,8 +117,8 @@ GameObject:
   - component: {fileID: 2326666079096529001}
   - component: {fileID: 2980963257859456482}
   - component: {fileID: 7368342568351913103}
-  - component: {fileID: 6289067416928931937}
   - component: {fileID: 1483951178614245089}
+  - component: {fileID: -9090622283932782557}
   m_Layer: 8
   m_Name: Monastery
   m_TagString: Building
@@ -304,20 +304,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.1247005, y: 1.4381857}
   m_EdgeRadius: 0
---- !u!114 &6289067416928931937
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2382392070799091013}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0eaff2ebe7664dfd81b37d4e728d8d10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  positionSpots: []
-  listArcherPositions: []
 --- !u!114 &1483951178614245089
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -330,7 +316,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: bcb596a4-77aa-4745-b17a-86c4f501df18
+  id: 
+--- !u!114 &-9090622283932782557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2382392070799091013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2f38f3e913340e7b96024e1a01687e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configData: {fileID: 11400000, guid: 6f23296f7808556429a5f1c8159249ad, type: 2}
+  buildingName: 
+  maxCapacity: 0
+  range: 0
+  buildingType: 0
+  buildWoodCost: 0
+  repairWoodCost: 0
+  currentCapacity: 0
+  currentHealth: 0
+  buildingState: 0
+  currentBuildProgress: 0
+  stationedUnits: []
+  currentTask:
+    id: 
+    targetGameObject: {fileID: 0}
+    taskType: 0
+    layerIndex: 0
+    taskStatus: 0
+    maxBuilders: 0
+    requiredProgress: 0
+    _internalProgress: 0
+    builders: []
+  layerIndex: 0
+  health: {fileID: 0}
+  trainingDurationInGameHours: 4
+  maxTraineeCapacity: 2
+  currentTraineeCount: 0
+  debugTrainees: []
 --- !u!1 &6390640710993591764
 GameObject:
   m_ObjectHideFlags: 0

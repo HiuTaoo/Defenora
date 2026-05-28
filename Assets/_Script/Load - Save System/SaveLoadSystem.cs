@@ -231,9 +231,14 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 }
             }
             
-            if (building is Archery archeryBuilding)
+            else if (building is Archery archeryBuilding)
             {
                 buildingEntry.traineeSlots = archeryBuilding.GetTraineesSaveData();
+            }
+    
+            else if (building is Monastery monasteryBuilding)
+            {
+                buildingEntry.traineeSlots = monasteryBuilding.GetTraineesSaveData();
             }
 
             buildingData.buildings.Add(buildingEntry);
@@ -416,6 +421,18 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                         if (traineeData != null)
                         {
                             archeryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
+                            break;
+                        }
+                    }
+                    
+                    else if (building is Monastery monasteryBuilding)
+                    {
+                        var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
+                        var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
+
+                        if (traineeData != null)
+                        {
+                            monasteryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
                             break;
                         }
                     }
