@@ -16,8 +16,48 @@ public class Task
     public int maxBuilders = 1;
 
     [Header("Progress (Optional)")]
-    public float requiredProgress = 1f;
-    public float currentProgress = 0f;
+    public float requiredProgress = 100f;
+    public float currentProgress
+    {
+        get
+        {
+            if (targetGameObject == null) return 0f;
+
+            if (taskType == TaskType.BuildStructure || taskType == TaskType.RepairStructure)
+            {
+                var building = targetGameObject.GetComponent<Building>();
+                if (building != null)
+                {
+                    return building.currentBuildProgress; 
+                }
+            }
+
+            // Bảo hiểm: Nếu bạn có thêm logic chặt cây cần đồng bộ
+            if (taskType == TaskType.ChopTree)
+            {
+                var tree = targetGameObject.GetComponent<Tree>();
+                if (tree != null) return tree.currentChopHit;
+            }
+
+            // Nếu không thuộc các loại trên, sử dụng một biến backing field chạy ngầm (nếu cần)
+            return _internalProgress;
+        }
+        set
+        {
+            if (targetGameObject != null && (taskType == TaskType.BuildStructure || taskType == TaskType.RepairStructure))
+            {
+                var building = targetGameObject.GetComponent<Building>();
+                if (building != null)
+                {
+                    building.currentBuildProgress = value;
+                    return;
+                }
+            }
+            _internalProgress = value;
+        }
+    }
+
+    [SerializeField] private float _internalProgress = 0f;
 
     [SerializeField]
     private List<Builder> builders = new List<Builder>();

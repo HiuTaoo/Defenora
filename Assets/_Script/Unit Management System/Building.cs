@@ -17,8 +17,6 @@ public abstract class Building : MonoBehaviour, IBuildable
     public BuildingType buildingType;
     public BuildingState buildingState;
 
-    //public string id { get; private set; }
-
     [Header("Build Progress")]
     [Range(0f, 100f)]
     public float currentBuildProgress = 0f; 
@@ -85,6 +83,14 @@ public abstract class Building : MonoBehaviour, IBuildable
             {
                 OnRepair();
                 currentTask = null;
+            }
+
+            if ((!health.IsFull() || buildingState == BuildingState.Destroyed) 
+                && (currentTask == null || currentTask.targetGameObject == null))
+            {
+                var task = new global::Task(this.gameObject, TaskType.RepairStructure, 2, layerIndex);
+                TaskManager.Instance.AddTask(task);
+                currentTask = task;
             }
         }
 
@@ -447,6 +453,8 @@ public abstract class Building : MonoBehaviour, IBuildable
         {
             Inventory.Instance.RefreshStorageSubscriptions();
         }
+        
+        health.RestoreHealth();
 
         OnBuiltObject?.Invoke(this);
     }

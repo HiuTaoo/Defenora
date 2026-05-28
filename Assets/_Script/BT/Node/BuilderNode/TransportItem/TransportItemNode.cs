@@ -20,20 +20,31 @@ namespace _Script.BT.Node.BuilderNode
         public override BTStatus Tick()
         {
             if (builder.currentTask == null || builder.currentTask.targetGameObject == null)
+            {
+                ResetNodeInternal();
                 return BTStatus.Failure;
+            }
 
             var storage = builder.currentTask.targetGameObject.GetComponent<global::Storage>();
             if (storage == null)
+            {
+                RemoveCurrentTask();
                 return BTStatus.Failure;
+            }
             
             if (!isDepositing)
             {
                 if (builder.currentInventory.IsEmpty)
+                {
+                    ResetNodeInternal();
                     return BTStatus.Failure;
+                }
 
                 isDepositing = true;
                 timer = 0f;
                 builder.currentState = UnitState.Working;
+                builder.animState = AnimState.Working;
+                builder.UpdateAnim();
                 
                 return BTStatus.Running;
             }
@@ -51,17 +62,37 @@ namespace _Script.BT.Node.BuilderNode
                 {
                     builder.currentInventory.Remove(type, added);
                 }
-
-                builder.currentTask.taskStatus = TaskStatus.Completed;
-                TaskManager.Instance.RemoveTask(builder.currentTask);
-                builder.ResetState();
-                
+                else
+                {
+                    Debug.LogWarning($"[TransportItemNode] Kho {builder.currentTask.targetGameObject.name} đã đầy! Vẫn kết thúc Success để tìm kho mới.");
+                }
             }
             
+            RemoveCurrentTask();
+            
+            builder.currentState = UnitState.Idle;
+            builder.animState = AnimState.Idle;
+            builder.UpdateAnim();
+
+            ResetNodeInternal();
+            
+            return BTStatus.Success; 
+        }
+
+        private void RemoveCurrentTask()
+        {
+            if (builder.currentTask != null)
+            {
+                builder.currentTask.taskStatus = TaskStatus.Completed;
+                TaskManager.Instance.RemoveTask(builder.currentTask);
+            }
+            builder.ResetState(); 
+        }
+
+        private void ResetNodeInternal()
+        {
             isDepositing = false;
             timer = 0f;
-            
-            return BTStatus.Success;
         }
     }
 }

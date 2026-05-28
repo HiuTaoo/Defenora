@@ -64,6 +64,9 @@ public class Builder : Unit
     
     protected override void Update()
     {
+        if (Mathf.Approximately(Time.timeScale, 0f)) 
+            return;
+
         base.Update();
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
@@ -72,14 +75,30 @@ public class Builder : Unit
     #region BT
     public BehaviourTree CreateBuilderBT(Builder builder)
 {
+    float itemDropWaitTime = 0.8f; 
+    var waitAfterWork = new WaitDurationNode(builder, itemDropWaitTime);
+
+    var isCollidingWithTarget = new IsCollidingWithTaskTargetNode(builder); 
+
     // ==========================================
     // 1. CHOP TREE BRANCH (Nhánh chặt cây)
     // ==========================================
-    var continueChopSequence = new SequenceNode(
-        new HasCurrentTaskOfTypeNode(builder, TaskType.ChopTree), 
+    var chopImmediately = new SequenceNode(
+        isCollidingWithTarget,
+        new ChopNode(builder),
+        waitAfterWork 
+    );
+
+    var walkAndChop = new SequenceNode(
         new CheckPathToAdjacentTargetNode(builder),
         new MoveToTargetNode(builder),
-        new ChopNode(builder)
+        new ChopNode(builder),
+        waitAfterWork 
+    );
+
+    var continueChopSequence = new SequenceNode(
+        new HasCurrentTaskOfTypeNode(builder, TaskType.ChopTree), 
+        new SelectorNode(chopImmediately, walkAndChop)
     );
 
     var findNewChopSequence = new SequenceNode(
@@ -89,10 +108,10 @@ public class Builder : Unit
         new AssignTaskNode(builder),
         new CheckPathToAdjacentTargetNode(builder),
         new MoveToTargetNode(builder),
-        new ChopNode(builder)
+        new ChopNode(builder),
+        waitAfterWork 
     );
 
-    // Dùng Selector: Ưu tiên làm tiếp task cũ, nếu không có mới tìm task mới
     var chopTreeSelector = new SelectorNode(continueChopSequence, findNewChopSequence);
 
 
@@ -104,16 +123,28 @@ public class Builder : Unit
             new HasObstacleNode(builder),
             new FindPathToObstacleNode(builder),
             new MoveToObstacleNode(builder),
-            new ChopNode(builder)
+            new ChopNode(builder),
+            waitAfterWork 
         )
+    );
+
+    var buildImmediately = new SequenceNode(
+        isCollidingWithTarget,
+        new BuildNode(builder),
+        waitAfterWork
+    );
+
+    var walkAndBuild = new SequenceNode(
+        new CheckPathToAdjacentTargetNode(builder),
+        clearObstacleLoop,
+        new MoveToTargetNode(builder),
+        new BuildNode(builder),
+        waitAfterWork 
     );
 
     var continueBuildSequence = new SequenceNode(
         new HasCurrentTaskOfTypeNode(builder, TaskType.BuildStructure), 
-        new CheckPathToAdjacentTargetNode(builder),
-        clearObstacleLoop,
-        new MoveToTargetNode(builder),
-        new BuildNode(builder)
+        new SelectorNode(buildImmediately, walkAndBuild)
     );
 
     var findNewBuildSequence = new SequenceNode(
@@ -124,7 +155,8 @@ public class Builder : Unit
         new CheckPathToAdjacentTargetNode(builder),
         clearObstacleLoop,
         new MoveToTargetNode(builder),
-        new BuildNode(builder)
+        new BuildNode(builder),
+        waitAfterWork
     );
 
     var buildStructureSelector = new SelectorNode(continueBuildSequence, findNewBuildSequence);
@@ -133,29 +165,42 @@ public class Builder : Unit
     // ==========================================
     // 3. REPAIR STRUCTURE BRANCH (Nhánh sửa nhà)
     // ==========================================
-    var continueRepairSequence = new SequenceNode(
-        new HasCurrentTaskOfTypeNode(builder, TaskType.RepairStructure),
+    var repairImmediately = new SequenceNode(
+        isCollidingWithTarget,
+        new RepairNode(builder),
+        waitAfterWork 
+    );
+
+    var walkAndRepair = new SequenceNode(
         new CheckPathToAdjacentTargetNode(builder),
         new MoveToTargetNode(builder),
-        new RepairNode(builder)
+        new RepairNode(builder),
+        waitAfterWork 
+    );
+
+    var continueRepairSequence = new SequenceNode(
+        new HasCurrentTaskOfTypeNode(builder, TaskType.RepairStructure),
+        new SelectorNode(repairImmediately, walkAndRepair)
     );
 
     var findNewRepairSequence = new SequenceNode(
         new IsDawnNode(builder),
         new IsIdleNode(builder),
-        new HasBrokenBuildingNode(builder),
+        new HasRepairBuildingTaskNode(builder),
+        new FindRepairTaskNode(builder),
         new AssignTaskNode(builder),
         new CheckPathToAdjacentTargetNode(builder),
         new MoveToTargetNode(builder),
-        new RepairNode(builder)
+        new RepairNode(builder),
+        waitAfterWork
     );
 
     var repairStructureSelector = new SelectorNode(continueRepairSequence, findNewRepairSequence);
 
-
     // ==========================================
-    // 4. CÁC NHÁNH KHÁC 
+    // 4. CÁC NHÁNH KHÁC & ROOT SELECTOR (Giữ nguyên)
     // ==========================================
+    // ... Phần dưới giữ nguyên hoàn toàn như cũ ...
     var emergencyTransportSequence = new SequenceNode(
         new HasItemInInventoryNode(builder),
         new CreateTransportTask(builder),
@@ -180,9 +225,6 @@ public class Builder : Unit
         new WaitRandomTimeNode(builder)
     );
     
-    // ==========================================
-    // ROOT SELECTOR
-    // ==========================================
     var root = new SelectorNode(
         new SequenceNode(
             new IsInventoryFullNode(builder),
@@ -337,16 +379,10 @@ public class Builder : Unit
             transform.localScale = scale;
         }
 
-        if (currentTask.IsCompleted)
-        {
-            currentTask = null;
-            return true;
-        }
-
         var building = currentTask.targetGameObject.GetComponent<Building>();
 
         if (building.buildingState == BuildingState.Completed 
-            && building.health.CurrentHealth == building.health.maxHealth)
+            && building.health.IsFull())
         {
             currentTask.taskStatus = TaskStatus.Completed;
             TaskManager.Instance.RemoveTask(currentTask);
@@ -543,7 +579,7 @@ public class Builder : Unit
             else
             {
                 var healthComp = b.GetComponentInChildren<Health>();
-                if (healthComp != null && healthComp.CurrentHealth < healthComp.maxHealth)
+                if (healthComp != null && healthComp.CurrentHealth < healthComp.maxHealth && b.buildingState == BuildingState.Completed)
                 {
                     damagedBuildings.Add(b);
                 }

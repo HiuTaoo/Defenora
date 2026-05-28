@@ -71,7 +71,7 @@ namespace _Script.Unit_Management_System.HealthComponent
 
         public bool IsFull()
         {
-            return CurrentHealth == maxHealth;
+            return Mathf.Approximately(CurrentHealth, maxHealth);
         }
         
         private void OnEnable()
@@ -109,6 +109,11 @@ namespace _Script.Unit_Management_System.HealthComponent
             }
 
             OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        }
+
+        public void RestoreHealth()
+        {
+            CurrentHealth = maxHealth;
         }
     }
 }

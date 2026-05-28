@@ -12,7 +12,7 @@ public class Tree : MonoBehaviour, IChoppable
     public int layerIndex;
     public int currentChopHit = 0;
     public Vector3Int positionInGrid;
-    private Task currentTask;
+    public Task currentTask;
 
     private SpriteRenderer spriteRenderer;
     private Animator animator;
