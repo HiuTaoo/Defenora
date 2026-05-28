@@ -340,11 +340,11 @@ MonoBehaviour:
     taskStatus: 0
     maxBuilders: 0
     requiredProgress: 0
-    currentProgress: 0
+    _internalProgress: 0
     builders: []
   layerIndex: 0
   health: {fileID: 0}
-  maxStoreageCapacity: 2
+  maxStoreageCapacity: 4
   debugStorage: []
 --- !u!114 &659560381163937438
 MonoBehaviour:

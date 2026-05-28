@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using _Script.Data;
 using UnityEngine;
 
 [System.Serializable]
-public struct BuildingData
+public class BuildingData
 {
     public string buildingID;
     public string buildingName;
@@ -15,6 +16,8 @@ public struct BuildingData
     public BuildingType buildingType;
     public BuildingState buildingState;
     public Vector3 position;
+    
+    public List<SavedInventorySlot> storageSlots = new List<SavedInventorySlot>();
 }
 
 [System.Serializable]

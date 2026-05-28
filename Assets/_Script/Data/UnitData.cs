@@ -1,7 +1,9 @@
+using System.Collections.Generic;
+using _Script.Data;
 using UnityEngine;
 
 [System.Serializable]
-public struct UnitData
+public class UnitData
 {
     public string id;
     public string unitName;
@@ -11,4 +13,6 @@ public struct UnitData
     public float currentHealth;
     public Vector3 position;
     public string assignedBuilding;
+    
+    public List<SavedInventorySlot> backpackSlots = new List<SavedInventorySlot>();
 }

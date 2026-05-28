@@ -142,7 +142,6 @@ public class EditBuildingManager : MonoBehaviour
                     node.isWalkable = false;
             }
         }
-
     }
 
     private void ChangeBuildingState()

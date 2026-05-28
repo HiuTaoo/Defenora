@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Collections;
 using _Script.Data;
 using _Script.Object_Pooling;
+using _Script.ScriptableObjectScript;
 using _Script.Unit_Management_System.Building;
 
 public class SaveLoadSystem : MonoBehaviour, ISaveable
@@ -155,11 +156,11 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     {
         saveData.totalCoins = WalletManager.Instance.CurrentCoins;
         
-        #region Save Unit Data
+        #region Save Unit Data 
         var unitData = new UnitSaveData();
         foreach (var unit in unitManager.allUnits)
         {
-            unitData.units.Add(new UnitData
+            var unitEntry = new UnitData
             {
                 id = unit.GetId(),
                 unitName = unit.unitName,
@@ -169,18 +170,35 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 currentHealth = unit.health.CurrentHealth,
                 layerIndex = unit.floorAgent.currentFloorIndex,
                 level = unit.unitStatsManager.currentLevel
-            });
-        }
+            };
 
+            UnitInventory unitInv = unit.GetComponentInChildren<UnitInventory>();
+            if (unitInv != null)
+            {
+                foreach (var slot in unitInv.GetAll())
+                {
+                    if (slot.itemData != null && slot.amount > 0)
+                    {
+                        unitEntry.backpackSlots.Add(new SavedInventorySlot 
+                        { 
+                            itemID = slot.itemData.id, 
+                            amount = slot.amount 
+                        });
+                    }
+                }
+            }
+
+            unitData.units.Add(unitEntry);
+        }
         saveData.unitSaveData = unitData;
         #endregion
 
-        #region Save Building Data
+        #region Save Building Data (Đã cập nhật lưu kèm Storage)
         var buildingData = new BuildingSaveData();
         foreach (var building in unitManager.buildings)
         {
             var guardComponent = building.gameObject.GetComponent<GuardComponent>();
-            buildingData.buildings.Add(new BuildingData
+            var buildingEntry = new BuildingData
             {
                 buildingID = building.GetId(),
                 buildingName = building.name,
@@ -196,8 +214,26 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                     .Where(unit => unit != null)
                     .Select(unit => unit.GetId())
                     .ToList()
-            });
+            };
+
+            if (building is Storage storageBuilding) 
+            {
+                foreach (var slot in storageBuilding.GetAllSlots()) 
+                {
+                    if (slot != null && slot.itemData != null && slot.amount > 0)
+                    {
+                        buildingEntry.storageSlots.Add(new SavedInventorySlot
+                        {
+                            itemID = slot.itemData.id,
+                            amount = slot.amount
+                        });
+                    }
+                }
+            }
+
+            buildingData.buildings.Add(buildingEntry);
         }
+        saveData.buildingSaveData = buildingData;
         #endregion
         
         #region Save Task Data
@@ -261,7 +297,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             WalletManager.Instance.SetCoinsOnLoad(saveData.totalCoins);
         }
         
-        #region Load Building
+        #region Load Building & Storage Content
         var buildingData = saveData.buildingSaveData;
 
         foreach (var building in unitManager.buildings)
@@ -272,7 +308,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             Building building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
 
-            #region Load Data
             building.OverrideId(buildingDatum.buildingID); 
             building.name = buildingDatum.buildingName;
             building.buildingName = buildingDatum.buildingName;
@@ -281,7 +316,20 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             building.maxCapacity = buildingDatum.maxCapacity;
             building.currentCapacity = buildingDatum.currentCapacity;
             building.health.SetCurrentHealth(buildingDatum.currentHealth);
-            #endregion
+
+            if (building is Storage storageBuilding)
+            {
+                //storageBuilding.ClearStorage(); 
+
+                foreach (var savedSlot in buildingDatum.storageSlots)
+                {
+                    ItemData itemSO = SOManager.Instance.GetItemDataById(savedSlot.itemID);
+                    if (itemSO != null)
+                    {
+                        storageBuilding.Add(itemSO, savedSlot.amount); 
+                    }
+                }
+            }
 
             var customRender = building.transform.Find("Custom Render Sprite");
             if (customRender != null)
@@ -315,6 +363,20 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             unit.health.SetCurrentHealth(unitDatum.currentHealth);
             unit.currentState = UnitState.Idle;
             unit.animState = AnimState.Idle;
+            
+            UnitInventory unitInv = unit.GetComponentInChildren<UnitInventory>();
+            if (unitInv != null)
+            {
+                unitInv.Clear(); 
+                foreach (var savedSlot in unitDatum.backpackSlots)
+                {
+                    ItemData itemSO = SOManager.Instance.GetItemDataById(savedSlot.itemID);
+                    if (itemSO != null)
+                    {
+                        unitInv.Add(itemSO, savedSlot.amount);
+                    }
+                }
+            }
             
             foreach (var building in unitManager.buildings) {
                 var guardComponent = building.gameObject.GetComponent<GuardComponent>();

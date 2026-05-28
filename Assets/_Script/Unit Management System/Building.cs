@@ -69,6 +69,8 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     protected virtual void Update()
     {
+        if (!UnitManager.Instance.buildings.Contains(this))
+            return;
         UpdateAnimation();
 
         if (spriteRenderer.isVisible)

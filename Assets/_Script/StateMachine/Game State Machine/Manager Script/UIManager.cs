@@ -128,26 +128,31 @@ public class UIManager: MonoBehaviour
     }
 
     /// <summary>
-    /// Hiển thị một UI cụ thể trong state
+    /// Hiển thị một UI cụ thể trong state và ẩn UI cũ trước đó đi
     /// </summary>
     public void ShowUI(GameStateType stateType, string uiName)
     {
         if (stateUIs.ContainsKey(stateType) && stateUIs[stateType].ContainsKey(uiName))
         {
+            if (uiHistory.Count > 0)
+            {
+                var previousUI = uiHistory.Peek(); 
+                if (IsUIActive(previousUI.state, previousUI.uiName))
+                {
+                    HideUI(previousUI.state, previousUI.uiName);
+                }
+            }
+
             GameObject uiGameObject = stateUIs[stateType][uiName];
             uiGameObject.SetActive(true);
             
             uiHistory.Push((stateType, uiName));
 
             UIConfig config = GetUIConfig(stateType, uiName) ??
-                            (stateConfigs.ContainsKey(stateType) ? stateConfigs[stateType] : null);
+                              (stateConfigs.ContainsKey(stateType) ? stateConfigs[stateType] : null);
 
             if (config != null)
                 ApplyUIConfig(uiGameObject, config);
-
-        }
-        else
-        {
         }
     }
 
@@ -216,19 +221,30 @@ public class UIManager: MonoBehaviour
     }
     
     /// <summary>
-    /// Đóng UI vừa được mở gần đây nhất (Dùng cho nút Close chung hoặc phím ESC)
+    /// Đóng UI trên đỉnh stack và tự động khôi phục lại UI ngay liền kề trước đó
     /// </summary>
     public void CloseTopUI()
     {
+        if (uiHistory.Count == 0) return;
+
+        var currentTop = uiHistory.Pop();
+        HideUI(currentTop.state, currentTop.uiName);
+
         while (uiHistory.Count > 0)
         {
-            var topUI = uiHistory.Pop();
+            var nextUI = uiHistory.Peek(); 
 
-            if (IsUIActive(topUI.state, topUI.uiName))
+            if (GetUI(nextUI.state, nextUI.uiName) != null)
             {
-                HideUI(topUI.state, topUI.uiName);
+                ShowUI(nextUI.state, nextUI.uiName); 
                 
-                break; 
+                uiHistory.Pop(); 
+                
+                break;
+            }
+            else
+            {
+                uiHistory.Pop();
             }
         }
     }

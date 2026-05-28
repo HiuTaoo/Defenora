@@ -327,15 +327,34 @@ public class SelectUnitSystem : MonoBehaviour
             selectedUnit.transform.position = initialUnitPosition;
             floorAgent.MoveToFloor(previousLayerIndex);
         }
-
     }
 
     public void DeleteBuilding()
     {
-        if(targetBuilding == null) return;
+        if (targetBuilding == null) return;
+        
         var building = targetBuilding.GetComponent<Building>();
-        if(building == null || building.buildingState != BuildingState.Placing)
+        if (building == null || building.buildingState != BuildingState.Placing)
             return;
+
+        ObjectFootprint footprint = targetBuilding.GetComponent<ObjectFootprint>();
+        if (footprint != null && EditBuildingManager.Instance != null)
+        {
+            Vector2Int anchorCell = building.WorldToCell(targetBuilding.transform.position, 1f);
+            
+            var cells = footprint.GetAbsoluteGridPositions(anchorCell);
+
+            foreach (var cell in cells)
+            {
+                EditBuildingManager.Instance.occupiedCells.Remove(cell);
+            }
+        }
+        
+        if (EditBuildingManager.Instance != null && EditBuildingManager.Instance.listPlacedBuilding.Contains(building))
+        {
+            EditBuildingManager.Instance.listPlacedBuilding.Remove(building);
+        }
+        
         PoolManager.Instance.Despawn(targetBuilding);
         targetBuilding = null;
     

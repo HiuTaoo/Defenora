@@ -152,7 +152,7 @@ namespace _Script.UI.UI_Script
                 }
             }
 
-            if (currentSelectedBuilding.stationedUnits.Count < currentSelectedBuilding.maxCapacity)
+            if (currentSelectedBuilding.stationedUnits.Count < currentSelectedBuilding.maxCapacity && currentSelectedBuilding.buildingState == BuildingState.Completed)
             {
                 GameObject obj = PoolManager.Instance.Spawn(PrefabConfig.Instance.addUnitButtonPrefab, capacityDetailContainer.position, Quaternion.identity);
                 
