@@ -5,12 +5,12 @@ using _Script.Data;
 using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
-using _Script.Unit_Management_System.Building;
 using UnityEngine;
 
-public class Barrack : Building
+public abstract class TrainingBuilding : Building
 {
-    private class TrainingSlot
+    [System.Serializable]
+    protected class TrainingSlot
     {
         public Unit npcUnit;
         public float currentTrainingHours;
@@ -24,33 +24,28 @@ public class Barrack : Building
         }
     }
 
-    [Header("Barrack Runtime Stats")]
+    [Header("Training Runtime Stats")]
     public int maxTraineeCapacity = 3;
-    private TrainingConfig[] availableConfigs;
+    protected TrainingConfig[] availableConfigs;
 
     [Header("Debug View (Read Only)")]
-    [SerializeField] private int currentTraineeCount = 0;
-    [SerializeField] private List<TraineeDebugEntry> debugTrainees = new List<TraineeDebugEntry>();
+    [SerializeField] protected int currentTraineeCount = 0;
+    [SerializeField] protected List<TraineeDebugEntry> debugTrainees = new List<TraineeDebugEntry>();
 
-    private readonly List<TrainingSlot> trainingSlots = new List<TrainingSlot>();
+    protected readonly List<TrainingSlot> trainingSlots = new List<TrainingSlot>();
     private float lastGameTime;
+
+    protected abstract TrainingConfig[] GetUpgradeConfigs();
+    protected abstract int GetMaxTraineeCapacity();
 
     public override void Awake()
     {
         base.Awake();
-
-        if (configData is BarrackData barrackConfig)
-        {
-            maxTraineeCapacity = barrackConfig.maxTraineeCapacity;
-            availableConfigs = barrackConfig.upgradeConfigs;
-        }
-        else
-        {
-            Debug.LogError($"[Barrack] {gameObject.name} yêu cầu Config Data phải là loại BarrackData!");
-        }
+        maxTraineeCapacity = GetMaxTraineeCapacity();
+        availableConfigs = GetUpgradeConfigs();
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         if (TimeOfDaySystem.Instance != null)
         {
@@ -80,10 +75,8 @@ public class Barrack : Building
         }
     }
 
-    private void ProcessTraining(float gameTimeDelta)
+    protected virtual void ProcessTraining(float gameTimeDelta)
     {
-        // Hệ thống sẽ chỉ huấn luyện cho người đứng ở đầu hàng (index 0)
-        // Khi người đầu tiên tốt nghiệp, người tiếp theo mới bắt đầu được tính giờ
         if (trainingSlots.Count > 0)
         {
             var activeSlot = trainingSlots[0];
@@ -98,25 +91,23 @@ public class Barrack : Building
         SyncDebugView();
     }
 
-    private void GraduateTrainee(TrainingSlot slot)
+    protected virtual void GraduateTrainee(TrainingSlot slot)
     {
         Unit unit = slot.npcUnit;
         unit.gameObject.SetActive(true);
 
-        // Giải phóng Civilian khỏi hệ thống
         RemoveUnit(unit);
         UnitManager.Instance.allUnits.Remove(unit);
         PoolManager.Instance.Despawn(unit.gameObject);
 
-        // Sinh ra Class lính mới dựa trên cấu hình cụ thể đã chọn của slot này
         var spawnPrefab = slot.trainingConfig.unitPrefab;
         if (spawnPrefab != null)
         {
-            var newSoldier = PoolManager.Instance.Spawn(spawnPrefab, 
+            var newUnit = PoolManager.Instance.Spawn(spawnPrefab, 
                 GetRandomPositionAroundBuilding(), 
                 Quaternion.identity);
 
-            var unitComponent = newSoldier.GetComponent<Unit>();
+            var unitComponent = newUnit.GetComponent<Unit>();
             if (unitComponent != null)
             {
                 UnitManager.Instance.RegisterUnit(unitComponent);
@@ -145,14 +136,10 @@ public class Barrack : Building
         return !stationedUnits.Contains(unit);
     }
 
-    /// <summary>
-    /// Hàm nạp mặc định từ lớp cha hoặc kéo thả hệ thống (Mặc định chọn class đầu tiên trong danh sách cấu hình)
-    /// </summary>
     public override void AddUnit(Unit unit)
     {
         if (unit.unitType == UnitType.Civilian)
         {
-            // Mặc định lấy cấu hình đầu tiên nếu không chỉ định Class học
             TrainingConfig defaultConfig = (availableConfigs != null && availableConfigs.Length > 0) 
                 ? availableConfigs[0] 
                 : default;
@@ -168,21 +155,12 @@ public class Barrack : Building
         SyncDebugView();
     }
 
-    /// <summary>
-    /// Hàm bổ sung: Dùng khi người chơi mở UI bấm chọn chính xác Class muốn train
-    /// </summary>
-    public void AddTraineeWithSelection(Unit unit, UnitType targetType)
+    public virtual void AddTraineeWithSelection(Unit unit, UnitType targetType)
     {
         if (!CanAddUnit(unit)) return;
 
-        // Tìm kiếm cấu hình tương ứng với loại lính người chơi chọn
         TrainingConfig selectedConfig = availableConfigs.FirstOrDefault(c => c.targetType == targetType);
-
-        if (selectedConfig.unitPrefab == null)
-        {
-            Debug.LogError($"[Barrack] Chưa cấu hình Prefab cho loại lính {targetType} trong ScriptableObject!");
-            return;
-        }
+        if (selectedConfig.unitPrefab == null) return;
 
         AddTrainee(unit, selectedConfig);
         SyncDebugView();
@@ -196,7 +174,6 @@ public class Barrack : Building
         trainingSlots.Add(new TrainingSlot(unit, config));
         currentTraineeCount = trainingSlots.Count;
 
-        // Đặt ở vị trí của Barrack và ẩn đi giống Tu viện
         unit.transform.position = transform.position;
         unit.gameObject.SetActive(false);
     }
@@ -240,7 +217,7 @@ public class Barrack : Building
         base.HandleDeath();
     }
 
-    private void SyncDebugView()
+    protected virtual void SyncDebugView()
     {
         debugTrainees.Clear();
         foreach (var slot in trainingSlots)
@@ -257,5 +234,34 @@ public class Barrack : Building
                 });
             }
         }
+    }
+
+    public TrainingConfig[] GetAvailableConfigs() => availableConfigs;
+    
+    public virtual List<TraineeSaveData> GetTraineesSaveData()
+    {
+        return trainingSlots.Select(slot => new TraineeSaveData
+        {
+            unitID = slot.npcUnit.GetId(),
+            currentTrainingHours = slot.currentTrainingHours,
+            targetType = slot.trainingConfig.targetType 
+        }).ToList();
+    }
+
+    public virtual void ForceAddTraineeOnLoad(Unit unit, float savedHours, UnitType targetType)
+    {
+        TrainingConfig config = availableConfigs.FirstOrDefault(c => c.targetType == targetType);
+        var newSlot = new TrainingSlot(unit, config);
+        newSlot.currentTrainingHours = savedHours;
+        
+        trainingSlots.Add(newSlot);
+        currentTraineeCount = trainingSlots.Count;
+
+        unit.floorAgent.MoveToFloor(LayerIndex);
+        unit.assignedBuilding = this;
+        unit.transform.position = transform.position;
+        unit.gameObject.SetActive(false);
+
+        SyncDebugView();
     }
 }

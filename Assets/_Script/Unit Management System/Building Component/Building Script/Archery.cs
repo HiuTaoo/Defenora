@@ -1,39 +1,38 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using _Script.Data;
 using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
-using _Script.Unit_Management_System.Building;
 using UnityEngine;
 
-public class Archery : Building
+public class Archery : TrainingBuilding
 {
-    private class TrainingSlot
-    {
-        public Unit npcUnit;
-        public float currentTrainingHours;
-
-        public TrainingSlot(Unit unit)
-        {
-            npcUnit = unit;
-            currentTrainingHours = 0f;
-        }
-    }
-
-    [Header("Archery Runtime Stats")]
+    [Header("Archery Specific Runtime Stats")]
     public float trainingDurationInGameHours = 3f;
-    public int maxTraineeCapacity = 3;
 
-    [Header("Debug View (Read Only)")]
-    [SerializeField] private int currentTraineeCount = 0;
-    // 🔽 DANH SÁCH DEBUG HIỂN THỊ TRÊN INSPECTOR 🔽
-    [SerializeField] private List<TraineeDebugEntry> debugTrainees = new List<TraineeDebugEntry>();
-
+    [Header("Spot Reference")]
     [SerializeField] private GameObject traineeSpot;
 
-    private readonly List<TrainingSlot> trainingSlots = new List<TrainingSlot>();
-    private float lastGameTime;
+    #region Đồng bộ dữ liệu cấu hình ban đầu lên Base Class
+    protected override TrainingConfig[] GetUpgradeConfigs()
+    {
+        var data = configData as ArcheryData;
+        if (data == null) return null;
+
+        // Chuyển cấu hình đơn lẻ kiểu cũ của Archery thành cấu hình chung để UI đọc được
+        return new TrainingConfig[] {
+            new TrainingConfig {
+                targetType = UnitType.Archer,
+                trainingDurationInGameHours = data.trainingDuration,
+                unitPrefab = PrefabConfig.Instance.archerPrefab
+            }
+        };
+    }
+
+    protected override int GetMaxTraineeCapacity() => (configData as ArcheryData)?.maxTraineeCapacity ?? 3;
+    #endregion
 
     public override void Awake()
     {
@@ -44,43 +43,10 @@ public class Archery : Building
             trainingDurationInGameHours = archeryConfig.trainingDuration;
             maxTraineeCapacity = archeryConfig.maxTraineeCapacity;
         }
-        else
-        {
-            Debug.LogError($"[Archery] {gameObject.name} yêu cầu Config Data phải là loại ArcheryData!");
-        }
     }
 
-    private void Start()
-    {
-        if (TimeOfDaySystem.Instance != null)
-        {
-            lastGameTime = TimeOfDaySystem.Instance.GetCurrentTime();
-        }
-    }
-
-    protected override void Update()
-    {
-        base.Update(); 
-
-        if (TimeOfDaySystem.Instance == null) return;
-
-        float currentGameTime = TimeOfDaySystem.Instance.GetCurrentTime();
-        float gameTimeDelta = currentGameTime - lastGameTime;
-
-        if (gameTimeDelta < 0f)
-        {
-            gameTimeDelta = (24f - lastGameTime) + currentGameTime;
-        }
-
-        lastGameTime = currentGameTime;
-
-        if (buildingState == BuildingState.Completed && trainingSlots.Count > 0)
-        {
-            ProcessTraining(gameTimeDelta);
-        }
-    }
-
-    private void ProcessTraining(float gameTimeDelta)
+    // 🌟 OVERRIDE: Giữ nguyên logic tính giờ SONG SONG cho toàn bộ danh sách trong hàng chờ
+    protected override void ProcessTraining(float gameTimeDelta)
     {
         for (int i = trainingSlots.Count - 1; i >= 0; i--)
         {
@@ -96,45 +62,29 @@ public class Archery : Building
         SyncDebugView();
     }
 
-    private void GraduateTrainee(TrainingSlot slot)
+    // 🌟 OVERRIDE: Xử lý tốt nghiệp sinh ra Archer
+    protected override void GraduateTrainee(TrainingSlot slot)
     {
         Unit unit = slot.npcUnit;
-    
         unit.gameObject.SetActive(true);
 
         RemoveUnit(unit);
-
         UnitManager.Instance.allUnits.Remove(unit);
-    
         PoolManager.Instance.Despawn(unit.gameObject);
+
         var archer = PoolManager.Instance.Spawn(PrefabConfig.Instance.archerPrefab, 
             GetRandomPositionAroundBuilding(),
             Quaternion.identity);
         var archerComponent = archer.GetComponent<Archer>();
-        UnitManager.Instance.RegisterUnit(archerComponent);
+        if (archerComponent != null)
+        {
+            UnitManager.Instance.RegisterUnit(archerComponent);
+        }
         
         SyncDebugView();
     }
 
-    public override bool CanAddUnit(Unit unit)
-    {
-        if (unit.unitType == UnitType.Builder)
-            return false;
-
-        if (unit.unitType == UnitType.Civilian)
-        {
-            if (trainingSlots.Count >= maxTraineeCapacity)
-                return false;
-
-            return !trainingSlots.Exists(s => s.npcUnit == unit);
-        }
-
-        if (currentCapacity >= maxCapacity || unit.unitType == UnitType.Builder)
-            return false;
-
-        return !stationedUnits.Contains(unit);
-    }
-
+    // 🌟 OVERRIDE: Nạp học viên - Người đầu tiên xuất hiện ở traineeSpot, người sau bị ẩn
     public override void AddUnit(Unit unit)
     {
         if (unit.unitType == UnitType.Civilian)
@@ -142,20 +92,18 @@ public class Archery : Building
             unit.floorAgent.MoveToFloor(LayerIndex);
             unit.assignedBuilding = this;
             
-            trainingSlots.Add(new TrainingSlot(unit));
+            // Lấy cấu hình mặc định (Archer)
+            TrainingConfig config = availableConfigs != null && availableConfigs.Length > 0 ? availableConfigs[0] : default;
+            trainingSlots.Add(new TrainingSlot(unit, config));
             currentTraineeCount = trainingSlots.Count;
 
             if (trainingSlots.Count == 1)
             {
                 unit.gameObject.SetActive(true);
                 if (traineeSpot != null)
-                {
                     unit.transform.position = traineeSpot.transform.position;
-                }
                 else
-                {
                     unit.transform.position = GetRandomPositionAroundBuilding();
-                }
             }
             else
             {
@@ -172,6 +120,12 @@ public class Archery : Building
         SyncDebugView();
     }
 
+    // Cổng phụ kết nối luồng click UI
+    public override void AddTraineeWithSelection(Unit unit, UnitType targetType)
+    {
+        AddUnit(unit);
+    }
+
     public override bool RemoveUnit(Unit unit)
     {
         if (unit.unitType == UnitType.Civilian)
@@ -185,6 +139,7 @@ public class Archery : Building
                 unit.gameObject.SetActive(true);
                 unit.currentState = UnitState.Idle;
                 unit.assignedBuilding = null;
+                unit.transform.position = GetRandomPositionAroundBuilding();
 
                 if (index == 0 && trainingSlots.Count > 0)
                 {
@@ -192,9 +147,7 @@ public class Archery : Building
                     nextTrainee.gameObject.SetActive(true);
                     
                     if (traineeSpot != null)
-                    {
                         nextTrainee.transform.position = traineeSpot.transform.position;
-                    }
                 }
 
                 SyncDebugView();
@@ -206,42 +159,12 @@ public class Archery : Building
         return base.RemoveUnit(unit);
     }
 
-    protected override void HandleDeath()
+    public override void ForceAddTraineeOnLoad(Unit unit, float savedHours, UnitType targetType)
     {
-        foreach (var slot in trainingSlots)
-        {
-            slot.npcUnit.gameObject.SetActive(true);
-            slot.npcUnit.currentState = UnitState.Idle;
-            slot.npcUnit.assignedBuilding = null;
-        }
-        trainingSlots.Clear();
-        currentTraineeCount = 0;
-
-        SyncDebugView();
-        base.HandleDeath(); 
-    }
-    
-    public List<TraineeSaveData> GetTraineesSaveData()
-    {
-        List<TraineeSaveData> list = new List<TraineeSaveData>();
-        foreach (var slot in trainingSlots)
-        {
-            if (slot != null && slot.npcUnit != null)
-            {
-                list.Add(new TraineeSaveData
-                {
-                    unitID = slot.npcUnit.GetId(),
-                    currentTrainingHours = slot.currentTrainingHours
-                });
-            }
-        }
-        return list;
-    }
-    
-    public void ForceAddTraineeOnLoad(Unit unit, float savedHours)
-    {
-        var newSlot = new TrainingSlot(unit);
+        TrainingConfig config = availableConfigs != null && availableConfigs.Length > 0 ? availableConfigs[0] : default;
+        var newSlot = new TrainingSlot(unit, config);
         newSlot.currentTrainingHours = savedHours;
+        
         trainingSlots.Add(newSlot);
         currentTraineeCount = trainingSlots.Count;
 
@@ -262,8 +185,18 @@ public class Archery : Building
         SyncDebugView();
     }
 
-    #region Debug Sync Logic
-    private void SyncDebugView()
+    public override List<TraineeSaveData> GetTraineesSaveData()
+    {
+        return trainingSlots.Select(slot => new TraineeSaveData
+        {
+            unitID = slot.npcUnit.GetId(),
+            currentTrainingHours = slot.currentTrainingHours,
+            targetType = UnitType.Archer 
+        }).ToList();
+    }
+
+    // 🌟 OVERRIDE: Đồng bộ giao diện Inspector (Giữ định dạng chỉ hiện thương hiệu tên gốc)
+    protected override void SyncDebugView()
     {
         debugTrainees.Clear();
         foreach (var slot in trainingSlots)
@@ -280,8 +213,6 @@ public class Archery : Building
             }
         }
     }
-
-    #endregion
 }
 
 

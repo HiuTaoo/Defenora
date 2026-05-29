@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class UnitStatsManager : MonoBehaviour
 {
-    [SerializeField] private UnitStatsSO unitData;
+    [SerializeField] public UnitStatsSO unitData;
     
     public int currentLevel { get; private set; } = 1;
 

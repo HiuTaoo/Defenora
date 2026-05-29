@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CivilianSO
   m_EditorClassIdentifier: 
   unitName: Civilian
-  unitIcon: {fileID: 414852911, guid: 2a36690d2e363b74fa9831586549dd53, type: 3}
+  unitIcon: {fileID: 21300000, guid: 97e880316010a6e4dabab6aeeb4da11e, type: 3}
   maxLevel: 10
   baseMaxHealth: 100
   baseAttackDamage: 0

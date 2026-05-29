@@ -70,6 +70,14 @@ public class InteractButton : MonoBehaviour
             case InteractButtonState.Enter:
                 if (buildingComponent != null)
                 {
+                    if (buildingComponent is TrainingBuilding trainingBuilding)
+                    {
+                        // Gọi UIManager bật cửa sổ Training lên màn hình
+                        UIManager.Instance.ShowUI(GameStateType.Playing, UINames.TrainingWindow);
+                        
+                        // Tìm kiếm và ra lệnh cho Component UI bắt đầu nạp + làm mới dữ liệu lính của nhà này
+                        TrainingWindowUI.Instance.OpenWindow(trainingBuilding);
+                    }
                     Debug.Log($"Entering building: {buildingComponent.name}");
                 }
                 break;

@@ -32,8 +32,11 @@ namespace _Script.UI.UI_Script
             currentUnit = unit;
             onClickCallback = actionWhenClicked; 
 
-            if (unit != null && unit.statsManager != null)
+            if (unit != null)
             {
+                if (unit.statsManager == null)
+                    unit.statsManager = unit.GetComponentInChildren<UnitStatsManager>();
+                
                 var baseData = unit.statsManager.GetBaseData();
                 if (baseData != null)
                 {

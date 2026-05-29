@@ -1,9 +1,7 @@
-﻿namespace _Script.Data
+﻿[System.Serializable]
+public struct TraineeSaveData
 {
-    [System.Serializable]
-    public struct TraineeSaveData
-    {
-        public string unitID;             
-        public float currentTrainingHours; 
-    }
+    public string unitID;             
+    public float currentTrainingHours;
+    public UnitType targetType;
 }

@@ -237,16 +237,11 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 }
             }
             
-            else if (building is Archery archeryBuilding)
+            else if (building is TrainingBuilding trainingBuilding)
             {
-                buildingEntry.traineeSlots = archeryBuilding.GetTraineesSaveData();
+                buildingEntry.traineeSlots = trainingBuilding.GetTraineesSaveData();
             }
-    
-            else if (building is Monastery monasteryBuilding)
-            {
-                buildingEntry.traineeSlots = monasteryBuilding.GetTraineesSaveData();
-            }
-
+            
             buildingData.buildings.Add(buildingEntry);
         }
         saveData.buildingSaveData = buildingData;
@@ -403,56 +398,66 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                     continue;
 
                 unit.assignedBuilding = building;
+                bool isAssignedAsTrainee = false;
 
-                if (building is Archery archeryBuilding)
+                // ------------------------------------------------------------
+                // NHÁNH 1: Kiểm tra xem Unit này có phải là Học viên đang học dở tại đây không
+                // ------------------------------------------------------------
+                if (building is TrainingBuilding trainingBuilding)
                 {
-                    var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
-                    var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
-
-                    if (traineeData != null)
+                    var savedBuildingData = saveData.buildingSaveData.buildings
+                        .FirstOrDefault(b => b.buildingID == building.GetId());
+                    
+                    if (savedBuildingData != null && savedBuildingData.traineeSlots != null)
                     {
-                        archeryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
-                        break; 
-                    }
-                }
-                else if (building is Monastery monasteryBuilding)
-                {
-                    var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
-                    var traineeData = savedBuildingData?.traineeSlots.FirstOrDefault(t => t.unitID == unit.GetId());
+                        bool hasTrainee = savedBuildingData.traineeSlots.Any(t => t.unitID == unit.GetId());
 
-                    if (traineeData != null)
-                    {
-                        monasteryBuilding.ForceAddTraineeOnLoad(unit, traineeData.Value.currentTrainingHours);
-                        break;
-                    }
-                }
-
-                if (unit.unitType != UnitType.Civilian)
-                {
-                    if (!building.stationedUnits.Contains(unit))
-                    {
-                        building.stationedUnits.Add(unit);
-                    }
-                }
-
-                var guardComponent = building.gameObject.GetComponent<GuardComponent>();
-                if (guardComponent != null)
-                {
-                    var savedBuildingData = saveData.buildingSaveData.buildings.FirstOrDefault(b => b.buildingID == building.GetId());
-                    if (savedBuildingData != null && savedBuildingData.archerPositions != null)
-                    {
-                        var matchedSpotData = savedBuildingData.archerPositions.FirstOrDefault(s => s.unitId == unit.GetId());
-                        
-                        if (!string.IsNullOrEmpty(matchedSpotData.unitId))
+                        if (hasTrainee)
                         {
-                            guardComponent.listArcherPositions.Add(new SpotData 
-                            { 
-                                position = matchedSpotData.position, 
-                                unitId = unit.GetId()
-                            });
+                            var traineeData = savedBuildingData.traineeSlots.First(t => t.unitID == unit.GetId());
+                            
+                            trainingBuilding.ForceAddTraineeOnLoad(unit, traineeData.currentTrainingHours, traineeData.targetType);
+                            isAssignedAsTrainee = true;
                         }
                     }
                 }
+
+                // ------------------------------------------------------------
+                // NHÁNH 2: Nếu KHÔNG phải học viên, tiến hành gán vào lính gác (stationedUnits)
+                // ------------------------------------------------------------
+                if (!isAssignedAsTrainee)
+                {
+                    if (unit.unitType != UnitType.Civilian)
+                    {
+                        if (!building.stationedUnits.Contains(unit))
+                        {
+                            building.stationedUnits.Add(unit);
+                        }
+                    }
+
+                    var guardComponent = building.gameObject.GetComponent<GuardComponent>();
+                    if (guardComponent != null)
+                    {
+                        var savedBuildingData = saveData.buildingSaveData.buildings
+                            .FirstOrDefault(b => b.buildingID == building.GetId());
+                            
+                        if (savedBuildingData != null && savedBuildingData.archerPositions != null)
+                        {
+                            var matchedSpotData = savedBuildingData.archerPositions
+                                .FirstOrDefault(s => s.unitId == unit.GetId());
+                            
+                            if (!string.IsNullOrEmpty(matchedSpotData.unitId))
+                            {
+                                guardComponent.listArcherPositions.Add(new SpotData 
+                                { 
+                                    position = matchedSpotData.position, 
+                                    unitId = unit.GetId()
+                                });
+                            }
+                        }
+                    }
+                }
+
                 break; 
             }
         }

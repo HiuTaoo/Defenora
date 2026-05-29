@@ -34,6 +34,7 @@ public class UIManager: MonoBehaviour
     private UnitDetailPanel unitDetailPanel;
     private BuildingDetailPanel buildingDetailPanel;
     public AvailableUnitPanel availableUnitPanel;
+    private TrainingWindowUI trainingWindowUI;
 
     public UIManager()
     {
@@ -56,6 +57,12 @@ public class UIManager: MonoBehaviour
         RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Editor, UINames.AvailableUnitsGUI, availableUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Playing, UINames.Inventory, inventoryGUI, new UIConfig {FadeIn = true});
+        
+        trainingWindowUI = GetComponentInChildren<TrainingWindowUI>(true);
+        if (trainingWindowUI != null)
+        {
+            RegisterUI(GameStateType.Playing, UINames.TrainingWindow, trainingWindowUI.trainingPageContent.gameObject, new UIConfig { FadeIn = true });
+        }
     }
     
     private void Start()
@@ -411,6 +418,7 @@ public static class UINames
     public const string SelectUnitGUI = "SelectUnitGUI";
     public const string BuildingPanel = "BuildingPanel";
     public const string AvailableUnitsGUI = "AvailableUnitsGUI";
+    public const string TrainingWindow = "TrainingWindow";
 
     // Gameplay UI
     public const string GameplayHUD = "GameplayHUD";
