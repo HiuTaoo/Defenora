@@ -11,5 +11,8 @@
     
         [Tooltip("Số lượng học viên tối đa có thể học cùng một lúc")]
         public int maxTraineeCapacity = 3;
+        
+        [Header("--- Training Cost ---")]
+        public ResourceCost[] trainingCosts;
     }
 }

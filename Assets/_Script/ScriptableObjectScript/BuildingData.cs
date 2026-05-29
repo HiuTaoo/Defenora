@@ -18,3 +18,4 @@ public abstract class BuildingData : ScriptableObject
     [Tooltip("Lượng Wood cần để sửa chữa công trình từ 0% -> 100% máu")]
     public int repairWoodCost;
 }
+

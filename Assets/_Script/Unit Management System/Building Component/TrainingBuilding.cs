@@ -119,7 +119,7 @@ public abstract class TrainingBuilding : Building
 
     public override bool CanAddUnit(Unit unit)
     {
-        if (unit.unitType == UnitType.Builder)
+        if (unit.unitType == UnitType.Builder) 
             return false;
 
         if (unit.unitType == UnitType.Civilian)
@@ -144,6 +144,7 @@ public abstract class TrainingBuilding : Building
                 ? availableConfigs[0] 
                 : default;
 
+            ConsumeResources(defaultConfig);
             AddTrainee(unit, defaultConfig);
         }
         else
@@ -157,11 +158,18 @@ public abstract class TrainingBuilding : Building
 
     public virtual void AddTraineeWithSelection(Unit unit, UnitType targetType)
     {
-        if (!CanAddUnit(unit)) return;
-
         TrainingConfig selectedConfig = availableConfigs.FirstOrDefault(c => c.targetType == targetType);
         if (selectedConfig.unitPrefab == null) return;
 
+        if (!HasEnoughResources(selectedConfig))
+        {
+            Debug.LogWarning($"[Training] Không đủ tài nguyên để huấn luyện {targetType}!");
+            return; 
+        }
+
+        if (!CanAddUnit(unit)) return;
+
+        ConsumeResources(selectedConfig);
         AddTrainee(unit, selectedConfig);
         SyncDebugView();
     }
@@ -200,6 +208,39 @@ public abstract class TrainingBuilding : Building
         }
 
         return base.RemoveUnit(unit);
+    }
+    
+    public bool HasEnoughResources(TrainingConfig config)
+    {
+        if (config.trainingCosts == null || config.trainingCosts.Length == 0) 
+            return true; 
+
+        if (Inventory.Instance == null) return false;
+
+        foreach (var cost in config.trainingCosts)
+        {
+            if (cost.itemData == null) continue;
+            
+            if (Inventory.Instance.GetAmount(cost.itemData) < cost.amount)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void ConsumeResources(TrainingConfig config)
+    {
+        if (config.trainingCosts == null || config.trainingCosts.Length == 0) return;
+        if (Inventory.Instance == null) return;
+
+        foreach (var cost in config.trainingCosts)
+        {
+            if (cost.itemData == null || cost.amount <= 0) continue;
+            
+            Inventory.Instance.Remove(cost.itemData, cost.amount);
+            Debug.Log($"[Training] Đã khấu trừ {cost.amount}x {cost.itemData.name} cho việc huấn luyện.");
+        }
     }
 
     protected override void HandleDeath()

@@ -83,7 +83,7 @@ public class TrainingQueueSlotUI : MonoBehaviour, IPointerClickHandler
     {
         if (ConfirmDialog.Instance != null && assignedUnit != null && currentBuilding != null)
         {
-            string question = $"Bạn có chắc chắn muốn hủy quá trình huấn luyện của {assignedUnit.unitName} không?";
+            string question = $"Are you sure you want to cancel training of {assignedUnit.unitType} to {targetType}?  Consumed resources will not be refunded!";
             
             ConfirmDialog.Instance.Show(
                 question, 

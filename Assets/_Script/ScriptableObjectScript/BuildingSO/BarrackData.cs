@@ -6,7 +6,11 @@ public struct TrainingConfig
 {
     public UnitType targetType;              
     public float trainingDurationInGameHours; 
-    public GameObject unitPrefab;            
+    public GameObject unitPrefab;       
+    
+    [Header("--- Training Cost ---")]
+    [Tooltip("Danh sách tài nguyên cần để huấn luyện đơn vị này")]
+    public ResourceCost[] trainingCosts;
 }
 
 [CreateAssetMenu(fileName = "NewBarrackData", menuName = "Building/Barrack Data")]

@@ -9,4 +9,7 @@ public class MonasteryData : BuildingData
 
     [Tooltip("Số lượng học viên (Civilian) tối đa có thể tu hành cùng một lúc")]
     public int maxTraineeCapacity = 2;
+    
+    [Header("--- Training Cost ---")]
+    public ResourceCost[] trainingCosts;
 }

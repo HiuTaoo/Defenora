@@ -21,11 +21,15 @@ public class TrainingWindowUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI descriptionText;
     [SerializeField] private Button trainButton; 
     
+    [SerializeField] private RectTransform requirementResourcePanel;
+    
     private TrainingBuilding currentActiveBuilding;
     private List<TrainingQueueSlotUI> activeSlotUIs = new List<TrainingQueueSlotUI>();
     
     private List<GameObject> targetClassSpawnedObjects = new List<GameObject>();
     private List<GameObject> civilianSpawnedObjects = new List<GameObject>();
+    // 🌟 THÊM: Quản lý các slot tài nguyên được sinh ra để tránh rác bộ nhớ
+    private List<GameObject> resourceSpawnedObjects = new List<GameObject>();
 
     private int currentSelectedConfigIndex = 0;
 
@@ -67,7 +71,11 @@ public class TrainingWindowUI : MonoBehaviour
     {
         ClearTargetClassView();
 
-        if (configs == null || configs.Length == 0) return;
+        if (configs == null || configs.Length == 0) 
+        {
+            ClearRequirementResourcesView(); // 🌟 Xóa view tài nguyên nếu không có config
+            return;
+        }
 
         TrainingConfig activeConfig = configs[currentSelectedConfigIndex];
 
@@ -125,6 +133,55 @@ public class TrainingWindowUI : MonoBehaviour
                 button.onClick.AddListener(OnPlusButtonClicked);
             }
         }
+
+        // 🌟 THÊM: Cập nhật danh sách tài nguyên yêu cầu của config đang chọn
+        UpdateRequirementResourcesDisplay(activeConfig);
+    }
+
+    // 🌟 THÊM: Logic sinh prefab tài nguyên yêu cầu
+    private void UpdateRequirementResourcesDisplay(TrainingConfig config)
+    {
+        ClearRequirementResourcesView();
+
+        if (requirementResourcePanel == null || config.trainingCosts == null) return;
+
+        foreach (var cost in config.trainingCosts)
+        {
+            if (cost.itemData == null || cost.amount <= 0) continue;
+
+            // Sinh prefab slot theo yêu cầu bằng inventorySlotPrefab
+            var resourceObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.inventorySlotPrefab,
+                requirementResourcePanel.transform.position, Quaternion.identity);
+
+            resourceObj.transform.SetParent(requirementResourcePanel);
+            resourceObj.transform.localScale = Vector3.one;
+            resourceObj.gameObject.SetActive(true);
+            
+            resourceSpawnedObjects.Add(resourceObj);
+
+            // Gán dữ liệu (icon, số lượng) thông qua Component UIResourceSlot đính trên prefab
+            var resourceSlotUI = resourceObj.GetComponent<UIResourceSlot>();
+            if (resourceSlotUI != null)
+            {
+                resourceSlotUI.Setup(cost.itemData, cost.amount);
+            }
+        }
+
+        // Cập nhật lại giao diện tự động ép các thẻ tài nguyên xếp ngay ngắn
+        LayoutRebuilder.ForceRebuildLayoutImmediate(requirementResourcePanel);
+    }
+
+    // 🌟 THÊM: Dọn dẹp Panel tài nguyên yêu cầu cũ
+    private void ClearRequirementResourcesView()
+    {
+        foreach (var obj in resourceSpawnedObjects)
+        {
+            if (obj != null)
+            {
+                PoolManager.Instance.Despawn(obj);
+            }
+        }
+        resourceSpawnedObjects.Clear();
     }
 
     private void TrainFirstAvailableCivilian()
@@ -134,7 +191,16 @@ public class TrainingWindowUI : MonoBehaviour
         TrainingConfig[] configs = currentActiveBuilding.GetAvailableConfigs();
         if (configs == null || configs.Length == 0) return;
 
-        UnitType dynamicTargetType = configs[currentSelectedConfigIndex].targetType;
+        TrainingConfig activeConfig = configs[currentSelectedConfigIndex];
+        UnitType dynamicTargetType = activeConfig.targetType;
+
+        // Kiểm tra xem người chơi còn đủ tài nguyên không trước khi ấn Train tại UI
+        // (Lớp cha TrainingBuilding đã có hàm HasEnoughResources)
+        if (!currentActiveBuilding.HasEnoughResources(activeConfig))
+        {
+            Debug.LogWarning("Không đủ tài nguyên để nhấn huấn luyện!");
+            return;
+        }
 
         var firstCivilian = UnitManager.Instance.allUnits
             .FirstOrDefault(u => u.unitType == UnitType.Civilian && u.assignedBuilding == null);
@@ -302,6 +368,7 @@ public class TrainingWindowUI : MonoBehaviour
         
         ClearTargetClassView();
         ClearCivilianListView();
+        ClearRequirementResourcesView(); // 🌟 THÊM: Xóa sạch ô tài nguyên khi đóng UI
 
         foreach (var slotUI in activeSlotUIs)
         {

@@ -5,7 +5,6 @@ public class WalletManager : MonoBehaviour
 {
     public static WalletManager Instance { get; private set; }
 
-    // Sự kiện để UI lắng nghe và tự động cập nhật mỗi khi tiền thay đổi
     public static event Action<int> OnCoinChanged;
 
     [SerializeField] private int currentCoins;

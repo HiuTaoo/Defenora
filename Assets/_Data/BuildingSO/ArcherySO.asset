@@ -21,3 +21,10 @@ MonoBehaviour:
   repairWoodCost: 8
   trainingDuration: 1
   maxTraineeCapacity: 3
+  trainingCosts:
+  - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
+    amount: 1
+  - itemData: {fileID: 11400000, guid: 04ae0da3c50ef364d926dbb021eea7a8, type: 2}
+    amount: 2
+  - itemData: {fileID: 11400000, guid: de9f022009931524ca646bd52b2d64db, type: 2}
+    amount: 2
