@@ -92,6 +92,13 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ShowUI(GameStateType.Playing, UINames.Inventory);
     }
 
+    public void OpenShopGUI()
+    {
+        UIManager.Instance.HideStateUI(GameStateType.Playing);
+        UIManager.Instance.ShowUI(GameStateType.Playing, UINames.Shop);
+        ShopManager.Instance.InitializeShopUI();
+    }
+
     public void SaveGame()
     {
         SaveLoadSystem.Instance.SaveGame();

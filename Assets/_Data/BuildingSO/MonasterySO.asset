@@ -24,3 +24,5 @@ MonoBehaviour:
   trainingCosts:
   - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
     amount: 3
+  - itemData: {fileID: 11400000, guid: 04ae0da3c50ef364d926dbb021eea7a8, type: 2}
+    amount: 3

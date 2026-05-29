@@ -90,7 +90,6 @@ public class Inventory : MonoBehaviour
         _cachedMaxCapacity = 0;
         _cachedCurrentCapacity = 0;
 
-        // BƯỚC 1: Tạo một Dictionary tạm thời để gom TỔNG SỐ LƯỢNG thực tế của từng loại ItemData
         Dictionary<ItemData, int> combinedResourceAmounts = new Dictionary<ItemData, int>();
 
         foreach (var storage in _activeStorages)
@@ -99,12 +98,10 @@ public class Inventory : MonoBehaviour
 
             _cachedMaxCapacity += storage.maxStorageCapacity;
     
-            // Quét qua các slot của từng kho chứa
             foreach (var slot in storage.GetAllSlots()) 
             {
                 if (slot == null || slot.itemData == null || slot.amount <= 0) continue;
 
-                // Cộng dồn số lượng thuần túy của loại tài nguyên này vào Dictionary tạm
                 if (!combinedResourceAmounts.ContainsKey(slot.itemData))
                 {
                     combinedResourceAmounts[slot.itemData] = 0;
@@ -114,18 +111,15 @@ public class Inventory : MonoBehaviour
             }
         }
 
-        // BƯỚC 2: Từ tổng số lượng đã gom, bắt đầu chia đều vào các Slot tổng dựa theo maxStackSize của từng Item
         foreach (var pair in combinedResourceAmounts)
         {
             ItemData itemData = pair.Key;
             int totalAmount = pair.Value;
 
-            // Tiến hành chia nhỏ số lượng tổng thành các slot dựa theo giới hạn maxStackSize của SO
             while (totalAmount > 0)
             {
                 int amountInSlot = Mathf.Min(itemData.maxStackSize, totalAmount);
             
-                // Thêm ô sạch vào danh sách cache tổng để UI lấy dữ liệu vẽ chuẩn xác
                 _cachedTotalSlots.Add(new InventorySlot(itemData, amountInSlot));
             
                 totalAmount -= amountInSlot;
@@ -135,11 +129,9 @@ public class Inventory : MonoBehaviour
         _isDirty = false;
         SyncDebugView();
     
-        // Báo cho UIInventoryManager biết dữ liệu tổng đã được làm sạch và gom tụ hoàn hảo!
         OnInventoryChanged?.Invoke(); 
     }
 
-    // Đổi kiểu dữ liệu trả về của hàm GetAll() sang ItemData làm Key
     public List<InventorySlot> GetAll()
     {
         CheckRefresh();
@@ -149,7 +141,6 @@ public class Inventory : MonoBehaviour
 
     #region Core Methods - Điều phối Storage
 
-    // Đổi tham số nhận vào từ ResourceType sang ItemData
     public int Add(ItemData itemData, int amount)
     {
         if (amount <= 0 || itemData == null) return 0;
@@ -160,7 +151,6 @@ public class Inventory : MonoBehaviour
         {
             if (remainingAmount <= 0) break;
 
-            // Lưu ý: Các hàm CanStore và Add trong Storage cần được sửa tham số thành ItemData
             if (storage.CanStore(itemData, 1)) 
             {
                 int added = storage.Add(itemData, remainingAmount);
@@ -171,7 +161,6 @@ public class Inventory : MonoBehaviour
         return amount - remainingAmount; 
     }
 
-    // Đổi tham số nhận vào từ ResourceType sang ItemData
     public int Remove(ItemData itemData, int amount)
     {
         if (itemData == null) return 0;
@@ -181,7 +170,6 @@ public class Inventory : MonoBehaviour
         {
             if (remainingToTake <= 0) break;
 
-            // Lưu ý: Hàm GetAmount và Remove trong Storage cần sửa đổi tham số thành ItemData
             int amountInStorage = storage.GetAmount(itemData);
             if (amountInStorage > 0)
             {
@@ -193,7 +181,6 @@ public class Inventory : MonoBehaviour
         return amount - remainingToTake; 
     }
 
-    // Đổi tham số nhận vào từ ResourceType sang ItemData
     public int GetAmount(ItemData itemData)
     {
         if (itemData == null) return 0;

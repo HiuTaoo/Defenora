@@ -24,6 +24,8 @@ public class UIManager: MonoBehaviour
     [SerializeField] private GameObject settingGUI;
 
     [SerializeField] private GameObject inventoryGUI;
+
+    [SerializeField] private GameObject shopGUI;
     //editor
     [SerializeField] private GameObject availableUnitGUI;
     
@@ -57,6 +59,7 @@ public class UIManager: MonoBehaviour
         RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Editor, UINames.AvailableUnitsGUI, availableUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Playing, UINames.Inventory, inventoryGUI, new UIConfig {FadeIn = true});
+        RegisterUI(GameStateType.Playing, UINames.Shop, shopGUI, new UIConfig {FadeIn = true});
         
         trainingWindowUI = GetComponentInChildren<TrainingWindowUI>(true);
         if (trainingWindowUI != null)
@@ -423,6 +426,7 @@ public static class UINames
     // Gameplay UI
     public const string GameplayHUD = "GameplayHUD";
     public const string Inventory = "InventoryGUI";
+    public const string Shop =  "ShopGUI";
     
     //pause
     public const string PauseMenu = "PauseMenu";

@@ -297,8 +297,14 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         #region Save Object Spawn Data
         SaveSpawnData(saveData);
         #endregion
+        
+        #region Save Shop Data
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.PopulateShopSaveData(saveData);
+        }
+        #endregion
 
-        saveData.buildingSaveData = buildingData;
     }
 
     public void LoadFromSaveData(GameSaveData saveData)
@@ -460,6 +466,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
                 break; 
             }
+        }
+        #endregion
+        
+        #region Load Shop Data
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.LoadShopFromSaveData(saveData);
         }
         #endregion
     }

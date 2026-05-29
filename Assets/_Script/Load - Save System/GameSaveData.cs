@@ -10,6 +10,7 @@ public class GameSaveData
     public BuildingSaveData buildingSaveData = new BuildingSaveData();
     public ObjectSpawnData objectSpawnData = new ObjectSpawnData();
     public TaskSaveData taskSaveData = new TaskSaveData();
+    public ShopSaveData shopSaveData = new ShopSaveData();
 }
 
 [System.Serializable]

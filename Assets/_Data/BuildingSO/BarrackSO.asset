@@ -27,11 +27,15 @@ MonoBehaviour:
     trainingCosts:
     - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
       amount: 4
+    - itemData: {fileID: 11400000, guid: 04ae0da3c50ef364d926dbb021eea7a8, type: 2}
+      amount: 4
   - targetType: 3
     trainingDurationInGameHours: 1
     unitPrefab: {fileID: 4124294002956455345, guid: 187a13ad6c03e0f419e485c7d9ccbbb2,
       type: 3}
     trainingCosts:
     - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
+      amount: 1
+    - itemData: {fileID: 11400000, guid: 04ae0da3c50ef364d926dbb021eea7a8, type: 2}
       amount: 1
   maxTraineeCapacity: 5

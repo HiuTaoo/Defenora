@@ -41,6 +41,7 @@ namespace _Script.Object_Pooling
         public GameObject statDetailGUIPrefab;
         public GameObject inventorySlotPrefab;
         public GameObject trainingQueueSlotUIPrefab;
+        public GameObject shopItemSlotPrefab;
 
         [Header("Tree Prefab")]
         public GameObject[] treePrefabs;
