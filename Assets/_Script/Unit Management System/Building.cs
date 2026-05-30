@@ -8,7 +8,7 @@ using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public abstract class Building : MonoBehaviour, IBuildable
+public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 {
     [Header("Configuration")] public BuildingData configData;
 
@@ -605,4 +605,14 @@ public abstract class Building : MonoBehaviour, IBuildable
     }
 
     #endregion
+
+    public void OnSpawned()
+    {
+        if (health != null)
+            health.SetMaxHealth(health.maxHealth, true);
+    }
+
+    public void OnDespawned()
+    {
+    }
 }

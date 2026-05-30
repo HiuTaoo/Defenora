@@ -23,6 +23,11 @@ MonoBehaviour:
       type: 3}
     unitIcon: {fileID: 21300000, guid: 3eccc0fa0d72e4392b563e6bbf6005c8, type: 3}
     price: 3
+  - unitName: Archer
+    unitPrefab: {fileID: 9163186071473850716, guid: 153ccded75be38c4b86acf1983f0c61a,
+      type: 3}
+    unitIcon: {fileID: 21300000, guid: 8fd2d0449599e4f7a9a1f1f170b6a2b0, type: 3}
+    price: 3
   availableResources:
   - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
     price: 1

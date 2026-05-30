@@ -34,6 +34,7 @@ public class Builder : Unit
     [Header("Tartget Game Object")] public GameObject targetGO;
 
     [Header("Inventory")] public UnitInventory currentInventory;
+    private Dictionary<global::Task, float> unreachabledTasks = new Dictionary<global::Task, float>();
 
     private IChoppable currentTarget;
 
@@ -213,6 +214,7 @@ public class Builder : Unit
         );
 
         var transportItemSequence = new SequenceNode(
+            new IsDawnNode(builder),
             new HasItemInInventoryNode(builder),
             new CreateTransportTask(builder),
             new AssignTaskNode(builder),
@@ -296,7 +298,9 @@ public class Builder : Unit
             itemComponent.amount = amount;
         }
 
+        itemComponent.assignBuilder = this;
         if (spawnedObj != null) itemComponent.StartDrop(worldPosition, transform.position);
+        
         return spawnedObj;
     }
 
@@ -337,33 +341,40 @@ public class Builder : Unit
             transform.localScale = scale;
         }
 
-        var target = currentTask.targetGameObject.GetComponent<IChoppable>();
-        if (target is Tree)
+        // 🟢 SỬA LOGIC TRÁNH XUNG ĐỘT: Kiểm tra xem chính cái "targetGO" (vật đang bị Builder gõ) là cái gì
+        if (targetGO.TryGetComponent<Tree>(out var tree))
         {
-            var tree = target as Tree;
+            // TRƯỜNG HỢP 1: Thực sự đang chặt một cây tài nguyên (Task Chặt Cây)
             if (tree.currentChopHit >= tree.maxChopHit)
             {
-                currentTask.taskStatus = TaskStatus.Completed;
-                TaskManager.Instance.RemoveTask(currentTask);
-                currentTask = null;
+                if (currentTask != null)
+                {
+                    currentTask.taskStatus = TaskStatus.Completed;
+                    TaskManager.Instance.RemoveTask(currentTask);
+                    currentTask = null;
+                }
+            
                 InstaniateObject(PrefabConfig.Instance.woodPrefab,
                     tree.gameObject.transform.position, tree.layerIndex, 1);
                 return true;
             }
         }
-
-        var targetObtacle = builderBlackBoard.currentObstacle;
-
-        if (targetObtacle is DecorObject && targetObtacle != null)
+        else
         {
-            var obj = targetObtacle as DecorObject;
-            if (obj.currentChopHit >= obj.maxChopHit)
+            // TRƯỜNG HỢP 2: Đang xử lý vật cản trên móng nhà (Task Xây Nhà)
+            var targetObtacle = builderBlackBoard.currentObstacle;
+
+            if (targetObtacle is DecorObject && targetObtacle != null)
             {
-                builderBlackBoard.currentObstacle = null;
-                return true;
+                var obj = targetObtacle as DecorObject;
+                if (obj.currentChopHit >= obj.maxChopHit)
+                {
+                    builderBlackBoard.currentObstacle = null;
+                    // Tuyệt đối không chạm vào currentTask ở đây!
+                    return true;
+                }
             }
         }
-
         return false;
     }
 
@@ -732,6 +743,35 @@ public class Builder : Unit
 
         return bestCell;
     }
+    
+    public void AddToBlacklist(global::Task task)
+    {
+        if (task != null && !unreachabledTasks.ContainsKey(task))
+        {
+            unreachabledTasks.Add(task, Time.time + 5f); 
+        }
+    }
+
+    // Hàm kiểm tra xem Task này hiện tại có đang bị cấm nhặt không
+    public bool IsTaskBlacklisted(global::Task task)
+    {
+        if (task == null) return false;
+        
+        if (unreachabledTasks.TryGetValue(task, out float allowedTime))
+        {
+            if (Time.time < allowedTime)
+            {
+                return true; 
+            }
+            else
+            {
+                unreachabledTasks.Remove(task); 
+                return false;
+            }
+        }
+        return false;
+    }
+    
     #endregion
 
 

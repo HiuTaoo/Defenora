@@ -4,7 +4,7 @@ using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public abstract class Animal : MonoBehaviour
+public abstract class Animal : MonoBehaviour, IPoolable
 {
     protected CircleCollider2D animalCollider2D;
     protected Rigidbody2D rb;
@@ -238,7 +238,16 @@ public abstract class Animal : MonoBehaviour
         if (spawnedObj != null) itemComponent.StartDrop(worldPosition, transform.position);
         return spawnedObj;
     }
-    
+
+    public void OnSpawned()
+    {
+        if (health != null)
+            health.SetMaxHealth(health.maxHealth, true);
+    }
+
+    public void OnDespawned()
+    {
+    }
 }
 
 

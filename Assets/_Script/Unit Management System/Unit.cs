@@ -10,7 +10,7 @@ using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public abstract class Unit : MonoBehaviour
+public abstract class Unit : MonoBehaviour, IPoolable
 {
     [Header("Unit Info")] public string unitName;
 
@@ -26,7 +26,7 @@ public abstract class Unit : MonoBehaviour
 
     [HideInInspector] public int enemyLayer;
 
-    [Header("Array Non Alloc")] [HideInInspector]
+    [Header("Array Non Alloc")] 
     public Collider2D[] results;
 
     public Collider2D[] animalResult;
@@ -625,6 +625,7 @@ public abstract class Unit : MonoBehaviour
         if (health != null && unitStatsManager != null) health.maxHealth = unitStatsManager.MaxHealth;
     }
 
+
     #region Enemy Method
 
     public Building FindNearestBuilding(Vector3 currentPosition)
@@ -881,4 +882,18 @@ public abstract class Unit : MonoBehaviour
     }
 
     #endregion
+
+    public void OnSpawned()
+    {
+        if (unitStatsManager != null) unitStatsManager.CalculateStats();
+
+        if (health != null && unitStatsManager != null) health.SetMaxHealth(unitStatsManager.MaxHealth, true);
+
+        currentState = UnitState.Idle;
+        animState = AnimState.Idle;
+    }
+
+    public void OnDespawned()
+    {
+    }
 }

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class ShopManager : MonoBehaviour
 {
@@ -197,45 +197,63 @@ public class ShopManager : MonoBehaviour
             }
             else if (clickedSlot.UnitPrefab != null)
             {
+                var playerGO = GameObject.FindWithTag("Player");
+                var playerPosition = Vector3.zero;
+                var foundPlayer = false;
+
+                if (playerGO != null)
+                {
+                    playerPosition = playerGO.transform.position;
+                    playerPosition.z = 0f;
+                    foundPlayer = true;
+                }
+                else
+            {
                 var camera = Camera.main;
                 if (camera != null)
                 {
-                    Vector3 playerPosition = camera.transform.position;
+                    playerPosition = camera.transform.position;
                     playerPosition.z = 0f;
+                    foundPlayer = true;
+                }
+            }
 
+                if (foundPlayer)
+                {
                     Building closestBuilding = null;
-                    float closestDistance = float.MaxValue;
+                    var closestDistance = float.MaxValue;
 
                     if (UnitManager.Instance != null && UnitManager.Instance.buildings != null)
-                    {
                         foreach (var building in UnitManager.Instance.buildings)
                         {
                             if (building == null) continue;
-                            float distance = (building.transform.position - playerPosition).sqrMagnitude;
+                            var distance = (building.transform.position - playerPosition).sqrMagnitude;
                             if (distance < closestDistance)
                             {
                                 closestDistance = distance;
                                 closestBuilding = building;
                             }
                         }
-                    }
 
-                    Vector3 spawnPosition = playerPosition;
-                    int targetLayerIndex = 0; 
+                    var spawnPosition = playerPosition;
+                    var targetLayerIndex = 0;
 
                     if (closestBuilding != null)
                     {
                         spawnPosition = closestBuilding.GetRandomPositionAroundBuilding();
-                        targetLayerIndex = closestBuilding.LayerIndex; 
+                        targetLayerIndex = closestBuilding.LayerIndex;
                     }
                     else
                     {
-                        Vector3 randomOffset = UnityEngine.Random.insideUnitSphere * 1.5f;
+                        var randomOffset = Random.insideUnitSphere * 1.5f;
                         randomOffset.z = 0f;
                         spawnPosition += randomOffset;
+                        var playerComp = playerGO.GetComponent<PlayerController>();
+                        targetLayerIndex = playerComp.characterMovement.CurrentLayer;
                     }
 
-                    var spawnedUnitObj = PoolManager.Instance.Spawn(clickedSlot.UnitPrefab, spawnPosition, Quaternion.identity);
+                    var spawnedUnitObj =
+                        PoolManager.Instance.Spawn(clickedSlot.UnitPrefab, spawnPosition, Quaternion.identity);
                     if (spawnedUnitObj != null)
                     {
                         var unitComponent = spawnedUnitObj.GetComponent<Unit>();
@@ -245,8 +263,9 @@ public class ShopManager : MonoBehaviour
                                 unitComponent.floorAgent = unitComponent.GetComponentInChildren<FloorAgent>();
 
                             if (unitComponent.characterMovement == null)
-                                unitComponent.characterMovement = unitComponent.GetComponentInChildren<CharacterMovement>();
-                            
+                                unitComponent.characterMovement =
+                                    unitComponent.GetComponentInChildren<CharacterMovement>();
+
                             unitComponent.characterMovement.CurrentLayer = targetLayerIndex;
                             unitComponent.floorAgent.MoveToFloor(targetLayerIndex);
 
@@ -254,6 +273,11 @@ public class ShopManager : MonoBehaviour
                                 UnitManager.Instance.RegisterUnit(unitComponent);
                         }
                     }
+                }
+                else
+                {
+                    Debug.LogError(
+                        "[Shop] Không thể mua Unit vì không tìm thấy cả Player lẫn Main Camera để lấy vị trí gốc!");
                 }
 
                 Debug.Log($"[Shop] Mua và xuất kích thành công Unit: {clickedSlot.UnitPrefab.name}");
@@ -272,10 +296,6 @@ public class ShopManager : MonoBehaviour
                 
                 LayoutRebuilder.ForceRebuildLayoutImmediate(unitContentPanel);
                 LayoutRebuilder.ForceRebuildLayoutImmediate(resourceContentPanel);
-            }
-            else
-            {
-                // Nếu là Shop thường: Không Despawn, giữ nguyên ô để người chơi tiếp tục bấm mua vô hạn
             }
         }
     }

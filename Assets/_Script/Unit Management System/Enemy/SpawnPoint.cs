@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SpawnPoint : MonoBehaviour
 {
-    [System.Serializable]
+    [Serializable]
     public struct SpawnData
     {
         public GameObject prefab;

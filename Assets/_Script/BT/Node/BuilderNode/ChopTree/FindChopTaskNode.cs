@@ -27,7 +27,7 @@ namespace _Script.BT.Node.BuilderNode
 
             var task = TaskManager.Instance
                 .GetAvailableTasks()
-                .FirstOrDefault(t => t.taskType == TaskType.ChopTree);
+                .FirstOrDefault(t => t.taskType == TaskType.ChopTree && !builder.IsTaskBlacklisted(t));
 
             if (task == null)
                 return BTStatus.Failure;

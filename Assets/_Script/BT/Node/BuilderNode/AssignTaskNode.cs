@@ -40,7 +40,20 @@ namespace _Script.BT.Node.BuilderNode
 
                 if (builder.builderBlackBoard.pathFinding == null)
                 {
-                    Debug.Log("Can't find path");
+                    Debug.Log($"[AssignTask] Can't find path to task {builder.currentTask.taskType}. Blacklisting for 5s!");
+
+                    // 🟢 KÍCH HOẠT PHẠT: Đưa Task này vào danh sách đen của Builder hiện tại
+                    builder.AddToBlacklist(builder.currentTask);
+
+                    // Giải phóng bản thân ra khỏi Task như cũ
+                    if (builder.currentTask.Builders.Contains(builder))
+                    {
+                        builder.currentTask.Leave(builder);
+                    }
+
+                    builder.currentTask = null;
+                    builder.ResetState();
+
                     return BTStatus.Failure;
                 }
             }

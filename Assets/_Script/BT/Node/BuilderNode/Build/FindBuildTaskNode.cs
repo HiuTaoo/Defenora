@@ -23,7 +23,7 @@ namespace _Script.BT.Node.BuilderNode.Build
             }
             
             var task = TaskManager.Instance.GetAvailableTasks()
-                .FirstOrDefault(t => t.taskType == TaskType.BuildStructure);
+                .FirstOrDefault(t => t.taskType == TaskType.BuildStructure && !builder.IsTaskBlacklisted(t));
             
             if(task == null)
                 return BTStatus.Failure;

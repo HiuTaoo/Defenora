@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using _Script.Task;
+using UnityEngine;
 using _Script.Unit_Management_System.Animation;
 
 namespace _Script.BT.Node.BuilderNode
@@ -33,7 +34,20 @@ namespace _Script.BT.Node.BuilderNode
                     isFinishing = true;
                     timer = 0f;
 
-                    builder.ResetState();
+                    // 🟢 SỬA LOGIC CHÍ MẠNG: Kiểm tra xem loại Task hiện tại có phải là Chặt cây tài nguyên không
+                    if (builder.currentTask != null && builder.currentTask.taskType == TaskType.ChopTree)
+                    {
+                        // Nếu đúng là Task chặt cây thì mới được phép xóa Task, giải phóng Builder
+                        builder.ResetState();
+                    }
+                    else
+                    {
+                        // Nếu chỉ là dọn vật cản (để Xây nhà hoặc Sửa nhà), TUYỆT ĐỐI không gọi ResetState().
+                        // Chỉ reset trạng thái cơ thể về Idle để chuỗi xây dựng chạy tiếp, bảo toàn currentTask!
+                        builder.currentState = UnitState.Idle;
+                        builder.animState = AnimState.Idle;
+                        builder.UpdateAnim();
+                    }
                 }
 
                 return BTStatus.Running;
