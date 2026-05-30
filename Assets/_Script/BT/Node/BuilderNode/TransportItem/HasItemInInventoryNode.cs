@@ -1,5 +1,5 @@
-﻿using _Script.Unit_Management_System.Animation;
-using UnityEngine;
+﻿using _Script.ItemScript;
+using _Script.Unit_Management_System.Animation;
 
 namespace _Script.BT.Node.BuilderNode
 {
@@ -18,10 +18,12 @@ namespace _Script.BT.Node.BuilderNode
                 || builder.currentInventory.IsEmpty)
                 return BTStatus.Failure;
 
-            // Hàm TryGetMostAbundant bây giờ sẽ trả ra 'ItemData' thông qua biến 'resource'
+            if (ItemManager.Instance.FindNearestItem(builder.transform.position, builder.floorAgent._currentFloorIndex,
+                    builder))
+                return BTStatus.Failure;
+
             if (builder.currentInventory.TryGetMostAbundant(out var resource))
             {
-                // builder.currentResource lúc này đã là kiểu ItemData nên gán trực tiếp mượt mà
                 builder.currentResource = resource.resourceType;
                 builder.currentTool = ToolType.None;
                 builder.UpdateAnim();

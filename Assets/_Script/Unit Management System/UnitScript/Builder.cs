@@ -10,6 +10,7 @@ using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
 using _Script.BT.Node.BuilderNode.Idle;
 using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.Enum;
+using _Script.ItemScript;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using _Script.Task;
@@ -220,24 +221,35 @@ public class Builder : Unit
             new TransportItemNode(builder)
         );
 
-        var idleSequence = new SequenceNode(
-            new HasIdleTimeNode(builder),
+        var collectWorldItemSequence = new SequenceNode(
+            new IsIdleNode(builder),
+            new HasEmptySpaceNode(builder),
+            new MoveToWorldItemActionNode(builder)
+        );
+
+        var wanderFreeSequence = new SequenceNode(
+            new HasIdleTimeNode(builder),           
             new MoveFollowAvaiablePathNode(builder),
-            new WaitRandomTimeNode(builder)
+            new WaitRandomTimeNode(builder)         
+        );
+
+        var idleSelector = new SelectorNode(
+            collectWorldItemSequence,
+            wanderFreeSequence
         );
 
         var root = new SelectorNode(
             new SequenceNode(
                 new IsInventoryFullNode(builder),
-                emergencyTransportSequence
+                emergencyTransportSequence 
             ),
             repairStructureSelector,
             new SelectorNode(
                 buildStructureSelector,
-                chopTreeSelector
+                chopTreeSelector 
             ),
             transportItemSequence,
-            idleSequence
+            idleSelector 
         );
 
         return new BehaviourTree(root);
@@ -245,30 +257,6 @@ public class Builder : Unit
 
     #endregion
 
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        // Màu cho workRange
-        Gizmos.color = Color.yellow;
-
-        // Xác định hướng nhìn (giống TryChop)
-        var facing = transform.localScale.x >= 0 ? 1f : -1f;
-        var facingDir = new Vector2(facing, 0f);
-
-        // Điểm origin của OverlapBox
-        var origin = (Vector2)transform.position + facingDir * workRange;
-
-        // Vẽ đường biểu diễn workRange
-        Gizmos.DrawLine(transform.position, origin);
-
-        // Màu cho workBox
-        Gizmos.color = new Color(0f, 1f, 0f, 0.4f);
-
-        // Vẽ box (wire + solid để dễ nhìn)
-        Gizmos.DrawWireCube(origin, workBoxSize);
-        Gizmos.DrawCube(origin, workBoxSize);
-    }
-#endif
 
     #region Move to task target
 
@@ -546,16 +534,21 @@ public class Builder : Unit
     {
         if (item == null || item.itemData == null) return;
 
-        // Đổi từ item.resourceType sang item.itemData
         var addedAmount = currentInventory.Add(item.itemData, item.amount);
 
         if (addedAmount > 0)
         {
             if (addedAmount >= item.amount)
+            {
+                if (ItemManager.Instance != null) ItemManager.Instance.UnregisterItem(item);
+
                 PoolManager.Instance.Despawn(item.gameObject);
+            }
             else
+            {
                 item.amount -= addedAmount;
-            // Cập nhật lại chuỗi Log sử dụng item.itemData.itemName để hiển thị tên trực quan hơn
+            }
+
             Debug.Log(
                 $"Collected Item: {item.itemData.itemName}, Amount: {addedAmount}, Remaining in world: {item.amount}");
         }
@@ -691,5 +684,79 @@ public class Builder : Unit
         return target;
     }
 
+    /// <summary>
+    ///     Thuần túy tìm kiếm và trả về 1 trong 8 ô liền kề hợp lệ (Walkable) xung quanh một vị trí mục tiêu.
+    ///     Ưu tiên chọn ô gần với vị trí hiện tại của Builder nhất.
+    /// </summary>
+    /// <param name="targetGridPos">Vị trí ô Grid của vật phẩm/mục tiêu</param>
+    /// <param name="targetLayerIndex">Tầng (Layer Index) của mục tiêu</param>
+    /// <returns>Tọa độ ô Grid liền kề hợp lệ, hoặc trả về chính targetGridPos nếu bị kẹt hoàn toàn</returns>
+    public Vector3Int FindAdjacentWalkableCell(Vector3Int targetGridPos, int targetLayerIndex)
+    {
+        var originalNode = GraphNode.Instance.GetNode(targetGridPos, targetLayerIndex);
+        if (originalNode != null && originalNode.isWalkable) return targetGridPos;
+        var adjacentDirections = new[]
+        {
+            new Vector3Int(0, 1, 0),
+            new Vector3Int(0, -1, 0),
+            new Vector3Int(-1, 0, 0),
+            new Vector3Int(1, 0, 0),
+            new Vector3Int(-1, 1, 0),
+            new Vector3Int(1, 1, 0),
+            new Vector3Int(-1, -1, 0),
+            new Vector3Int(1, -1, 0)
+        };
+
+        var bestCell = targetGridPos;
+        var minDistance = Mathf.Infinity;
+        var foundValidCell = false;
+
+        foreach (var dir in adjacentDirections)
+        {
+            var neighborPos = targetGridPos + dir;
+
+            var node = GraphNode.Instance.GetNode(neighborPos, targetLayerIndex);
+
+            if (node != null && node.isWalkable)
+            {
+                var distance = Vector2.Distance(transform.position, (Vector3)neighborPos);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    bestCell = neighborPos;
+                    foundValidCell = true;
+                }
+            }
+        }
+
+        return bestCell;
+    }
     #endregion
+
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        // Màu cho workRange
+        Gizmos.color = Color.yellow;
+
+        // Xác định hướng nhìn (giống TryChop)
+        var facing = transform.localScale.x >= 0 ? 1f : -1f;
+        var facingDir = new Vector2(facing, 0f);
+
+        // Điểm origin của OverlapBox
+        var origin = (Vector2)transform.position + facingDir * workRange;
+
+        // Vẽ đường biểu diễn workRange
+        Gizmos.DrawLine(transform.position, origin);
+
+        // Màu cho workBox
+        Gizmos.color = new Color(0f, 1f, 0f, 0.4f);
+
+        // Vẽ box (wire + solid để dễ nhìn)
+        Gizmos.DrawWireCube(origin, workBoxSize);
+        Gizmos.DrawCube(origin, workBoxSize);
+    }
+#endif
 }

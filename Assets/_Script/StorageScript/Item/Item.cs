@@ -1,3 +1,4 @@
+using _Script.ItemScript;
 using UnityEngine;
 
 public class Item : MonoBehaviour
@@ -49,6 +50,7 @@ public class Item : MonoBehaviour
         {
             transform.position = endPos;
             isDropping = false;
+            ItemManager.Instance.RegisterItem(this);
         }
     }
 
