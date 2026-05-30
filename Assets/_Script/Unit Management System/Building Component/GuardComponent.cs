@@ -57,7 +57,7 @@ namespace _Script.Unit_Management_System.Building
             if (unit.unitType != UnitType.Archer)
                 return;
 
-            int index = listArcherPositions.FindIndex(s => s.unitId == unit.unitName);
+            int index = listArcherPositions.FindIndex(s => s.unitId == unit.GetId());
             if (index >= 0)
                 listArcherPositions.RemoveAt(index);
         }

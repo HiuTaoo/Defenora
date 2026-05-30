@@ -1,10 +1,8 @@
-﻿using UnityEngine;
-
-namespace _Script.BT
+﻿namespace _Script.BT
 {
     public class BehaviourTree
     {
-        private BTNode root;
+        private readonly BTNode root;
 
         public BehaviourTree(BTNode rootNode)
         {
@@ -16,6 +14,9 @@ namespace _Script.BT
             root?.Tick();
         }
 
+        public void ClearState()
+        {
+            root?.ClearState();
+        }
     }
-
 }

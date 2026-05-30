@@ -6,11 +6,11 @@ using _Script.Enum;
 using _Script.Task;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public abstract class Building : MonoBehaviour, IBuildable
 {
-    [Header("Configuration")]
-    public BuildingData configData; 
+    [Header("Configuration")] public BuildingData configData;
 
     [HideInInspector] public string buildingName;
     [HideInInspector] public int maxCapacity;
@@ -18,46 +18,39 @@ public abstract class Building : MonoBehaviour, IBuildable
     [HideInInspector] public BuildingType buildingType;
     [HideInInspector] public int buildWoodCost;
     [HideInInspector] public int repairWoodCost;
-    
-    public int currentCapacity = 0;
+
+    public int currentCapacity;
     public float currentHealth;
     public BuildingState buildingState;
 
-    [Header("Build Progress")]
-    [Range(0f, 100f)]
-    public float currentBuildProgress = 0f; 
+    [Header("Build Progress")] [Range(0f, 100f)]
+    public float currentBuildProgress;
 
-    [Header("Unit Management")]
-    public List<Unit> stationedUnits = new List<Unit>();
+    [Header("Unit Management")] public List<Unit> stationedUnits = new();
 
-    [Header("Task")]
-    public Task currentTask;
+    [Header("Task")] public Task currentTask;
 
     [Tooltip("Tầng mà công trình được đặt")]
-    public int layerIndex = 0;
+    public int layerIndex;
 
-    private SpriteRenderer spriteRenderer;
-    private ObjectFootprint buildingFootprint;
-    private Animator animator;
-    private CapsuleCollider2D buildingCollider;
     [HideInInspector] public Health health;
+    private Animator animator;
+    private Coroutine buildEffectCoroutine;
+    private CapsuleCollider2D buildingCollider;
+    private ObjectFootprint buildingFootprint;
 
     private GameObject customRenderer;
-    private Coroutine buildEffectCoroutine;
-    
-    private bool isBeingBuilded = false;
-    private bool hasBeenBuilded = false;
-    
-    public Action<IBuildable> OnBuiltObject { get; set; }
+    private bool hasBeenBuilded;
+
+    private bool isBeingBuilded;
     public Action OnStationedUnitsChanged;
+
+    private SpriteRenderer spriteRenderer;
 
     public int LayerIndex
     {
         get => layerIndex;
-        set
-        {
-            layerIndex = value;
-        }
+        set => layerIndex = value;
     }
 
     public virtual void Awake()
@@ -93,22 +86,20 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         if (spriteRenderer.isVisible)
         {
-            if (buildingState == BuildingState.UnderConstruction && currentBuildProgress >= 100f && !hasBeenBuilded)
-            {
-                OnBuild();
-            }
+            if (buildingState == BuildingState.UnderConstruction && currentBuildProgress >= 100f &&
+                !hasBeenBuilded) OnBuild();
 
             if (currentTask != null && currentTask.taskType == TaskType.RepairStructure
-                && health.IsFull())
+                                    && health.IsFull())
             {
                 OnRepair();
                 currentTask = null;
             }
 
-            if ((!health.IsFull() || buildingState == BuildingState.Destroyed) 
+            if ((!health.IsFull() || buildingState == BuildingState.Destroyed)
                 && (currentTask == null || currentTask.targetGameObject == null))
             {
-                var task = new global::Task(this.gameObject, TaskType.RepairStructure, 2, layerIndex);
+                var task = new Task(gameObject, TaskType.RepairStructure, 2, layerIndex);
                 TaskManager.Instance.AddTask(task);
                 currentTask = task;
             }
@@ -116,6 +107,32 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         currentHealth = health.CurrentHealth;
     }
+
+    /*public void SetID(string buildingID)
+    {
+        id = buildingID;
+    }*/
+    protected virtual void OnEnable()
+    {
+        if (health != null)
+        {
+            health.OnHealthChanged += HandleHealthChanged;
+            health.OnTakeDamage += HandleTakeDamage;
+            health.OnDie += HandleDeath;
+        }
+    }
+
+    protected virtual void OnDisable()
+    {
+        if (health != null)
+        {
+            health.OnHealthChanged -= HandleHealthChanged;
+            health.OnTakeDamage -= HandleTakeDamage;
+            health.OnDie -= HandleDeath;
+        }
+    }
+
+    public Action<IBuildable> OnBuiltObject { get; set; }
 
     private void UpdateAnimation()
     {
@@ -146,19 +163,16 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         if (buildingState == BuildingState.Pending)
         {
-            Color c = spriteRenderer.color;
+            var c = spriteRenderer.color;
             c.a = 0.5f;
             spriteRenderer.color = c;
             buildingCollider.enabled = false;
 
-            foreach(Transform child in transform)
-            {
-                child.gameObject.SetActive(false);
-            }
+            foreach (Transform child in transform) child.gameObject.SetActive(false);
         }
         else
         {
-            Color c = spriteRenderer.color;
+            var c = spriteRenderer.color;
             c.a = 1f;
             spriteRenderer.color = c;
         }
@@ -170,18 +184,19 @@ public abstract class Building : MonoBehaviour, IBuildable
             return;
 
         currentTask = new Task(
-            target: this.gameObject,
-            type: TaskType.BuildStructure,
-            maxBuilders: 3,
-            layerIndex: LayerIndex
+            gameObject,
+            TaskType.BuildStructure,
+            3,
+            LayerIndex
         );
 
         TaskManager.Instance.AddTask(currentTask);
 
         Debug.Log($"[Building] Created BuildStructure task for {buildingName}");
     }
-    
+
     #region Unit Management
+
     public virtual bool CanAddUnit(Unit unit)
     {
         if (currentCapacity >= maxCapacity)
@@ -192,7 +207,7 @@ public abstract class Building : MonoBehaviour, IBuildable
 
         if (unit.unitType != UnitType.Builder && buildingType == BuildingType.WorkShop)
             return false;
-        
+
         if (unit.unitType == UnitType.Civilian)
             return false;
 
@@ -226,75 +241,73 @@ public abstract class Building : MonoBehaviour, IBuildable
         return true;
     }
 
-    protected virtual void OnUnitAdded(Unit unit) 
-    { 
-        Vector3 availableSpot = GetRandomPositionAroundBuilding();
-        if (availableSpot != null)
-        {
-            unit.transform.position = availableSpot;
-        }
+    protected virtual void OnUnitAdded(Unit unit)
+    {
+        var availableSpot = GetRandomPositionAroundBuilding();
+        if (availableSpot != null) unit.transform.position = availableSpot;
     }
-    protected virtual void OnUnitRemoved(Unit unit) { }
+
+    protected virtual void OnUnitRemoved(Unit unit)
+    { }
 
     #endregion
 
     #region RANDOM POSITION
+
     public Vector3 GetRandomPositionAroundBuilding()
     {
-        const int maxTries = 10; 
-        float cellSize = 1f;
+        const int maxTries = 10;
+        var cellSize = 1f;
 
         if (buildingFootprint == null)
             GetBuildingFootprinf();
 
         var cells = buildingFootprint.GetAbsoluteGridPositions(WorldToCell(transform.position, 1f));
-        Vector3 basePosition = transform.position;
-        GraphNode graphNode = GraphNode.Instance;
+        var basePosition = transform.position;
+        var graphNode = GraphNode.Instance;
 
-        List<Vector3> validPositions = new List<Vector3>();
+        var validPositions = new List<Vector3>();
 
-        for (int i = 0; i < maxTries; i++)
+        for (var i = 0; i < maxTries; i++)
         {
-            Vector3 randomWorldPos = GetRandomPositionInRange(basePosition);
-            Vector2Int cellPos = WorldToCell(randomWorldPos, cellSize);
+            var randomWorldPos = GetRandomPositionInRange(basePosition);
+            var cellPos = WorldToCell(randomWorldPos, cellSize);
 
-            bool isInFootprint = false;
+            var isInFootprint = false;
             foreach (var cell in cells)
-            {
                 if (cellPos == cell)
                 {
                     isInFootprint = true;
                     break;
                 }
-            }
 
             if (isInFootprint) continue;
 
-            Node node = graphNode.GetNode(new Vector3Int(cellPos.x, cellPos.y, 0), LayerIndex);
+            var node = graphNode.GetNode(new Vector3Int(cellPos.x, cellPos.y, 0), LayerIndex);
             if (node != null && node.isWalkable)
             {
-                Vector3 cellCenter = CellToWorld(cellPos, cellSize);
+                var cellCenter = CellToWorld(cellPos, cellSize);
                 validPositions.Add(cellCenter);
             }
         }
 
         if (validPositions.Count > 0)
         {
-            int randomIndex = UnityEngine.Random.Range(0, validPositions.Count);
+            var randomIndex = Random.Range(0, validPositions.Count);
             return validPositions[randomIndex];
         }
 
-        Debug.LogWarning($"Không tìm được Node walkable quanh Building. Trả về vị trí Building.");
-        Vector2Int fallbackCell = WorldToCell(basePosition, cellSize);
+        Debug.LogWarning("Không tìm được Node walkable quanh Building. Trả về vị trí Building.");
+        var fallbackCell = WorldToCell(basePosition, cellSize);
         return CellToWorld(fallbackCell, cellSize);
     }
 
     private Vector3 GetRandomPositionInRange_UniformCircle(Vector3 basePosition)
     {
-        float angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
-        float radius = Mathf.Sqrt(UnityEngine.Random.Range(0f, 1f)) * range / 2;
+        var angle = Random.Range(0f, 2f * Mathf.PI);
+        var radius = Mathf.Sqrt(Random.Range(0f, 1f)) * range / 2;
 
-        Vector2 randomOffset = new Vector2(
+        var randomOffset = new Vector2(
             Mathf.Cos(angle) * radius,
             Mathf.Sin(angle) * radius
         );
@@ -312,8 +325,8 @@ public abstract class Building : MonoBehaviour, IBuildable
         do
         {
             randomOffset = new Vector2(
-                UnityEngine.Random.Range(-range / 2, range / 2),
-                UnityEngine.Random.Range(-range / 2, range / 2)
+                Random.Range(-range / 2, range / 2),
+                Random.Range(-range / 2, range / 2)
             );
         } while (randomOffset.magnitude > range / 2);
 
@@ -326,12 +339,12 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     private Vector3 GetRandomPositionInRange_GridPattern(Vector3 basePosition)
     {
-        int gridSize = Mathf.RoundToInt(range);
-        int randomX = UnityEngine.Random.Range(-gridSize / 2, gridSize / 2 + 1);
-        int randomY = UnityEngine.Random.Range(-gridSize / 2, gridSize / 2 + 1);
+        var gridSize = Mathf.RoundToInt(range);
+        var randomX = Random.Range(-gridSize / 2, gridSize / 2 + 1);
+        var randomY = Random.Range(-gridSize / 2, gridSize / 2 + 1);
 
-        float noiseX = UnityEngine.Random.Range(-0.3f, 0.3f);
-        float noiseY = UnityEngine.Random.Range(-0.3f, 0.3f);
+        var noiseX = Random.Range(-0.3f, 0.3f);
+        var noiseY = Random.Range(-0.3f, 0.3f);
 
         return new Vector3(
             basePosition.x + randomX + noiseX,
@@ -342,13 +355,13 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     private Vector3 GetRandomPositionInRange_WeightedDistance(Vector3 basePosition)
     {
-        float minDistance = 2f; 
-        float maxDistance = range / 2;
+        var minDistance = 2f;
+        var maxDistance = range / 2;
 
-        float angle = UnityEngine.Random.Range(0f, 2f * Mathf.PI);
-        float radius = UnityEngine.Random.Range(minDistance, maxDistance);
+        var angle = Random.Range(0f, 2f * Mathf.PI);
+        var radius = Random.Range(minDistance, maxDistance);
 
-        Vector2 randomOffset = new Vector2(
+        var randomOffset = new Vector2(
             Mathf.Cos(angle) * radius,
             Mathf.Sin(angle) * radius
         );
@@ -362,7 +375,7 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     private Vector3 GetRandomPositionInRange(Vector3 basePosition)
     {
-        int method = UnityEngine.Random.Range(0, 4);
+        var method = Random.Range(0, 4);
 
         switch (method)
         {
@@ -377,10 +390,11 @@ public abstract class Building : MonoBehaviour, IBuildable
     #endregion
 
     #region Helper Methods
+
     public Vector2Int WorldToCell(Vector3 worldPos, float cellSize)
     {
-        int x = Mathf.FloorToInt(worldPos.x / cellSize);
-        int y = Mathf.FloorToInt(worldPos.y / cellSize);
+        var x = Mathf.FloorToInt(worldPos.x / cellSize);
+        var y = Mathf.FloorToInt(worldPos.y / cellSize);
         return new Vector2Int(x, y);
     }
 
@@ -406,7 +420,7 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     private void GetBuildingFootprinf()
     {
-        if(buildingFootprint == null)
+        if (buildingFootprint == null)
             buildingFootprint = GetComponent<ObjectFootprint>();
     }
 
@@ -414,9 +428,9 @@ public abstract class Building : MonoBehaviour, IBuildable
     {
         return new BuildingSaveLoadData
         {
-            buildingName = this.buildingName,
+            buildingName = buildingName,
             currentCapacity = stationedUnits.Count,
-            maxCapacity = this.maxCapacity,
+            maxCapacity = maxCapacity,
             unitID = stationedUnits.Select(u => u.unitName).ToList()
         };
     }
@@ -430,35 +444,38 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     private void ChangeTransparent(float cap)
     {
-        Color c = spriteRenderer.color;
+        var c = spriteRenderer.color;
         c.a = cap;
         spriteRenderer.color = c;
     }
+
+    public virtual void ForceAddUnitOnLoad(Unit unit)
+    {
+        if (!stationedUnits.Contains(unit)) stationedUnits.Add(unit);
+
+        unit.assignedBuilding = this;
+    }
+
     #endregion
 
     #region Build
+
     public void HandleBuilt(float buildSpeed)
     {
         if (currentBuildProgress >= 100f) return;
 
         currentBuildProgress = currentBuildProgress + buildSpeed;
 
-        if (!isBeingBuilded && buildEffectCoroutine == null)
-        {
-            buildEffectCoroutine =  StartCoroutine(BuildEffect());
-        }
+        if (!isBeingBuilded && buildEffectCoroutine == null) buildEffectCoroutine = StartCoroutine(BuildEffect());
     }
-    
+
     public void HandleRepair()
     {
         if (health.IsFull() && buildingState == BuildingState.Completed) return;
 
         health.RepairBuilding(health.maxHealth / 20);
 
-        if (!isBeingBuilded && buildEffectCoroutine == null)
-        {
-            buildEffectCoroutine =  StartCoroutine(BuildEffect());
-        }
+        if (!isBeingBuilded && buildEffectCoroutine == null) buildEffectCoroutine = StartCoroutine(BuildEffect());
     }
 
     public void OnBuild()
@@ -471,17 +488,14 @@ public abstract class Building : MonoBehaviour, IBuildable
             currentTask.Complete();
             currentTask = null;
         }
-        
-        if (buildingType == BuildingType.Storage)
-        {
-            Inventory.Instance.RefreshStorageSubscriptions();
-        }
-        
+
+        if (buildingType == BuildingType.Storage) Inventory.Instance.RefreshStorageSubscriptions();
+
         health.RestoreHealth();
 
         OnBuiltObject?.Invoke(this);
     }
-    
+
     public void OnRepair()
     {
         hasBeenBuilded = true;
@@ -508,62 +522,57 @@ public abstract class Building : MonoBehaviour, IBuildable
         isBeingBuilded = false;
         buildEffectCoroutine = null;
     }
-    
-    public bool HasObstacleAroundBuilding( float radius = 3f)
-    {
-        Vector3 center = transform.position;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius);
+    public bool HasObstacleAroundBuilding(float radius = 3f)
+    {
+        var center = transform.position;
+
+        var hits = Physics2D.OverlapCircleAll(center, radius);
 
         foreach (var hit in hits)
         {
             if (hit.gameObject == gameObject)
                 continue;
-            
-            if (hit.TryGetComponent<IChoppable>(out var choppable))
-            {
-                return true; 
-            }
+
+            if (hit.TryGetComponent<IChoppable>(out var choppable)) return true;
         }
+
         return false;
     }
-    
-    public IChoppable FindObstacleObject( float radius = 2f)
-    {
-        Vector3 center = transform.position;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius);
+    public IChoppable FindObstacleObject(float radius = 2f)
+    {
+        var center = transform.position;
+
+        var hits = Physics2D.OverlapCircleAll(center, radius);
 
         foreach (var hit in hits)
         {
             if (hit.gameObject == gameObject && !hit.gameObject.activeInHierarchy)
                 continue;
-            
+
             if (hit.TryGetComponent<IChoppable>(out var choppable) && !choppable.IsClaimed)
             {
-                if(choppable is Tree)
+                if (choppable is Tree)
                     continue;
-                return choppable; 
+                return choppable;
             }
         }
+
         return null;
     }
-    
+
     #endregion
 
     #region Action
 
     protected virtual void HandleHealthChanged(float current, float max)
     {
-        
     }
 
     protected virtual void HandleTakeDamage(float damage)
     {
-        if (gameObject.activeInHierarchy && !isBeingBuilded) 
-        {
-            StartCoroutine(DamageEffect());
-        }
+        if (gameObject.activeInHierarchy && !isBeingBuilded) StartCoroutine(DamageEffect());
     }
 
     protected virtual void HandleDeath()
@@ -577,7 +586,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     {
         spriteRenderer.color = Color.red;
         yield return new WaitForSeconds(0.1f);
-        
+
         if (buildingState == BuildingState.Pending)
             ChangeTransparent(0.5f);
         else
@@ -586,37 +595,12 @@ public abstract class Building : MonoBehaviour, IBuildable
 
     private void EvacuateAllUnits()
     {
-        for (int i = stationedUnits.Count - 1; i >= 0; i--)
+        for (var i = stationedUnits.Count - 1; i >= 0; i--)
         {
-            Unit unit = stationedUnits[i];
+            var unit = stationedUnits[i];
             RemoveUnit(unit);
         }
     }
 
     #endregion
-
-    /*public void SetID(string buildingID)
-    {
-        id = buildingID;
-    }*/
-    protected virtual void OnEnable()
-    {
-        if (health != null)
-        {
-            health.OnHealthChanged += HandleHealthChanged;
-            health.OnTakeDamage += HandleTakeDamage;
-            health.OnDie += HandleDeath;
-        }
-    }
-
-    protected virtual void OnDisable()
-    {
-        if (health != null)
-        {
-            health.OnHealthChanged -= HandleHealthChanged;
-            health.OnTakeDamage -= HandleTakeDamage;
-            health.OnDie -= HandleDeath;
-        }
-    }
-
 }

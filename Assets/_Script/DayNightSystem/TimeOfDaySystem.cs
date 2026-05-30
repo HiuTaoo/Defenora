@@ -1,47 +1,44 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-[System.Serializable]
+[Serializable]
 public class TimeOfDaySystem : MonoBehaviour
 {
     public static TimeOfDaySystem Instance;
 
-    [Header("Lighting Settings")]
-    public Light2D globalLight; 
+    [Header("Lighting Settings")] public Light2D globalLight;
 
-    public Gradient dayColorGradient;         
+    public Gradient dayColorGradient;
     public AnimationCurve intensityCurve;
 
-    [Header("Time Settings")] [Range(0f, 24f)]
-    [SerializeField]
-    private float currentTime = 6f;           
-    public float dayLengthInMinutes = 5f;     
+    [Header("Time Settings")] [Range(0f, 24f)] [SerializeField]
+    private float currentTime = 6f;
+
+    public float dayLengthInMinutes = 5f;
+
+    [Header("Timer Text")] public TextMeshProUGUI timeDisplayText;
 
     private float timeMultiplier;
-
-    [Header("Timer Text")]
-    public TextMeshProUGUI timeDisplayText; 
 
     private void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
         else
             Destroy(gameObject);
 
         globalLight = transform.Find("Global Light")?.GetComponent<Light2D>();
-
     }
-    void Start()
+
+    private void Start()
     {
         timeMultiplier = 24f / (dayLengthInMinutes * 60f);
     }
 
 
-    void Update()
+    private void Update()
     {
         currentTime += Time.deltaTime * timeMultiplier;
         if (currentTime >= 24f)
@@ -51,9 +48,9 @@ public class TimeOfDaySystem : MonoBehaviour
         UpdateTimeDisplay();
     }
 
-    void UpdateLighting()
+    private void UpdateLighting()
     {
-        float timePercent = currentTime / 24f;
+        var timePercent = currentTime / 24f;
 
         if (globalLight != null)
         {
@@ -62,17 +59,14 @@ public class TimeOfDaySystem : MonoBehaviour
         }
     }
 
-    void UpdateTimeDisplay()
+    private void UpdateTimeDisplay()
     {
-        var  hours = Mathf.FloorToInt(currentTime);
+        var hours = Mathf.FloorToInt(currentTime);
         var minutes = Mathf.FloorToInt((currentTime - hours) * 60f);
 
-        string formattedTime = $"{hours:00}:{minutes:00}";
+        var formattedTime = $"{hours:00}:{minutes:00}";
 
-        if (timeDisplayText != null)
-        {
-            timeDisplayText.text = formattedTime;
-        }
+        if (timeDisplayText != null) timeDisplayText.text = formattedTime;
     }
 
     public float GetCurrentTime()
@@ -80,4 +74,8 @@ public class TimeOfDaySystem : MonoBehaviour
         return currentTime;
     }
 
+    public bool IsNightTime()
+    {
+        return currentTime is >= 18f or <= 6f;
+    }
 }
