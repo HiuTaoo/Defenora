@@ -148,8 +148,8 @@ public class Archer : Unit
         // ROOT TREE: QUYẾT ĐỊNH TRẠNG THÁI ĐỨNG IM HAY DI CHUYỂN
         // =================================================================
         var root = new SelectorNode(
-            stationedBranchSequence, // Ưu tiên 1: Nếu lính đang đứng tháp -> Thực thi nhánh cố định
-            mobileBranchSequence     // Ưu tiên 2: Nếu không đứng tháp (hoặc tháp sập) -> Tự động chuyển qua cơ động
+            stationedBranchSequence // Ưu tiên 1: Nếu lính đang đứng tháp -> Thực thi nhánh cố định
+            //mobileBranchSequence     // Ưu tiên 2: Nếu không đứng tháp (hoặc tháp sập) -> Tự động chuyển qua cơ động
         );
 
         return new BehaviourTree(root);
