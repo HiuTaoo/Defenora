@@ -9,17 +9,15 @@ namespace _Script.UI.UI_Script
 {
     public class UnitDetailPanel : MonoBehaviour
     {
-        [Header("Basic Info Unit UI")]
-        public GameObject unitpanel;
+        [Header("Basic Info Unit UI")] public GameObject unitpanel;
+
         public Image unitIcon;
         public TextMeshProUGUI unitNameText;
         public TextMeshProUGUI levelText;
         public GameObject upgradeButton;
         public Transform unitStatsContainer;
 
-        [Header("Dynamic Stats UI")]
-        
-        public GameObject statPrefab;    
+        [Header("Dynamic Stats UI")] public GameObject statPrefab;
 
         private Unit currentSelectedUnit;
 
@@ -27,7 +25,7 @@ namespace _Script.UI.UI_Script
         {
             if (currentSelectedUnit != null)
             {
-                currentSelectedUnit.statsManager.OnStatsUpdated -= UpdateUI;
+                currentSelectedUnit.unitStatsManager.OnStatsUpdated -= UpdateUI;
                 currentSelectedUnit.health.OnHealthChanged -= UpdateHealthUI;
             }
 
@@ -38,14 +36,14 @@ namespace _Script.UI.UI_Script
                 unitpanel.SetActive(false);
                 return;
             }
-            
+
             unitpanel.SetActive(true);
 
-            UnitStatsSO baseData = currentSelectedUnit.statsManager.GetBaseData();
+            var baseData = currentSelectedUnit.unitStatsManager.GetBaseData();
             unitNameText.text = baseData.unitName;
             unitIcon.sprite = baseData.unitIcon;
-            
-            currentSelectedUnit.statsManager.OnStatsUpdated += UpdateUI;
+
+            currentSelectedUnit.unitStatsManager.OnStatsUpdated += UpdateUI;
             currentSelectedUnit.health.OnHealthChanged += UpdateHealthUI;
 
             UpdateUI();
@@ -55,26 +53,25 @@ namespace _Script.UI.UI_Script
         {
             if (currentSelectedUnit == null) return;
 
-            levelText.text = "Level: " + currentSelectedUnit.statsManager.currentLevel;
+            levelText.text = "Level: " + currentSelectedUnit.unitStatsManager.currentLevel;
 
-            string hpValue = $"{currentSelectedUnit.health.CurrentHealth}/{currentSelectedUnit.statsManager.MaxHealth}";
-    
+            var hpValue =
+                $"{currentSelectedUnit.health.CurrentHealth}/{currentSelectedUnit.unitStatsManager.MaxHealth}";
+
             var statsList = new List<(string name, string value)>
             {
                 ("HP", hpValue),
-                ("View Distance", currentSelectedUnit.statsManager.ViewDistance.ToString(CultureInfo.InvariantCulture)),
+                ("View Distance",
+                    currentSelectedUnit.unitStatsManager.ViewDistance.ToString(CultureInfo.InvariantCulture)),
                 ("Speed", currentSelectedUnit.characterMovement.moveSpeed.ToString(CultureInfo.InvariantCulture))
             };
 
             var specialStats = currentSelectedUnit.GetSpecialStats();
-    
-            if (specialStats != null && specialStats.Count > 0)
-            {
-                statsList.AddRange(specialStats);
-            }
-            
-            if (currentSelectedUnit.CompareTag("Enemy") || (currentSelectedUnit.CompareTag("NPC") 
-                                                            && currentSelectedUnit.statsManager.IsMaxLevelUp()) )
+
+            if (specialStats != null && specialStats.Count > 0) statsList.AddRange(specialStats);
+
+            if (currentSelectedUnit.CompareTag("Enemy") || (currentSelectedUnit.CompareTag("NPC")
+                                                            && currentSelectedUnit.unitStatsManager.IsMaxLevelUp()))
             {
                 upgradeButton.SetActive(false);
             }
@@ -95,31 +92,24 @@ namespace _Script.UI.UI_Script
 
         private void RenderDynamicStats(List<(string name, string value)> stats)
         {
-            for (int i = unitStatsContainer.childCount - 1; i >= 0; i--)
+            for (var i = unitStatsContainer.childCount - 1; i >= 0; i--)
             {
-                Transform child = unitStatsContainer.GetChild(i);
-                
-                if (child.gameObject.activeSelf) 
-                {
-                    PoolManager.Instance.Despawn(child.gameObject); 
-                }
+                var child = unitStatsContainer.GetChild(i);
+
+                if (child.gameObject.activeSelf) PoolManager.Instance.Despawn(child.gameObject);
             }
 
             foreach (var stat in stats)
             {
-                GameObject obj = PoolManager.Instance.Spawn(statPrefab, unitStatsContainer.position, Quaternion.identity);
-                
+                var obj = PoolManager.Instance.Spawn(statPrefab, unitStatsContainer.position, Quaternion.identity);
+
                 obj.transform.SetParent(unitStatsContainer, false);
                 obj.transform.localScale = Vector3.one;
-                obj.transform.SetAsLastSibling(); 
+                obj.transform.SetAsLastSibling();
 
-                StatUIItem statItem = obj.GetComponent<StatUIItem>();
-                if (statItem != null)
-                {
-                    statItem.Setup(stat.name, stat.value);
-                }
+                var statItem = obj.GetComponent<StatUIItem>();
+                if (statItem != null) statItem.Setup(stat.name, stat.value);
             }
         }
-        
     }
 }

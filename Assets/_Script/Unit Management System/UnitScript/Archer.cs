@@ -22,9 +22,9 @@ public class Archer : Unit
 
     [Header("Archer Specific")] public Transform firePoint;
 
-    private bool _isStationed;
-
     private readonly RaycastHit2D[] raycastResults = new RaycastHit2D[10];
+
+    private bool _isStationed;
 
     public bool isStationed
     {
@@ -45,6 +45,7 @@ public class Archer : Unit
     {
         base.Awake();
         unitType = UnitType.Archer;
+        attackRange = viewDistance;
 
         archerBlackBoard = new ArcherBlackBoard();
         bt = CreateBehaviourTree(this);
@@ -94,7 +95,7 @@ public class Archer : Unit
 
         // =================================================================
         // NHÁNH 1: TRẠNG THÁI TRÊN THÁP (STATIONED BRANCH)
-        // Địch đến thì bắn, không có địch thì đứng xoay người quét/chờ (Logic cũ của bạn)
+        // Địch đến thì bắn, không có địch thì đứng xoay người quét/chờ
         // =================================================================
         var stationedCombatSelector = new SelectorNode(
             detectedSequence,
@@ -111,35 +112,60 @@ public class Archer : Unit
         // NHÁNH 2: TRẠNG THÁI TỰ DO DI CHUYỂN (MOBILE/FREE BRANCH)
         // =================================================================
 
-        // C-1. Điểm ưu tiên cao nhất khi rảnh rỗi: Trời tối -> Tìm đường đi về nhà gần nhất
+        // C-1. Ưu tiên 1 (Ban đêm): Trời tối -> Tìm đường đi về nhà gần nhất để trú ẩn/phòng thủ
         var mobileNightReturnSequence = new SequenceNode(
             new IsNightTimeConditionNode(archer),
             new MoveToNearestBuildingActionNode(archer)
         );
 
-        // C-2. Điểm ưu tiên thứ hai: Không đứng tháp nhưng được giao việc (ví dụ assignedBuilding là nhà chính/kho) -> Tuần tra quanh đó
-        var mobileTowerPatrolSequence = new SequenceNode(
-            new IsAssignedToBuildingConditionNode(archer),
-            new PatrolAroundTowerActionNode(archer)
+        // 🟢 C-2. Ưu tiên 2 (Ban ngày - Săn động vật): Nếu thấy động vật thì dừng lại nhắm bắn tại chỗ
+        var huntAnimalsSequence = new SequenceNode(
+            new SelectAnimalTargetNode(archer), // Quét tìm cừu/động vật
+            new AimAtTargetNode(archer), // Ngắm bắn
+            new SelectorNode(
+                attackActionSequence, // Nếu CooldownReady -> Chạy ShootArrowNode (Trả về Running giữ anim)
+                new ArcherAttackCooldownNode(archer) // Nếu đang hồi -> Giữ trạng thái Idle chờ bắn phát tiếp theo
+            )
         );
 
-        // C-3. Điểm ưu tiên thứ ba: Tự do hoàn toàn (Không tháp, không việc, trời sáng) -> Đi lang thang săn động vật
-        /*var mobileHuntAnimalsSequence = new SequenceNode(
-            new HuntAndWanderMapActionNode(archer)
-        );*/
+        // C-3. Ưu tiên 3 (Ban ngày - Di chuyển làm việc/tuần tra nếu không có gì để săn)
 
-        // Gom các trạng thái hòa bình của Archer tự do vào một Selector
+        // Trường hợp A: Có assignedBuilding (nhưng ko đứng tháp) -> Tuần tra xung quanh tâm công trình đó
+        var patrolAssignedBuildingSequence = new SequenceNode(
+            new IsAssignedToBuildingConditionNode(archer),
+            new PatrolAroundTowerActionNode(archer),
+            new WaitRandomTimeNode(archer)
+        );
+
+        // Trường hợp B: Không có công trình nào -> Lấy vị trí hiện tại làm tâm và đi dạo tự do
+        var wanderFreeSequence = new SequenceNode(
+            new ArcherWanderActionNode(archer),
+            new WaitRandomTimeNode(archer)
+        );
+
+        // Hợp nhất logic ban ngày của di chuyển: Có nhà đi tuần nhà, không nhà đi dạo tự do
+        var mobileDaytimeMovementSelector = new SelectorNode(
+            patrolAssignedBuildingSequence,
+            wanderFreeSequence
+        );
+
+        // Hợp nhất logic HOÀ BIÊN ban ngày tổng thể: Ưu tiên có thú thì đi săn trước > Không có thú mới di chuyển dạo/tuần tra
+        var mobileDaytimeSelector = new SelectorNode(
+            huntAnimalsSequence, // ◄ Thú lọt vào tầm mắt là ưu tiên xả tên ngay
+            mobileDaytimeMovementSelector // Không có thú thì mới đi bộ loanh quanh
+        );
+
+        // Gom toàn bộ trạng thái hòa bình của Archer tự do: Đêm về nhà phòng thủ > Ngày làm việc/Săn bắn
         var mobileIdleSelector = new SelectorNode(
             mobileNightReturnSequence,
-            mobileTowerPatrolSequence
-            //mobileHuntAnimalsSequence
+            mobileDaytimeSelector
         );
 
-        // Chuỗi hoàn chỉnh của Archer tự do: Ưu tiên thấy địch thì bắn (vừa đi vừa chiến đấu), ko có địch mới làm việc riêng
+        // Chuỗi hoàn chỉnh của Archer tự do: Ưu tiên tối cao luôn là thấy QUÁI ĐỊCH thật sự thì bắn, ko có địch mới xử lý idle/săn bắn
         var mobileBranchSequence = new SequenceNode(
             new SelectorNode(
-                detectedSequence, // Địch vào tầm là xả tiễn ngay
-                mobileIdleSelector // Hòa bình thì đi tuần, đi săn, đi ngủ
+                detectedSequence, // Địch thật (Monster/Enemy) vào tầm là ưu tiên số 1
+                mobileIdleSelector // Nếu an toàn, mới xét đến Đi ngủ > Đi săn > Đi dạo tuần tra
             )
         );
 
@@ -148,8 +174,8 @@ public class Archer : Unit
         // ROOT TREE: QUYẾT ĐỊNH TRẠNG THÁI ĐỨNG IM HAY DI CHUYỂN
         // =================================================================
         var root = new SelectorNode(
-            stationedBranchSequence // Ưu tiên 1: Nếu lính đang đứng tháp -> Thực thi nhánh cố định
-            //mobileBranchSequence     // Ưu tiên 2: Nếu không đứng tháp (hoặc tháp sập) -> Tự động chuyển qua cơ động
+            stationedBranchSequence, // Ưu tiên 1: Nếu lính đang đứng tháp -> Thực thi nhánh cố định
+            mobileBranchSequence // Ưu tiên 2: Nếu không đứng tháp -> Tự động chuyển qua cơ động
         );
 
         return new BehaviourTree(root);
@@ -455,7 +481,7 @@ public class Archer : Unit
             currentTarget = archerBlackBoard.detectedEnemy.transform;
             lastSeenPosition = currentTarget.position;
 
-            aggroTimer = aggroDuration;
+            aggroTimer = archerBlackBoard.detectedEnemy.CompareTag("Enemy") ? aggroDuration : 0.5f;
 
             return;
         }
@@ -506,8 +532,9 @@ public class Archer : Unit
             if (archerBlackBoard.detectedEnemy != null)
                 if (CheckEnemyStillInRange(archerBlackBoard.detectedEnemy, viewDistance))
                 {
-                    GlobalAlarmSystem.TriggerAlarm(archerBlackBoard.detectedEnemy,
-                        archerBlackBoard.detectedEnemy.transform.position);
+                    if (archerBlackBoard.detectedEnemy.CompareTag("Enemy"))
+                        GlobalAlarmSystem.TriggerAlarm(archerBlackBoard.detectedEnemy,
+                            archerBlackBoard.detectedEnemy.transform.position);
                     return;
                 }
 
@@ -518,7 +545,9 @@ public class Archer : Unit
 
             if (newTarget != null)
             {
-                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position);
+                if (newTarget.CompareTag("Enemy"))
+                    GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position);
+
                 archerBlackBoard.detectedEnemy = newTarget;
             }
         }

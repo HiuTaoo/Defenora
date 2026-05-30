@@ -1,37 +1,30 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEditor.ObjectChangeEventStream;
 
 public class UnitManager : MonoBehaviour
 {
-    [Header("Unit Management")]
-    public List<Unit> allUnits = new List<Unit>();
-    public List<Building> buildings = new List<Building>();
+    [Header("Unit Management")] public List<Unit> allUnits = new();
+
+    public List<Building> buildings = new();
+    private Transform buildingParent;
     public Dictionary<string, GameObject> buildingPrefabs;
+    public Action OnUnitRegistered;
 
     private Transform unitParent;
-    private Transform buildingParent;
-    
+
     public static UnitManager Instance { get; private set; }
-    public Action OnUnitRegistered;
 
     private void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
         else
-        {
             Destroy(gameObject);
-        }
         Register();
     }
 
@@ -43,12 +36,13 @@ public class UnitManager : MonoBehaviour
 
     private void Register()
     {
-        buildingPrefabs = new Dictionary<string, GameObject> {
+        buildingPrefabs = new Dictionary<string, GameObject>
+        {
             { "Fortress", PrefabConfig.Instance.fortressPrefab },
             { "WatchTower", PrefabConfig.Instance.watchTowerPrefab },
             { "Storage", PrefabConfig.Instance.storagePrefab },
             { "Archery", PrefabConfig.Instance.archeryPrefab },
-            { "Barrack", PrefabConfig.Instance.barrackPrefab},
+            { "Barrack", PrefabConfig.Instance.barrackPrefab },
             { "Monastery", PrefabConfig.Instance.monasteryPrefab }
         };
 
@@ -57,21 +51,19 @@ public class UnitManager : MonoBehaviour
     }
 
     #region Register Methods
+
     public void RefreshUnitList()
     {
         allUnits.Clear();
-        Unit[] foundUnits = FindObjectsOfType<Unit>();
+        var foundUnits = FindObjectsOfType<Unit>();
 
-        foreach (Unit unit in foundUnits)
-        {
-            RegisterUnit(unit);
-        }
+        foreach (var unit in foundUnits) RegisterUnit(unit);
     }
 
     public void RefreshStationList()
     {
         buildings.Clear();
-        Building[] foundbuilding = FindObjectsOfType<Building>();
+        var foundbuilding = FindObjectsOfType<Building>();
         buildings.AddRange(foundbuilding);
     }
 
@@ -91,34 +83,28 @@ public class UnitManager : MonoBehaviour
 
     public void RegisterBuilding(Building building)
     {
-        if (!buildings.Contains(building))
-        {
-            buildings.Add(building);
-        }
+        if (!buildings.Contains(building)) buildings.Add(building);
     }
 
     private void OnUnitDestroyed(Unit unit)
     {
         allUnits.Remove(unit);
 
-        foreach (Building station in buildings)
-        {
-            station.RemoveUnit(unit);
-        }
+        foreach (var station in buildings) station.RemoveUnit(unit);
     }
 
     public Unit CreateUnit(UnitType unitType, Vector3 position)
     {
-        GameObject prefab = GetUnitPrefab(unitType);
+        var prefab = GetUnitPrefab(unitType);
         if (prefab == null)
         {
             Debug.LogError($"Không tìm thấy prefab cho {unitType}");
             return null;
         }
 
-        GameObject unitObj = Instantiate(prefab, position, Quaternion.identity);
+        var unitObj = Instantiate(prefab, position, Quaternion.identity);
         unitObj.transform.SetParent(unitParent);
-        Unit unit = unitObj.GetComponent<Unit>();
+        var unit = unitObj.GetComponent<Unit>();
 
         if (unit != null)
         {
@@ -131,16 +117,16 @@ public class UnitManager : MonoBehaviour
 
     public Building CreateBuilding(BuildingType buildingType, Vector3 position)
     {
-        GameObject prefab = GetBuildPrefab(buildingType);
+        var prefab = GetBuildPrefab(buildingType);
         if (prefab == null)
         {
             Debug.LogError($"Không tìm thấy prefab cho {buildingType}");
             return null;
         }
 
-        GameObject unitObj = Instantiate(prefab, position, Quaternion.identity);
+        var unitObj = Instantiate(prefab, position, Quaternion.identity);
         unitObj.transform.SetParent(buildingParent);
-        Building building = unitObj.GetComponent<Building>();
+        var building = unitObj.GetComponent<Building>();
 
         if (building != null)
         {
@@ -150,77 +136,76 @@ public class UnitManager : MonoBehaviour
 
         return building;
     }
+
     #endregion
 
     #region Management Methods
+
     public Unit FindUnitIdleByType(UnitType unitType)
     {
-        foreach (Unit unit in allUnits)
-        {
+        foreach (var unit in allUnits)
             if (unit.unitType == unitType && unit.currentState == UnitState.Idle)
             {
                 Debug.Log($"Found idle {unitType} unit: {unit.unitName}");
                 return unit;
             }
-        }
+
         return null;
     }
 
     public Building FindUnderstaffedBuilding(UnitType unitType)
     {
         if (unitType == UnitType.Builder)
-        {
-            return buildings.FirstOrDefault(b => b.buildingType == BuildingType.WorkShop && b.currentCapacity < b.maxCapacity);
-        }
-        else
-            return buildings.FirstOrDefault(b => b.buildingType != BuildingType.WorkShop && b.currentCapacity < b.maxCapacity);
+            return buildings.FirstOrDefault(b =>
+                b.buildingType == BuildingType.WorkShop && b.currentCapacity < b.maxCapacity);
+
+        return buildings.FirstOrDefault(b =>
+            b.buildingType != BuildingType.WorkShop && b.currentCapacity < b.maxCapacity);
     }
 
     public List<Building> FindBuilding(BuildingType buildingType)
     {
-        List<Building> listBuilding = new List<Building>();
+        var listBuilding = new List<Building>();
         foreach (var building in buildings)
-        {
-            if(building.buildingType == buildingType)
+            if (building.buildingType == buildingType)
                 listBuilding.Add(building);
-        }
         return buildings;
     }
 
     public List<Building> FindBuildingNeedRepair()
     {
-        return buildings.Where(b => b != null && 
-                                    (b.buildingState == BuildingState.Destroyed || 
-                                     (b.GetComponentInChildren<Health>() != null && b.GetComponentInChildren<Health>().CurrentHealth < b.GetComponentInChildren<Health>().maxHealth)))
+        return buildings.Where(b => b != null &&
+                                    (b.buildingState == BuildingState.Destroyed ||
+                                     (b.GetComponentInChildren<Health>() != null &&
+                                      b.GetComponentInChildren<Health>().CurrentHealth <
+                                      b.GetComponentInChildren<Health>().maxHealth)))
             .ToList();
     }
 
     public List<Unit> GetAvailableUnits()
     {
-        return allUnits.Where(u => u.assignedBuilding == null 
-                                   && u.CompareTag("NPC") 
-                                   && !u.CompareTag("Enemy") 
-                                   && u.unitType != UnitType.Builder)
+        return allUnits.Where(u => u.assignedBuilding == null
+                                   && u.CompareTag("NPC")
+                                   && !u.CompareTag("Enemy")
+                                   && u.unitType != UnitType.Builder
+                                   && u.unitType != UnitType.Civilian)
             .ToList();
     }
-    
 
     #endregion
 
     #region Utility Methods
+
     public bool DeployUnitToStation(Unit unit, Building station)
     {
         if (unit == null || station == null)
             return false;
 
-        foreach (Building currentStation in buildings)
-        {
-            currentStation.RemoveUnit(unit);
-        }
+        foreach (var currentStation in buildings) currentStation.RemoveUnit(unit);
 
         return station.CanAddUnit(unit);
     }
-    
+
     private GameObject GetUnitPrefab(UnitType unitType)
     {
         switch (unitType)
@@ -231,7 +216,7 @@ public class UnitManager : MonoBehaviour
             case UnitType.Builder: return PrefabConfig.Instance.builderPrefab;
             case UnitType.Lancer: return PrefabConfig.Instance.lancerPrefab;
             case UnitType.Civilian: return PrefabConfig.Instance.civilianPrefab;
-            
+
             //Enemy case
             case UnitType.TorchGoblin: return PrefabConfig.Instance.torchGoblinPrefab;
             case UnitType.TNTGoblin: return PrefabConfig.Instance.tntGoblinPrefab;
@@ -267,11 +252,11 @@ public class UnitManager : MonoBehaviour
     public Building GetNearestStation(Vector3 position)
     {
         Building nearest = null;
-        float minDistance = float.MaxValue;
+        var minDistance = float.MaxValue;
 
-        foreach (Building station in buildings)
+        foreach (var station in buildings)
         {
-            float distance = Vector3.Distance(position, station.transform.position);
+            var distance = Vector3.Distance(position, station.transform.position);
             if (distance < minDistance)
             {
                 minDistance = distance;
@@ -284,10 +269,7 @@ public class UnitManager : MonoBehaviour
 
     public GameObject FindBuildingPrefab(string name)
     {
-        if (buildingPrefabs.TryGetValue(name, out var prefab))
-        {
-            return prefab;
-        }
+        if (buildingPrefabs.TryGetValue(name, out var prefab)) return prefab;
         return null;
     }
 
@@ -304,6 +286,7 @@ public class UnitManager : MonoBehaviour
             totalBuildings = buildings.Count
         };
     }
+
     public void UpdateGraphNodeWhenStart()
     {
         foreach (var building in buildings)
@@ -312,13 +295,12 @@ public class UnitManager : MonoBehaviour
             var cells = foothPrint.GetAbsoluteGridPositions(building.WorldToCell(building.transform.position, 1f));
             foreach (var cell in cells)
             {
-                Node node = GraphNode.Instance.GetNode(new Vector3Int(cell.x, cell.y, 0), building.LayerIndex);
+                var node = GraphNode.Instance.GetNode(new Vector3Int(cell.x, cell.y, 0), building.LayerIndex);
                 if (node.isWalkable)
                     node.isWalkable = false;
             }
         }
     }
-    #endregion
 
-    
+    #endregion
 }

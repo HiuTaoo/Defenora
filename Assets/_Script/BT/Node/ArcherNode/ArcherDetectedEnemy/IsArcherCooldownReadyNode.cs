@@ -4,7 +4,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
 {
     public class IsArcherCooldownReadyNode : BTActionNode
     {
-        private Archer archer;
+        private readonly Archer archer;
 
         public IsArcherCooldownReadyNode(Unit unit) : base(unit)
         {
@@ -16,12 +16,11 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
             if (archer.archerBlackBoard.detectedEnemy == null)
                 return BTStatus.Failure;
 
-            if (Time.time >= archer.nextFireTime)
-            {
-                return BTStatus.Success; 
-            }
+            if (archer.animState == AnimState.Attacking) return BTStatus.Success;
 
-            return BTStatus.Failure; 
+            if (Time.time >= archer.nextFireTime) return BTStatus.Success;
+
+            return BTStatus.Failure;
         }
     }
 }

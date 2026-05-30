@@ -1034,6 +1034,12 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         if (animalObj.TryGetComponent(out Animal animalComponent))
         {
             animalComponent.layerIndex = animalData.layerIndex;
+            
+            if (animalComponent.health != null)
+            {
+                animalComponent.health.SetMaxHealth(1f, refillHealth: true);
+                animalComponent.health.RestoreHealth();
+            }
 
             var floorAgent = animalObj.GetComponentInChildren<FloorAgent>();
             if (floorAgent != null) floorAgent.MoveToFloor(animalData.layerIndex);

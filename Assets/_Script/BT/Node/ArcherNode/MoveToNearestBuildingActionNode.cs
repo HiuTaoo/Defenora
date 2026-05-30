@@ -53,7 +53,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
 
             // Đã đến nơi an toàn
             hasStartedMove = false;
-            archer.animState = AnimState.Idle;
             return BTStatus.Success;
         }
 

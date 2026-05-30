@@ -12,79 +12,77 @@ using Random = UnityEngine.Random;
 
 public abstract class Unit : MonoBehaviour
 {
-    [Header("Unit Info")] 
-    public string unitName;
+    [Header("Unit Info")] public string unitName;
+
     public UnitType unitType;
     public UnitState currentState = UnitState.Idle;
     public AnimState animState = AnimState.Idle;
     public int layerIndex;
     public float currentHealth;
-    
-    [Header("Deployment")]
-    public Building assignedBuilding;  
-    
-    [Header("Layer")]
-    [HideInInspector] public int obstacleLayer;
+
+    [Header("Deployment")] public Building assignedBuilding;
+
+    [Header("Layer")] [HideInInspector] public int obstacleLayer;
+
     [HideInInspector] public int enemyLayer;
-    
-    [Header("Array Non Alloc")]
-    [HideInInspector] public Collider2D[] results;
-    
-    [Header("Target")]
-    public Transform currentTarget;
+
+    [Header("Array Non Alloc")] [HideInInspector]
+    public Collider2D[] results;
+
+    public Collider2D[] animalResult;
+
+    [Header("Target")] public Transform currentTarget;
+
     public int currentTargetLayerIndex;
     public Vector2 lastSeenPosition;
     public int lastSeenLayerIndex;
     [HideInInspector] public bool isAlerted;
     public float aggroTimer;
     public float aggroDuration = 5f;
-    
-    [Header("Sensor")]
-    public float detectTimer = 0f;
+
+    [Header("Sensor")] public float detectTimer;
+
     public float detectInterval = 0.25f;
     public float hearRange = 15f;
-    
-    [Header("Animation FSM")]
-    [HideInInspector] public AnimationFSM animFSM;
-    
-    [Header("Stats System")]
-    [HideInInspector] public UnitStatsManager statsManager;
+
+    [Header("Animation FSM")] [HideInInspector]
+    public AnimationFSM animFSM;
+
+    [Header("Stats System")] [HideInInspector]
+    public UnitStatsManager unitStatsManager;
 
     public GameObject enemySpawnPoint;
-
-    protected BehaviourTree bt;
-    private Rigidbody2D rb;
     [HideInInspector] public DynamicSortingYX sortingYX;
     [HideInInspector] public Health health;
-    [HideInInspector] public UnitStatsManager unitStatsManager;
-    
+
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public CharacterMovement characterMovement;
     [HideInInspector] public FloorAgent floorAgent;
 
-    [Header("Combat Stats")] 
-    public float attackRange = 0f;
-    public float attackCooldown = 1f; 
+    [Header("Combat Stats")] public float attackRange;
+
     public float lastAttackTime = -999f;
-    public bool isKnockedBack = false;
+    public bool isKnockedBack;
     public float hitStunDuration = 0.1f;
-    public float knockbackCooldown = 3f; 
-    private float lastKnockbackTime = -999f;
-    
-    [Header("Vision")]
-    [Range(0, 360)]
-    public float viewAngle;
-    
-    public float attackDamage => statsManager != null ? statsManager.AttackDamage : 0;
-    public float viewDistance => statsManager != null ? statsManager.ViewDistance : 0;
-    
-    [Header("Effects")]
-    private Coroutine damageEffectCoroutine; 
+    public float knockbackCooldown = 3f;
+
+    [Header("Vision")] [Range(0, 360)] public float viewAngle;
+
+    protected BehaviourTree bt;
+
+    [Header("Effects")] private Coroutine damageEffectCoroutine;
+
     private Coroutine hitStunCoroutine;
+    private float lastKnockbackTime = -999f;
+
+    public Action<Unit> OnUnitDestroyed;
+    private Rigidbody2D rb;
+
+    public float attackDamage => unitStatsManager != null ? unitStatsManager.AttackDamage : 0;
+    public float viewDistance => unitStatsManager != null ? unitStatsManager.ViewDistance : 0;
+    public float attackCooldown => unitStatsManager != null ? unitStatsManager.AttackCooldown : 0;
     public bool isAttacking { get; protected set; }
     public bool isInWindup { get; protected set; }
-
-    public System.Action<Unit> OnUnitDestroyed;
 
     protected virtual void Awake()
     {
@@ -95,9 +93,8 @@ public abstract class Unit : MonoBehaviour
         animFSM = GetComponent<AnimationFSM>();
         sortingYX = GetComponent<DynamicSortingYX>();
         health = GetComponentInChildren<Health>();
-        statsManager = GetComponentInChildren<UnitStatsManager>();
         unitStatsManager = GetComponentInChildren<UnitStatsManager>();
-                        
+
         enemyLayer = LayerMask.GetMask("NPC");
         obstacleLayer = LayerMask.GetMask("VisionBlocker");
         results = new Collider2D[20];
@@ -121,9 +118,45 @@ public abstract class Unit : MonoBehaviour
         SynchronizedLayerIndex();
         layerIndex = floorAgent.currentFloorIndex;
         currentHealth = health.CurrentHealth;
-        
-        if(attackRange > viewDistance)
-            attackRange =  viewDistance;
+
+        if (attackRange > viewDistance)
+            attackRange = viewDistance;
+    }
+
+    //public void SetId(string newId) => id = newId;
+
+    protected virtual void OnEnable()
+    {
+        GlobalAlarmSystem.OnEnemySpotted += HandleGlobalAlarm;
+        if (health != null)
+        {
+            health.OnHealthChanged += HandleHealthChanged;
+            health.OnTakeDamage += HandleTakeDamage;
+            health.OnDie += HandleDeath;
+        }
+
+        if (unitStatsManager != null) unitStatsManager.OnLevelUp += HandleLevelUp;
+    }
+
+    protected virtual void OnDisable()
+    {
+        GlobalAlarmSystem.OnEnemySpotted -= HandleGlobalAlarm;
+        if (health != null)
+        {
+            health.OnHealthChanged -= HandleHealthChanged;
+            health.OnTakeDamage -= HandleTakeDamage;
+            health.OnDie -= HandleDeath;
+        }
+
+        if (unitStatsManager != null) unitStatsManager.OnLevelUp -= HandleLevelUp;
+    }
+
+
+    public abstract void UseSpecialAbility();
+
+    public virtual List<(string name, string value)> GetSpecialStats()
+    {
+        return null;
     }
 
     // =========================
@@ -131,16 +164,17 @@ public abstract class Unit : MonoBehaviour
     // =========================
 
     #region PATHFINDING
-    private static readonly Vector3Int[] kDirs = new Vector3Int[]
+
+    private static readonly Vector3Int[] kDirs =
     {
-        new Vector3Int( 1, 0, 0),
-        new Vector3Int(-1, 0, 0)
+        new(1, 0, 0),
+        new(-1, 0, 0)
         /*,
         new Vector3Int( 0, 1, 0),
         new Vector3Int( 0,-1, 0),*/
     };
-    
-    private static readonly Vector3Int[] OrthogonalDirs = new Vector3Int[]
+
+    private static readonly Vector3Int[] OrthogonalDirs =
     {
         Vector3Int.up,
         Vector3Int.down,
@@ -156,14 +190,13 @@ public abstract class Unit : MonoBehaviour
 
         var perimeter = new HashSet<Vector3Int>();
         foreach (var cell in occupied)
+        foreach (var d in OrthogonalDirs)
         {
-            foreach (var d in OrthogonalDirs)
-            {
-                var nb = cell + d;
-                if (occupied.Contains(nb)) continue;
-                perimeter.Add(nb);
-            }
+            var nb = cell + d;
+            if (occupied.Contains(nb)) continue;
+            perimeter.Add(nb);
         }
+
         return new List<Vector3Int>(perimeter);
     }
 
@@ -175,73 +208,72 @@ public abstract class Unit : MonoBehaviour
 
         var perimeter = new HashSet<Vector3Int>();
         foreach (var cell in occupied)
+        foreach (var d in kDirs)
         {
-            foreach (var d in kDirs)
-            {
-                var nb = cell + d;
-                if (occupied.Contains(nb)) continue;
-                perimeter.Add(nb);
-            }
+            var nb = cell + d;
+            if (occupied.Contains(nb)) continue;
+            perimeter.Add(nb);
         }
+
         return new List<Vector3Int>(perimeter);
     }
-    
+
     public PathFinding FindBestPathToAnyAdjacentWithoutDiagonal(GameObject target, int layerIndex)
-{
-    if (target == null)
-        return null;
-
-    var graph = GraphNode.Instance.layerGraphs[layerIndex];
-    var fp = target.GetComponent<ObjectFootprint>();
-    var targetPosWorld = Vector3Int.FloorToInt(target.transform.position);
-    targetPosWorld.z = 0;
-
-    var neighborOffsets = BuildOrthogonalPerimeterOffsets(fp);
-    if (neighborOffsets == null || neighborOffsets.Count == 0)
-        return null;
-
-    Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
-    currentGridPos.z = 0;
-
-    var sortedValidNeighbors = neighborOffsets
-        .Select(off => 
-        {
-            Vector3Int worldPos = targetPosWorld + off;
-            worldPos.z = 0;
-            return worldPos;
-        })
-        .Where(pos => graph.nodes.TryGetValue(pos, out Node node) && node.isWalkable)
-        .OrderBy(pos => (pos - currentGridPos).sqrMagnitude) 
-        .ToList();
-
-    float bestCost = float.MaxValue;
-    PathFinding bestPath = null;
-    
-    int maxPathsToCheck = 3; 
-    int pathsChecked = 0;
-
-    foreach (var neighborWorld in sortedValidNeighbors)
     {
-        var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-            currentGridPos, floorAgent.currentFloorIndex,
-            neighborWorld, layerIndex);
+        if (target == null)
+            return null;
 
-        if (path == null || path.segments.Count == 0)
-            continue;
+        var graph = GraphNode.Instance.layerGraphs[layerIndex];
+        var fp = target.GetComponent<ObjectFootprint>();
+        var targetPosWorld = Vector3Int.FloorToInt(target.transform.position);
+        targetPosWorld.z = 0;
 
-        if (path.totalCost < bestCost)
+        var neighborOffsets = BuildOrthogonalPerimeterOffsets(fp);
+        if (neighborOffsets == null || neighborOffsets.Count == 0)
+            return null;
+
+        var currentGridPos = Vector3Int.FloorToInt(transform.position);
+        currentGridPos.z = 0;
+
+        var sortedValidNeighbors = neighborOffsets
+            .Select(off =>
+            {
+                var worldPos = targetPosWorld + off;
+                worldPos.z = 0;
+                return worldPos;
+            })
+            .Where(pos => graph.nodes.TryGetValue(pos, out var node) && node.isWalkable)
+            .OrderBy(pos => (pos - currentGridPos).sqrMagnitude)
+            .ToList();
+
+        var bestCost = float.MaxValue;
+        PathFinding bestPath = null;
+
+        var maxPathsToCheck = 3;
+        var pathsChecked = 0;
+
+        foreach (var neighborWorld in sortedValidNeighbors)
         {
-            bestCost = path.totalCost;
-            bestPath = path;
+            var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
+                currentGridPos, floorAgent.currentFloorIndex,
+                neighborWorld, layerIndex);
+
+            if (path == null || path.segments.Count == 0)
+                continue;
+
+            if (path.totalCost < bestCost)
+            {
+                bestCost = path.totalCost;
+                bestPath = path;
+            }
+
+            pathsChecked++;
+            if (pathsChecked >= maxPathsToCheck)
+                break;
         }
 
-        pathsChecked++;
-        if (pathsChecked >= maxPathsToCheck) 
-            break; 
+        return bestPath;
     }
-
-    return bestPath;
-}
 
     public PathFinding FindBestPathToAnyAdjacent(Task task)
     {
@@ -257,18 +289,18 @@ public abstract class Unit : MonoBehaviour
         if (neighborOffsets == null || neighborOffsets.Count == 0)
             return null;
 
-        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        var currentGridPos = Vector3Int.FloorToInt(transform.position);
         currentGridPos.z = 0;
 
-        float bestCost = float.MaxValue;
+        var bestCost = float.MaxValue;
         PathFinding bestPath = null;
 
         foreach (var off in neighborOffsets)
         {
-            Vector3Int neighborWorld = targetPosWorld + off;
+            var neighborWorld = targetPosWorld + off;
             neighborWorld.z = 0;
 
-            if (!graph.nodes.TryGetValue(neighborWorld, out Node node) || !node.isWalkable)
+            if (!graph.nodes.TryGetValue(neighborWorld, out var node) || !node.isWalkable)
                 continue;
             /*Debug.Log($"Start pos: {currentGridPos}, layer: {floorAgent.currentFloorIndex}");
             Debug.Log($"End pos: {neighborWorld}, layer: {task.layerIndex}");
@@ -289,7 +321,7 @@ public abstract class Unit : MonoBehaviour
 
         return bestPath;
     }
-    
+
     public PathFinding FindBestPathToAnyAdjacent(GameObject target, int layerIndex)
     {
         if (target == null)
@@ -304,18 +336,18 @@ public abstract class Unit : MonoBehaviour
         if (neighborOffsets == null || neighborOffsets.Count == 0)
             return null;
 
-        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        var currentGridPos = Vector3Int.FloorToInt(transform.position);
         currentGridPos.z = 0;
 
-        float bestCost = float.MaxValue;
+        var bestCost = float.MaxValue;
         PathFinding bestPath = null;
 
         foreach (var off in neighborOffsets)
         {
-            Vector3Int neighborWorld = targetPosWorld + off;
+            var neighborWorld = targetPosWorld + off;
             neighborWorld.z = 0;
 
-            if (!graph.nodes.TryGetValue(neighborWorld, out Node node) || !node.isWalkable)
+            if (!graph.nodes.TryGetValue(neighborWorld, out var node) || !node.isWalkable)
                 continue;
 
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
@@ -331,9 +363,10 @@ public abstract class Unit : MonoBehaviour
                 bestPath = path;
             }
         }
+
         return bestPath;
     }
-    
+
     public PathFinding FindBestPathToTarget(GameObject target, int layerIndex)
     {
         if (target == null)
@@ -341,14 +374,14 @@ public abstract class Unit : MonoBehaviour
 
         var graph = GraphNode.Instance.layerGraphs[layerIndex];
 
-        Vector3Int targetGridPos = Vector3Int.FloorToInt(target.transform.position);
+        var targetGridPos = Vector3Int.FloorToInt(target.transform.position);
         targetGridPos.z = 0;
 
-        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        var currentGridPos = Vector3Int.FloorToInt(transform.position);
         currentGridPos.z = 0;
 
         // Kiểm tra ô target có tồn tại và đi được không
-        if (!graph.nodes.TryGetValue(targetGridPos, out Node targetNode) || !targetNode.isWalkable)
+        if (!graph.nodes.TryGetValue(targetGridPos, out var targetNode) || !targetNode.isWalkable)
             return null;
 
         var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
@@ -360,7 +393,7 @@ public abstract class Unit : MonoBehaviour
 
         return path;
     }
-    
+
     public PathFinding FindBestPathToFront(Task task)
     {
         if (task == null || task.targetGameObject == null)
@@ -372,29 +405,29 @@ public abstract class Unit : MonoBehaviour
         if (fp == null)
             return null;
 
-        Vector3Int targetWorld = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
+        var targetWorld = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
         targetWorld.z = 0;
 
-        Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
+        var currentGridPos = Vector3Int.FloorToInt(transform.position);
         currentGridPos.z = 0;
 
         // Front direction cố định
-        Vector3Int frontDir = new Vector3Int(0, -1, 0);
+        var frontDir = new Vector3Int(0, -1, 0);
 
-        float bestCost = float.MaxValue;
+        var bestCost = float.MaxValue;
         PathFinding bestPath = null;
 
         foreach (var cell in fp.occupiedCells)
         {
-            Vector3Int localCell = new Vector3Int(cell.x, cell.y, 0);
+            var localCell = new Vector3Int(cell.x, cell.y, 0);
 
             // Tính cell phía trước
-            Vector3Int frontOffset = localCell + frontDir;
+            var frontOffset = localCell + frontDir;
 
-            Vector3Int frontWorld = targetWorld + frontOffset;
+            var frontWorld = targetWorld + frontOffset;
             frontWorld.z = 0;
 
-            if (!graph.nodes.TryGetValue(frontWorld, out Node node) || !node.isWalkable)
+            if (!graph.nodes.TryGetValue(frontWorld, out var node) || !node.isWalkable)
                 continue;
 
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
@@ -417,19 +450,16 @@ public abstract class Unit : MonoBehaviour
     public virtual void MoveToTargetPosition(PathFinding path)
     {
         if (path == null) return;
-        
+
         characterMovement.currentPath = path;
-        if (characterMovement.moveCoroutine != null)
-        {
-            StopCoroutine(characterMovement.moveCoroutine);
-        }
+        if (characterMovement.moveCoroutine != null) StopCoroutine(characterMovement.moveCoroutine);
         characterMovement.moveCoroutine =
             StartCoroutine(characterMovement.FollowPathCoroutine(path));
 
         currentState = UnitState.Move;
         animState = AnimState.Moving;
     }
-    
+
     public void MoveDirectlyToTarget(GameObject target)
     {
         if (target == null)
@@ -437,10 +467,10 @@ public abstract class Unit : MonoBehaviour
 
         var rb = characterMovement.rb;
 
-        Vector2 myPos = rb.position;
+        var myPos = rb.position;
         Vector2 targetPos = target.transform.position;
 
-        Vector2 direction = (targetPos - myPos);
+        var direction = targetPos - myPos;
 
         if (direction.magnitude <= 0.05f)
             return;
@@ -449,21 +479,22 @@ public abstract class Unit : MonoBehaviour
 
         characterMovement.HandleFlipByPosition(targetPos);
 
-        Vector2 nextPos = myPos + direction * characterMovement.moveSpeed * Time.fixedDeltaTime;
+        var nextPos = myPos + direction * characterMovement.moveSpeed * Time.fixedDeltaTime;
 
         rb.MovePosition(nextPos);
     }
 
     #endregion
-    
+
     // =========================
     // Method
     // =========================
 
     #region Method
+
     public bool IsCollidingWithTarget(GameObject target)
     {
-        if (target == null )
+        if (target == null)
             return false;
 
         var currentCol = GetComponent<Collider2D>();
@@ -472,27 +503,28 @@ public abstract class Unit : MonoBehaviour
         if (currentCol == null || targetCol == null)
             return false;
 
-        ColliderDistance2D dist = currentCol.Distance(targetCol);
+        var dist = currentCol.Distance(targetCol);
 
-        return dist.distance <= 0.05f; 
+        return dist.distance <= 0.05f;
     }
+
     public virtual void UpdateFacing(Vector3 dir)
     {
-        Vector3 scale = transform.localScale;
+        var scale = transform.localScale;
         scale.x = dir.x < 0
             ? -Mathf.Abs(scale.x)
             : Mathf.Abs(scale.x);
         transform.localScale = scale;
     }
-    
+
     public GameObject SelectClosestTarget(List<GameObject> enemies)
     {
         GameObject best = null;
-        float minDist = float.MaxValue;
+        var minDist = float.MaxValue;
 
         foreach (var enemy in enemies)
         {
-            float dist = Vector2.Distance(transform.position, enemy.transform.position);
+            var dist = Vector2.Distance(transform.position, enemy.transform.position);
 
             if (dist < minDist)
             {
@@ -503,26 +535,26 @@ public abstract class Unit : MonoBehaviour
 
         return best;
     }
-    
+
     public Vector3Int FindPatrolPosition(Vector3Int buildingCell, int minRadius = 2, int maxRadius = 4)
     {
         const int maxTries = 20;
 
-        for (int i = 0; i < maxTries; i++)
+        for (var i = 0; i < maxTries; i++)
         {
-            float angle = Random.Range(0f, Mathf.PI * 2);
-            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            var angle = Random.Range(0f, Mathf.PI * 2);
+            var dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
             float radius = Random.Range(minRadius, maxRadius + 1);
 
-            Vector2 offset = dir * radius;
+            var offset = dir * radius;
 
-            Vector3Int candidate = new Vector3Int(
+            var candidate = new Vector3Int(
                 buildingCell.x + Mathf.RoundToInt(offset.x),
                 buildingCell.y + Mathf.RoundToInt(offset.y),
                 0
             );
-            
+
             var node = GraphNode.Instance.GetNode(candidate, assignedBuilding.layerIndex);
 
             if (node == null)
@@ -533,7 +565,7 @@ public abstract class Unit : MonoBehaviour
 
         return Vector3Int.zero;
     }
-    
+
     public bool IsStopped()
     {
         return currentState != UnitState.Move;
@@ -541,16 +573,16 @@ public abstract class Unit : MonoBehaviour
 
     private void SynchronizedLayerIndex()
     {
-        if(floorAgent._currentFloorIndex != characterMovement.CurrentLayer)
+        if (floorAgent._currentFloorIndex != characterMovement.CurrentLayer)
             floorAgent.MoveToFloor(characterMovement.CurrentLayer);
     }
 
     public void StopMove()
     {
-        if(characterMovement != null)
+        if (characterMovement != null)
             characterMovement.RequestStopMoving();
     }
-    
+
     public void EndAnim()
     {
         animState = AnimState.Idle;
@@ -566,55 +598,49 @@ public abstract class Unit : MonoBehaviour
     {
         return UnitState.Idle;
     }
-    
+
     public void ClearAggro()
     {
         currentTarget = null;
         lastSeenPosition = Vector2.zero;
         lastSeenLayerIndex = -1;
     }
-    
+
     private void ChangeTransparent(float cap)
     {
-        Color c = spriteRenderer.color;
+        var c = spriteRenderer.color;
         c.a = cap;
         spriteRenderer.color = c;
     }
-    
+
     protected void DisableAll()
     {
         var col = GetComponent<Collider2D>();
         col.enabled = false;
-        foreach (Transform child in transform)
-        {
-            child.gameObject.SetActive(false);
-        }
+        foreach (Transform child in transform) child.gameObject.SetActive(false);
     }
 
     private void UpdateHealth()
     {
-        if (health != null && statsManager != null)
-        {
-            health.maxHealth = statsManager.MaxHealth;
-        }
+        if (health != null && unitStatsManager != null) health.maxHealth = unitStatsManager.MaxHealth;
     }
-    
+
     #region Enemy Method
 
     public Building FindNearestBuilding(Vector3 currentPosition)
     {
         var closestBuildings = UnitManager.Instance.buildings
             .OrderBy(b => (b.transform.position - currentPosition).sqrMagnitude)
-            .Take(5); 
+            .Take(5);
 
-        float minCost = float.MaxValue; 
+        var minCost = float.MaxValue;
         Building nearest = null;
 
         foreach (var building in closestBuildings)
         {
-            if(building == null || building.buildingState == BuildingState.Destroyed)
+            if (building == null || building.buildingState == BuildingState.Destroyed)
                 continue;
-            
+
             var path = FindBestPathToAnyAdjacent(building.gameObject, building.layerIndex);
             if (path == null)
                 continue;
@@ -631,9 +657,9 @@ public abstract class Unit : MonoBehaviour
 
     public List<GameObject> DetectNPCs(float range, Vector2 dir)
     {
-        List<GameObject> npcsInRange = new List<GameObject>();
+        var npcsInRange = new List<GameObject>();
 
-        int size = Physics2D.OverlapCircleNonAlloc(
+        var size = Physics2D.OverlapCircleNonAlloc(
             transform.position,
             range,
             results,
@@ -653,7 +679,7 @@ public abstract class Unit : MonoBehaviour
             if (Vector2.Dot(dir, dirToNPC) <= 0)
                 continue;
 
-            Bounds b = hit.bounds;
+            var b = hit.bounds;
             Vector2[] samplePoints =
             {
                 b.center,
@@ -663,12 +689,12 @@ public abstract class Unit : MonoBehaviour
                 new(b.max.x, b.center.y)
             };
 
-            bool visible = false;
+            var visible = false;
 
             foreach (var point in samplePoints)
             {
-                Vector2 dirRay = point - myPos;
-                float dist = dirRay.magnitude;
+                var dirRay = point - myPos;
+                var dist = dirRay.magnitude;
                 dirRay.Normalize();
 
                 var ray = Physics2D.Raycast(
@@ -684,15 +710,12 @@ public abstract class Unit : MonoBehaviour
                 }
             }
 
-            if (visible)
-            {
-                npcsInRange.Add(hit.gameObject);
-            }
+            if (visible) npcsInRange.Add(hit.gameObject);
         }
 
         return npcsInRange;
     }
-    
+
     public EnemyDirection GetDirection(Vector2 from, Vector2 to)
     {
         var dir = to - from;
@@ -708,9 +731,9 @@ public abstract class Unit : MonoBehaviour
 
         return angle switch
         {
-            <= 45f => EnemyDirection.Down,   
-            <= 135f => EnemyDirection.Right, 
-            _ => EnemyDirection.Up           
+            <= 45f => EnemyDirection.Down,
+            <= 135f => EnemyDirection.Right,
+            _ => EnemyDirection.Up
         };
     }
 
@@ -722,10 +745,11 @@ public abstract class Unit : MonoBehaviour
     }
 
     #endregion
-    
+
     #endregion
 
     #region Attack Flag
+
     public virtual bool HasTarget()
     {
         return currentTarget != null;
@@ -740,7 +764,7 @@ public abstract class Unit : MonoBehaviour
     {
         currentTarget = null;
     }
-        
+
     public virtual void StartAttackSignal()
     {
         isAttacking = true;
@@ -757,51 +781,43 @@ public abstract class Unit : MonoBehaviour
         isAttacking = false;
         isInWindup = false;
     }
-    
 
     #endregion
 
     #region Handle Event
-    
+
     protected virtual void HandleGlobalAlarm(GameObject spottedEnemy, Vector3 spottedPosition)
     {
-        if (currentTarget != null) return; 
+        if (currentTarget != null) return;
         if (spottedEnemy == null) return;
         if (CompareTag("Enemy")) return;
-        
+
         if (Vector2.Distance(transform.position, spottedPosition) > hearRange) return;
 
         lastSeenPosition = spottedPosition;
         lastSeenLayerIndex = spottedEnemy.GetComponentInChildren<FloorAgent>()?._currentFloorIndex ?? 0;
-    
-        isAlerted = true; 
-        aggroTimer = aggroDuration; 
+
+        isAlerted = true;
+        aggroTimer = aggroDuration;
     }
-    
+
     protected virtual void HandleHealthChanged(float current, float max)
     {
-        
     }
 
     protected virtual void HandleTakeDamage(float damage)
     {
-        if (gameObject.activeInHierarchy && health.CurrentHealth > 0) 
+        if (gameObject.activeInHierarchy && health.CurrentHealth > 0)
         {
-            if (damageEffectCoroutine != null)
-            {
-                StopCoroutine(damageEffectCoroutine);
-            }
+            if (damageEffectCoroutine != null) StopCoroutine(damageEffectCoroutine);
             damageEffectCoroutine = StartCoroutine(DamageEffect());
 
-            if (currentState != UnitState.Dead && !isKnockedBack 
-                && Time.time >= lastKnockbackTime + knockbackCooldown)
+            if (currentState != UnitState.Dead && !isKnockedBack
+                                               && Time.time >= lastKnockbackTime + knockbackCooldown)
             {
-                if (hitStunCoroutine != null)
-                {
-                    StopCoroutine(hitStunCoroutine);
-                }
-                
-                lastKnockbackTime = Time.time; 
+                if (hitStunCoroutine != null) StopCoroutine(hitStunCoroutine);
+
+                lastKnockbackTime = Time.time;
                 hitStunCoroutine = StartCoroutine(HitStunRoutine());
             }
         }
@@ -810,22 +826,19 @@ public abstract class Unit : MonoBehaviour
     protected virtual void HandleDeath()
     {
         DisableAll();
-        
+
         currentState = UnitState.Dead;
         animState = AnimState.Dead;
         animFSM.ChangeState(currentState, animState);
 
-        if (assignedBuilding != null)
-        {
-            assignedBuilding.RemoveUnit(this);
-        }
+        if (assignedBuilding != null) assignedBuilding.RemoveUnit(this);
 
         if (UnitManager.Instance.allUnits.Contains(this))
             UnitManager.Instance.allUnits.Remove(this);
-        
-        this.enabled = false;
+
+        enabled = false;
     }
-    
+
     private void HandleLevelUp()
     {
         // Ví dụ: Khi lên cấp thì cập nhật lại Max HP và bơm đầy máu
@@ -837,26 +850,26 @@ public abstract class Unit : MonoBehaviour
     {
         PoolManager.Instance.Despawn(transform.gameObject);
     }
-    
+
     private IEnumerator DamageEffect()
     {
         spriteRenderer.color = Color.red;
-        
+
         yield return new WaitForSeconds(0.1f);
-        
+
         spriteRenderer.color = Color.white;
-        
-        damageEffectCoroutine = null; 
+
+        damageEffectCoroutine = null;
     }
-    
-    
+
+
     private IEnumerator HitStunRoutine()
     {
         isKnockedBack = true;
 
         EndAttackSignal();
-        
-        StopMove(); 
+
+        StopMove();
 
         currentState = UnitState.Idle;
         animState = AnimState.Idle;
@@ -866,50 +879,6 @@ public abstract class Unit : MonoBehaviour
 
         isKnockedBack = false;
     }
+
     #endregion
-    
-
-    public abstract void UseSpecialAbility();
-    
-    public virtual List<(string name, string value)> GetSpecialStats()
-    {
-        return null;
-    }
-    
-    //public void SetId(string newId) => id = newId;
-    
-    protected virtual void OnEnable()
-    {
-        GlobalAlarmSystem.OnEnemySpotted += HandleGlobalAlarm;
-        if (health != null)
-        {
-            health.OnHealthChanged += HandleHealthChanged;
-            health.OnTakeDamage += HandleTakeDamage;
-            health.OnDie += HandleDeath;
-        }
-        if (statsManager != null)
-        {
-            statsManager.OnLevelUp += HandleLevelUp;
-        }
-        
-    }
-
-    protected virtual void OnDisable()
-    {
-        GlobalAlarmSystem.OnEnemySpotted -= HandleGlobalAlarm;
-        if (health != null)
-        {
-            health.OnHealthChanged -= HandleHealthChanged;
-            health.OnTakeDamage -= HandleTakeDamage;
-            health.OnDie -= HandleDeath;
-        }
-        
-        if (statsManager != null)
-        {
-            statsManager.OnLevelUp -= HandleLevelUp;
-        }
-    }
-    
-    
-    
 }

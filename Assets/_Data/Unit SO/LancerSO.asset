@@ -21,3 +21,4 @@ MonoBehaviour:
   healthPerLevel: 20
   attackDamagePerLevel: 2.5
   viewDistancePerLevel: 0.25
+  attackCooldown: 0.75

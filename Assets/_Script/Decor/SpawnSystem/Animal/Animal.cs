@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.Object_Pooling;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public abstract class Animal : MonoBehaviour
 {
@@ -8,13 +12,15 @@ public abstract class Animal : MonoBehaviour
     protected Rigidbody2D rb;
     protected Animator animator;
     protected AgentPhysics2D agentPhysics2D;
-    public FloorAgent floorAgent;
+    [HideInInspector] public FloorAgent floorAgent;
+    [HideInInspector] public Health health;
 
     [Header("Animal Info")]
     public AnimalType animalType;
     public int layerIndex;
     public bool isDangerous = false;
     public Vector2 runDirection;
+    public float currentHealth;
 
     [Header("Animal Settings")]
     public float alertDistance = 5f;
@@ -35,11 +41,25 @@ public abstract class Animal : MonoBehaviour
         agentPhysics2D = GetComponentInChildren<AgentPhysics2D>();
         floorAgent = GetComponentInChildren<FloorAgent>();
         random = new System.Random();
+        health = GetComponentInChildren<Health>();
 
         animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
     }
 
-    
+    private void OnEnable()
+    {
+        if (health != null)
+        {
+            health.OnDie += HandleDeath;
+        }
+    }
+
+    private void Update()
+    {
+        currentHealth = health.CurrentHealth;
+    }
+
+
     #region Random Animation Loop
     protected virtual IEnumerator RandomAnimationLoop()
     {
@@ -150,6 +170,59 @@ public abstract class Animal : MonoBehaviour
         }
     }
     #endregion
+    
+    protected virtual void HandleDeath()
+    {
+        if (checkDangerCoroutine != null) StopCoroutine(checkDangerCoroutine);
+        if (randomAnimationCoroutine != null) StopCoroutine(randomAnimationCoroutine);
+        if (panicCoroutine != null) StopCoroutine(panicCoroutine);
+
+        //animator.Play("Dead"); 
+        Die();
+
+        if (animalCollider2D != null) animalCollider2D.enabled = false;
+
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.isKinematic = true;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (health != null)
+        {
+            health.OnDie -= HandleDeath;
+        }
+    }
+    
+    public void Die()
+    {
+        InstaniateObject(PrefabConfig.Instance.meatPrefab,
+            gameObject.transform.position, layerIndex, 1);
+        PoolManager.Instance.Despawn(transform.gameObject);
+    }
+    
+    public GameObject InstaniateObject(GameObject obj, Vector3 worldPosition, int currentLayerIndex, int amount)
+    {
+        var spawnedObj = PoolManager.Instance.Spawn(obj,
+            worldPosition, Quaternion.identity);
+
+        if (worldPosition.x > transform.position.x)
+            spawnedObj.transform.localScale = new Vector3(-1, 1, 1);
+
+        var itemComponent = spawnedObj.GetComponent<Item>();
+        if (itemComponent != null)
+        {
+            itemComponent.layerIndex = currentLayerIndex;
+            itemComponent.amount = amount;
+        }
+
+        if (spawnedObj != null) itemComponent.StartDrop(worldPosition, transform.position);
+        return spawnedObj;
+    }
+    
 }
 
 

@@ -145,3 +145,27 @@ MonoBehaviour:
     unitState: 9
     fireDirection: 5
     animationName: Dead
+  - animState: 0
+    unitState: 4
+    fireDirection: 5
+    animationName: Idle
+  - animState: 0
+    unitState: 4
+    fireDirection: 0
+    animationName: Idle
+  - animState: 0
+    unitState: 4
+    fireDirection: 1
+    animationName: Idle
+  - animState: 0
+    unitState: 4
+    fireDirection: 2
+    animationName: Idle
+  - animState: 0
+    unitState: 4
+    fireDirection: 3
+    animationName: Idle
+  - animState: 0
+    unitState: 4
+    fireDirection: 4
+    animationName: Idle

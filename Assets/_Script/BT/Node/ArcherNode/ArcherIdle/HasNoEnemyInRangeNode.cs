@@ -1,11 +1,10 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Script.BT.Node.ArcherNode.ArcherIdle
 {
-    public class HasNoEnemyInRangeNode: BTActionNode
+    public class HasNoEnemyInRangeNode : BTActionNode
     {
-        private Archer archer;
+        private readonly Archer archer;
 
         public HasNoEnemyInRangeNode(Unit unit) : base(unit)
         {
@@ -21,8 +20,8 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
                 archer.currentState = UnitState.Idle;
                 return BTStatus.Success;
             }
-            
-            
+
+
             return BTStatus.Failure;
         }
     }

@@ -71,7 +71,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f191a147b968d3438112b9615b3cf78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
+  moveSpeed: 2.25
   rb: {fileID: 0}
   stopRequested: 0
   moving: 0
@@ -439,7 +439,7 @@ MonoBehaviour:
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
   attackRange: 5
-  attackCooldown: 1
+  attackCooldown: 1.5
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
@@ -447,7 +447,6 @@ MonoBehaviour:
   viewAngle: 180
   nextFireTime: 0
   firePoint: {fileID: 1642505350253639894}
-  isStationed: 0
 --- !u!114 &7621971442396312281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -501,4 +500,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 2dcc0928-9f20-40ca-ac27-e9ea9d3986cd
+  id: 

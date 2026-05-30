@@ -1,12 +1,11 @@
-﻿using _Script.Unit_Management_System.Animation;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
 {
     public class ArcherAttackCooldownNode : BTActionNode
     {
-        private float timer = 0f;
-        private Archer archer;
+        private readonly Archer archer;
+        private float timer;
 
         public ArcherAttackCooldownNode(Unit unit) : base(unit)
         {
@@ -16,10 +15,12 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
         public override BTStatus Tick()
         {
             timer += Time.deltaTime;
-            archer.animState = AnimState.Idle;
-            
-            if(archer.archerBlackBoard.detectedEnemy == null)
+
+            if (archer.archerBlackBoard.detectedEnemy == null)
+            {
+                timer = 0f;
                 return BTStatus.Success;
+            }
 
             if (timer >= archer.attackCooldown)
             {
@@ -28,6 +29,12 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
             }
 
             return BTStatus.Running;
+        }
+
+        public override void ClearState()
+        {
+            base.ClearState();
+            timer = 0f;
         }
     }
 }

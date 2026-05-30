@@ -217,6 +217,7 @@ public abstract class Building : MonoBehaviour, IBuildable
     public virtual void AddUnit(Unit unit)
     {
         stationedUnits.Add(unit);
+        unit.characterMovement.CurrentLayer = LayerIndex;
         unit.floorAgent.MoveToFloor(LayerIndex);
         unit.assignedBuilding = this;
         currentCapacity++;
@@ -248,7 +249,8 @@ public abstract class Building : MonoBehaviour, IBuildable
     }
 
     protected virtual void OnUnitRemoved(Unit unit)
-    { }
+    {
+    }
 
     #endregion
 
