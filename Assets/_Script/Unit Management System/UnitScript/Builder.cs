@@ -72,92 +72,8 @@ public class Builder : Unit
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
     }
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        // Màu cho workRange
-        Gizmos.color = Color.yellow;
-
-        // Xác định hướng nhìn (giống TryChop)
-        var facing = transform.localScale.x >= 0 ? 1f : -1f;
-        var facingDir = new Vector2(facing, 0f);
-
-        // Điểm origin của OverlapBox
-        var origin = (Vector2)transform.position + facingDir * workRange;
-
-        // Vẽ đường biểu diễn workRange
-        Gizmos.DrawLine(transform.position, origin);
-
-        // Màu cho workBox
-        Gizmos.color = new Color(0f, 1f, 0f, 0.4f);
-
-        // Vẽ box (wire + solid để dễ nhìn)
-        Gizmos.DrawWireCube(origin, workBoxSize);
-        Gizmos.DrawCube(origin, workBoxSize);
-    }
-#endif
-
-    #region Move to task target
-
-    public bool IsCollidingWithTaskTarget()
-    {
-        if (currentTask == null || currentTask.targetGameObject == null)
-            return false;
-
-        var pawnCol = GetComponent<CircleCollider2D>();
-        var targetCol = currentTask.targetGameObject.GetComponent<Collider2D>();
-
-        if (pawnCol == null || targetCol == null)
-            return false;
-
-        var dist = pawnCol.Distance(targetCol);
-
-        return dist.distance <= 0.05f;
-    }
-
-    #endregion
-
-    #region Instaniate Object
-
-    public GameObject InstaniateObject(GameObject obj, Vector3 worldPosition, int currentLayerIndex, int amount)
-    {
-        var parentTransform = GameObject.Find("ItemSpawned");
-        var spawnedObj = PoolManager.Instance.Spawn(obj,
-            worldPosition, Quaternion.identity);
-
-        if (worldPosition.x > transform.position.x)
-            spawnedObj.transform.localScale = new Vector3(-1, 1, 1);
-
-        var itemComponent = spawnedObj.GetComponent<Item>();
-        if (itemComponent != null)
-        {
-            itemComponent.layerIndex = currentLayerIndex;
-            itemComponent.amount = amount;
-        }
-
-        if (spawnedObj != null) itemComponent.StartDrop(worldPosition, transform.position);
-        return spawnedObj;
-    }
-
-    #endregion
-
-
-    public override void UseSpecialAbility()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override List<(string name, string value)> GetSpecialStats()
-    {
-        var extraStats = new List<(string name, string value)>();
-
-        extraStats.Add(("Work Rate", CurrentWorkRate.ToString(CultureInfo.InvariantCulture)));
-
-        return extraStats;
-    }
 
     #region BT
-
     public BehaviourTree CreateBuilderBT(Builder builder)
     {
         var itemDropWaitTime = 0.8f;
@@ -327,6 +243,92 @@ public class Builder : Unit
         return new BehaviourTree(root);
     }
 
+    #endregion
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        // Màu cho workRange
+        Gizmos.color = Color.yellow;
+
+        // Xác định hướng nhìn (giống TryChop)
+        var facing = transform.localScale.x >= 0 ? 1f : -1f;
+        var facingDir = new Vector2(facing, 0f);
+
+        // Điểm origin của OverlapBox
+        var origin = (Vector2)transform.position + facingDir * workRange;
+
+        // Vẽ đường biểu diễn workRange
+        Gizmos.DrawLine(transform.position, origin);
+
+        // Màu cho workBox
+        Gizmos.color = new Color(0f, 1f, 0f, 0.4f);
+
+        // Vẽ box (wire + solid để dễ nhìn)
+        Gizmos.DrawWireCube(origin, workBoxSize);
+        Gizmos.DrawCube(origin, workBoxSize);
+    }
+#endif
+
+    #region Move to task target
+
+    public bool IsCollidingWithTaskTarget()
+    {
+        if (currentTask == null || currentTask.targetGameObject == null)
+            return false;
+
+        var pawnCol = GetComponent<CircleCollider2D>();
+        var targetCol = currentTask.targetGameObject.GetComponent<Collider2D>();
+
+        if (pawnCol == null || targetCol == null)
+            return false;
+
+        var dist = pawnCol.Distance(targetCol);
+
+        return dist.distance <= 0.05f;
+    }
+
+    #endregion
+
+    #region Instaniate Object
+
+    public GameObject InstaniateObject(GameObject obj, Vector3 worldPosition, int currentLayerIndex, int amount)
+    {
+        var parentTransform = GameObject.Find("ItemSpawned");
+        var spawnedObj = PoolManager.Instance.Spawn(obj,
+            worldPosition, Quaternion.identity);
+
+        if (worldPosition.x > transform.position.x)
+            spawnedObj.transform.localScale = new Vector3(-1, 1, 1);
+
+        var itemComponent = spawnedObj.GetComponent<Item>();
+        if (itemComponent != null)
+        {
+            itemComponent.layerIndex = currentLayerIndex;
+            itemComponent.amount = amount;
+        }
+
+        if (spawnedObj != null) itemComponent.StartDrop(worldPosition, transform.position);
+        return spawnedObj;
+    }
+
+    #endregion
+
+
+    public override void UseSpecialAbility()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override List<(string name, string value)> GetSpecialStats()
+    {
+        var extraStats = new List<(string name, string value)>();
+
+        extraStats.Add(("Work Rate", CurrentWorkRate.ToString(CultureInfo.InvariantCulture)));
+
+        return extraStats;
+    }
+    
     #region Do Task
 
     public bool IsChopped()
@@ -519,8 +521,6 @@ public class Builder : Unit
             }
         }
     }
-
-    #endregion
 
     #endregion
 

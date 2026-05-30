@@ -8,7 +8,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
         private const string BUILDING_TAG = "Building";
         private readonly Archer archer;
         private bool hasStartedMove;
-        private Vector3Int targetGridPos;
+        private Vector3 targetGridPos;
 
         public MoveToNearestBuildingActionNode(Unit unit) : base(unit)
         {
@@ -19,39 +19,28 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
         {
             if (!hasStartedMove)
             {
-                // Chỉ quét tìm kiếm nếu trong Blackboard chưa lưu công trình nào
                 if (archer.archerBlackBoard.nearestBuilding == null)
                     archer.archerBlackBoard.nearestBuilding = FindNearestBuilding();
 
-                // Nếu xung quanh hoàn toàn không có công trình nào
                 if (archer.archerBlackBoard.nearestBuilding == null) return BTStatus.Failure;
 
-                // Lấy vị trí Grid của tòa nhà đã tìm thấy
-                var buildingPos = archer.archerBlackBoard.nearestBuilding.transform.position;
-                targetGridPos = Vector3Int.RoundToInt(buildingPos);
+                var building = archer.archerBlackBoard.nearestBuilding.GetComponent<Building>();
 
-                // Kiểm tra tính hợp lệ (Nếu đứng đè lên tâm building ko đi được, có thể tìm node walkable cạnh bên)
-                var node = GraphNode.Instance.GetNode(targetGridPos, archer.characterMovement.CurrentLayer);
-                if (node == null || !node.isWalkable)
-                {
-                    // Tìm một vị trí ngẫu nhiên sát sạt building (bán kính nhỏ 1 đơn vị) để đứng
-                    var miniRandom = Random.insideUnitCircle * 1f;
-                    targetGridPos = Vector3Int.RoundToInt(buildingPos + new Vector3(miniRandom.x, 0, miniRandom.y));
-                }
+                targetGridPos = building.GetRandomPositionAroundBuilding();
+                var targetLayer = archer.archerBlackBoard.nearestBuilding.GetComponentInChildren<Building>()
+                    .layerIndex;
 
-                // Thực hiện di chuyển về nhà
+                Debug.Log($"Move to building: {archer.archerBlackBoard.nearestBuilding.GetId()}");
                 archer.animState = AnimState.Moving;
-                archer.characterMovement.MoveToPosition(targetGridPos, archer.characterMovement.CurrentLayer);
+                archer.characterMovement.MoveToPosition(Vector3Int.FloorToInt(targetGridPos), targetLayer);
 
                 hasStartedMove = true;
                 return BTStatus.Running;
             }
 
-            // Đang trên đường di chuyển về công trình gần nhất
             if (archer.characterMovement.moving)
                 return BTStatus.Running;
 
-            // Đã đến nơi an toàn
             hasStartedMove = false;
             return BTStatus.Success;
         }

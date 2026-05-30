@@ -18,7 +18,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
         {
             if (!hasStartedMove)
             {
-                // 1. Xác định tâm tuần tra: Ưu tiên assignedBuilding, thấp hơn là nearestBuilding trong Blackboard
                 Vector3 centerPosition;
 
                 if (archer.assignedBuilding != null)
@@ -26,20 +25,15 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
                 else if (archer.archerBlackBoard.nearestBuilding != null)
                     centerPosition = archer.archerBlackBoard.nearestBuilding.transform.position;
                 else
-                    // Nếu cả hai đều null (chưa tìm thấy nhà nào), trả về Failure để chuyển sang hành vi khác
                     return BTStatus.Failure;
 
-                // 2. Lấy điểm ngẫu nhiên trên Grid quanh công trình
                 wanderTarget = GetRandomGridPointAround(
                     Vector3Int.RoundToInt(centerPosition),
                     PATROL_RADIUS
                 );
 
-                // 3. Kiểm tra tính hợp lệ của Node đồ thị
                 var node = GraphNode.Instance.GetNode(wanderTarget, archer.characterMovement.CurrentLayer);
                 if (node == null || !node.isWalkable) return BTStatus.Failure;
-
-                // 4. Di chuyển
 
                 archer.animState = AnimState.Moving;
                 archer.characterMovement.MoveToPosition(wanderTarget, archer.characterMovement.CurrentLayer);
@@ -65,13 +59,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
             );
             return Vector3Int.RoundToInt(randomWorld);
         }
-
-        public override void ClearState()
-        {
-            base.ClearState();
-            ResetNode();
-        }
-
+        
         private void ResetNode()
         {
             hasStartedMove = false;

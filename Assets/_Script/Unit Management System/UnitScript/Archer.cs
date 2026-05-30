@@ -103,28 +103,41 @@ public class Archer : Unit
         );
 
         var stationedBranchSequence = new SequenceNode(
-            new IsArcherStationedNode(archer), // Bắt buộc phải là lính đứng tháp
+            new IsArcherStationedNode(archer), 
             stationedCombatSelector
         );
-
 
         // =================================================================
         // NHÁNH 2: TRẠNG THÁI TỰ DO DI CHUYỂN (MOBILE/FREE BRANCH)
         // =================================================================
 
-        // C-1. Ưu tiên 1 (Ban đêm): Trời tối -> Tìm đường đi về nhà gần nhất để trú ẩn/phòng thủ
+        // 🟢 C-1. Ưu tiên 1 (Ban đêm): Trời tối -> Tìm đường đi về nhà gần nhất để trú ẩn/phòng thủ
         var mobileNightReturnSequence = new SequenceNode(
             new IsNightTimeConditionNode(archer),
+            new IsInSafetyRangeOfBuildingNode(archer),
             new MoveToNearestBuildingActionNode(archer)
+        );
+
+        // Logic phòng thủ ban đêm TẠI CHỖ sau khi đã về đến nhà an toàn
+        var nightStationedGuardSequence = new SequenceNode(
+            new IsNightTimeConditionNode(archer),
+            new RotateScanNode(archer),
+            new WaitRandomTimeNode(archer)
+        );
+
+        // Hợp nhất logic ban đêm tổng thể: Chưa về nhà thì đi về nhà > Về đến sát nhà rồi thì đứng gác tại chỗ
+        var mobileNightTotalSelector = new SelectorNode(
+            mobileNightReturnSequence,
+            nightStationedGuardSequence
         );
 
         // 🟢 C-2. Ưu tiên 2 (Ban ngày - Săn động vật): Nếu thấy động vật thì dừng lại nhắm bắn tại chỗ
         var huntAnimalsSequence = new SequenceNode(
-            new SelectAnimalTargetNode(archer), // Quét tìm cừu/động vật
-            new AimAtTargetNode(archer), // Ngắm bắn
+            new SelectAnimalTargetNode(archer),
+            new AimAtTargetNode(archer),
             new SelectorNode(
-                attackActionSequence, // Nếu CooldownReady -> Chạy ShootArrowNode (Trả về Running giữ anim)
-                new ArcherAttackCooldownNode(archer) // Nếu đang hồi -> Giữ trạng thái Idle chờ bắn phát tiếp theo
+                attackActionSequence,
+                new ArcherAttackCooldownNode(archer)
             )
         );
 
@@ -133,12 +146,14 @@ public class Archer : Unit
         // Trường hợp A: Có assignedBuilding (nhưng ko đứng tháp) -> Tuần tra xung quanh tâm công trình đó
         var patrolAssignedBuildingSequence = new SequenceNode(
             new IsAssignedToBuildingConditionNode(archer),
+            new HasIdleTimeNode(archer),
             new PatrolAroundTowerActionNode(archer),
             new WaitRandomTimeNode(archer)
         );
 
         // Trường hợp B: Không có công trình nào -> Lấy vị trí hiện tại làm tâm và đi dạo tự do
         var wanderFreeSequence = new SequenceNode(
+            new HasIdleTimeNode(archer),
             new ArcherWanderActionNode(archer),
             new WaitRandomTimeNode(archer)
         );
@@ -149,33 +164,32 @@ public class Archer : Unit
             wanderFreeSequence
         );
 
-        // Hợp nhất logic HOÀ BIÊN ban ngày tổng thể: Ưu tiên có thú thì đi săn trước > Không có thú mới di chuyển dạo/tuần tra
+        // Hợp nhất logic HOÀ BÌNH ban ngày tổng thể: Ưu tiên có thú thì đi săn trước > Không có thú mới di chuyển dạo/tuần tra
         var mobileDaytimeSelector = new SelectorNode(
-            huntAnimalsSequence, // ◄ Thú lọt vào tầm mắt là ưu tiên xả tên ngay
-            mobileDaytimeMovementSelector // Không có thú thì mới đi bộ loanh quanh
+            huntAnimalsSequence,
+            mobileDaytimeMovementSelector 
         );
 
         // Gom toàn bộ trạng thái hòa bình của Archer tự do: Đêm về nhà phòng thủ > Ngày làm việc/Săn bắn
         var mobileIdleSelector = new SelectorNode(
-            mobileNightReturnSequence,
-            mobileDaytimeSelector
+            mobileNightTotalSelector,
+            mobileDaytimeSelector 
         );
 
         // Chuỗi hoàn chỉnh của Archer tự do: Ưu tiên tối cao luôn là thấy QUÁI ĐỊCH thật sự thì bắn, ko có địch mới xử lý idle/săn bắn
         var mobileBranchSequence = new SequenceNode(
             new SelectorNode(
-                detectedSequence, // Địch thật (Monster/Enemy) vào tầm là ưu tiên số 1
-                mobileIdleSelector // Nếu an toàn, mới xét đến Đi ngủ > Đi săn > Đi dạo tuần tra
+                detectedSequence,
+                mobileIdleSelector 
             )
         );
-
 
         // =================================================================
         // ROOT TREE: QUYẾT ĐỊNH TRẠNG THÁI ĐỨNG IM HAY DI CHUYỂN
         // =================================================================
         var root = new SelectorNode(
-            stationedBranchSequence, // Ưu tiên 1: Nếu lính đang đứng tháp -> Thực thi nhánh cố định
-            mobileBranchSequence // Ưu tiên 2: Nếu không đứng tháp -> Tự động chuyển qua cơ động
+            stationedBranchSequence,
+            mobileBranchSequence 
         );
 
         return new BehaviourTree(root);

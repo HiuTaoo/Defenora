@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
@@ -169,6 +167,24 @@ public abstract class Animal : MonoBehaviour
             }
         }
     }
+
+    public void AlertNearbyAnimals()
+    {
+        var results = new Collider2D[15];
+
+        var size = Physics2D.OverlapCircleNonAlloc(transform.position, alertDistance, results);
+
+        for (var i = 0; i < size; i++)
+        {
+            var hit = results[i];
+
+            if (hit != null && hit.gameObject != gameObject && hit.CompareTag("Animal"))
+            {
+                var neighborAnimal = hit.GetComponent<Animal>();
+                if (neighborAnimal != null && !neighborAnimal.isDangerous) neighborAnimal.isDangerous = true;
+            }
+        }
+    }
     #endregion
     
     protected virtual void HandleDeath()
@@ -177,7 +193,7 @@ public abstract class Animal : MonoBehaviour
         if (randomAnimationCoroutine != null) StopCoroutine(randomAnimationCoroutine);
         if (panicCoroutine != null) StopCoroutine(panicCoroutine);
 
-        //animator.Play("Dead"); 
+        AlertNearbyAnimals();
         Die();
 
         if (animalCollider2D != null) animalCollider2D.enabled = false;
