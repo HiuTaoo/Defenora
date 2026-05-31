@@ -34,7 +34,6 @@ public class Builder : Unit
     [Header("Tartget Game Object")] public GameObject targetGO;
 
     [Header("Inventory")] public UnitInventory currentInventory;
-    private Dictionary<global::Task, float> unreachabledTasks = new Dictionary<global::Task, float>();
 
     private IChoppable currentTarget;
 
@@ -742,34 +741,6 @@ public class Builder : Unit
         }
 
         return bestCell;
-    }
-    
-    public void AddToBlacklist(global::Task task)
-    {
-        if (task != null && !unreachabledTasks.ContainsKey(task))
-        {
-            unreachabledTasks.Add(task, Time.time + 5f); 
-        }
-    }
-
-    // Hàm kiểm tra xem Task này hiện tại có đang bị cấm nhặt không
-    public bool IsTaskBlacklisted(global::Task task)
-    {
-        if (task == null) return false;
-        
-        if (unreachabledTasks.TryGetValue(task, out float allowedTime))
-        {
-            if (Time.time < allowedTime)
-            {
-                return true; 
-            }
-            else
-            {
-                unreachabledTasks.Remove(task); 
-                return false;
-            }
-        }
-        return false;
     }
     
     #endregion

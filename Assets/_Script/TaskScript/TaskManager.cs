@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using _Script.Task;
 using UnityEngine;
 
@@ -6,9 +8,24 @@ public class TaskManager : MonoBehaviour
 {
     public static TaskManager Instance { get; private set; }
 
-    [Header("All Tasks (Global Blackboard)")]
-    [SerializeField]
-    private List<Task> allTasks = new List<Task>();
+    [Serializable]
+    public class PendingTaskInfo
+    {
+        public Task task;
+        public float releaseTime;
+
+        public PendingTaskInfo(Task task, float releaseTime)
+        {
+            this.task = task;
+            this.releaseTime = releaseTime;
+        }
+    }
+
+    [Header("All Tasks (Global Blackboard)")] [SerializeField]
+    private List<Task> allTasks = new();
+
+    [Header("Pending/Unreachable Tasks Debug")] [SerializeField]
+    private List<PendingTaskInfo> pendingTasks = new();
 
     public IReadOnlyList<Task> AllTasks => allTasks;
 
@@ -20,6 +37,23 @@ public class TaskManager : MonoBehaviour
             Destroy(gameObject);
     }
 
+    private void Update()
+    {
+        if (pendingTasks.Count > 0)
+            for (var i = pendingTasks.Count - 1; i >= 0; i--)
+                if (Time.time >= pendingTasks[i].releaseTime)
+                {
+                    var expiredTask = pendingTasks[i].task;
+                    pendingTasks.RemoveAt(i);
+
+                    if (expiredTask != null && !allTasks.Contains(expiredTask))
+                    {
+                        allTasks.Add(expiredTask);
+                        Debug.Log($"[TaskManager] Đã khôi phục Task kẹt {expiredTask.taskType} về hàng đợi chính.");
+                    }
+                }
+    }
+
     // =========================
     // TASK LIFECYCLE
     // =========================
@@ -27,6 +61,9 @@ public class TaskManager : MonoBehaviour
     public void AddTask(Task task)
     {
         if (task == null)
+            return;
+
+        if (pendingTasks.Any(p => p.task == task))
             return;
 
         if (!allTasks.Contains(task))
@@ -44,10 +81,26 @@ public class TaskManager : MonoBehaviour
         {
             Debug.Log($"[TaskManager] Remove task: {task.taskType}");
         }
+
+        pendingTasks.RemoveAll(p => p.task == task);
+    }
+
+    public void MoveToPending(Task task, float cooldownDuration = 5f)
+    {
+        if (task == null) return;
+
+        allTasks.Remove(task);
+
+        if (!pendingTasks.Any(p => p.task == task))
+        {
+            pendingTasks.Add(new PendingTaskInfo(task, Time.time + cooldownDuration));
+            Debug.LogWarning(
+                $"[TaskManager] Task {task.taskType} bị kẹt đường! Đã tạm khóa và đưa vào danh sách Pending trong {cooldownDuration}s.");
+        }
     }
 
     // =========================
-    // QUERY (OPTIONAL – RẤT HỮU ÍCH)
+    // QUERY
     // =========================
 
     public IEnumerable<Task> GetAvailableTasks()

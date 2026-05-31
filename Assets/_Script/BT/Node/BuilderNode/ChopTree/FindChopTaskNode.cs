@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using _Script.Task;
-using UnityEngine;
 
 namespace _Script.BT.Node.BuilderNode
 {
@@ -27,7 +26,7 @@ namespace _Script.BT.Node.BuilderNode
 
             var task = TaskManager.Instance
                 .GetAvailableTasks()
-                .FirstOrDefault(t => t.taskType == TaskType.ChopTree && !builder.IsTaskBlacklisted(t));
+                .FirstOrDefault(t => t.taskType == TaskType.ChopTree);
 
             if (task == null)
                 return BTStatus.Failure;
