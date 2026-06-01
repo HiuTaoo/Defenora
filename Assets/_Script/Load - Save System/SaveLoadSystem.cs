@@ -721,12 +721,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         yield return new WaitForEndOfFrame();
 
-        // Lấy các Region xung quanh camera trước để ưu tiên hiển thị sạch sẽ
         var firstRegionKeys = RegionManager.Instance.GetRegionKeysAroundCamera();
 
         var cameraPos = Camera.main != null ? (Vector2)Camera.main.transform.position : Vector2.zero;
 
-        // Sắp xếp các Region còn lại từ gần Camera ra xa dần
         var remainingRegionKeys = regionTasks.Keys
             .Where(key => !firstRegionKeys.Contains(key))
             .OrderBy(key => (RegionManager.Instance.GetRegionCenter(key) - cameraPos).sqrMagnitude)
@@ -734,7 +732,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         var processedCount = 0;
 
-        // ĐỒNG BỘ HOÀN TOÀN: Gộp chung cả 2 danh sách Region để load liên tục một mạch cho xong
         var allSortedRegionKeys = new List<Vector2Int>();
         allSortedRegionKeys.AddRange(firstRegionKeys);
         allSortedRegionKeys.AddRange(remainingRegionKeys);
@@ -743,7 +740,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             if (!regionTasks.ContainsKey(key)) continue;
 
-            // Xác định xem vùng này có nằm ngoài tầm nhìn camera lúc đầu không (để ẩn tối ưu render nếu cần)
             var isBackground = !firstRegionKeys.Contains(key);
 
             foreach (var loadTask in regionTasks[key])
@@ -751,20 +747,17 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 loadTask.Invoke(isBackground);
 
                 processedCount++;
-                // Dùng biến objectsPerFrame cấu hình sẵn (Ví dụ: 50 hoặc 100) để load dồn dập
                 if (processedCount >= objectsPerFrame)
                 {
                     processedCount = 0;
-                    // Vì game đang đóng băng thời gian thực (Time.timeScale = 0),
-                    // ta dùng WaitForSecondsRealtime để nhường frame cho CPU thở mà không bị kẹt vô tận
                     yield return new WaitForSecondsRealtime(0.001f);
                 }
             }
         }
 
-        // Cập nhật lại sơ đồ di chuyển (A* Graph) sau khi toàn bộ Map và Decor đã dựng xong hoàn chỉnh
         UnitManager.Instance.UpdateGraphNodeWhenStart();
         Debug.Log("[SaveLoadSystem] Đã khôi phục xong toàn bộ thực thể Decor trên bản đồ.");
+        OnLoaded?.Invoke();
     }
 
     private void LoadLayerData(LayerSpawnData layerData)

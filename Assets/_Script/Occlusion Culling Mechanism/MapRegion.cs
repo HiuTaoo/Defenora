@@ -1,8 +1,8 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class MapRegion
 {
     public string regionName;
@@ -35,6 +35,14 @@ public class MapRegion
                 if (animator != null)
                 {
                     animator.enabled = active;
+                }
+
+                var customAnim = obj.GetComponent<SimpleSpriteAnimator>();
+                if (customAnim != null)
+                {
+                    customAnim.enabled = active;
+                    if (active) customAnim.Play();
+                    else customAnim.Stop();
                 }
             }
         }

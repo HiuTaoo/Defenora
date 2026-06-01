@@ -10,13 +10,13 @@ GameObject:
   m_Component:
   - component: {fileID: 5569137982044375409}
   - component: {fileID: 424145933275890258}
-  - component: {fileID: 2663133682529624983}
   - component: {fileID: 7137205897324738643}
   - component: {fileID: 8712650951556127665}
   - component: {fileID: 4155959276119493153}
   - component: {fileID: 661484617103940482}
   - component: {fileID: 7909576328058580648}
   - component: {fileID: 6463351816869867849}
+  - component: {fileID: 8682886329083072440}
   m_Layer: 11
   m_Name: Tree 3
   m_TagString: Tree
@@ -92,27 +92,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &2663133682529624983
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5100034286511634508}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: f6c7ef6e8a689214a9604cb3e1e24d4c, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!70 &7137205897324738643
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -165,6 +144,17 @@ MonoBehaviour:
   layerIndex: 0
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
+  currentTask:
+    id: 
+    targetGameObject: {fileID: 0}
+    taskType: 0
+    layerIndex: 0
+    taskStatus: 0
+    maxBuilders: 0
+    requiredProgress: 0
+    _internalProgress: 0
+    builders: []
+  choppedSprite: {fileID: 21300000, guid: b5c130df1ceeffa4b98a22d40370249a, type: 3}
   treeCollider: {fileID: 0}
 --- !u!114 &4155959276119493153
 MonoBehaviour:
@@ -221,7 +211,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 442f8874-8c07-46b1-a3a8-c0332d31daab
+  id: 
+--- !u!114 &8682886329083072440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5100034286511634508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f41cf346e7574d55a1b04e112f810bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationFrames:
+  - {fileID: 1459327997, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  - {fileID: -1504711000, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  - {fileID: 776353023, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  - {fileID: -918440289, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  - {fileID: -1944641670, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  - {fileID: 1884648082, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  - {fileID: 1180513705, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  - {fileID: 1354860683, guid: 5093f8c03bfe09d40bb52936265f333b, type: 3}
+  frameRate: 0.1
+  playOnAwake: 1
+  loop: 1
 --- !u!1 &8891158783504616785
 GameObject:
   m_ObjectHideFlags: 0

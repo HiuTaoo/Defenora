@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using _Script.BT.BlackBoard;
 using UnityEngine;
 
 public class Tree : MonoBehaviour, IChoppable, IPoolable
 {
-    [Header("Tree Info")]
-    public TreeState treeState = TreeState.Idle;
+    [Header("Tree Info")] public TreeState treeState = TreeState.Idle; 
     public int maxChopHit = 5;
     public int layerIndex;
     public int currentChopHit = 0;
     public Vector3Int positionInGrid;
     public Task currentTask;
 
+    [Header("--- Visual Settings (No Animator) ---")] [SerializeField]
+    private Sprite choppedSprite; 
+
     private SpriteRenderer spriteRenderer;
-    private Animator animator;
+    private SimpleSpriteAnimator spriteAnimator; 
     public CapsuleCollider2D treeCollider;
 
     private bool isBeingChopped = false;
@@ -30,28 +30,14 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();
+        spriteAnimator = GetComponent<SimpleSpriteAnimator>();
         treeCollider = GetComponent<CapsuleCollider2D>();
-
-        animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
-        RegisterState();
-    }
-
-    private void RegisterState()
-    {
-        treeState = TreeState.Idle;
-        animator.Play("idle");
     }
 
     private void Update()
     {
         if (spriteRenderer.isVisible)
         {
-            if (treeState == TreeState.Chopped)
-            {
-                animator.Play("Chopped");
-            }
-            
             if (treeState == TreeState.Idle && currentChopHit == maxChopHit && !hasBeenChopped)
             {
                 OnChopped();
@@ -86,14 +72,11 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
     {
         hasBeenChopped = true;
         treeState = TreeState.Chopped;
-        animator.Play("Chopped");
 
-        // GraphNode.Instance.SetWalkableNode(positionInGrid, layerIndex, true);
+        if (spriteAnimator != null) spriteAnimator.SetStaticSprite(choppedSprite);
 
         var render = transform.Find("Custom Render Sprite");
-        render.gameObject.SetActive(false);
-
-        // treeCollider.enabled = false;
+        if (render != null) render.gameObject.SetActive(false);
 
         OnChoppedObject?.Invoke(this);
     }
@@ -129,7 +112,7 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
     public void OnSpawned()
     {
         if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
-        if (animator == null) animator = GetComponent<Animator>();
+        if (spriteAnimator == null) spriteAnimator = GetComponent<SimpleSpriteAnimator>();
         if (treeCollider == null) treeCollider = GetComponent<CapsuleCollider2D>();
 
         currentChopHit = 0;
@@ -147,10 +130,10 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
             spriteRenderer.enabled = true; 
         }
 
-        if (animator != null)
+        if (spriteAnimator != null)
         {
-            animator.enabled = true;
-            animator.Play("idle", 0, 0f); 
+            spriteAnimator.enabled = true;
+            spriteAnimator.Play();
         }
 
         if (treeCollider != null)
@@ -174,15 +157,10 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
         currentTask = null;
         OnChoppedObject = null;
 
-        if (animator != null)
+        if (spriteAnimator != null)
         {
-            animator.enabled = false;
+            spriteAnimator.Stop();
+            spriteAnimator.enabled = false;
         }
     }
-}
-
-public enum TreeState
-{
-    Idle,
-    Chopped
 }

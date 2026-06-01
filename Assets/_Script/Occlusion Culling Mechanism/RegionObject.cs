@@ -9,43 +9,38 @@ public class RegionObject : MonoBehaviour
 
     private RegionManager regionManager;
     private SpriteRenderer spriteRenderer;
-    private Animator animator;
-    private bool isRegistered = false;
+
+    private Animator standardAnimator;
+    private SimpleSpriteAnimator customAnimator;
 
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();
+        standardAnimator = GetComponent<Animator>();
+        customAnimator = GetComponent<SimpleSpriteAnimator>(); 
     }
 
     void Start()
     {
-        if (autoRegister)
-        {
-            RegisterToRegion();
-        }
+        if (autoRegister) RegisterToRegion();
     }
 
     public void RegisterToRegion()
     {
-        if (isRegistered) return;
-
+        if (isRegistered) return; 
         regionManager = FindObjectOfType<RegionManager>();
         if (regionManager != null)
         {
             regionManager.RegisterObject(gameObject);
             isRegistered = true;
         }
-        else
-        {
-            Debug.LogWarning($"RegionManager not found for {gameObject.name}");
-        }
     }
+
+    private bool isRegistered;
 
     public void UnregisterFromRegion()
     {
         if (!isRegistered) return;
-
         if (regionManager != null)
         {
             regionManager.UnregisterObject(gameObject);
@@ -53,27 +48,39 @@ public class RegionObject : MonoBehaviour
         }
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         UnregisterFromRegion();
     }
 
     public void OnRegionActivated()
     {
-        if (spriteRenderer != null)
+        if (spriteRenderer != null) 
             spriteRenderer.enabled = true;
 
-        if (animator != null && !keepAnimatorEnabled)
-            animator.enabled = true;
+        if (standardAnimator != null && !keepAnimatorEnabled)
+            standardAnimator.enabled = true;
+
+        if (customAnimator != null)
+        {
+            customAnimator.enabled = true;
+            customAnimator.Play();
+        }
     }
 
     public void OnRegionDeactivated()
     {
-        if (spriteRenderer != null)
+        if (spriteRenderer != null) 
             spriteRenderer.enabled = false;
 
-        if (animator != null && !keepAnimatorEnabled)
-            animator.enabled = false;
+        if (standardAnimator != null && !keepAnimatorEnabled)
+            standardAnimator.enabled = false;
+
+        if (customAnimator != null)
+        {
+            customAnimator.Stop();
+            customAnimator.enabled = false;
+        }
     }
 
     public void UpdateRegion()

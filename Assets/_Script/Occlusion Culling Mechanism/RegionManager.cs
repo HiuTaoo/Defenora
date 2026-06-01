@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,6 +15,9 @@ public class RegionManager : MonoBehaviour
     [Header("Camera Settings")]
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float cullingBuffer = 20f;
+    [SerializeField] private float checkInterval = 0.2f; 
+    
+    private float checkTimer; 
 
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = true;
@@ -24,8 +28,8 @@ public class RegionManager : MonoBehaviour
     private HashSet<Vector2Int> activeRegionKeys = new HashSet<Vector2Int>();
     private Vector3 lastCameraPosition;
 
-    public System.Action<MapRegion> OnRegionActivated;
-    public System.Action<MapRegion> OnRegionDeactivated;
+    public Action<MapRegion> OnRegionActivated;
+    public Action<MapRegion> OnRegionDeactivated;
     
 
     private void Awake()
@@ -37,15 +41,13 @@ public class RegionManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return; 
         }
 
-        if(SaveLoadSystem.Instance != null)
+        var saveLoad = FindObjectOfType<SaveLoadSystem>();
+        if (saveLoad != null)
         {
-            SaveLoadSystem.Instance.OnLoaded += HandleGameLoaded;
-        }
-        else { 
-            var saveLoadSystem = FindObjectOfType<SaveLoadSystem>();
-            SaveLoadSystem.Instance.OnLoaded += HandleGameLoaded;
+            saveLoad.OnLoaded += HandleGameLoaded;
         }
     }
     void Start()
@@ -60,10 +62,16 @@ public class RegionManager : MonoBehaviour
 
     void Update()
     {
-        if (Vector3.Distance(mainCamera.transform.position, lastCameraPosition) > 5f)
+        checkTimer += Time.deltaTime;
+        if (checkTimer >= checkInterval)
         {
-            UpdateRegions();
-            lastCameraPosition = mainCamera.transform.position;
+            checkTimer = 0f;
+
+            if (Vector3.Distance(mainCamera.transform.position, lastCameraPosition) > 0.5f)
+            {
+                UpdateRegions();
+                lastCameraPosition = mainCamera.transform.position;
+            }
         }
     }
 
@@ -325,6 +333,8 @@ public class RegionManager : MonoBehaviour
     private IEnumerator LoadRegion()
     {
         yield return new WaitForSeconds(0.1f);
+
+        if (mainCamera == null) mainCamera = Camera.main;
         Vector2 cameraPos = mainCamera.transform.position;
         float cameraSize = mainCamera.orthographicSize;
         float cameraAspect = mainCamera.aspect;
@@ -347,26 +357,22 @@ public class RegionManager : MonoBehaviour
 
             bool shouldBeActive = cameraBounds.Intersects(new Bounds(region.bounds.center, region.bounds.size));
 
+            region.isActive = !shouldBeActive;
+            region.SetActive(shouldBeActive); 
+
             if (shouldBeActive)
             {
                 newActiveRegions.Add(key);
-                if (!region.isActive)
-                {
-                    region.SetActive(true);
-                    OnRegionActivated?.Invoke(region);
-                }
+                OnRegionActivated?.Invoke(region);
             }
             else
             {
-                if (region.isActive)
-                {
-                    region.SetActive(false);
-                    OnRegionDeactivated?.Invoke(region);
-                }
+                OnRegionDeactivated?.Invoke(region);
             }
         }
 
         activeRegionKeys = newActiveRegions;
+        Debug.Log($"[Region Culling] Đã tối ưu xong tầm nhìn. Hiện có {activeRegionKeys.Count} vùng hoạt động.");
     }
     #endregion
 }

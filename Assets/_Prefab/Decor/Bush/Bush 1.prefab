@@ -91,13 +91,13 @@ GameObject:
   m_Component:
   - component: {fileID: 6103188489132077944}
   - component: {fileID: 7016390423521843682}
-  - component: {fileID: 3208053548929949423}
   - component: {fileID: 7874396281741493430}
   - component: {fileID: 68788015722028517}
   - component: {fileID: 2869496205337596450}
   - component: {fileID: 2782710185629028529}
   - component: {fileID: 8364028935766061008}
   - component: {fileID: 9042061757036063763}
+  - component: {fileID: 5981769660332657006}
   m_Layer: 11
   m_Name: Bush 1
   m_TagString: Bush
@@ -173,27 +173,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &3208053548929949423
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7113461632919070070}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 537a6574515688e41b2c3b5622fc64ed, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &7874396281741493430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -301,4 +280,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 1ec467b9-cc1e-4048-9942-520a7853d16c
+  id: 
+--- !u!114 &5981769660332657006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7113461632919070070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f41cf346e7574d55a1b04e112f810bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationFrames:
+  - {fileID: 1695726394, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  - {fileID: -1514451942, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  - {fileID: -1195770445, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  - {fileID: -295861230, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  - {fileID: 1894059138, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  - {fileID: 577567043, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  - {fileID: 1961511614, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  - {fileID: -119516428, guid: 7110bc7be390058449dc4bb9467b65ac, type: 3}
+  frameRate: 0.1
+  playOnAwake: 1
+  loop: 1

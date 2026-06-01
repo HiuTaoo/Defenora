@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4267252651578407504}
   - component: {fileID: 174307382143957962}
-  - component: {fileID: 267887286751620621}
   - component: {fileID: 3543120453751747229}
+  - component: {fileID: 1025128104172048901}
   m_Layer: 0
   m_Name: Rock 2
   m_TagString: Rock
@@ -87,27 +87,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &267887286751620621
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2099799864886796452}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 964228e9a13074ffca2c81232940bf85, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!58 &3543120453751747229
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -143,3 +122,35 @@ CircleCollider2D:
   m_Offset: {x: 0.011869907, y: -0.063304424}
   serializedVersion: 2
   m_Radius: 0.34569693
+--- !u!114 &1025128104172048901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099799864886796452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f41cf346e7574d55a1b04e112f810bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationFrames:
+  - {fileID: 5133423978288803193, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -2049507263116434788, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -9048113720714812671, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -1003494684007388925, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -2464930487958268796, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -3457530265399777039, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: 8898632214244653118, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: 882474863822340767, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -7774985506826931765, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: 514017288313434984, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: 3200672026995289210, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: 6221036081343752541, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -7591771217304538317, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: -250132882659222368, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: 6472350163185039618, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  - {fileID: 3179589680329323135, guid: 618171edcc04144e494e247b59b1a3de, type: 3}
+  frameRate: 0.1
+  playOnAwake: 1
+  loop: 1

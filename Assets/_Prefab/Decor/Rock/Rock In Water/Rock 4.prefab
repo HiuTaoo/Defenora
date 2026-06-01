@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 3501893780994210594}
   - component: {fileID: 5890009188061279938}
-  - component: {fileID: 1982477541082235560}
   - component: {fileID: 5757777730426690123}
+  - component: {fileID: 8754558675022082492}
   m_Layer: 0
   m_Name: Rock 4
   m_TagString: Rock
@@ -87,27 +87,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &1982477541082235560
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2508325468441119640}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 3f8e75c5717de4938aaafa3dcd00e652, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!58 &5757777730426690123
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -143,3 +122,35 @@ CircleCollider2D:
   m_Offset: {x: -0.023738384, y: 0}
   serializedVersion: 2
   m_Radius: 0.37734938
+--- !u!114 &8754558675022082492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2508325468441119640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f41cf346e7574d55a1b04e112f810bbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animationFrames:
+  - {fileID: 3873779795923698762, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: 4234963899626850703, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: 7161343671226081534, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -7725989614899971964, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: 7416389424349211935, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -4535748436077241286, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -3241895486459367200, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -793005186328604117, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -5930043487503493732, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -263976100284346392, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: 7938979530805419752, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -6944550090128911867, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: 5294321521121635437, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -6725503714359783815, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: 4898973042930983391, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  - {fileID: -3206363201524365965, guid: e7c2ddf93d1804a55ab4242b09ca43ca, type: 3}
+  frameRate: 0.1
+  playOnAwake: 1
+  loop: 1
