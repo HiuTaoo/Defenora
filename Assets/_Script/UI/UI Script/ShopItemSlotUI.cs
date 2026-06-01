@@ -4,7 +4,7 @@ using TMPro;
 using System;
 using _Script.Enum;
 
-public class ShopItemSlotUI : MonoBehaviour
+public class ShopItemSlotUI : MonoBehaviour, IPoolable
 {
     [Header("--- UI Elements Reference ---")]
     [SerializeField] private Image itemIconImage;       
@@ -69,5 +69,49 @@ public class ShopItemSlotUI : MonoBehaviour
     private void OnSlotClicked()
     {
         _onBuyCallback?.Invoke(this);
+    }
+
+    /// <summary>
+    /// Được gọi ngay khi ô Shop này được lôi ra khỏi Pool
+    /// </summary>
+    public void OnSpawned()
+    {
+        if (buyButton == null) 
+            buyButton = GetComponent<Button>();
+
+        if (buyButton != null)
+        {
+            buyButton.onClick.RemoveAllListeners();
+            
+            buyButton.interactable = true;
+            
+            buyButton.onClick.AddListener(OnSlotClicked);
+        }
+
+        _currentPrice = 0;
+        _itemData = null;
+        _unitPrefab = null;
+        _onBuyCallback = null;
+
+        if (itemIconImage != null) 
+            itemIconImage.sprite = null;
+
+        if (priceText != null) 
+            priceText.text = string.Empty;
+    }
+
+    /// <summary>
+    /// Được gọi ngay trước khi ô Shop này bị thu hồi về ngầm trong Pool
+    /// </summary>
+    public void OnDespawned()
+    {
+        if (buyButton != null)
+        {
+            buyButton.onClick.RemoveAllListeners();
+        }
+
+        _itemData = null;
+        _unitPrefab = null;
+        _onBuyCallback = null;
     }
 }

@@ -60,6 +60,8 @@ namespace _Script.Unit_Management_System.Building
             int index = listArcherPositions.FindIndex(s => s.unitId == unit.GetId());
             if (index >= 0)
                 listArcherPositions.RemoveAt(index);
+            
+            
         }
 
         public Vector3 GetAvailableSpot()

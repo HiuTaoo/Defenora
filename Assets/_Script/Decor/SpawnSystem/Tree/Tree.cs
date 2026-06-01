@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using _Script.BT.BlackBoard;
 using UnityEngine;
 
-public class Tree : MonoBehaviour, IChoppable
+public class Tree : MonoBehaviour, IChoppable, IPoolable
 {
     [Header("Tree Info")]
     public TreeState treeState = TreeState.Idle;
@@ -123,6 +123,62 @@ public class Tree : MonoBehaviour, IChoppable
         currentTask = task;
     }
 
+    /// <summary>
+    /// Được gọi ngay khi Cây được lấy ra từ PoolManager để đặt lên bản đồ
+    /// </summary>
+    public void OnSpawned()
+    {
+        if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
+        if (animator == null) animator = GetComponent<Animator>();
+        if (treeCollider == null) treeCollider = GetComponent<CapsuleCollider2D>();
+
+        currentChopHit = 0;
+        isBeingChopped = false;
+        hasBeenChopped = false;
+        treeState = TreeState.Idle;
+
+        claimedBy = null;
+        currentTask = null;
+        OnChoppedObject = null; 
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.white;
+            spriteRenderer.enabled = true; 
+        }
+
+        if (animator != null)
+        {
+            animator.enabled = true;
+            animator.Play("idle", 0, 0f); 
+        }
+
+        if (treeCollider != null)
+        {
+            treeCollider.enabled = true;
+        }
+
+        var render = transform.Find("Custom Render Sprite");
+        if (render != null)
+        {
+            render.gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Được gọi ngay trước khi Cây bị thu hồi về ngầm trong PoolManager
+    /// </summary>
+    public void OnDespawned()
+    {
+        claimedBy = null;
+        currentTask = null;
+        OnChoppedObject = null;
+
+        if (animator != null)
+        {
+            animator.enabled = false;
+        }
+    }
 }
 
 public enum TreeState

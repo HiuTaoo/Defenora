@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using _Script.Object_Pooling;
 using UnityEngine;
 
-public abstract class DecorObject : MonoBehaviour, IChoppable
+public abstract class DecorObject : MonoBehaviour, IChoppable, IPoolable
 {
     public int maxChopHit = 5;
     public int layerIndex;
@@ -15,6 +15,7 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
 
     private CapsuleCollider2D decorCollider;
     private SpriteRenderer spriteRenderer;
+    private SimpleSpriteAnimator spriteAnimator;
 
     public Action<IChoppable> OnChoppedObject { get; set; }
     
@@ -26,6 +27,7 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
     {
         decorCollider = GetComponent<CapsuleCollider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteAnimator = GetComponent<SimpleSpriteAnimator>();
     }
 
     private void Update()
@@ -86,5 +88,60 @@ public abstract class DecorObject : MonoBehaviour, IChoppable
     {
         if (claimedBy == builder)
             claimedBy = null;
+    }
+
+    /// <summary>
+    /// Được gọi ngay khi Decor Object được hồi sinh từ Pool ra Bản đồ
+    /// </summary>
+    public virtual void OnSpawned()
+    {
+        if (decorCollider == null) decorCollider = GetComponent<CapsuleCollider2D>();
+        if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteAnimator == null) spriteAnimator = GetComponent<SimpleSpriteAnimator>();
+
+        currentChopHit = 0;
+        isBeingCleared = false;
+        hasBeenChopped = false;
+
+        claimedBy = null;
+        OnChoppedObject = null;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.white;
+            spriteRenderer.enabled = true; 
+        }
+
+        if (spriteAnimator != null)
+        {
+            spriteAnimator.enabled = true;
+            spriteAnimator.Play();
+        }
+
+        if (decorCollider != null)
+        {
+            decorCollider.enabled = true;
+        }
+
+        var render = transform.Find("Custom Render Sprite");
+        if (render != null)
+        {
+            render.gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Được gọi ngay trước khi Decor Object bị giấu ngầm vào bên trong Pool
+    /// </summary>
+    public virtual void OnDespawned()
+    {
+        claimedBy = null;
+        OnChoppedObject = null;
+
+        if (spriteAnimator != null)
+        {
+            spriteAnimator.Stop();
+            spriteAnimator.enabled = false;
+        }
     }
 }

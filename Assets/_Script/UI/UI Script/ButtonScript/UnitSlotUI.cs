@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace _Script.UI.UI_Script
 {
-    public class UnitSlotUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+    public class UnitSlotUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPoolable
     {
         public float holdRequiredTime = 1f;
 
@@ -22,8 +22,6 @@ namespace _Script.UI.UI_Script
         {
             if (clickButton == null)
                 clickButton = GetComponent<UnityEngine.UI.Button>();
-
-            clickButton.onClick.AddListener(OnSlotClicked);
         }
 
         private void Update()
@@ -43,7 +41,6 @@ namespace _Script.UI.UI_Script
         public void OnPointerDown(PointerEventData eventData)
         {
             isPressed = true;
-
             currentHoldTimer = 0f;
             hasTriggeredHold = false;
         }
@@ -51,7 +48,6 @@ namespace _Script.UI.UI_Script
         public void OnPointerUp(PointerEventData eventData)
         {
             isPressed = false;
-
             currentHoldTimer = 0f;
         }
 
@@ -88,7 +84,54 @@ namespace _Script.UI.UI_Script
 
         private void RemoveUnit()
         {
-            currentUnit.assignedBuilding.RemoveUnit(currentUnit);
+            if (currentUnit != null && currentUnit.assignedBuilding != null)
+            {
+                currentUnit.assignedBuilding.RemoveUnit(currentUnit);
+            }
+        }
+
+        /// <summary>
+        /// Được gọi ngay khi Ô Slot này được lấy ra khỏi Pool
+        /// </summary>
+        public void OnSpawned()
+        {
+            if (clickButton == null) 
+                clickButton = GetComponent<UnityEngine.UI.Button>();
+
+            if (clickButton != null)
+            {
+                clickButton.onClick.RemoveAllListeners();
+                clickButton.interactable = true; 
+                clickButton.onClick.AddListener(OnSlotClicked); 
+            }
+
+            isPressed = false;
+            hasTriggeredHold = false;
+            currentHoldTimer = 0f;
+
+            currentUnit = null;
+            onClickCallback = null;
+            
+            if (unitIcon != null) 
+                unitIcon.sprite = null;
+        }
+
+        /// <summary>
+        /// Được gọi ngay trước khi Ô Slot này bị ẩn và thu hồi về Pool
+        /// </summary>
+        public void OnDespawned()
+        {
+            if (clickButton != null)
+            {
+                clickButton.onClick.RemoveAllListeners();
+            }
+
+            isPressed = false;
+            hasTriggeredHold = false;
+            currentHoldTimer = 0f;
+
+            currentUnit = null;
+            onClickCallback = null;
         }
     }
 }
