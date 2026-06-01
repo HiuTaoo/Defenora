@@ -8,6 +8,11 @@ public class Item : MonoBehaviour
     public int layerIndex;
     public Builder assignBuilder;
 
+    [Header("Reservation Timeout")]
+    [Tooltip("Thời gian tối đa (giây) giữ chỗ cho một Builder. Quá thời gian này sẽ tự hủy đặt chỗ.")]
+    [SerializeField] private float reservationTimeoutDuration = 60f; 
+    private float reservationTimer;
+
     private Vector3 startPos;
     private Vector3 endPos;
 
@@ -33,8 +38,24 @@ public class Item : MonoBehaviour
 
     private void Update()
     {
-        if (!isDropping) return;
+        if (isDropping)
+        {
+            UpdateDrop();
+            return; 
+        }
 
+        if (assignBuilder != null)
+        {
+            reservationTimer += Time.deltaTime;
+            if (reservationTimer >= reservationTimeoutDuration)
+            {
+                CancelReservation();
+            }
+        }
+    }
+
+    private void UpdateDrop()
+    {
         elapsed += Time.deltaTime;
 
         float t = Mathf.Clamp01(elapsed / duration);
@@ -58,7 +79,7 @@ public class Item : MonoBehaviour
     {
         if (assignBuilder == null)
         {
-            assignBuilder = builder;
+            ReserveFor(builder);
             return true;
         }
 
@@ -73,5 +94,23 @@ public class Item : MonoBehaviour
     public void ReserveFor(Builder builder)
     {
         assignBuilder = builder;
+        reservationTimer = 0f; 
+    }
+
+    /// <summary>
+    /// Hủy đặt chỗ từ Builder hiện tại
+    /// </summary>
+    public void CancelReservation()
+    {
+        if (assignBuilder != null)
+        {
+            Debug.Log($"[Item] {gameObject.name} hủy đặt chỗ của Builder do quá thời gian chờ.");
+            
+            // Nếu script Builder của bạn có logic cần xóa Item mục tiêu khi bị hủy, 
+            // bạn có thể gọi nó ở đây. Ví dụ: assignBuilder.ClearTargetItem();
+            
+            assignBuilder = null;
+        }
+        reservationTimer = 0f;
     }
 }

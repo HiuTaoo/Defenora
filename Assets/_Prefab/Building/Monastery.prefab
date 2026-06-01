@@ -115,10 +115,10 @@ GameObject:
   - component: {fileID: 364162984597996355}
   - component: {fileID: 7818488087415978211}
   - component: {fileID: 2326666079096529001}
-  - component: {fileID: 2980963257859456482}
   - component: {fileID: 7368342568351913103}
   - component: {fileID: 1483951178614245089}
   - component: {fileID: -9090622283932782557}
+  - component: {fileID: 3395451808771397900}
   m_Layer: 8
   m_Name: Monastery
   m_TagString: Building
@@ -239,27 +239,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
---- !u!95 &2980963257859456482
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2382392070799091013}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: d3e7b7fe80cdc2342a4fa1963d1e3c77, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!61 &7368342568351913103
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -354,10 +333,26 @@ MonoBehaviour:
     builders: []
   layerIndex: 0
   health: {fileID: 0}
-  trainingDurationInGameHours: 4
+  buildingVisualManager: {fileID: 0}
   maxTraineeCapacity: 2
   currentTraineeCount: 0
   debugTrainees: []
+--- !u!114 &3395451808771397900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2382392070799091013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bea03a2728fe4902a8383f9deb63956a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  underConstructionSprite: {fileID: 21300000, guid: 8df3402fdec15744f80ca19601ddbd35,
+    type: 3}
+  completedSprite: {fileID: 21300000, guid: 8b6fdb43a22ee6c48adff77f96dbc21f, type: 3}
+  destroyedSprite: {fileID: 21300000, guid: ca52bcc3f3382b74982bf3a6f2546dca, type: 3}
 --- !u!1 &3014590907442632383
 GameObject:
   m_ObjectHideFlags: 0

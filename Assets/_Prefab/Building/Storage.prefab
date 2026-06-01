@@ -133,13 +133,13 @@ GameObject:
   - component: {fileID: 1994239083817195984}
   - component: {fileID: 2146985849720622011}
   - component: {fileID: 3646996966829662897}
-  - component: {fileID: 2209014728433610812}
   - component: {fileID: 8090229926699787873}
   - component: {fileID: 8699020775138910166}
   - component: {fileID: 7744562848832361240}
   - component: {fileID: 659560381163937438}
   - component: {fileID: 1103345420223540084}
   - component: {fileID: 7255916515917589339}
+  - component: {fileID: 1578648636838702700}
   m_Layer: 8
   m_Name: Storage
   m_TagString: Building
@@ -262,27 +262,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.87925625, y: 0.915617}
   m_EdgeRadius: 0
---- !u!95 &2209014728433610812
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4317628030385230672}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 3dc1f05bf40b7be48968bfb895941127, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &8090229926699787873
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -347,6 +326,7 @@ MonoBehaviour:
     builders: []
   layerIndex: 0
   health: {fileID: 0}
+  buildingVisualManager: {fileID: 0}
   maxStorageCapacity: 0
   debugStorage: []
 --- !u!114 &659560381163937438
@@ -391,6 +371,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 
+--- !u!114 &1578648636838702700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4317628030385230672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bea03a2728fe4902a8383f9deb63956a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  underConstructionSprite: {fileID: 21300000, guid: 8df3402fdec15744f80ca19601ddbd35,
+    type: 3}
+  completedSprite: {fileID: 21300000, guid: 8a084e79fa42be744916cad176469c9f, type: 3}
+  destroyedSprite: {fileID: 21300000, guid: ca52bcc3f3382b74982bf3a6f2546dca, type: 3}
 --- !u!1 &6365253327673594782
 GameObject:
   m_ObjectHideFlags: 0

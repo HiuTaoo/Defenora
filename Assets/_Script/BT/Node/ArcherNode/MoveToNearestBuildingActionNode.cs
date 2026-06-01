@@ -30,7 +30,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
                 var targetLayer = archer.archerBlackBoard.nearestBuilding.GetComponentInChildren<Building>()
                     .layerIndex;
 
-                Debug.Log($"Move to building: {archer.archerBlackBoard.nearestBuilding.GetId()}");
                 archer.animState = AnimState.Moving;
                 archer.characterMovement.MoveToPosition(Vector3Int.FloorToInt(targetGridPos), targetLayer);
 

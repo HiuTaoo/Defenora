@@ -12,7 +12,8 @@ public class ItemData : ScriptableObject
     public string description;     
     
     [Header("Visuals")]
-    public Sprite icon;            
+    public Sprite icon;  
+    public GameObject itemPrefab;
 
     [Header("Properties")]
     public int maxStackSize = 99;  

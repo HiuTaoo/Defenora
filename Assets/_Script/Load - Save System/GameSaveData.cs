@@ -11,6 +11,7 @@ public class GameSaveData
     public ObjectSpawnData objectSpawnData = new ObjectSpawnData();
     public TaskSaveData taskSaveData = new TaskSaveData();
     public ShopSaveData shopSaveData = new ShopSaveData();
+    public ItemManagerSaveData itemManagerSaveData = new ItemManagerSaveData();
 }
 
 [System.Serializable]

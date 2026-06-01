@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 6665442403727717057}
   - component: {fileID: 5938138430383266855}
   - component: {fileID: 363881072144313266}
-  - component: {fileID: 3157883669210192142}
   - component: {fileID: 2729819886661722212}
   - component: {fileID: 8385769501554916794}
+  - component: {fileID: 2000893901553710650}
   m_Layer: 8
   m_Name: Archery
   m_TagString: Building
@@ -188,27 +188,6 @@ MonoBehaviour:
   yFactor: 10
   baseOrder: 0
   isStaticDecor: 0
---- !u!95 &3157883669210192142
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330605155036816449}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 691e8ec8b2cf8014288d9f2ff96edb0f, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &2729819886661722212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -258,11 +237,28 @@ MonoBehaviour:
     builders: []
   layerIndex: 0
   health: {fileID: 0}
-  trainingDurationInGameHours: 3
+  buildingVisualManager: {fileID: 0}
   maxTraineeCapacity: 3
   currentTraineeCount: 0
   debugTrainees: []
+  trainingDurationInGameHours: 3
   traineeSpot: {fileID: 8360304440073455109}
+--- !u!114 &2000893901553710650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330605155036816449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bea03a2728fe4902a8383f9deb63956a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  underConstructionSprite: {fileID: 21300000, guid: c65b57352c282da418040c4398cd2701,
+    type: 3}
+  completedSprite: {fileID: 21300000, guid: 130cdd0b9004ac5468702707aa6bcddf, type: 3}
+  destroyedSprite: {fileID: 21300000, guid: cc1b79dbd094fa241b9b1d6c0b8c8d56, type: 3}
 --- !u!1 &3041970773385430338
 GameObject:
   m_ObjectHideFlags: 0

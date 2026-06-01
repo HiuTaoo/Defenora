@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad1992aba9f44fd9a1890b83f5858c00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pickupRadius: 0.5656
+  pickupRadius: 1
   scanInterval: 0.05
 --- !u!1 &4175003084946207960
 GameObject:
@@ -428,6 +428,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  animalResult: []
   currentTarget: {fileID: 0}
   currentTargetLayerIndex: 0
   lastSeenPosition: {x: 0, y: 0}
@@ -439,16 +440,14 @@ MonoBehaviour:
   detectInterval: 0.25
   hearRange: 15
   animFSM: {fileID: 0}
-  statsManager: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
-  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
   attackRange: 0
-  attackCooldown: 1
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
@@ -464,7 +463,7 @@ MonoBehaviour:
     taskStatus: 0
     maxBuilders: 0
     requiredProgress: 0
-    currentProgress: 0
+    _internalProgress: 0
     builders: []
   currentTool: 4
   currentResource: 3
@@ -523,7 +522,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: e24d50ec-e736-4c3e-89a3-f7ae98488a80
+  id: 
 --- !u!1 &6753680548334571932
 GameObject:
   m_ObjectHideFlags: 0

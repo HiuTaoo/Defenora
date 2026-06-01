@@ -24,7 +24,7 @@ public class TaskManager : MonoBehaviour
     [Header("All Tasks (Global Blackboard)")] [SerializeField]
     private List<Task> allTasks = new();
 
-    [Header("Pending/Unreachable Tasks Debug")] [SerializeField]
+    [Header("Pending/Unreachable Tasks")] [SerializeField]
     private List<PendingTaskInfo> pendingTasks = new();
 
     public IReadOnlyList<Task> AllTasks => allTasks;

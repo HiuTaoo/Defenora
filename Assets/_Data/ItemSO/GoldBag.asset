@@ -17,5 +17,7 @@ MonoBehaviour:
   resourceType: 2
   description: A bag containing someone's gold coins
   icon: {fileID: 21300000, guid: 629d7048189833e46aa32388e2803ca4, type: 3}
+  itemPrefab: {fileID: 7228683387846767052, guid: c5e670c400c3b9548b4ea8fb930e9d0d,
+    type: 3}
   maxStackSize: 99
   isResource: 1

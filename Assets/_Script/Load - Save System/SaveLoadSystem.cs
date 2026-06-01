@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using _Script.Data;
+using _Script.ItemScript;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using _Script.Unit_Management_System.Building;
@@ -310,6 +311,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         if (ShopManager.Instance != null) ShopManager.Instance.PopulateShopSaveData(saveData);
 
         #endregion
+        
+        #region Save Ground Items Data
+        if (ItemManager.Instance != null)
+        {
+            ItemManager.Instance.PopulateItemSaveData(saveData);
+        }
+        #endregion
     }
 
     public void LoadFromSaveData(GameSaveData saveData)
@@ -469,6 +477,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         if (ShopManager.Instance != null) ShopManager.Instance.LoadShopFromSaveData(saveData);
 
+        #endregion
+        
+        #region Load Ground Items Data
+        if (ItemManager.Instance != null)
+        {
+            ItemManager.Instance.LoadItemsFromSaveData(saveData);
+        }
         #endregion
     }
 

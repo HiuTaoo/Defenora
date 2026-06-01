@@ -226,10 +226,10 @@ GameObject:
   - component: {fileID: 1819784880358718638}
   - component: {fileID: 2488428790058268991}
   - component: {fileID: 3672148515155194528}
-  - component: {fileID: 523715707923579839}
   - component: {fileID: 2038028745528792166}
   - component: {fileID: 2938893326997499473}
   - component: {fileID: 4637946010379209941}
+  - component: {fileID: 3959908699729547603}
   m_Layer: 8
   m_Name: Barrack
   m_TagString: Building
@@ -321,11 +321,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   occupiedCells:
   - {x: 0, y: 0}
-  - {x: 0, y: 1}
-  - {x: 1, y: 1}
   - {x: 1, y: 0}
   - {x: -1, y: 0}
-  - {x: -1, y: 1}
 --- !u!114 &2488428790058268991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -386,27 +383,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.5766497, y: 0.8967056}
   m_EdgeRadius: 0
---- !u!95 &523715707923579839
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7961245244231145619}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 92bfa28ecbbf9c647bccc4819d18ba59, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &2038028745528792166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -470,6 +446,23 @@ MonoBehaviour:
     builders: []
   layerIndex: 0
   health: {fileID: 0}
+  buildingVisualManager: {fileID: 0}
   maxTraineeCapacity: 3
   currentTraineeCount: 0
   debugTrainees: []
+--- !u!114 &3959908699729547603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7961245244231145619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bea03a2728fe4902a8383f9deb63956a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  underConstructionSprite: {fileID: 21300000, guid: 6f56aa11f587edf48bbe9555c0d03d8f,
+    type: 3}
+  completedSprite: {fileID: 21300000, guid: bde575b1532256b4b9536515dd6a06b7, type: 3}
+  destroyedSprite: {fileID: 21300000, guid: 7e84d6524eacbf44796068efa35e5827, type: 3}

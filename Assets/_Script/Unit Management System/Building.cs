@@ -34,7 +34,6 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     public int layerIndex;
 
     [HideInInspector] public Health health;
-    private Animator animator;
     private Coroutine buildEffectCoroutine;
     private CapsuleCollider2D buildingCollider;
     private ObjectFootprint buildingFootprint;
@@ -46,6 +45,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     public Action OnStationedUnitsChanged;
 
     private SpriteRenderer spriteRenderer;
+    public BuildingVisualManager buildingVisualManager;
 
     public int LayerIndex
     {
@@ -57,9 +57,9 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     {
         buildingFootprint = GetComponent<ObjectFootprint>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();
         buildingCollider = GetComponent<CapsuleCollider2D>();
         health = GetComponentInChildren<Health>();
+        buildingVisualManager = GetComponent<BuildingVisualManager>();
 
         customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
 
@@ -139,24 +139,18 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         switch (buildingState)
         {
             case BuildingState.UnderConstruction:
-                animator.Play("UnderConstruction");
                 ChangeTransparent(1f);
                 customRenderer?.SetActive(false);
                 break;
             case BuildingState.Completed:
-                animator.Play("Complete");
                 customRenderer?.SetActive(true);
-
                 foreach (Transform child in transform)
                     child.gameObject.SetActive(true);
-
                 break;
             case BuildingState.Destroyed:
-                animator.Play("Destroyed");
                 customRenderer?.SetActive(false);
                 break;
             case BuildingState.Pending:
-                animator.Play("UnderConstruction");
                 ChangeTransparent(0.5f);
                 break;
         }
@@ -550,13 +544,27 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
         foreach (var hit in hits)
         {
-            if (hit.gameObject == gameObject && !hit.gameObject.activeInHierarchy)
+            // Bỏ qua chính bản thân công trình hoặc các object đang ẩn
+            if (hit.gameObject == gameObject || !hit.gameObject.activeInHierarchy)
                 continue;
 
             if (hit.TryGetComponent<IChoppable>(out var choppable) && !choppable.IsClaimed)
             {
+                // Nếu là cây tài nguyên chính thì bỏ qua (vì chặt cây có nhánh riêng)
                 if (choppable is Tree)
                     continue;
+
+                // 🟢 GIẢI PHÁP TỔNG QUÁT: Ép kiểu sang Component để lấy biến layerIndex được thiết lập trong Script
+                // (Giả định các đối tượng chặt phá của bạn đều có biến layerIndex công khai)
+                if (choppable is Component choppableComponent)
+                    // Dùng kỹ thuật Reflection hoặc Dynamic để lấy layerIndex, 
+                    // hoặc ép kiểu thẳng nếu chúng có class cha chung (ví dụ: BaseObject)
+                    // Ở đây ta dùng check loại cụ thể dựa trên cấu trúc cũ của bạn:
+                    if (choppable is DecorObject decorObj && decorObj.layerIndex != layerIndex)
+                        continue; // Khác tầng -> Bỏ qua, không phải vật cản
+
+                // Bảo hiểm thêm cho các thực thể IChoppable khác nếu có quản lý layerIndex
+                // if (choppable is ThucTheKhac obj && obj.layerIndex != layerIndex) continue;
                 return choppable;
             }
         }
@@ -610,6 +618,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     {
         if (health != null)
             health.SetMaxHealth(health.maxHealth, true);
+        buildingVisualManager.UpdateBuildingSprite();
     }
 
     public void OnDespawned()
