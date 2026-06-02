@@ -71,9 +71,14 @@ public abstract class Unit : MonoBehaviour, IPoolable
     protected BehaviourTree bt;
 
     [Header("Effects")] private Coroutine damageEffectCoroutine;
-
     private Coroutine hitStunCoroutine;
     private float lastKnockbackTime = -999f;
+
+    [Header("Unstuck System")] [SerializeField]
+    private float stuckCheckInterval = 5.0f;
+
+    private Vector3 _lastPosition;
+    private float _stuckTimer;
 
     public Action<Unit> OnUnitDestroyed;
     private Rigidbody2D rb;
@@ -119,8 +124,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         layerIndex = floorAgent.currentFloorIndex;
         currentHealth = health.CurrentHealth;
 
-        if (attackRange > viewDistance)
-            attackRange = viewDistance;
+        if (this is Warrior or Builder) HandleGridUnstuck();
     }
 
     //public void SetId(string newId) => id = newId;
@@ -625,6 +629,75 @@ public abstract class Unit : MonoBehaviour, IPoolable
         if (health != null && unitStatsManager != null) health.maxHealth = unitStatsManager.MaxHealth;
     }
 
+    /// <summary>
+    ///     🌟 Hàm xử lý tự giải thoát khi đứng trên ô cấm di chuyển (isWalkable = false)
+    /// </summary>
+    private void HandleGridUnstuck()
+    {
+        if (GraphNode.Instance == null) return;
+
+        if (Vector3.Distance(transform.position, _lastPosition) > 0.05f)
+        {
+            _lastPosition = transform.position;
+            _stuckTimer = 0f;
+            return;
+        }
+
+        _stuckTimer += Time.deltaTime;
+
+        if (_stuckTimer >= stuckCheckInterval)
+        {
+            _stuckTimer = 0f;
+            _lastPosition = transform.position;
+
+            var currentLayer = layerIndex;
+
+            var gridX = Mathf.FloorToInt(transform.position.x);
+            var gridY = Mathf.FloorToInt(transform.position.y);
+            var currentGridPos = new Vector3Int(gridX, gridY, 0);
+
+            var currentNode = GraphNode.Instance.GetNode(currentGridPos, currentLayer);
+
+            if (currentNode != null && !currentNode.isWalkable)
+            {
+                Debug.LogWarning(
+                    $"[Unstuck System] Phát hiện [{unitType}] {gameObject.name} bị kẹt tại ô {currentGridPos} (Tầng {currentLayer})! Đang tìm ô trống...");
+
+                var searchDirections = new[]
+                {
+                    new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0),
+                    new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0),
+                    new Vector3Int(1, 1, 0), new Vector3Int(-1, 1, 0),
+                    new Vector3Int(1, -1, 0), new Vector3Int(-1, -1, 0)
+                };
+
+                foreach (var dir in searchDirections)
+                {
+                    var neighborGridPos = currentGridPos + dir;
+                    var neighborNode = GraphNode.Instance.GetNode(neighborGridPos, currentLayer);
+
+                    if (neighborNode != null && neighborNode.isWalkable)
+                    {
+                        var targetWorldPos = new Vector3(neighborGridPos.x + 0.5f, neighborGridPos.y + 0.5f,
+                            transform.position.z);
+
+                        transform.position = targetWorldPos;
+                        _lastPosition = targetWorldPos;
+
+                        bt?.ClearState();
+
+                        if (currentState == UnitState.Move)
+                            currentState = UnitState.Idle;
+
+                        Debug.Log(
+                            $"[Unstuck System] Đã giải thoát [{unitType}] {gameObject.name} thành công sang ô: {neighborGridPos}");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
 
     #region Enemy Method
 
@@ -891,9 +964,14 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         currentState = UnitState.Idle;
         animState = AnimState.Idle;
+
+        _stuckTimer = 0f;
+        _lastPosition = transform.position;
     }
 
     public void OnDespawned()
     {
+        _stuckTimer = 0f;
+        bt?.ClearState();
     }
 }

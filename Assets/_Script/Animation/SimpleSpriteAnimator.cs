@@ -20,18 +20,28 @@ public class SimpleSpriteAnimator : MonoBehaviour
     private bool useRandomPause = true;
 
     [SerializeField] private float minPauseDuration = 0.5f;
-    [SerializeField] private float maxPauseDuration = 2f; 
+    [SerializeField] private float maxPauseDuration = 2f;
+
+    [Header("--- Shake Cycle Settings ---")]
+    [Tooltip("Số vòng rung liên tục tối thiểu trước khi dừng nghỉ")]
+    [SerializeField]
+    private int minShakeCycles = 3;
+
+    [Tooltip("Số vòng rung liên tục tối đa trước khi dừng nghỉ")] [SerializeField]
+    private int maxShakeCycles = 7;
 
     private SpriteRenderer _spriteRenderer;
     private int _currentFrameIndex;
     private float _frameTimer;
     private bool _isPlaying;
 
-    // Các biến runtime điều khiển độ lệch
     private float _actualFrameRate;
     private bool _isPausing;
     private float _pauseTimer;
     private float _currentPauseDuration;
+
+    private int _targetShakeCycles;
+    private int _currentShakeCycleCount; 
 
     private void Awake()
     {
@@ -61,6 +71,8 @@ public class SimpleSpriteAnimator : MonoBehaviour
 
         var randomOffset = Random.Range(-speedRandomness, speedRandomness);
         _actualFrameRate = frameRate * (1f + randomOffset);
+
+        ResetTargetShakeCycles();
 
         _currentFrameIndex = Random.Range(0, animationFrames.Length); 
         _spriteRenderer.sprite = animationFrames[_currentFrameIndex];
@@ -93,6 +105,7 @@ public class SimpleSpriteAnimator : MonoBehaviour
             {
                 _isPausing = false;
                 _frameTimer = 0f;
+                ResetTargetShakeCycles();
             }
 
             return;
@@ -111,10 +124,15 @@ public class SimpleSpriteAnimator : MonoBehaviour
                 {
                     _currentFrameIndex = 0;
 
-                    if (useRandomPause && Random.value > 0.4f)
+                    _currentShakeCycleCount++;
+
+                    if (useRandomPause && _currentShakeCycleCount >= _targetShakeCycles)
                     {
-                        TriggerRandomPause();
-                        return;
+                        if (Random.value > 0.4f)
+                        {
+                            TriggerRandomPause();
+                            return;
+                        }
                     }
                 }
                 else
@@ -140,5 +158,14 @@ public class SimpleSpriteAnimator : MonoBehaviour
 
         _currentFrameIndex = 0;
         _spriteRenderer.sprite = animationFrames[_currentFrameIndex];
+    }
+
+    /// <summary>
+    ///     🌟 Tính toán lại số vòng cần rung liên tục cho chu kỳ kế tiếp
+    /// </summary>
+    private void ResetTargetShakeCycles()
+    {
+        _currentShakeCycleCount = 0;
+        _targetShakeCycles = Random.Range(minShakeCycles, maxShakeCycles + 1);
     }
 }

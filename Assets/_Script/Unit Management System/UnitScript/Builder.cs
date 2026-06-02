@@ -257,8 +257,7 @@ public class Builder : Unit
     }
 
     #endregion
-
-
+    
     #region Move to task target
 
     public bool IsCollidingWithTaskTarget()
