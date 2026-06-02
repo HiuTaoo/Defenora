@@ -153,6 +153,7 @@ MonoBehaviour:
   amount: 0
   layerIndex: 0
   assignBuilder: {fileID: 0}
+  reservationTimeoutDuration: 30
   isDropping: 0
 --- !u!114 &6682270675238724222
 MonoBehaviour:

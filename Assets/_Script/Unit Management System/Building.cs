@@ -6,6 +6,7 @@ using _Script.Enum;
 using _Script.Task;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using Random = UnityEngine.Random;
 
 public abstract class Building : MonoBehaviour, IBuildable, IPoolable
@@ -46,6 +47,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
     private SpriteRenderer spriteRenderer;
     public BuildingVisualManager buildingVisualManager;
+    public Light2D light2D;
 
     public int LayerIndex
     {
@@ -60,6 +62,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         buildingCollider = GetComponent<CapsuleCollider2D>();
         health = GetComponentInChildren<Health>();
         buildingVisualManager = GetComponent<BuildingVisualManager>();
+        light2D = GetComponentInChildren<Light2D>();
 
         customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
 
@@ -69,6 +72,8 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             buildingType = configData.buildingType;
             maxCapacity = configData.maxCapacity;
             range = configData.range;
+            
+            UpdateLightRange();
         }
         else
         {
@@ -505,6 +510,19 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             Debug.Log($"[Building] Đã khấu trừ {cost.amount}x {cost.itemData.itemName} để xây dựng {buildingName}.");
         }
     }
+    
+    private void UpdateLightRange()
+    {
+        if (light2D == null)
+        {
+            light2D = GetComponentInChildren<Light2D>();
+        }
+
+        if (light2D != null)
+        {
+            light2D.pointLightOuterRadius = range;
+        }
+    }
 
     #endregion
 
@@ -683,6 +701,8 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
         if (buildingCollider != null)
             buildingCollider.enabled = true;
+        
+        UpdateLightRange();
     }
 
     /// <summary>

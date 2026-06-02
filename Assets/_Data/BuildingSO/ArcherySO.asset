@@ -16,7 +16,7 @@ MonoBehaviour:
   buildingType: 4
   maxHealth: 300
   maxCapacity: 3
-  range: 3
+  range: 2
   buildCosts:
   - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
     amount: 5

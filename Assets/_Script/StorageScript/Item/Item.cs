@@ -10,7 +10,7 @@ public class Item : MonoBehaviour
 
     [Header("Reservation Timeout")]
     [Tooltip("Thời gian tối đa (giây) giữ chỗ cho một Builder. Quá thời gian này sẽ tự hủy đặt chỗ.")]
-    [SerializeField] private float reservationTimeoutDuration = 60f; 
+    [SerializeField] private float reservationTimeoutDuration = 30f; 
     private float reservationTimer;
 
     private Vector3 startPos;

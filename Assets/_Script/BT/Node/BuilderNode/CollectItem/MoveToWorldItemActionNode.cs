@@ -25,58 +25,77 @@ namespace _Script.BT.Node.BuilderNode.Idle
 
             if (!hasStartedMove)
             {
-                if (!FindAndMoveToNextItem()) return BTStatus.Failure;
+                if (!EvaluateNextItem()) 
+                {
+                    return BTStatus.Failure;
+                }
+
+                ExecuteMovementToTarget();
                 return BTStatus.Running;
             }
 
-            if (builder.characterMovement.moving)
+            if (hasStartedMove)
             {
                 if (targetItem == null || !targetItem.gameObject.activeSelf)
-                    if (!FindAndMoveToNextItem())
+                {
+                    if (!EvaluateNextItem())
                     {
                         ClearState();
                         return BTStatus.Failure;
                     }
+                    ExecuteMovementToTarget();
+                }
 
-                return BTStatus.Running;
-            }
+                Vector3Int currentGridPos = Vector3Int.FloorToInt(builder.transform.position);
+                if (currentGridPos == targetGridPos)
+                {
+                    ClearState();
+                    return BTStatus.Success; 
+                }
 
-            if (!FindAndMoveToNextItem())
-            {
-                hasStartedMove = false;
-                targetItem = null;
-                if (builder != null) builder.animState = AnimState.Idle;
-
-                return BTStatus.Success;
+                return BTStatus.Running; 
             }
 
             return BTStatus.Running;
         }
 
-        /// <summary>
-        ///     Hàm nội bộ: Tìm kiếm vật phẩm gần nhất và ra lệnh di chuyển.
-        /// </summary>
-        private bool FindAndMoveToNextItem()
+        private bool EvaluateNextItem()
         {
-            targetItem = ItemManager.Instance.FindNearestItem(
-                builder.transform.position,
-                builder.characterMovement.CurrentLayer, builder
-            );
-            if (targetItem == null) return false;
+            while (true)
+            {
+                targetItem = ItemManager.Instance.FindNearestItem(
+                    builder.transform.position,
+                    builder.floorAgent._currentFloorIndex, builder
+                );
 
-            targetItem.assignBuilder = builder;
+                if (targetItem == null)
+                    return false;
 
-            targetGridPos = builder.FindAdjacentWalkableCell(
-                Vector3Int.FloorToInt(targetItem.transform.position),
-                targetItem.layerIndex
-            );
+                Vector3Int itemGridPos = Vector3Int.FloorToInt(targetItem.transform.position);
+                targetGridPos = builder.FindAdjacentWalkableCell(itemGridPos, targetItem.layerIndex);
+
+                if (!builder.CanCalculatePathToTarget(targetGridPos, targetItem.layerIndex))
+                {
+                    ItemManager.Instance.MoveToPending(targetItem);
+                    continue; 
+                }
+                
+                targetItem.assignBuilder = builder;
+                return true;
+            }
+        }
+
+        private void ExecuteMovementToTarget()
+        {
+            if (targetItem == null) return;
 
             builder.UpdateAnim();
             builder.animState = AnimState.Moving;
+            
+            // Phát lệnh dịch chuyển bộ
             builder.characterMovement.MoveToPosition(targetGridPos, targetItem.layerIndex);
 
             hasStartedMove = true;
-            return true;
         }
 
         public override void ClearState()

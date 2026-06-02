@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, ISaveable
 {
     [Header("Builder Info")]
     public float moveSpeed = 3.5f;
@@ -96,5 +96,30 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    
+
+    public void PopulateSaveData(GameSaveData saveData)
+    {
+        saveData.playerPosition = transform.position;
+        saveData.playerLayerIndex = GetCurrentLayerIndex();
+    }
+
+    public void LoadFromSaveData(GameSaveData saveData)
+    {
+        transform.position = saveData.playerPosition;
+        if (rb != null)
+        {
+            rb.position = saveData.playerPosition;
+        }
+
+        var floorAgent = gameObject.GetComponentInChildren<FloorAgent>();
+        var characterMovement = gameObject.GetComponentInChildren<CharacterMovement>();
+        if (characterMovement != null)
+        {
+            characterMovement.CurrentLayer = saveData.playerLayerIndex;
+        }
+        if (floorAgent != null)
+        {
+            floorAgent.MoveToFloor(saveData.playerLayerIndex);
+        }
+    }
 }

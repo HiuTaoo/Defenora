@@ -124,7 +124,12 @@ public abstract class Unit : MonoBehaviour, IPoolable
         layerIndex = floorAgent.currentFloorIndex;
         currentHealth = health.CurrentHealth;
 
-        if (this is Warrior or Builder) HandleGridUnstuck();
+        if (this is Archer archer)
+        {
+            if (archer.isStationed)
+                return;
+        }
+        HandleGridUnstuck();
     }
 
     //public void SetId(string newId) => id = newId;
@@ -628,10 +633,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
     {
         if (health != null && unitStatsManager != null) health.maxHealth = unitStatsManager.MaxHealth;
     }
-
-    /// <summary>
-    ///     🌟 Hàm xử lý tự giải thoát khi đứng trên ô cấm di chuyển (isWalkable = false)
-    /// </summary>
+    
     private void HandleGridUnstuck()
     {
         if (GraphNode.Instance == null) return;
@@ -658,49 +660,69 @@ public abstract class Unit : MonoBehaviour, IPoolable
             _lastPosition = transform.position;
 
             var currentLayer = layerIndex;
-
             var gridX = Mathf.FloorToInt(transform.position.x);
             var gridY = Mathf.FloorToInt(transform.position.y);
             var currentGridPos = new Vector3Int(gridX, gridY, 0);
 
             var currentNode = GraphNode.Instance.GetNode(currentGridPos, currentLayer);
 
-            if (currentNode != null && !currentNode.isWalkable)
+            Debug.LogWarning($"[Unstuck Lưới Mới] Phát hiện [{unitType}] {gameObject.name} đứng im tại ô {currentGridPos} quá {stuckCheckInterval}s! Bắt đầu chạy bộ loang rộng bán kính để tìm ô trống...");
+
+            bool targetFound = false;
+            Vector3Int bestTargetGrid = Vector3Int.zero;
+
+            const int maxRadiusSearch = 5;
+            for (int r = 1; r <= maxRadiusSearch; r++)
             {
-                Debug.LogWarning(
-                    $"[Unstuck System] Phát hiện [{unitType}] {gameObject.name} bị kẹt tại ô {currentGridPos} (Tầng {currentLayer})! Đang tìm ô trống...");
+                List<Vector3Int> candidatesAtRadius = new List<Vector3Int>();
 
-                var searchDirections = new[]
+                for (int xOffset = -r; xOffset <= r; xOffset++)
                 {
-                    new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0),
-                    new Vector3Int(0, 1, 0), new Vector3Int(0, -1, 0),
-                    new Vector3Int(1, 1, 0), new Vector3Int(-1, 1, 0),
-                    new Vector3Int(1, -1, 0), new Vector3Int(-1, -1, 0)
-                };
-
-                foreach (var dir in searchDirections)
-                {
-                    var neighborGridPos = currentGridPos + dir;
-                    var neighborNode = GraphNode.Instance.GetNode(neighborGridPos, currentLayer);
-
-                    if (neighborNode != null && neighborNode.isWalkable)
+                    for (int yOffset = -r; yOffset <= r; yOffset++)
                     {
-                        var targetWorldPos = new Vector3(neighborGridPos.x + 0.5f, neighborGridPos.y + 0.5f,
-                            transform.position.z);
+                        if (Mathf.Abs(xOffset) == r || Mathf.Abs(yOffset) == r)
+                        {
+                            Vector3Int checkPos = currentGridPos + new Vector3Int(xOffset, yOffset, 0);
+                            var node = GraphNode.Instance.GetNode(checkPos, currentLayer);
 
-                        transform.position = targetWorldPos;
-                        _lastPosition = targetWorldPos;
-
-                        bt?.ClearState();
-
-                        if (currentState == UnitState.Move)
-                            currentState = UnitState.Idle;
-
-                        Debug.Log(
-                            $"[Unstuck System] Đã giải thoát [{unitType}] {gameObject.name} thành công sang ô: {neighborGridPos}");
-                        break;
+                            if (node != null && node.isWalkable)
+                            {
+                                candidatesAtRadius.Add(checkPos);
+                            }
+                        }
                     }
                 }
+
+                if (candidatesAtRadius.Count > 0)
+                {
+                    candidatesAtRadius.Sort((a, b) => 
+                        Vector3.Distance(transform.position, new Vector3(a.x + 0.5f, a.y + 0.5f, 0))
+                        .CompareTo(Vector3.Distance(transform.position, new Vector3(b.x + 0.5f, b.y + 0.5f, 0)))
+                    );
+
+                    bestTargetGrid = candidatesAtRadius[0];
+                    targetFound = true;
+                    break; 
+                }
+            }
+
+            if (targetFound)
+            {
+                var targetWorldPos = new Vector3(bestTargetGrid.x + 0.5f, bestTargetGrid.y + 0.5f, transform.position.z);
+
+                transform.position = targetWorldPos;
+                _lastPosition = targetWorldPos;
+
+                bt?.ClearState();
+
+                if (currentState == UnitState.Move)
+                    currentState = UnitState.Idle;
+
+                Debug.Log($"[Unstuck Thành Công] Đã giải cứu [{unitType}] {gameObject.name} ra khỏi vùng kẹt thành công sang ô trống lớp bán kính mới: {bestTargetGrid}");
+            }
+            else
+            {
+                Debug.LogError($"[Unstuck Thất Bại] Đã quét nới rộng đến {maxRadiusSearch} ô xung quanh vị trí {currentGridPos} nhưng không tìm thấy bất kỳ ô trống nào!");
             }
         }
     }

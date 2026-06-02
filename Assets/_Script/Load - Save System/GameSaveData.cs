@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using _Script.Data;
+using UnityEngine;
 
 [Serializable]
 public class GameSaveData
@@ -13,6 +14,9 @@ public class GameSaveData
     public ShopSaveData shopSaveData = new ShopSaveData();
     public ItemManagerSaveData itemManagerSaveData = new ItemManagerSaveData();
     public SpawnerCycleSaveData spawnerCycleData = new();
+    
+    public Vector3 playerPosition;
+    public int playerLayerIndex;
 }
 
 [Serializable]

@@ -1,9 +1,6 @@
-﻿// Mở file ItemManager.cs và cập nhật lại như sau:
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using _Script.ScriptableObjectScript;
 using UnityEngine;
-using _Script.Object_Pooling;
-using _Script.ScriptableObjectScript; // Thêm namespace pooling nếu cần
 
 namespace _Script.ItemScript
 {
@@ -13,7 +10,11 @@ namespace _Script.ItemScript
 
         [SerializeField] private List<Item> activeItems = new();
 
-        // 🌟 THÊM: Cho phép SaveLoadSystem truy cập danh sách
+        [SerializeField] private List<Item> pendingItems = new();
+
+        private float _clearPendingTimer;
+        private const float ClearPendingInterval = 30f; 
+
         public List<Item> GetActiveItems() => activeItems;
 
         private void Awake()
@@ -24,14 +25,49 @@ namespace _Script.ItemScript
                 Destroy(gameObject);
         }
 
+        private void Update()
+        {
+            _clearPendingTimer += Time.deltaTime;
+            if (_clearPendingTimer >= ClearPendingInterval)
+            {
+                _clearPendingTimer = 0f;
+                ReleasePendingItems();
+            }
+        }
+
         public void RegisterItem(Item item)
         {
-            if (item != null && !activeItems.Contains(item)) activeItems.Add(item);
+            if (item != null && !activeItems.Contains(item) && !pendingItems.Contains(item)) activeItems.Add(item);
         }
 
         public void UnregisterItem(Item item)
         {
-            if (item != null && activeItems.Contains(item)) activeItems.Remove(item);
+            if (item == null) return;
+            if (activeItems.Contains(item)) activeItems.Remove(item);
+            if (pendingItems.Contains(item)) pendingItems.Remove(item);
+        }
+
+        public void MoveToPending(Item item)
+        {
+            if (item == null) return;
+
+            item.assignBuilder = null;
+
+            if (activeItems.Contains(item)) activeItems.Remove(item);
+
+            if (!pendingItems.Contains(item))
+                pendingItems.Add(item);
+        }
+
+        public void ReleasePendingItems()
+        {
+            if (pendingItems.Count == 0) return;
+
+            foreach (var item in pendingItems)
+                if (item != null && item.gameObject.activeSelf)
+                    activeItems.Add(item);
+
+            pendingItems.Clear();
         }
 
         public Item FindNearestItem(Vector3 position, int layerIndex, Builder requestingBuilder)
@@ -48,6 +84,8 @@ namespace _Script.ItemScript
                     activeItems.RemoveAt(i);
                     continue;
                 }
+
+                if (item.layerIndex != layerIndex) continue;
 
                 if (item.assignBuilder == null || item.assignBuilder == requestingBuilder)
                 {
