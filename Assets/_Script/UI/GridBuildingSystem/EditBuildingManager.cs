@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using _Script.Enum;
 using UnityEngine;
-using static UnityEditor.Rendering.ShadowCascadeGUI;
 
-/// <summary>
-/// Quản lý grid, cell đã chiếm.
-/// </summary>
 public class EditBuildingManager : MonoBehaviour
 {
     public static EditBuildingManager Instance;
@@ -17,7 +14,7 @@ public class EditBuildingManager : MonoBehaviour
 
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
             Instance = this;
         else
             Destroy(gameObject);
@@ -27,24 +24,13 @@ public class EditBuildingManager : MonoBehaviour
 
         if (graphNode == null)
             Debug.LogError("GraphNode không tồn tại trên scene!");
-
-        if (saveLoadSystem != null)
-            saveLoadSystem.OnSave += HandleSaveBuilding;
-
-
     }
 
-    /// <summary>
-    /// Kiểm tra ô đã chiếm.
-    /// </summary>
     public bool IsCellOccupied(Vector2Int cellPos)
     {
         return occupiedCells.Contains(cellPos);
     }
 
-    /// <summary>
-    /// Đánh dấu ô là đã chiếm.
-    /// </summary>
     public void PlaceBuilding(Vector2Int anchorCell, GameObject buildingPrefab)
     {
         ObjectFootprint footprint = buildingPrefab.GetComponent<ObjectFootprint>();
@@ -61,16 +47,14 @@ public class EditBuildingManager : MonoBehaviour
         building.LayerIndex = LayerManager.Instance.layerIndex;
         building.buildingState = BuildingState.Placing;
 
-        Color color =  new Color(0, 1, 0, 0.75f);
+        var color = new Color(0, 1, 0, 0.75f);
         var renderer = currentbuilding.GetComponent<SpriteRenderer>();
         renderer.color = color;
         
-        currentbuilding.transform.name = $"{building.buildingType}: {System.Guid.NewGuid()}";
+        currentbuilding.transform.name = $"{building.buildingType}: {Guid.NewGuid()}";
         Debug.Log($"Building: {building.name} is in Placing State");
 
         listPlacedBuilding.Add(building);
-        //building.UpdateRenderSortingOrder(LayerManager.Instance.layerIndex);
-
     }
 
     public bool CanPlaceFootprint(Vector2Int anchorCell, ObjectFootprint footprint, int layerIndex)
@@ -96,11 +80,6 @@ public class EditBuildingManager : MonoBehaviour
                 if (occupiedCells.Contains(cell))
                     return false;
             }
-            else
-            {
-                // ➜ Ô ngoài cùng thì vẫn kiểm tra node walkable, nhưng cho phép occupied
-                // Không có gì phải làm ở đây
-            }
 
             Node node = graphNode.GetNode(new Vector3Int(cell.x, cell.y, 0), layerIndex);
             if (node == null || !node.isWalkable || node.isStair)
@@ -111,20 +90,17 @@ public class EditBuildingManager : MonoBehaviour
         }
         return true;
     }
+
     public Vector3 CellToWorld(Vector2Int cellPos)
     {
         float cellSize = 1f;
-
-        return new Vector3(
-            (cellPos.x + 0.5f) * cellSize,
-            (cellPos.y + 0.5f) * cellSize,
-            0f
-        );
+        return new Vector3((cellPos.x + 0.5f) * cellSize, (cellPos.y + 0.5f) * cellSize, 0f);
     }
 
     public void RollBackBuildingVisual()
     {
-        foreach(var building in listPlacedBuilding) {
+        foreach (var building in listPlacedBuilding)
+        {
             var spriteRenderer = building.transform.GetComponent<SpriteRenderer>();
             spriteRenderer.color = Color.white;
         }
@@ -147,9 +123,9 @@ public class EditBuildingManager : MonoBehaviour
 
     private void ChangeBuildingState()
     {
-        if(listPlacedBuilding != null)
+        if (listPlacedBuilding != null)
         {
-            foreach(var build in listPlacedBuilding)
+            foreach (var build in listPlacedBuilding)
             {
                 build.buildingState = BuildingState.UnderConstruction;
                 Debug.Log($"Building: {build.name} set state: {build.buildingState}");
@@ -166,20 +142,117 @@ public class EditBuildingManager : MonoBehaviour
         }
     }
 
-    private void HandleSaveBuilding() {
+    public void ConfirmPlacementAndStartBuild()
+    {
+        if (listPlacedBuilding.Count == 0) return;
+
+        var totalRequiredResources = new Dictionary<ItemData, int>();
+
+        foreach (var building in listPlacedBuilding)
+        {
+            var costs = building.BuildCosts;
+            if (costs == null) continue;
+
+            foreach (var cost in costs)
+            {
+                if (cost.itemData == null || cost.amount <= 0) continue;
+
+                if (totalRequiredResources.ContainsKey(cost.itemData))
+                    totalRequiredResources[cost.itemData] += cost.amount;
+                else
+                    totalRequiredResources[cost.itemData] = cost.amount;
+            }
+        }
+
+        if (Inventory.Instance != null)
+        {
+            foreach (var kvp in totalRequiredResources)
+            {
+                var requiredItem = kvp.Key;
+                var totalAmountNeeded = kvp.Value;
+
+                if (Inventory.Instance.GetAmount(requiredItem) < totalAmountNeeded)
+                {
+                    Debug.LogWarning(
+                        $"[EditBuildingManager] Không đủ tài nguyên tổng hợp! Cần tổng cộng {totalAmountNeeded}x {requiredItem.itemName}, nhưng kho chỉ có {Inventory.Instance.GetAmount(requiredItem)}.");
+
+                    UINotificationManager.Instance.ShowNotification(
+                        "Not enough resources to proceed with construction!", NotificationColorType.Error);
+                    return;
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("[EditBuildingManager] Inventory.Instance bị null! Không thể đối chiếu tài nguyên.");
+            return;
+        }
+
+        foreach (var building in listPlacedBuilding) building.ConsumeBuildResources();
+
         UpdateGraphNode();
         ChangeBuildingState();
         CreateBuildStructureTask();
-        UnitManager.Instance.buildings.AddRange(listPlacedBuilding);
+
+        if (UnitManager.Instance != null)
+            foreach (var building in listPlacedBuilding)
+                if (!UnitManager.Instance.buildings.Contains(building))
+                    UnitManager.Instance.buildings.Add(building);
+
         RollBackBuildingVisual();
         listPlacedBuilding.Clear();
+
+        Debug.Log("[EditBuildingManager] Đã đối chiếu tổng chi phí, khấu trừ kho đồ và kích hoạt xây dựng thành công!");
     }
-    
+
+    public void CancelAllPlacedBuildings()
+    {
+        if (listPlacedBuilding.Count == 0) return;
+
+        Debug.Log($"[EditBuildingManager] Bắt đầu hủy bỏ {listPlacedBuilding.Count} công trình đang đặt xem trước...");
+
+        foreach (var building in listPlacedBuilding)
+        {
+            if (building == null) continue;
+
+            var footprint = building.GetComponent<ObjectFootprint>();
+            if (footprint != null)
+            {
+                var anchorCell = building.WorldToCell(building.transform.position, 1f);
+                var cells = footprint.GetAbsoluteGridPositions(anchorCell);
+                foreach (var cell in cells) occupiedCells.Remove(cell);
+            }
+
+            PoolManager.Instance.Despawn(building.gameObject);
+        }
+
+        listPlacedBuilding.Clear();
+        Debug.Log("[EditBuildingManager] Đã dọn sạch móng tạm, khôi phục Grid về trạng thái trống hoàn toàn.");
+    }
+
+    public void ResetEditorManager()
+    {
+        Debug.Log("[EditBuildingManager] Đang dọn sạch toàn bộ dữ liệu hệ thống Editor...");
+
+        if (listPlacedBuilding != null && listPlacedBuilding.Count > 0)
+        {
+            foreach (var building in listPlacedBuilding)
+                if (building != null && building.gameObject != null)
+                    PoolManager.Instance.Despawn(building.gameObject);
+
+            listPlacedBuilding.Clear();
+        }
+
+        if (occupiedCells != null) occupiedCells.Clear();
+
+        Debug.Log("[EditBuildingManager] Hệ thống Editor đã trống rỗng hoàn toàn, sẵn sàng hoạt động!");
+    }
+
     public bool CheckIsTempBuiling(Building building)
     {
-        if(listPlacedBuilding.Count > 0)
+        if (listPlacedBuilding.Count > 0)
         {
-            foreach(var placedBuilding in  listPlacedBuilding)
+            foreach (var placedBuilding in listPlacedBuilding)
             {
                 if (placedBuilding == building)
                 {

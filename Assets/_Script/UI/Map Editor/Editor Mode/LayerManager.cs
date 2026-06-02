@@ -1,7 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using DG.Tweening;
 using UnityEngine;
-using DG.Tweening; // Nhớ thêm thư viện DOTween
+
+// Nhớ thêm thư viện DOTween
 
 public class LayerManager : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class LayerManager : MonoBehaviour
     public int layerIndex = 0;
     private Vector3[] originalPositions;
 
-    public System.Action<int> OnLayerIndexChange;
+    public Action<int> OnLayerIndexChange;
 
     private void Awake()
     {
@@ -83,6 +84,16 @@ public class LayerManager : MonoBehaviour
 
             ChangeLayer();
         }
+    }
+
+    public void SwitchToNextLayer()
+    {
+        if (ribbons == null || ribbons.Length == 0) return;
+
+        layerIndex = (layerIndex + 1) % ribbons.Length;
+
+        MoveRibbonToLeft(layerIndex);
+        ChangeLayer();
     }
 
     public void MoveRibbonToLeft(int activeIndex)

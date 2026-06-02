@@ -16,8 +16,8 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     [HideInInspector] public int maxCapacity;
     [HideInInspector] public float range;
     [HideInInspector] public BuildingType buildingType;
-    [HideInInspector] public int buildWoodCost;
-    [HideInInspector] public int repairWoodCost;
+    public List<ResourceCost> BuildCosts => configData != null ? configData.buildCosts : null;
+    public List<ResourceCost> RepairCosts => configData != null ? configData.repairCosts : null;
 
     public int currentCapacity;
     public float currentHealth;
@@ -69,8 +69,6 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             buildingType = configData.buildingType;
             maxCapacity = configData.maxCapacity;
             range = configData.range;
-            buildWoodCost = configData.buildWoodCost;
-            repairWoodCost = configData.repairWoodCost;
         }
         else
         {
@@ -80,24 +78,27 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
     protected virtual void Update()
     {
-        if (!UnitManager.Instance.buildings.Contains(this))
+        // Nếu công trình chưa được đăng ký trong danh sách tổng, ngắt Update ngay để tránh chạy rác
+        if (UnitManager.Instance == null || !UnitManager.Instance.buildings.Contains(this))
             return;
+
         UpdateAnimation();
 
-        if (spriteRenderer.isVisible)
+        if (spriteRenderer != null && spriteRenderer.isVisible)
         {
-            if (buildingState == BuildingState.UnderConstruction && currentBuildProgress >= 100f &&
-                !hasBeenBuilded) OnBuild();
+            if (buildingState == BuildingState.UnderConstruction && currentBuildProgress >= 100f && !hasBeenBuilded)
+                OnBuild();
 
-            if (currentTask != null && currentTask.taskType == TaskType.RepairStructure
-                                    && health.IsFull())
+            if (currentTask != null && currentTask.taskType == TaskType.RepairStructure && health.IsFull())
             {
                 OnRepair();
-                currentTask = null;
             }
 
             if ((!health.IsFull() || buildingState == BuildingState.Destroyed)
-                && (currentTask == null || currentTask.targetGameObject == null))
+                && (currentTask == null || currentTask.targetGameObject == null)
+                && buildingState != BuildingState.Pending
+                && buildingState != BuildingState.UnderConstruction
+                && !TimeOfDaySystem.Instance.IsNightTime())
             {
                 var task = new Task(gameObject, TaskType.RepairStructure, 2, layerIndex);
                 TaskManager.Instance.AddTask(task);
@@ -105,13 +106,9 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             }
         }
 
-        currentHealth = health.CurrentHealth;
+        if (health != null) currentHealth = health.CurrentHealth;
     }
 
-    /*public void SetID(string buildingID)
-    {
-        id = buildingID;
-    }*/
     protected virtual void OnEnable()
     {
         if (health != null)
@@ -174,7 +171,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
     public void CreateBuildStructureTask()
     {
-        if (currentTask.targetGameObject != null)
+        if (currentTask != null && currentTask.targetGameObject != null)
             return;
 
         currentTask = new Task(
@@ -452,6 +449,63 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         unit.assignedBuilding = this;
     }
 
+    /// <summary>
+    ///     Kiểm tra kho tổng xem có đủ toàn bộ tài nguyên để XÂY DỰNG công trình này không
+    /// </summary>
+    public bool HasEnoughResourcesToBuild()
+    {
+        if (BuildCosts == null || BuildCosts.Count == 0)
+            return true;
+
+        if (Inventory.Instance == null) return false;
+
+        foreach (var cost in BuildCosts)
+        {
+            if (cost.itemData == null) continue;
+
+            if (Inventory.Instance.GetAmount(cost.itemData) < cost.amount) return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    ///     Kiểm tra kho tổng xem có đủ tài nguyên để thực hiện 1 lượt SỬA CHỮA không
+    /// </summary>
+    public bool HasEnoughResourcesToRepair()
+    {
+        if (RepairCosts == null || RepairCosts.Count == 0)
+            return true;
+
+        if (Inventory.Instance == null) return false;
+
+        foreach (var cost in RepairCosts)
+        {
+            if (cost.itemData == null) continue;
+
+            if (Inventory.Instance.GetAmount(cost.itemData) < cost.amount) return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    ///     Khấu trừ tài nguyên trong kho tổng khi bắt đầu đặt móng xây dựng
+    /// </summary>
+    public void ConsumeBuildResources()
+    {
+        if (BuildCosts == null || BuildCosts.Count == 0) return;
+        if (Inventory.Instance == null) return;
+
+        foreach (var cost in BuildCosts)
+        {
+            if (cost.itemData == null || cost.amount <= 0) continue;
+
+            Inventory.Instance.Remove(cost.itemData, cost.amount);
+            Debug.Log($"[Building] Đã khấu trừ {cost.amount}x {cost.itemData.itemName} để xây dựng {buildingName}.");
+        }
+    }
+
     #endregion
 
     #region Build
@@ -538,37 +592,21 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
     public IChoppable FindObstacleObject(float radius = 2f)
     {
-        var center = transform.position;
-
-        var hits = Physics2D.OverlapCircleAll(center, radius);
-
+        var hits = Physics2D.OverlapCircleAll(transform.position, radius);
         foreach (var hit in hits)
         {
-            // Bỏ qua chính bản thân công trình hoặc các object đang ẩn
-            if (hit.gameObject == gameObject || !hit.gameObject.activeInHierarchy)
-                continue;
+            if (hit.gameObject == gameObject || !hit.gameObject.activeInHierarchy) continue;
 
             if (hit.TryGetComponent<IChoppable>(out var choppable) && !choppable.IsClaimed)
             {
-                // Nếu là cây tài nguyên chính thì bỏ qua (vì chặt cây có nhánh riêng)
-                if (choppable is Tree)
+                if (choppable is Tree) continue;
+
+                if (choppable is DecorObject decorObj && decorObj.layerIndex != layerIndex)
                     continue;
 
-                // 🟢 GIẢI PHÁP TỔNG QUÁT: Ép kiểu sang Component để lấy biến layerIndex được thiết lập trong Script
-                // (Giả định các đối tượng chặt phá của bạn đều có biến layerIndex công khai)
-                if (choppable is Component choppableComponent)
-                    // Dùng kỹ thuật Reflection hoặc Dynamic để lấy layerIndex, 
-                    // hoặc ép kiểu thẳng nếu chúng có class cha chung (ví dụ: BaseObject)
-                    // Ở đây ta dùng check loại cụ thể dựa trên cấu trúc cũ của bạn:
-                    if (choppable is DecorObject decorObj && decorObj.layerIndex != layerIndex)
-                        continue; // Khác tầng -> Bỏ qua, không phải vật cản
-
-                // Bảo hiểm thêm cho các thực thể IChoppable khác nếu có quản lý layerIndex
-                // if (choppable is ThucTheKhac obj && obj.layerIndex != layerIndex) continue;
                 return choppable;
             }
         }
-
         return null;
     }
 
@@ -588,6 +626,12 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     protected virtual void HandleDeath()
     {
         buildingState = BuildingState.Destroyed;
+
+        if (currentTask != null)
+        {
+            TaskManager.Instance.RemoveTask(currentTask);
+            currentTask = null;
+        }
 
         EvacuateAllUnits();
     }
@@ -614,14 +658,56 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
     #endregion
 
+    #region Object Pooling (IPoolable)
+
+    /// <summary>
+    ///     Kích hoạt khi lấy nhà từ trong PoolManager ra đặt móng xuống Map
+    /// </summary>
     public void OnSpawned()
     {
+        currentBuildProgress = 0f;
+        hasBeenBuilded = false;
+        isBeingBuilded = false;
+        currentTask = null;
+        currentCapacity = 0;
+
+        buildingState = BuildingState.Completed;
+
         if (health != null)
-            health.SetMaxHealth(health.maxHealth, true);
-        buildingVisualManager.UpdateBuildingSprite();
+        {
+            health.SetMaxHealth(configData != null ? configData.maxHealth : 100f, true);
+        }
+
+        if (buildingVisualManager != null)
+            buildingVisualManager.UpdateBuildingSprite();
+
+        if (buildingCollider != null)
+            buildingCollider.enabled = true;
     }
 
+    /// <summary>
+    ///     Kích hoạt ngay trước khi xóa/thu hồi nhà này cất ngầm vào trong Pool
+    /// </summary>
     public void OnDespawned()
     {
+        if (currentTask != null)
+        {
+            if (TaskManager.Instance != null) TaskManager.Instance.RemoveTask(currentTask);
+            currentTask = null;
+        }
+
+        EvacuateAllUnits();
+        stationedUnits.Clear();
+        currentCapacity = 0;
+
+        if (buildEffectCoroutine != null)
+        {
+            StopCoroutine(buildEffectCoroutine);
+            buildEffectCoroutine = null;
+        }
+
+        OnBuiltObject = null;
     }
+
+    #endregion
 }

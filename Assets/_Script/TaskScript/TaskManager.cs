@@ -84,10 +84,20 @@ public class TaskManager : MonoBehaviour
 
         pendingTasks.RemoveAll(p => p.task == task);
     }
-
+    
     public void MoveToPending(Task task, float cooldownDuration = 5f)
     {
         if (task == null) return;
+
+        if (task.taskType == TaskType.TransportItem)
+        {
+            Debug.LogWarning(
+                $"[TaskManager] Task vận chuyển [{task.id}] bị kẹt đường! Tiến hành HỦY BỎ hoàn toàn task để giải phóng AI.");
+
+            task.taskStatus = TaskStatus.Completed;
+            RemoveTask(task);
+            return;
+        }
 
         allTasks.Remove(task);
 
@@ -120,17 +130,4 @@ public class TaskManager : MonoBehaviour
                 yield return task;
         }
     }
-
-/*#if UNITY_EDITOR
-    private void OnGUI()
-    {
-        GUILayout.Label($"Tasks: {allTasks.Count}");
-        foreach (var task in allTasks)
-        {
-            GUILayout.Label(
-                $"{task.taskType} | {task.taskStatus} | {task.Builders.Count}/{task.maxBuilders}"
-            );
-        }
-    }
-#endif*/
 }

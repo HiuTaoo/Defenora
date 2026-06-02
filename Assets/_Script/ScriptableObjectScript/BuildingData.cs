@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public abstract class BuildingData : ScriptableObject
 {
@@ -11,11 +12,10 @@ public abstract class BuildingData : ScriptableObject
     public int maxCapacity = 5;
     public float range = 5f;
 
-    [Header("--- Resource Costs (Wood) ---")]
-    [Tooltip("Lượng Wood cần để xây dựng công trình")]
-    public int buildWoodCost;
-    
-    [Tooltip("Lượng Wood cần để sửa chữa công trình từ 0% -> 100% máu")]
-    public int repairWoodCost;
+    [Header("--- Resource Costs ---")] [Tooltip("Danh sách các tài nguyên và số lượng cần để XÂY DỰNG công trình")]
+    public List<ResourceCost> buildCosts;
+
+    [Tooltip("Danh sách các tài nguyên và số lượng cần để SỬA CHỮA công trình")]
+    public List<ResourceCost> repairCosts;
 }
 

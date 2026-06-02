@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class MenuEditorController : MonoBehaviour
@@ -22,21 +21,19 @@ public class MenuEditorController : MonoBehaviour
 
     private void RegisterAllMenuItem()
     {
-        MenuItem[] allMenuItems = GameObject.FindObjectsOfType<MenuItem>();
+        var allMenuItems = FindObjectsOfType<MenuItem>(true);
 
         foreach (var item in allMenuItems)
         {
-            if (item.gameObject.activeInHierarchy)
-            {
-                menuItems.Add(item);
-                item.OnMenuItemClicked += HandleItemClicked;
-            }
+            menuItems.Add(item);
+            item.OnMenuItemClicked -= HandleItemClicked;
+            item.OnMenuItemClicked += HandleItemClicked;
         }
     }
 
-    public void HandleItemClicked(string prefab)
+    public void HandleItemClicked(BuildingData data)
     {
-        if(!cancelEditBuildingMode.activeInHierarchy)
+        if (cancelEditBuildingMode != null && !cancelEditBuildingMode.activeInHierarchy)
             cancelEditBuildingMode.SetActive(true);
     }
 

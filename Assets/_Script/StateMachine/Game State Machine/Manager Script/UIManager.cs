@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using _Script.Enum;
 using _Script.UI.UI_Script;
 using _Script.UI.UI_Script.PanelScript;
@@ -55,7 +53,7 @@ public class UIManager: MonoBehaviour
         RegisterUI(GameStateType.Paused, UINames.PauseMenu ,pausedGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Paused, UINames.PauseButton ,listButtonPauseMenuGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Paused, UINames.PauseMenuSetting ,settingGUI, new UIConfig { FadeIn = true });
-        RegisterUI(GameStateType.Editor, UINames.EditorMenu, editorGUI, new UIConfig { Scale = Vector3.one * 0.9f });
+        RegisterUI(GameStateType.Editor, UINames.EditorMenu, editorGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Editor, UINames.SelectUnitGUI, selectUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Editor, UINames.AvailableUnitsGUI, availableUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Playing, UINames.Inventory, inventoryGUI, new UIConfig {FadeIn = true});

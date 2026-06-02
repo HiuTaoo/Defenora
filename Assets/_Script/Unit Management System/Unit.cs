@@ -636,6 +636,13 @@ public abstract class Unit : MonoBehaviour, IPoolable
     {
         if (GraphNode.Instance == null) return;
 
+        if (currentState != UnitState.Idle && currentState != UnitState.Move)
+        {
+            _stuckTimer = 0f;
+            _lastPosition = transform.position;
+            return;
+        }
+
         if (Vector3.Distance(transform.position, _lastPosition) > 0.05f)
         {
             _lastPosition = transform.position;

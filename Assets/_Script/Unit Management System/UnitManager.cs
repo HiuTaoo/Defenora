@@ -205,38 +205,45 @@ public class UnitManager : MonoBehaviour
 
         return station.CanAddUnit(unit);
     }
-
+    
     private GameObject GetUnitPrefab(UnitType unitType)
     {
-        switch (unitType)
+        if (PrefabConfig.Instance == null)
         {
-            case UnitType.Archer: return PrefabConfig.Instance.archerPrefab;
-            case UnitType.Monk: return PrefabConfig.Instance.monkPrefab;
-            case UnitType.Warrior: return PrefabConfig.Instance.warriorPrefab;
-            case UnitType.Builder: return PrefabConfig.Instance.builderPrefab;
-            case UnitType.Lancer: return PrefabConfig.Instance.lancerPrefab;
-            case UnitType.Civilian: return PrefabConfig.Instance.civilianPrefab;
-
-            //Enemy case
-            case UnitType.TorchGoblin: return PrefabConfig.Instance.torchGoblinPrefab;
-            case UnitType.TNTGoblin: return PrefabConfig.Instance.tntGoblinPrefab;
-            case UnitType.Barrel: return PrefabConfig.Instance.barrelPrefab;
-            default: return null;
+            Debug.LogError("[UnitManager] PrefabConfig.Instance chưa được khởi tạo!");
+            return null;
         }
+
+        var prefabName = unitType.ToString();
+        var prefab = PrefabConfig.Instance.GetPrefab(prefabName);
+
+        if (prefab == null)
+        {
+            Debug.LogError(
+                $"[UnitManager] Không tìm thấy Prefab nào tên '{prefabName}' trong PrefabConfig cho loại Unit: {unitType}. Hãy đảm bảo tên GameObject của Prefab trùng với tên Enum!");
+        }
+
+        return prefab;
     }
 
     private GameObject GetBuildPrefab(BuildingType buildingType)
     {
-        switch (buildingType)
+        if (PrefabConfig.Instance == null)
         {
-            case BuildingType.Fortress: return PrefabConfig.Instance.fortressPrefab;
-            case BuildingType.WatchTower: return PrefabConfig.Instance.watchTowerPrefab;
-            case BuildingType.Storage: return PrefabConfig.Instance.storagePrefab;
-            case BuildingType.Archery: return PrefabConfig.Instance.archeryPrefab;
-            case BuildingType.Barrack: return PrefabConfig.Instance.barrackPrefab;
-            case BuildingType.Monastery: return PrefabConfig.Instance.monasteryPrefab;
-            default: return null;
+            Debug.LogError("[UnitManager] PrefabConfig.Instance chưa được khởi tạo!");
+            return null;
         }
+
+        var prefabName = buildingType.ToString();
+        var prefab = PrefabConfig.Instance.GetPrefab(prefabName);
+
+        if (prefab == null)
+        {
+            Debug.LogError(
+                $"[UnitManager] Không tìm thấy Prefab nào tên '{prefabName}' trong PrefabConfig cho loại Building: {buildingType}. Hãy đảm bảo tên GameObject của Prefab trùng với tên Enum!");
+        }
+
+        return prefab;
     }
 
     public List<Unit> GetUnitsByType(UnitType unitType)
@@ -265,12 +272,6 @@ public class UnitManager : MonoBehaviour
         }
 
         return nearest;
-    }
-
-    public GameObject FindBuildingPrefab(string name)
-    {
-        if (buildingPrefabs.TryGetValue(name, out var prefab)) return prefab;
-        return null;
     }
 
     public GameStats GetGameStats()
@@ -302,5 +303,12 @@ public class UnitManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    ///     Cho phép các hệ thống Editor truy cập và lấy Prefab xây dựng dựa vào Loại công trình (Enum)
+    /// </summary>
+    public GameObject GetBuildPrefabPublic(BuildingType buildingType)
+    {
+        return GetBuildPrefab(buildingType);
+    }
     #endregion
 }

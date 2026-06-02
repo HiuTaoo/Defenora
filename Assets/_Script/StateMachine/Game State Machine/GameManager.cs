@@ -53,8 +53,16 @@ public class GameManager : MonoBehaviour
     {
         //Application.Quit();
         SceneManager.LoadScene(0);
+    }
 
+    public void ChangeToPlayingState()
+    {
+        StateMachine.ChangeState(GameStateType.Playing);
+    }
 
+    public void ChangeToEditorState()
+    {
+        StateMachine.ChangeState(GameStateType.Editor);
     }
 
     #region GUI

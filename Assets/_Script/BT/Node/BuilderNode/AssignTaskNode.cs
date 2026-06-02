@@ -43,6 +43,7 @@ namespace _Script.BT.Node.BuilderNode
                     Debug.Log($"[AssignTask] Can't find path to task {builder.currentTask.taskType}. Blacklisting for 5s!");
 
                     TaskManager.Instance.MoveToPending(builder.currentTask);
+                    
                     if (builder.currentTask.Builders.Contains(builder))
                     {
                         builder.currentTask.Leave(builder);

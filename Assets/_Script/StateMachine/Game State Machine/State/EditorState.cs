@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class EditorState : IGameState
 {
@@ -21,16 +19,24 @@ public class EditorState : IGameState
     public void Exit(GameStateContext context)
     {
         context.UIManager.HideUI(GameStateType.Editor, UINames.EditorMenu);
+        if (EditBuildingManager.Instance != null)
+            EditBuildingManager.Instance.ResetEditorManager();
     }
 
     public void Tick(GameStateContext context)
     {
-        if (context.InputManager.GetKeyDown(KeyCode.Escape))
+        switch (true)
         {
-            context.StateMachine.ChangeState(GameStateType.Playing);
+            case bool _ when context.InputManager.GetKeyDown(KeyCode.Escape):
+                context.StateMachine.ChangeState(GameStateType.Playing);
+                break;
+
+            case bool _ when context.InputManager.GetKeyDown(KeyCode.Tab):
+                if (LayerManager.Instance != null)
+                    LayerManager.Instance.SwitchToNextLayer();
+                break;
         }
 
-        // Editor-specific logic có thể thêm ở đây
         HandleEditorInput(context);
     }
 

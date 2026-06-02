@@ -55,6 +55,9 @@ public class BuildingVisualManager : MonoBehaviour
             case BuildingState.Destroyed:
                 targetSprite = destroyedSprite;
                 break;
+            case BuildingState.Placing:
+                targetSprite = completedSprite;
+                break;
         }
 
         if (targetSprite != null)

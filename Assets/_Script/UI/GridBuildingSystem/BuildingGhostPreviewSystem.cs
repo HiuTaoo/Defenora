@@ -1,5 +1,4 @@
-﻿using _Script.Object_Pooling;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class BuildingGhostPreviewSystem : MonoBehaviour
@@ -146,16 +145,25 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
 
     public void RegisterMenuItem(MenuItem item)
     {
+        item.OnMenuItemClicked -= HandleGhostPreview;
         item.OnMenuItemClicked += HandleGhostPreview;
     }
 
     /// <summary>
     /// Hàm xử lý khi MenuItem click → spawn ghost với prefab nhận được.
     /// </summary>
-    private void HandleGhostPreview(string buildingPrefab)
+    private void HandleGhostPreview(BuildingData data)
     {
-        GameObject building = UnitManager.Instance.FindBuildingPrefab(buildingPrefab);
-        SpawnGhost(building);
+        if (data == null) return;
+
+        // Tìm kiếm Prefab gốc dựa vào enum BuildingType có sẵn trong file dữ liệu cấu hình
+        var buildingPrefab = UnitManager.Instance.GetBuildPrefabPublic(data.buildingType);
+
+        if (buildingPrefab != null)
+            SpawnGhost(buildingPrefab);
+        else
+            Debug.LogError(
+                $"[Ghost System] Không tìm thấy Prefab nào tương ứng với loại công trình: {data.buildingType}");
     }
 
     public void CheckMouseIsOnUI()

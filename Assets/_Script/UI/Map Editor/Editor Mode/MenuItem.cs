@@ -1,23 +1,31 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class MenuItem : MonoBehaviour
 {
-    public System.Action<string> OnMenuItemClicked;
+    [Header("--- Building Config ---")] [SerializeField]
+    private BuildingData buildingConfig;
+
+    public Action<BuildingData> OnMenuItemClicked;
+
+    public BuildingData BuildingConfig => buildingConfig;
 
     void Start()
     {
-        BuildingGhostPreviewSystem.Instance.RegisterMenuItem(this);
+        if (BuildingGhostPreviewSystem.Instance != null) BuildingGhostPreviewSystem.Instance.RegisterMenuItem(this);
     }
-
 
     public void SelectItem()
     {
+        if (buildingConfig == null)
+        {
+            Debug.LogError($"[MenuItem] {gameObject.name} chưa được gán file BuildingData trong Inspector!");
+            return;
+        }
+
         DeSelectAllTileItem();
 
         Transform[] children = GetComponentsInChildren<Transform>(true);
-
         foreach (Transform child in children)
         {
             if (child.name == "Selected")
@@ -26,9 +34,12 @@ public class MenuItem : MonoBehaviour
             }
         }
 
-        SelectUnitSystem.Instance.isPlacing = true;
-        MenuEditorController.Instance.cancelEditBuildingMode.SetActive(true);
-        OnMenuItemClicked?.Invoke(gameObject.name);
+        if (SelectUnitSystem.Instance != null) SelectUnitSystem.Instance.isPlacing = true;
+
+        if (MenuEditorController.Instance != null && MenuEditorController.Instance.cancelEditBuildingMode != null)
+            MenuEditorController.Instance.cancelEditBuildingMode.SetActive(true);
+
+        OnMenuItemClicked?.Invoke(buildingConfig);
     }
 
     public void DeSelectAllTileItem()

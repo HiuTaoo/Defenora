@@ -17,6 +17,10 @@ MonoBehaviour:
   maxHealth: 200
   maxCapacity: 3
   range: 2
-  buildWoodCost: 5
-  repairWoodCost: 3
+  buildCosts:
+  - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
+    amount: 5
+  repairCosts:
+  - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
+    amount: 3
   maxStorageCapacity: 99
