@@ -7,7 +7,6 @@ public class SimpleSpriteAnimator : MonoBehaviour
     [SerializeField] private Sprite[] animationFrames;
 
     [SerializeField] private float frameRate = 0.12f;   
-    [SerializeField] private bool playOnAwake = true;
     [SerializeField] private bool loop = true;
 
     [Header("--- Wind Gust / Desynchronization ---")]
@@ -50,10 +49,12 @@ public class SimpleSpriteAnimator : MonoBehaviour
 
     private void OnEnable()
     {
-        if (playOnAwake)
+        if (TryGetComponent<Tree>(out var tree) && tree.treeState == TreeState.Chopped)
         {
-            Play();
+            return;
         }
+
+        Play();
     }
 
     private void OnDisable()
@@ -168,4 +169,5 @@ public class SimpleSpriteAnimator : MonoBehaviour
         _currentShakeCycleCount = 0;
         _targetShakeCycles = Random.Range(minShakeCycles, maxShakeCycles + 1);
     }
+
 }

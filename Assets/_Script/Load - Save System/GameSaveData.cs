@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using _Script.Data;
-using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class GameSaveData
 {
     public int totalCoins;
@@ -12,27 +12,28 @@ public class GameSaveData
     public TaskSaveData taskSaveData = new TaskSaveData();
     public ShopSaveData shopSaveData = new ShopSaveData();
     public ItemManagerSaveData itemManagerSaveData = new ItemManagerSaveData();
+    public SpawnerCycleSaveData spawnerCycleData = new();
 }
 
-[System.Serializable]
+[Serializable]
 public class UnitSaveData
 {
     public List<UnitData> units = new List<UnitData>();
 }
 
-[System.Serializable]
+[Serializable]
 public class BuildingSaveData
 {
     public List<BuildingSaveLoadData> buildings = new List<BuildingSaveLoadData>();
 }
 
-[System.Serializable]
+[Serializable]
 public class TaskSaveData
 {
     public List<TaskData> tasks = new List<TaskData>();
 }
 
-[System.Serializable]
+[Serializable]
 public class ObjectSpawnData
 {
     public int version = 1;
@@ -41,7 +42,7 @@ public class ObjectSpawnData
 
     public ObjectSpawnData()
     {
-        saveTimestamp = System.DateTime.Now.ToBinary();
+        saveTimestamp = DateTime.Now.ToBinary();
     }
 }
 

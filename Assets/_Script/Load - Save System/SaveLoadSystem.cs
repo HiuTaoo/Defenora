@@ -304,6 +304,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         SaveSpawnData(saveData);
 
+        if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.PopulateSpawnerSaveData(saveData);
+
         #endregion
 
         #region Save Shop Data
@@ -318,6 +320,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             ItemManager.Instance.PopulateItemSaveData(saveData);
         }
         #endregion
+        
     }
 
     public void LoadFromSaveData(GameSaveData saveData)
@@ -485,6 +488,12 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             ItemManager.Instance.LoadItemsFromSaveData(saveData);
         }
         #endregion
+
+        #region Load Respawn Info
+
+        if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.LoadSpawnerFromSaveData(saveData);
+
+        #endregion
     }
 
     private void LoadTaskDataOnly(GameSaveData saveData)
@@ -557,7 +566,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         #endregion
     }
-
 
     #region SAVE/LOAD Spawn Object
 
@@ -757,6 +765,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         UnitManager.Instance.UpdateGraphNodeWhenStart();
         Debug.Log("[SaveLoadSystem] Đã khôi phục xong toàn bộ thực thể Decor trên bản đồ.");
+
+        if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.LinkChoppedTreesOnMapLoaded();
+
         OnLoaded?.Invoke();
     }
 
@@ -839,26 +850,20 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         var worldPosition = ObjectSpawner.Instance.GridToWorld(treeData.gridPosition);
 
         var treeObj = PoolManager.Instance.Spawn(treePrefab, worldPosition, Quaternion.identity);
-        treeObj.transform.SetParent(transform);
         treeObj.transform.SetParent(decorObjectParent);
         treeObj.OverrideId(treeData.id);
 
-        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
         var sr = treeObj.GetComponent<SpriteRenderer>();
         if (sr != null) sr.enabled = !startHidden;
 
         var anim = treeObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
 
-        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
         var regionObj = treeObj.GetComponent<RegionObject>();
         if (regionObj != null)
         {
-            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
             regionObj.UpdateRegion();
 
-            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
-            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
             var currentRegion = RegionManager.Instance.GetRegionAtPosition(treeObj.transform.position);
             if (currentRegion != null && currentRegion.isActive) regionObj.OnRegionActivated();
         }

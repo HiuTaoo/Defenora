@@ -36,6 +36,23 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
 
     private void Update()
     {
+        if (treeState == TreeState.Chopped)
+        {
+            if (spriteAnimator != null && spriteAnimator.enabled)
+            {
+                spriteAnimator.Stop();
+                spriteAnimator.SetStaticSprite(choppedSprite);
+                spriteAnimator.enabled = false;
+
+                var render = transform.Find("Custom Render Sprite");
+                if (render != null) render.gameObject.SetActive(false);
+
+                hasBeenChopped = true;
+            }
+
+            return;
+        }
+
         if (spriteRenderer.isVisible)
         {
             if (treeState == TreeState.Idle && currentChopHit == maxChopHit && !hasBeenChopped)
@@ -78,6 +95,8 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
         var render = transform.Find("Custom Render Sprite");
         if (render != null) render.gameObject.SetActive(false);
 
+        if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.RegisterChoppedTree(this);
+
         OnChoppedObject?.Invoke(this);
     }
 
@@ -104,6 +123,11 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
     public void SetTask(Task task)
     {
         currentTask = task;
+    }
+
+    public Sprite GetChoppedSprite()
+    {
+        return choppedSprite;
     }
 
     /// <summary>
@@ -156,7 +180,8 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
         claimedBy = null;
         currentTask = null;
         OnChoppedObject = null;
-
+        treeState = TreeState.Idle;
+        
         if (spriteAnimator != null)
         {
             spriteAnimator.Stop();

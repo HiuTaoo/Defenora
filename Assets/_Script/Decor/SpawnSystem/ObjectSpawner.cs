@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using _Script.Object_Pooling;
 using UnityEngine;
+using Random = System.Random;
 
 public class ObjectSpawner : MonoBehaviour
 {
@@ -19,14 +19,25 @@ public class ObjectSpawner : MonoBehaviour
 
     public Dictionary<int, HashSet<Vector3Int>> occupiedPositions = new Dictionary<int, HashSet<Vector3Int>>();
 
-    private System.Random random;
+    [Header("--- Respawn Queue System ---")]
+    [Tooltip("Giờ trong game sẽ thực hiện làm sạch và hồi phục tài nguyên (Ví dụ: 3 = 3h sáng)")]
+    [SerializeField]
+    private int respawnHour = 3;
+
+    [SerializeField] private List<Tree> choppedTreeQueue = new();
+    [SerializeField] private List<int> harvestedBushLayerQueue = new();
+    [SerializeField] private List<int> deadAnimalLayerQueue = new();
+    private List<ChoppedTreeSaveEntry> _tempChoppedTreeData = new();
+
+    private int _bushDayTracker;
+    private Random random;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            random = new System.Random();
+            random = new Random();
         }
         else
         {
@@ -34,16 +45,21 @@ public class ObjectSpawner : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        /*if (GraphNode.Instance != null)
-        {
-            StartCoroutine(DelayedSpawn());
-        }*/
+        if (TimeOfDaySystem.Instance != null) TimeOfDaySystem.Instance.OnHourChanged += HandleHourChangedBroadcast;
     }
 
+    private void OnDisable()
+    {
+        if (TimeOfDaySystem.Instance != null) TimeOfDaySystem.Instance.OnHourChanged -= HandleHourChangedBroadcast;
+    }
+
+    #region Spawn
+
     #region Spawn Objects
-    private System.Collections.IEnumerator DelayedSpawn()
+
+    private IEnumerator DelayedSpawn()
     {
         yield return new WaitForSeconds(0.1f);
         SpawnObjectsOnAllLayers();
@@ -307,7 +323,7 @@ public class ObjectSpawner : MonoBehaviour
             GameObject treePrefab = PrefabConfig.Instance.treePrefabs[random.Next(PrefabConfig.Instance.treePrefabs.Length)];
             Vector3 worldPosition = GridToWorld(position);
 
-            GameObject treeObj = Instantiate(treePrefab, worldPosition, Quaternion.identity, this.transform);
+            var treeObj = PoolManager.Instance.Spawn(treePrefab, worldPosition, Quaternion.identity);
 
             if (treeObj.TryGetComponent<Tree>(out Tree treeComponent))
             {
@@ -519,7 +535,7 @@ public class ObjectSpawner : MonoBehaviour
         GameObject bushPrefab = PrefabConfig.Instance.bushPrefabs[random.Next(PrefabConfig.Instance.bushPrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
-        GameObject bushObj = Instantiate(bushPrefab, worldPosition, Quaternion.identity, this.transform);
+        var bushObj = PoolManager.Instance.Spawn(bushPrefab, worldPosition, Quaternion.identity);
 
         if (bushObj.TryGetComponent<Bush>(out Bush bushComponent))
         {
@@ -700,7 +716,7 @@ public class ObjectSpawner : MonoBehaviour
         GameObject rockPrefab = PrefabConfig.Instance.rockPrefabs[random.Next(PrefabConfig.Instance.rockPrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
-        GameObject rockObj = Instantiate(rockPrefab, worldPosition, Quaternion.identity, this.transform);
+        var rockObj = PoolManager.Instance.Spawn(rockPrefab, worldPosition, Quaternion.identity);
 
         if (rockObj.TryGetComponent<Rock>(out Rock rockComponent))
         {
@@ -810,7 +826,7 @@ public class ObjectSpawner : MonoBehaviour
         GameObject animalPrefab = PrefabConfig.Instance.animalPrefabs[random.Next(PrefabConfig.Instance.animalPrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
-        GameObject animalObj = Instantiate(animalPrefab, worldPosition, Quaternion.identity, this.transform);
+        var animalObj = PoolManager.Instance.Spawn(animalPrefab, worldPosition, Quaternion.identity);
 
         if (animalObj.TryGetComponent<Animal>(out Animal animalComponent))
         {
@@ -823,6 +839,8 @@ public class ObjectSpawner : MonoBehaviour
         }
         return new SpawnedAnimal(animalObj, position);
     }
+    #endregion
+
     #endregion
 
     #region Respawn System
@@ -841,7 +859,6 @@ public class ObjectSpawner : MonoBehaviour
         List<SpawnedTree> currentTrees = GetTreesOnLayer(layerIndex);
         int respawnCount = 0;
 
-        // Shuffle positions để random
         for (int i = 0; i < validPositions.Count; i++)
         {
             Vector3Int temp = validPositions[i];
@@ -875,7 +892,7 @@ public class ObjectSpawner : MonoBehaviour
                 if (!spawnedTrees.ContainsKey(layerIndex))
                     spawnedTrees[layerIndex] = new List<SpawnedTree>();
                 spawnedTrees[layerIndex].Add(newTree);
-                currentTrees.Add(newTree); // Update current list
+                currentTrees.Add(newTree); 
                 respawnCount++;
             }
         }
@@ -898,7 +915,6 @@ public class ObjectSpawner : MonoBehaviour
         List<SpawnedBush> currentBushes = GetBushesOnLayer(layerIndex);
         int respawnCount = 0;
 
-        // Shuffle positions
         for (int i = 0; i < validPositions.Count; i++)
         {
             Vector3Int temp = validPositions[i];
@@ -982,7 +998,7 @@ public class ObjectSpawner : MonoBehaviour
     /// <summary>
     /// Respawn animals trên toàn bộ map cho layer chỉ định
     /// </summary>
-    public void RespawnAnimalsOnLayer(int layerIndex, int maxRespawnCount = 3)
+    public void RespawnAnimalsOnLayer(int layerIndex, int maxRespawnCount = 10)
     {
         if (!GraphNode.Instance.layerGraphs.TryGetValue(layerIndex, out PathfindingGraph graph))
             return;
@@ -1196,7 +1212,7 @@ public class ObjectSpawner : MonoBehaviour
         GameObject treePrefab = PrefabConfig.Instance.treePrefabs[random.Next(PrefabConfig.Instance.treePrefabs.Length)];
         Vector3 worldPosition = GridToWorld(position);
 
-        GameObject treeObj = Instantiate(treePrefab, worldPosition, Quaternion.identity, this.transform);
+        var treeObj = PoolManager.Instance.Spawn(treePrefab, worldPosition, Quaternion.identity);
 
         if (treeObj.TryGetComponent<Tree>(out Tree treeComponent))
         {
@@ -1422,13 +1438,213 @@ public class ObjectSpawner : MonoBehaviour
     {
         return new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0);
     }
+
+    #endregion
+
+    #region Maintainance Resource
+
+    #region Handle Event & Midnight Maintenance
+
+    private void HandleHourChangedBroadcast(int hour)
+    {
+        if (hour == respawnHour) ExecuteMidnightResourceRecycling();
+    }
+
+    private void ExecuteMidnightResourceRecycling()
+    {
+        Debug.Log("[ObjectSpawner] 🕒 Điểm 3h sáng - Bắt đầu chu kỳ xử lý tuần hoàn tài nguyên sinh thái...");
+
+        _bushDayTracker++;
+
+        // --------------------------------------------------
+        // CHU KỲ 1: CÂY CỐI & ĐỘNG VẬT (1 Ngày 1 lần)
+        // --------------------------------------------------
+        ExecuteMidnightTreeRespawn();
+        ExecuteMidnightAnimalRespawn();
+
+        // --------------------------------------------------
+        // CHU KỲ 2: BỤI CỎ (2 Ngày 1 lần)
+        // --------------------------------------------------
+        if (_bushDayTracker >= 2)
+        {
+            ExecuteMidnightBushRespawn();
+            _bushDayTracker = 0;
+        }
+        else
+        {
+            Debug.Log($"[ObjectSpawner] Bụi cỏ cần chờ thêm (Tiến trình: {_bushDayTracker}/2 ngày). Khóa chu kỳ.");
+        }
+    }
+
+    #endregion
+
+    #region Chopped Tree & Animal Registry API
+
+    public void RegisterChoppedTree(Tree tree)
+    {
+        if (tree != null && !choppedTreeQueue.Contains(tree)) choppedTreeQueue.Add(tree);
+    }
+
+    public void RegisterHarvestedBush(Bush bushComponent)
+    {
+        if (bushComponent == null) return;
+
+        var layer = bushComponent.layerIndex;
+        var gridPos = bushComponent.positionInGrid;
+
+        if (occupiedPositions.TryGetValue(layer, out var occupied)) occupied.Remove(gridPos);
+
+        RemoveDestroyedObject(gridPos, layer, RespawnType.Bush);
+
+        PoolManager.Instance.Despawn(bushComponent.gameObject);
+
+        harvestedBushLayerQueue.Add(layer);
+
+        Debug.Log(
+            $"[ObjectSpawner] Đã thu hồi Bụi Cỏ tại ô {gridPos}. Đã đăng ký 1 suất tái sinh ngẫu nhiên cho Tầng {layer} sau 2 ngày.");
+    }
+
+    public void RegisterDeadAnimal(int layerIndex)
+    {
+        deadAnimalLayerQueue.Add(layerIndex);
+    }
+
+    #endregion
+
+    #region Midnight Execution Subroutines
+
+    private void ExecuteMidnightTreeRespawn()
+    {
+        if (choppedTreeQueue.Count == 0) return;
+
+        Debug.Log($"[ObjectSpawner] Bắt đầu dọn dẹp và hồi phục {choppedTreeQueue.Count} cây...");
+
+        var treesToProcess = new List<Tree>(choppedTreeQueue);
+        choppedTreeQueue.Clear();
+
+        var layersToRespawn = new HashSet<int>();
+
+        foreach (var tree in treesToProcess)
+        {
+            if (tree == null) continue;
+
+            var layer = tree.layerIndex;
+            var gridPos = tree.positionInGrid;
+
+            if (occupiedPositions.TryGetValue(layer, out var occupied)) occupied.Remove(gridPos);
+
+            if (GraphNode.Instance != null)
+            {
+                GraphNode.Instance.SetWalkableNode(gridPos, layer, true);
+            }
+            RemoveDestroyedObject(gridPos, layer, RespawnType.Tree);
+            PoolManager.Instance.Despawn(tree.gameObject);
+
+            layersToRespawn.Add(layer);
+        }
+
+        foreach (var layerIdx in layersToRespawn) RespawnTreesOnLayer(layerIdx, 10);
+    }
+
+    private void ExecuteMidnightAnimalRespawn()
+    {
+        if (deadAnimalLayerQueue.Count == 0) return;
+
+        Debug.Log($"[ObjectSpawner] Bắt đầu hồi sinh {deadAnimalLayerQueue.Count} cá thể động vật trên các tầng...");
+
+        var respawnCountsPerLayer = new Dictionary<int, int>();
+        foreach (var layer in deadAnimalLayerQueue)
+            if (respawnCountsPerLayer.ContainsKey(layer)) respawnCountsPerLayer[layer]++;
+            else respawnCountsPerLayer[layer] = 1;
+        deadAnimalLayerQueue.Clear();
+
+        foreach (var kvp in respawnCountsPerLayer) RespawnAnimalsOnLayer(kvp.Key, kvp.Value);
+    }
+
+    private void ExecuteMidnightBushRespawn()
+    {
+        if (harvestedBushLayerQueue.Count == 0) return;
+
+        Debug.Log(
+            $"[ObjectSpawner] Chu kỳ 2 ngày đã đến! Tiến hành hồi sinh ngẫu nhiên tổng cộng {harvestedBushLayerQueue.Count} bụi cỏ rải rác...");
+
+        var respawnBushesPerLayer = new Dictionary<int, int>();
+        foreach (var layer in harvestedBushLayerQueue)
+            if (respawnBushesPerLayer.ContainsKey(layer)) respawnBushesPerLayer[layer]++;
+            else respawnBushesPerLayer[layer] = 1;
+        harvestedBushLayerQueue.Clear();
+
+        foreach (var kvp in respawnBushesPerLayer) RespawnBushesOnLayer(kvp.Key, kvp.Value);
+    }
+
+    #endregion
+
+    #endregion
+
+    #region Save / Load System Extension
+
+    public void PopulateSpawnerSaveData(GameSaveData gameSaveData)
+    {
+        var data = new SpawnerCycleSaveData();
+        data.bushDayTracker = _bushDayTracker;
+
+        foreach (var tree in choppedTreeQueue)
+        {
+            if (tree == null) continue;
+            data.choppedTrees.Add(new ChoppedTreeSaveEntry
+            {
+                treeUniqueId = tree.GetComponent<UniqueId>()?.Id ?? "",
+                gridPosition = tree.positionInGrid,
+                layerIndex = tree.layerIndex
+            });
+        }
+
+        data.harvestedBushLayers = new List<int>(harvestedBushLayerQueue);
+        data.deadAnimalLayers = new List<int>(deadAnimalLayerQueue);
+
+        gameSaveData.spawnerCycleData = data;
+    }
+
+    public void LoadSpawnerFromSaveData(GameSaveData gameSaveData)
+    {
+        var data = gameSaveData.spawnerCycleData;
+        if (data == null) return;
+
+        _bushDayTracker = data.bushDayTracker;
+
+        choppedTreeQueue.Clear();
+        harvestedBushLayerQueue.Clear();
+        deadAnimalLayerQueue.Clear();
+
+        if (data.deadAnimalLayers != null) deadAnimalLayerQueue = new List<int>(data.deadAnimalLayers);
+        if (data.harvestedBushLayers != null) harvestedBushLayerQueue = new List<int>(data.harvestedBushLayers);
+
+        _tempChoppedTreeData = data.choppedTrees != null
+            ? new List<ChoppedTreeSaveEntry>(data.choppedTrees)
+            : new List<ChoppedTreeSaveEntry>();
+    }
+
+    public void LinkChoppedTreesOnMapLoaded()
+    {
+        if (_tempChoppedTreeData == null || _tempChoppedTreeData.Count == 0) return;
+
+        Debug.Log(
+            $"[ObjectSpawner] Bắt đầu liên kết lại {_tempChoppedTreeData.Count} gốc cây mục vào hàng chờ tái sinh...");
+
+        var allUniqueIds = FindObjectsOfType<UniqueId>();
+
+        foreach (var treeEntry in _tempChoppedTreeData)
+        {
+            var matchedComponent = allUniqueIds.FirstOrDefault(u => u.Id == treeEntry.treeUniqueId);
+            if (matchedComponent != null && matchedComponent.TryGetComponent<Tree>(out var runtimeTree))
+                choppedTreeQueue.Add(runtimeTree);
+        }
+
+        _tempChoppedTreeData.Clear();
+        Debug.Log(
+            $"[ObjectSpawner] Kết nối thành công! Số lượng cây trong hàng chờ hiện tại: {choppedTreeQueue.Count}");
+    }
+
     #endregion
 }
 
-public enum RespawnType
-{
-    Tree,
-    Bush,
-    Rock,
-    Animal
-}

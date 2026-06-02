@@ -203,6 +203,8 @@ public abstract class Animal : MonoBehaviour, IPoolable
             rb.velocity = Vector2.zero;
             rb.isKinematic = true;
         }
+
+        ObjectSpawner.Instance.RegisterDeadAnimal(layerIndex);
     }
 
     private void OnDisable()

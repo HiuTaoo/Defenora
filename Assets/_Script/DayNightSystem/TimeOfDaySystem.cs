@@ -9,18 +9,18 @@ public class TimeOfDaySystem : MonoBehaviour
     public static TimeOfDaySystem Instance;
 
     [Header("Lighting Settings")] public Light2D globalLight;
-
     public Gradient dayColorGradient;
     public AnimationCurve intensityCurve;
 
     [Header("Time Settings")] [Range(0f, 24f)] [SerializeField]
     private float currentTime = 6f;
-
     public float dayLengthInMinutes = 5f;
 
     [Header("Timer Text")] public TextMeshProUGUI timeDisplayText;
-
     private float timeMultiplier;
+
+    public Action<int> OnHourChanged;
+    private int _lastHourValue = -1;
 
     private void Awake()
     {
@@ -35,8 +35,9 @@ public class TimeOfDaySystem : MonoBehaviour
     private void Start()
     {
         timeMultiplier = 24f / (dayLengthInMinutes * 60f);
-    }
 
+        _lastHourValue = Mathf.FloorToInt(currentTime);
+    }
 
     private void Update()
     {
@@ -46,12 +47,19 @@ public class TimeOfDaySystem : MonoBehaviour
 
         UpdateLighting();
         UpdateTimeDisplay();
+
+        var currentHourInt = Mathf.FloorToInt(currentTime);
+        if (currentHourInt != _lastHourValue)
+        {
+            _lastHourValue = currentHourInt;
+
+            OnHourChanged?.Invoke(currentHourInt);
+        }
     }
 
     private void UpdateLighting()
     {
         var timePercent = currentTime / 24f;
-
         if (globalLight != null)
         {
             globalLight.color = dayColorGradient.Evaluate(timePercent);
@@ -65,13 +73,17 @@ public class TimeOfDaySystem : MonoBehaviour
         var minutes = Mathf.FloorToInt((currentTime - hours) * 60f);
 
         var formattedTime = $"{hours:00}:{minutes:00}";
-
         if (timeDisplayText != null) timeDisplayText.text = formattedTime;
     }
 
     public float GetCurrentTime()
     {
         return currentTime;
+    }
+
+    public int GetCurrentHourInt()
+    {
+        return Mathf.FloorToInt(currentTime);
     }
 
     public bool IsNightTime()

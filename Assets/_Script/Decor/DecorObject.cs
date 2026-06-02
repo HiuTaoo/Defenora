@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using _Script.Object_Pooling;
 using UnityEngine;
 
 public abstract class DecorObject : MonoBehaviour, IChoppable, IPoolable
@@ -70,7 +68,7 @@ public abstract class DecorObject : MonoBehaviour, IChoppable, IPoolable
         OnChoppedObject?.Invoke(this); 
     }
 
-    public void OnChopped()
+    public virtual void OnChopped()
     {
         OnClearObject();
     }
