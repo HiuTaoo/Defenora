@@ -1,10 +1,15 @@
-using System.Collections; // Cần thiết để dùng Coroutine
-using UnityEngine;
-using UnityEngine.UI; // Cần thiết để dùng UI Slider
-using UnityEngine.EventSystems;
+using System;
+using System.Collections;
+using System.IO;
 using DG.Tweening;
 using TMPro;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+// Cần thiết để dùng Coroutine
+// Cần thiết để dùng UI Slider
 
 public class MainMenuManager : MonoBehaviour
 {
@@ -127,9 +132,34 @@ public class MainMenuManager : MonoBehaviour
     public void QuitGame()
     {
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
+        EditorApplication.isPlaying = false;
 #else
     Application.Quit();
 #endif
     }
+
+    public void RestartGame()
+    {
+        if (isTransitioning) return;
+
+        var saveFilePath = Path.Combine(Application.persistentDataPath, "savegame.json");
+
+        try
+        {
+            if (File.Exists(saveFilePath))
+            {
+                File.Delete(saveFilePath);
+                Debug.Log("[Main Menu] 🚨 Đã xóa dữ liệu file save cũ thành công để chuẩn bị chơi mới!");
+            }
+            else
+            {
+                Debug.Log("[Main Menu] Không tìm thấy file save cũ, tiến hành tạo mới hoàn toàn.");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[Main Menu] Lỗi khi xóa file save: {e.Message}");
+        }
+    }
+ 
 }

@@ -78,7 +78,7 @@ public class ShopManager : MonoBehaviour
     /// <summary>
     /// Hàm xử lý bốc ngẫu nhiên các phần tử (Chỉ chạy ở Daily Mode)
     /// </summary>
-    private void GenerateDailyItems()
+    public void GenerateDailyItems()
     {
         dailyUnits.Clear();
         dailyResources.Clear();

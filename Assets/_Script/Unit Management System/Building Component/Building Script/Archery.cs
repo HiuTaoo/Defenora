@@ -1,8 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using _Script.Data;
-using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using UnityEngine;
@@ -15,30 +12,9 @@ public class Archery : TrainingBuilding
     [Header("Spot Reference")]
     [SerializeField] private GameObject traineeSpot;
 
-    #region Đồng bộ dữ liệu cấu hình ban đầu lên Base Class
-    protected override TrainingConfig[] GetUpgradeConfigs()
-    {
-        var data = configData as ArcheryData;
-        if (data == null) return null;
-
-        // Chuyển cấu hình đơn lẻ kiểu cũ của Archery thành cấu hình chung để UI đọc được
-        // Đồng thời truyền mảng trainingCosts từ ScriptableObject vào đây
-        return new TrainingConfig[] {
-            new TrainingConfig {
-                targetType = UnitType.Archer,
-                trainingDurationInGameHours = data.trainingDuration,
-                unitPrefab = PrefabConfig.Instance.archerPrefab,
-                trainingCosts = data.trainingCosts // <--- ĐỒNG BỘ TÀI NGUYÊN TIÊU HAO VÀO RUNTIME CONFIG
-            }
-        };
-    }
-
-    protected override int GetMaxTraineeCapacity() => (configData as ArcheryData)?.maxTraineeCapacity ?? 3;
-    #endregion
-
     public override void Awake()
     {
-        base.Awake(); 
+        base.Awake();
 
         if (configData is ArcheryData archeryConfig)
         {
@@ -46,8 +22,26 @@ public class Archery : TrainingBuilding
             maxTraineeCapacity = archeryConfig.maxTraineeCapacity;
         }
     }
+    
+    #region Đồng bộ dữ liệu cấu hình ban đầu lên Base Class
+    protected override TrainingConfig[] GetUpgradeConfigs()
+    {
+        var data = configData as ArcheryData;
+        if (data == null) return null;
 
-    // 🌟 OVERRIDE: Giữ nguyên logic tính giờ SONG SONG cho toàn bộ danh sách trong hàng chờ
+        return new TrainingConfig[] {
+            new TrainingConfig {
+                targetType = UnitType.Archer,
+                trainingDurationInGameHours = data.trainingDuration,
+                unitPrefab = PrefabConfig.Instance.archerPrefab,
+                trainingCosts = data.trainingCosts 
+            }
+        };
+    }
+
+    protected override int GetMaxTraineeCapacity() => (configData as ArcheryData)?.maxTraineeCapacity ?? 3;
+    #endregion
+
     protected override void ProcessTraining(float gameTimeDelta)
     {
         for (int i = trainingSlots.Count - 1; i >= 0; i--)
@@ -64,7 +58,6 @@ public class Archery : TrainingBuilding
         SyncDebugView();
     }
 
-    // 🌟 OVERRIDE: Xử lý tốt nghiệp sinh ra Archer
     protected override void GraduateTrainee(TrainingSlot slot)
     {
         Unit unit = slot.npcUnit;
@@ -86,25 +79,20 @@ public class Archery : TrainingBuilding
         SyncDebugView();
     }
 
-    // 🌟 OVERRIDE: Nạp học viên - Tích hợp kiểm tra và trừ tài nguyên
     public override void AddUnit(Unit unit)
     {
         if (unit.unitType == UnitType.Civilian)
         {
-            // Lấy cấu hình mặc định (Archer)
             TrainingConfig config = availableConfigs != null && availableConfigs.Length > 0 ? availableConfigs[0] : default;
 
-            // 1. Kiểm tra tài nguyên từ Kho tổng (Dựa vào hàm đã viết ở lớp cha)
             if (!HasEnoughResources(config))
             {
                 Debug.LogWarning($"[Archery] Không đủ tài nguyên để bắt đầu huấn luyện!");
                 return; 
             }
 
-            // 2. Kiểm tra các điều kiện khác (ví dụ: Sức chứa tối đa) bằng hàm CanAddUnit của lớp cha
             if (!CanAddUnit(unit)) return;
 
-            // 3. Thực hiện trừ tài nguyên trong Inventory
             if (config.trainingCosts != null && config.trainingCosts.Length > 0 && Inventory.Instance != null)
             {
                 foreach (var cost in config.trainingCosts)
@@ -115,7 +103,6 @@ public class Archery : TrainingBuilding
                 }
             }
 
-            // 4. Logic nạp đơn vị vào hàng chờ (Giữ nguyên logic Visual của bạn)
             unit.floorAgent.MoveToFloor(LayerIndex);
             unit.assignedBuilding = this;
             
@@ -145,13 +132,11 @@ public class Archery : TrainingBuilding
         SyncDebugView();
     }
 
-    // Cổng phụ kết nối luồng click UI - Trực tiếp đi qua AddUnit để áp dụng kiểm tra tài nguyên
     public override void AddTraineeWithSelection(Unit unit, UnitType targetType)
     {
         AddUnit(unit);
     }
 
-    // 🌟 OVERRIDE: Hủy hàng chờ - Hoàn trả lại tài nguyên cho người chơi
     public override bool RemoveUnit(Unit unit)
     {
         if (unit.unitType == UnitType.Civilian)
@@ -161,7 +146,6 @@ public class Archery : TrainingBuilding
             {
                 var slotToCancel = trainingSlots[index];
 
-                // HOÀN TRẢ TÀI NGUYÊN: Trả lại toàn bộ chi phí huấn luyện vào Inventory
                 if (slotToCancel.trainingConfig.trainingCosts != null && Inventory.Instance != null)
                 {
                     foreach (var cost in slotToCancel.trainingConfig.trainingCosts)
@@ -172,7 +156,6 @@ public class Archery : TrainingBuilding
                     }
                 }
 
-                // Tiến hành xóa khỏi danh sách hàng chờ như cũ
                 trainingSlots.RemoveAt(index);
                 currentTraineeCount = trainingSlots.Count;
                 

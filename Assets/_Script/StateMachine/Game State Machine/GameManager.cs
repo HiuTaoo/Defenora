@@ -1,4 +1,5 @@
-﻿using _Script.StateMachine.Game_State_Machine.State;
+﻿using System.Collections;
+using _Script.StateMachine.Game_State_Machine.State;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,6 +13,14 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
         
+    }
+
+    private IEnumerator Start()
+    {
+        InitializeStateMachine();
+
+        // Chạy tiến trình khởi chạy game và đợi cho đến khi hoàn thành xong xuôi
+        yield return StartCoroutine(StartGameCoroutine());
     }
 
     private void InitializeStateMachine()
@@ -37,11 +46,6 @@ public class GameManager : MonoBehaviour
         
     }
 
-    private void Start()
-    {
-        InitializeStateMachine();
-        StateMachine.ChangeState(GameStateType.Playing);
-    }
 
     private void Update()
     {
@@ -110,6 +114,68 @@ public class GameManager : MonoBehaviour
     public void SaveGame()
     {
         SaveLoadSystem.Instance.SaveGame();
+    }
+
+    #endregion
+
+    #region Game Flow Management (Khởi Chạy & Chơi Lại)
+
+    private IEnumerator StartGameCoroutine()
+    {
+        if (SaveLoadSystem.Instance == null)
+        {
+            Debug.LogError("[GameManager] Không tìm thấy hệ thống SaveLoadSystem trên Scene!");
+            yield break;
+        }
+
+        if (SaveLoadSystem.Instance.HasSaveData())
+        {
+            Debug.Log("[GameManager] Tìm thấy file dữ liệu cũ! Tiến hành nạp màn chơi từ file save...");
+
+            if (SaveLoadSystem.Instance.loadAsync)
+                yield return StartCoroutine(SaveLoadSystem.Instance.LoadGameAsync());
+            else
+                SaveLoadSystem.Instance.LoadGame();
+        }
+        else
+        {
+            Debug.Log("[GameManager] File save trống! Bắt đầu tạo dựng thế giới mới tinh...");
+
+            if (ObjectSpawner.Instance != null)
+            {
+                ApplyStartGameSettings();
+                Debug.Log("[GameManager] Đã tạo dựng thành công hệ sinh thái tài nguyên vòng lặp đầu tiên.");
+            }
+        }
+
+        ChangeToPlayingState();
+    }
+
+    public void StartGame()
+    {
+        StartCoroutine(StartGameCoroutine());
+    }
+
+    public void RestartGame()
+    {
+        if (SaveLoadSystem.Instance == null) return;
+
+        Debug.Log("[GameManager] 🚨 Yêu cầu khởi động lại! Tiến hành xóa file dữ liệu save...");
+
+        if (SaveLoadSystem.Instance.HasSaveData()) SaveLoadSystem.Instance.DeleteSaveData();
+
+        StartGame();
+    }
+
+    public void ApplyStartGameSettings()
+    {
+        ObjectSpawner.Instance.SpawnObjectsOnAllLayers();
+        if (UnitManager.Instance != null)
+            UnitManager.Instance.UpdateGraphNodeWhenStart();
+        else
+            Debug.LogError("[GameManager] Không tìm thấy ObjectSpawner.Instance để kiến tạo tài nguyên!");
+        WalletManager.Instance.SetCoinsOnLoad(10);
+        ShopManager.Instance.GenerateDailyItems();
     }
 
     #endregion

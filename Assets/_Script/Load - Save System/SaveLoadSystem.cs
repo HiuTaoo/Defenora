@@ -56,10 +56,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     {
         saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
 
-        if (loadAsync)
+        /*if (loadAsync)
             StartCoroutine(LoadGameAsync());
         else
-            LoadGame();
+            LoadGame();*/
     }
 
     private void LateUpdate()
@@ -85,6 +85,38 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         Debug.Log($"Game saved to {saveFilePath}");
     }
 
+    public void LoadGame()
+    {
+        if (loadAsync)
+            return;
+
+        if (!File.Exists(saveFilePath))
+        {
+            Debug.LogWarning("No save file found!");
+            return;
+        }
+
+        saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
+
+        var originalTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+
+        var json = File.ReadAllText(saveFilePath);
+        var saveData = JsonUtility.FromJson<GameSaveData>(json);
+
+        foreach (var saveAble in saveables) saveAble.LoadFromSaveData(saveData);
+
+        LoadTaskDataOnly(saveData);
+
+        UnitManager.Instance.UpdateGraphNodeWhenStart();
+
+        Debug.Log($"Game loaded from {saveFilePath}");
+
+        Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
+
+        OnLoaded?.Invoke();
+    }
+
     public IEnumerator LoadGameAsync()
     {
         if (!File.Exists(saveFilePath))
@@ -92,6 +124,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             Debug.LogWarning("No save file found!");
             yield break;
         }
+
+        saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
 
         var originalTimeScale = Time.timeScale;
         Time.timeScale = 0f;
@@ -112,38 +146,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
     }
 
-    public void LoadGame()
-    {
-        if (loadAsync)
-        {
-            StartCoroutine(LoadGameAsync());
-            return;
-        }
-
-        if (!File.Exists(saveFilePath))
-        {
-            Debug.LogWarning("No save file found!");
-            return;
-        }
-
-        var originalTimeScale = Time.timeScale;
-        Time.timeScale = 0f;
-
-        var json = File.ReadAllText(saveFilePath);
-        var saveData = JsonUtility.FromJson<GameSaveData>(json);
-
-        foreach (var saveAble in saveables) saveAble.LoadFromSaveData(saveData);
-
-        LoadTaskDataOnly(saveData);
-
-        UnitManager.Instance.UpdateGraphNodeWhenStart();
-
-        Debug.Log($"Game loaded from {saveFilePath}");
-
-        Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
-
-        OnLoaded?.Invoke();
-    }
+    
 
     #region Helper
 
@@ -644,8 +647,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     {
         if (saveData == null) yield break;
 
-        var regionTasks =
-            new Dictionary<Vector2Int, List<Action<bool>>>();
+        var regionTasks = new Dictionary<Vector2Int, List<Action<bool>>>();
 
         void AddTaskToRegion(Vector3 pos, Action<bool> loadTask)
         {
@@ -669,7 +671,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             regionTasks[key].Add(loadTask);
         }
 
-        // Phân loại toàn bộ object vào các Region tương ứng
         foreach (var layerData in saveData.layerData)
         {
             var currentLayerIndex = layerData.layerIndex;
@@ -727,10 +728,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             }
         }
 
-        yield return new WaitForEndOfFrame();
-
         var firstRegionKeys = RegionManager.Instance.GetRegionKeysAroundCamera();
-
         var cameraPos = Camera.main != null ? (Vector2)Camera.main.transform.position : Vector2.zero;
 
         var remainingRegionKeys = regionTasks.Keys
@@ -739,7 +737,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             .ToList();
 
         var processedCount = 0;
-
         var allSortedRegionKeys = new List<Vector2Int>();
         allSortedRegionKeys.AddRange(firstRegionKeys);
         allSortedRegionKeys.AddRange(remainingRegionKeys);
@@ -758,7 +755,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 if (processedCount >= objectsPerFrame)
                 {
                     processedCount = 0;
-                    yield return new WaitForSecondsRealtime(0.001f);
+                    yield return null; 
                 }
             }
         }
@@ -766,9 +763,10 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         UnitManager.Instance.UpdateGraphNodeWhenStart();
         Debug.Log("[SaveLoadSystem] Đã khôi phục xong toàn bộ thực thể Decor trên bản đồ.");
 
-        if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.LinkChoppedTreesOnMapLoaded();
+        if (ObjectSpawner.Instance != null)
+            ObjectSpawner.Instance.LinkChoppedTreesOnMapLoaded();
 
-        OnLoaded?.Invoke();
+        OnLoaded?.Invoke(); 
     }
 
     private void LoadLayerData(LayerSpawnData layerData)

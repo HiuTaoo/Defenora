@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,13 +15,18 @@ public class PoolManager : MonoBehaviour
     private void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
         else
         {
             Destroy(gameObject);
-            return;
         }
+    }
 
+    private void Start()
+    {
         InitializePools();
     }
 
@@ -79,7 +85,7 @@ public class PoolManager : MonoBehaviour
     }
 }
 
-[System.Serializable]
+[Serializable]
 public class PoolConfig
 {
     public GameObject prefab;
