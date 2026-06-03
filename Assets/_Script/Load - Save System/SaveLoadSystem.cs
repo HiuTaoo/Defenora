@@ -34,6 +34,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     private UnitManager unitManager;
 
+
     private string saveFilePath => Path.Combine(Application.persistentDataPath, "savegame.json");
 
     private void Awake()
@@ -48,18 +49,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             return;
         }
 
-        unitManager = FindObjectOfType<UnitManager>();
+        unitManager = UnitManager.Instance;
         decorObjectParent = transform.Find("Decor Object");
     }
 
     private void Start()
     {
         saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
-
-        /*if (loadAsync)
-            StartCoroutine(LoadGameAsync());
-        else
-            LoadGame();*/
     }
 
     private void LateUpdate()
@@ -76,6 +72,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         OnSave?.Invoke();
 
         var saveData = new GameSaveData();
+        saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
 
         foreach (var saveAble in saveables) saveAble.PopulateSaveData(saveData);
 
@@ -97,10 +94,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
 
         saveables = FindObjectsOfType<MonoBehaviour>().OfType<ISaveable>().ToList();
-
-        var originalTimeScale = Time.timeScale;
-        Time.timeScale = 0f;
-
+        
         var json = File.ReadAllText(saveFilePath);
         var saveData = JsonUtility.FromJson<GameSaveData>(json);
 
@@ -111,9 +105,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         UnitManager.Instance.UpdateGraphNodeWhenStart();
 
         Debug.Log($"Game loaded from {saveFilePath}");
-
-        Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
-
+        
         OnLoaded?.Invoke();
     }
 
@@ -176,6 +168,13 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     public void PopulateSaveData(GameSaveData saveData)
     {
         saveData.totalCoins = WalletManager.Instance.CurrentCoins;
+        saveData.isGameOver = GameManager.Instance != null &&
+                              GameManager.Instance.StateMachine.CurrentStateType == GameStateType.GameOver;
+        if (TimeOfDaySystem.Instance != null)
+        {
+            saveData.currentDay = TimeOfDaySystem.Instance.CurrentDay;
+            saveData.currentTimeInDay = TimeOfDaySystem.Instance.GetCurrentTime();
+        }
 
         #region Save Unit Data
 
@@ -330,173 +329,176 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     {
         if (WalletManager.Instance != null) WalletManager.Instance.SetCoinsOnLoad(saveData.totalCoins);
 
-        #region Load Building & Storage Content
-
-        var buildingData = saveData.buildingSaveData;
-
-        foreach (var building in unitManager.buildings)
-            Destroy(building.gameObject);
-        unitManager.buildings.Clear();
-
-        foreach (var buildingDatum in buildingData.buildings)
+        if (TimeOfDaySystem.Instance != null)
         {
-            var building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
+            TimeOfDaySystem.Instance.SetCurrentTime(saveData.currentTimeInDay);
+            TimeOfDaySystem.Instance.SetCurrentDay(saveData.currentDay);
 
-            building.OverrideId(buildingDatum.buildingID);
-            building.name = buildingDatum.buildingName;
-            building.buildingName = buildingDatum.buildingName;
-            building.LayerIndex = buildingDatum.layerIndex;
-            building.buildingState = buildingDatum.buildingState;
-            building.maxCapacity = buildingDatum.maxCapacity;
-            building.currentCapacity = buildingDatum.currentCapacity;
-            building.health.SetCurrentHealth(buildingDatum.currentHealth);
+            #region Load Building & Storage Content
 
-            if (building is Storage storageBuilding)
-                //storageBuilding.ClearStorage(); 
-                foreach (var savedSlot in buildingDatum.storageSlots)
-                {
-                    var itemSO = SOManager.Instance.GetItemDataById(savedSlot.itemID);
-                    if (itemSO != null) storageBuilding.Add(itemSO, savedSlot.amount);
-                }
-
-            var customRender = building.transform.Find("Custom Render Sprite");
-            if (customRender != null) customRender.GetComponent<CustomRender>().layerIndex = building.LayerIndex;
-        }
-
-        #endregion
-
-        #region Load Unit
-
-        var unitData = saveData.unitSaveData;
-
-        foreach (var unit in unitManager.allUnits)
-            Destroy(unit.gameObject);
-        unitManager.allUnits.Clear();
-
-        foreach (var unitDatum in unitData.units)
-        {
-            var unit = unitManager.CreateUnit(unitDatum.unitType, unitDatum.position);
-            unit.OverrideId(unitDatum.id);
-            unit.unitName = unitDatum.unitName;
-            unit.unitType = unitDatum.unitType;
-            unit.gameObject.name = unitDatum.unitName;
-            unit.characterMovement.CurrentLayer = unitDatum.layerIndex;
-            unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
-            unit.unitStatsManager.SetLevel(unitDatum.level);
-            if (unit.health != null && unit.unitStatsManager != null)
-                unit.health.maxHealth = unit.unitStatsManager.MaxHealth;
-            unit.health.SetCurrentHealth(unitDatum.currentHealth);
-            unit.currentState = UnitState.Idle;
-            unit.animState = AnimState.Idle;
-
-            var unitInv = unit.GetComponentInChildren<UnitInventory>();
-            if (unitInv != null)
-            {
-                unitInv.Clear();
-                foreach (var savedSlot in unitDatum.backpackSlots)
-                {
-                    var itemSO = SOManager.Instance.GetItemDataById(savedSlot.itemID);
-                    if (itemSO != null) unitInv.Add(itemSO, savedSlot.amount);
-                }
-            }
+            var buildingData = saveData.buildingSaveData;
 
             foreach (var building in unitManager.buildings)
+                Destroy(building.gameObject);
+            unitManager.buildings.Clear();
+
+            foreach (var buildingDatum in buildingData.buildings)
             {
-                if (building.GetId() != unitDatum.assignedBuilding)
-                    continue;
+                var building = unitManager.CreateBuilding(buildingDatum.buildingType, buildingDatum.position);
 
-                var isAssignedAsTrainee = false;
+                building.OverrideId(buildingDatum.buildingID);
+                building.name = buildingDatum.buildingName;
+                building.buildingName = buildingDatum.buildingName;
+                building.LayerIndex = buildingDatum.layerIndex;
+                building.buildingState = buildingDatum.buildingState;
+                building.maxCapacity = buildingDatum.maxCapacity;
+                building.currentCapacity = buildingDatum.currentCapacity;
+                building.health.SetCurrentHealth(buildingDatum.currentHealth);
 
-                // ------------------------------------------------------------
-                // NHÁNH 1: Kiểm tra xem Unit này có phải là Học viên đang học dở tại đây không
-                // ------------------------------------------------------------
-                if (building is TrainingBuilding trainingBuilding)
-                {
-                    var savedBuildingData = saveData.buildingSaveData.buildings
-                        .FirstOrDefault(b => b.buildingID == building.GetId());
-
-                    if (savedBuildingData != null && savedBuildingData.traineeSlots != null)
+                if (building is Storage storageBuilding)
+                    //storageBuilding.ClearStorage(); 
+                    foreach (var savedSlot in buildingDatum.storageSlots)
                     {
-                        var hasTrainee = savedBuildingData.traineeSlots.Any(t => t.unitID == unit.GetId());
+                        var itemSO = SOManager.Instance.GetItemDataById(savedSlot.itemID);
+                        if (itemSO != null) storageBuilding.Add(itemSO, savedSlot.amount);
+                    }
 
-                        if (hasTrainee)
-                        {
-                            var traineeData = savedBuildingData.traineeSlots.First(t => t.unitID == unit.GetId());
+                var customRender = building.transform.Find("Custom Render Sprite");
+                if (customRender != null) customRender.GetComponent<CustomRender>().layerIndex = building.LayerIndex;
+            }
 
-                            trainingBuilding.ForceAddTraineeOnLoad(unit, traineeData.currentTrainingHours,
-                                traineeData.targetType);
-                            isAssignedAsTrainee = true;
-                        }
+            #endregion
+
+            #region Load Unit
+
+            var unitData = saveData.unitSaveData;
+
+            foreach (var unit in unitManager.allUnits)
+                Destroy(unit.gameObject);
+            unitManager.allUnits.Clear();
+
+            foreach (var unitDatum in unitData.units)
+            {
+                var unit = unitManager.CreateUnit(unitDatum.unitType, unitDatum.position);
+                unit.OverrideId(unitDatum.id);
+                unit.unitName = unitDatum.unitName;
+                unit.unitType = unitDatum.unitType;
+                unit.gameObject.name = unitDatum.unitName;
+                unit.characterMovement.CurrentLayer = unitDatum.layerIndex;
+                unit.floorAgent.MoveToFloor(unitDatum.layerIndex);
+                unit.unitStatsManager.SetLevel(unitDatum.level);
+                if (unit.health != null && unit.unitStatsManager != null)
+                    unit.health.maxHealth = unit.unitStatsManager.MaxHealth;
+                unit.health.SetCurrentHealth(unitDatum.currentHealth);
+                unit.currentState = UnitState.Idle;
+                unit.animState = AnimState.Idle;
+
+                var unitInv = unit.GetComponentInChildren<UnitInventory>();
+                if (unitInv != null)
+                {
+                    unitInv.Clear();
+                    foreach (var savedSlot in unitDatum.backpackSlots)
+                    {
+                        var itemSO = SOManager.Instance.GetItemDataById(savedSlot.itemID);
+                        if (itemSO != null) unitInv.Add(itemSO, savedSlot.amount);
                     }
                 }
 
-                // ------------------------------------------------------------
-                // NHÁNH 2: Nếu KHÔNG phải học viên, tiến hành gán vào lính gác (stationedUnits)
-                // ------------------------------------------------------------
-                if (!isAssignedAsTrainee)
+                foreach (var building in unitManager.buildings)
                 {
-                    building.ForceAddUnitOnLoad(unit);
+                    if (building.GetId() != unitDatum.assignedBuilding)
+                        continue;
 
-                    var guardComponent = building.gameObject.GetComponent<GuardComponent>();
-                    if (guardComponent != null)
+                    var isAssignedAsTrainee = false;
+
+                    // ------------------------------------------------------------
+                    // NHÁNH 1: Kiểm tra xem Unit này có phải là Học viên đang học dở tại đây không
+                    // ------------------------------------------------------------
+                    if (building is TrainingBuilding trainingBuilding)
                     {
                         var savedBuildingData = saveData.buildingSaveData.buildings
-                            .FirstOrDefault(b => b.buildingID == unitDatum.assignedBuilding);
+                            .FirstOrDefault(b => b.buildingID == building.GetId());
 
-                        if (savedBuildingData != null && savedBuildingData.archerPositions != null)
+                        if (savedBuildingData != null && savedBuildingData.traineeSlots != null)
                         {
-                            var matchedSpotData = savedBuildingData.archerPositions
-                                .FirstOrDefault(s => s.unitId == unit.GetId());
+                            var hasTrainee = savedBuildingData.traineeSlots.Any(t => t.unitID == unit.GetId());
 
-                            if (!string.IsNullOrEmpty(matchedSpotData.unitId))
+                            if (hasTrainee)
                             {
-                                if (guardComponent.listArcherPositions == null)
-                                {
-                                    guardComponent.listArcherPositions = new List<SpotData>();
-                                }
+                                var traineeData = savedBuildingData.traineeSlots.First(t => t.unitID == unit.GetId());
 
-                                bool isAlreadyRestored = guardComponent.listArcherPositions
-                                    .Any(s => s.unitId == unit.GetId());
+                                trainingBuilding.ForceAddTraineeOnLoad(unit, traineeData.currentTrainingHours,
+                                    traineeData.targetType);
+                                isAssignedAsTrainee = true;
+                            }
+                        }
+                    }
 
-                                if (!isAlreadyRestored)
+                    // ------------------------------------------------------------
+                    // NHÁNH 2: Nếu KHÔNG phải học viên, tiến hành gán vào lính gác (stationedUnits)
+                    // ------------------------------------------------------------
+                    if (!isAssignedAsTrainee)
+                    {
+                        building.ForceAddUnitOnLoad(unit);
+
+                        var guardComponent = building.gameObject.GetComponent<GuardComponent>();
+                        if (guardComponent != null)
+                        {
+                            var savedBuildingData = saveData.buildingSaveData.buildings
+                                .FirstOrDefault(b => b.buildingID == unitDatum.assignedBuilding);
+
+                            if (savedBuildingData != null && savedBuildingData.archerPositions != null)
+                            {
+                                var matchedSpotData = savedBuildingData.archerPositions
+                                    .FirstOrDefault(s => s.unitId == unit.GetId());
+
+                                if (!string.IsNullOrEmpty(matchedSpotData.unitId))
                                 {
-                                    guardComponent.listArcherPositions.Add(new SpotData
+                                    if (guardComponent.listArcherPositions == null)
+                                        guardComponent.listArcherPositions = new List<SpotData>();
+
+                                    var isAlreadyRestored = guardComponent.listArcherPositions
+                                        .Any(s => s.unitId == unit.GetId());
+
+                                    if (!isAlreadyRestored)
                                     {
-                                        position = matchedSpotData.position,
-                                        unitId = unit.GetId()
-                                    });
-                                    
-                                    unit.transform.position = matchedSpotData.position;
+                                        guardComponent.listArcherPositions.Add(new SpotData
+                                        {
+                                            position = matchedSpotData.position,
+                                            unitId = unit.GetId()
+                                        });
+
+                                        unit.transform.position = matchedSpotData.position;
+                                    }
                                 }
                             }
                         }
                     }
+
+                    break;
                 }
-
-                break;
             }
+
+            #endregion
+
+            #region Load Shop Data
+
+            if (ShopManager.Instance != null) ShopManager.Instance.LoadShopFromSaveData(saveData);
+
+            #endregion
+
+            #region Load Ground Items Data
+
+            if (ItemManager.Instance != null) ItemManager.Instance.LoadItemsFromSaveData(saveData);
+
+            #endregion
+
+            #region Load Respawn Info
+
+            if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.LoadSpawnerFromSaveData(saveData);
+
+            #endregion
         }
-
-        #endregion
-
-        #region Load Shop Data
-
-        if (ShopManager.Instance != null) ShopManager.Instance.LoadShopFromSaveData(saveData);
-
-        #endregion
-        
-        #region Load Ground Items Data
-        if (ItemManager.Instance != null)
-        {
-            ItemManager.Instance.LoadItemsFromSaveData(saveData);
-        }
-        #endregion
-
-        #region Load Respawn Info
-
-        if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.LoadSpawnerFromSaveData(saveData);
-
-        #endregion
     }
 
     private void LoadTaskDataOnly(GameSaveData saveData)
@@ -857,15 +859,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         var anim = treeObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
 
-        var regionObj = treeObj.GetComponent<RegionObject>();
-        if (regionObj != null)
-        {
-            regionObj.UpdateRegion();
-
-            var currentRegion = RegionManager.Instance.GetRegionAtPosition(treeObj.transform.position);
-            if (currentRegion != null && currentRegion.isActive) regionObj.OnRegionActivated();
-        }
-
         if (treeObj.TryGetComponent(out Tree treeComponent))
         {
             treeComponent.layerIndex = treeData.layerIndex;
@@ -911,7 +904,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         var worldPosition = ObjectSpawner.Instance.GridToWorld(bushData.gridPosition);
 
         var bushObj = PoolManager.Instance.Spawn(bushPrefab, worldPosition, Quaternion.identity);
-        bushObj.transform.SetParent(transform);
         bushObj.transform.SetParent(decorObjectParent);
         bushObj.OverrideId(bushData.id);
 
@@ -921,20 +913,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         var anim = bushObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
-
-        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
-        var regionObj = bushObj.GetComponent<RegionObject>();
-        if (regionObj != null)
-        {
-            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
-            regionObj.UpdateRegion();
-
-            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
-            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
-            var currentRegion = RegionManager.Instance.GetRegionAtPosition(bushObj.transform.position);
-            if (currentRegion != null && currentRegion.isActive) regionObj.OnRegionActivated();
-        }
-
+        
         if (bushObj.TryGetComponent(out Bush bushComponent))
         {
             bushComponent.layerIndex = bushData.layerIndex;
@@ -974,19 +953,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         var anim = rockObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
-
-        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
-        var regionObj = rockObj.GetComponent<RegionObject>();
-        if (regionObj != null)
-        {
-            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
-            regionObj.UpdateRegion();
-
-            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
-            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
-            var currentRegion = RegionManager.Instance.GetRegionAtPosition(rockObj.transform.position);
-            if (currentRegion != null && currentRegion.isActive) regionObj.OnRegionActivated();
-        }
 
         if (rockObj.TryGetComponent(out Rock rockComponent))
         {
@@ -1029,19 +995,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         var anim = animalObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
 
-        // 2. ÉP CẬP NHẬT LẠI REGION TẠI VỊ TRÍ MỚI
-        var regionObj = animalObj.GetComponent<RegionObject>();
-        if (regionObj != null)
-        {
-            // Buộc object gỡ đăng ký ở ô cũ và đăng ký vào ô theo toạ độ mới này
-            regionObj.UpdateRegion();
-
-            // 3. Bảo hiểm: Nếu load ngầm (Phase 2) nhưng camera lỡ quét trúng vùng này
-            // -> Ta buộc nó bật lên ngay lập tức để không bao giờ bị tàng hình vĩnh viễn.
-            var currentRegion = RegionManager.Instance.GetRegionAtPosition(animalObj.transform.position);
-            if (currentRegion != null && currentRegion.isActive) regionObj.OnRegionActivated();
-        }
-
         if (animalObj.TryGetComponent(out Animal animalComponent))
         {
             animalComponent.layerIndex = animalData.layerIndex;
@@ -1075,7 +1028,28 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     public bool HasSaveData()
     {
-        return File.Exists(saveFilePath);
+        if (!File.Exists(saveFilePath)) return false;
+
+        try
+        {
+            var json = File.ReadAllText(saveFilePath);
+            var temporaryData = JsonUtility.FromJson<GameSaveData>(json);
+
+            if (temporaryData != null && temporaryData.isGameOver)
+            {
+                Debug.LogWarning(
+                    "[SaveLoadSystem] Phát hiện file save cũ đã bị GAME OVER từ trước. Tiến hành dọn dẹp để chuẩn bị lập map mới...");
+                DeleteSaveData();
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SaveLoadSystem] Lỗi rà soát file dữ liệu cũ: {e.Message}");
+            return false;
+        }
+
+        return true;
     }
 
     public void DeleteSaveData()
@@ -1092,6 +1066,76 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         {
             Debug.LogError($"Failed to delete save data: {e.Message}");
         }
+    }
+
+    public void ClearCurrentSceneObjects()
+    {
+        if (UnitManager.Instance == null) return;
+
+        var activeBuildings = UnitManager.Instance.buildings.ToList();
+        foreach (var building in activeBuildings)
+            if (building != null && building.gameObject != null)
+                PoolManager.Instance.Despawn(building.gameObject);
+
+        UnitManager.Instance.buildings.Clear();
+
+        var activeUnits = UnitManager.Instance.allUnits.ToList();
+        foreach (var unit in activeUnits)
+            if (unit != null && unit.gameObject != null)
+                PoolManager.Instance.Despawn(unit.gameObject);
+
+        UnitManager.Instance.allUnits.Clear();
+
+        if (ItemManager.Instance != null)
+        {
+            var activeItemsOnGround = ItemManager.Instance.activeItems.ToList();
+            foreach (var item in activeItemsOnGround)
+            {
+                if (item != null && item.gameObject != null) PoolManager.Instance.Despawn(item.gameObject);
+            }
+            ItemManager.Instance.activeItems.Clear();
+            ItemManager.Instance.ReleasePendingItems();
+            
+            var remainingItems = ItemManager.Instance.activeItems.ToList();
+            foreach (var item in remainingItems)
+            {
+                if (item != null && item.gameObject != null) PoolManager.Instance.Despawn(item.gameObject);
+            }
+            ItemManager.Instance.activeItems.Clear();
+            
+            Debug.Log("[SaveLoadSystem] 🧹 Đã dọn sạch sành sanh cả Active lẫn Pending items của ItemManager.");
+        }
+
+        if (ObjectSpawner.Instance != null)
+        {
+            foreach (var layer in ObjectSpawner.Instance.spawnedTrees.Values)
+            foreach (var tree in layer)
+                if (tree.treeComponent != null)
+                    PoolManager.Instance.Despawn(tree.treeComponent.gameObject);
+
+            foreach (var layer in ObjectSpawner.Instance.spawnedBushes.Values)
+            foreach (var bush in layer)
+                if (bush.bushObject != null)
+                    PoolManager.Instance.Despawn(bush.bushObject);
+
+            foreach (var layer in ObjectSpawner.Instance.spawnedRocks.Values)
+            foreach (var rock in layer)
+                if (rock.rockObject != null)
+                    PoolManager.Instance.Despawn(rock.rockObject);
+
+            foreach (var layer in ObjectSpawner.Instance.spawnedAnimals.Values)
+            foreach (var animal in layer)
+                if (animal.animalObject != null)
+                    PoolManager.Instance.Despawn(animal.animalObject);
+
+            ObjectSpawner.Instance.spawnedTrees.Clear();
+            ObjectSpawner.Instance.spawnedBushes.Clear();
+            ObjectSpawner.Instance.spawnedRocks.Clear();
+            ObjectSpawner.Instance.spawnedAnimals.Clear();
+            if (ObjectSpawner.Instance.layerClusters != null) ObjectSpawner.Instance.layerClusters.Clear();
+        }
+
+        if (EditBuildingManager.Instance != null) EditBuildingManager.Instance.ResetEditorManager();
     }
 
     #endregion

@@ -14,12 +14,17 @@ public class TimeOfDaySystem : MonoBehaviour
 
     [Header("Time Settings")] [Range(0f, 24f)] [SerializeField]
     private float currentTime = 6f;
+
+    public int CurrentDay { get; set; } = 1; 
     public float dayLengthInMinutes = 5f;
 
     [Header("Timer Text")] public TextMeshProUGUI timeDisplayText;
     private float timeMultiplier;
 
     public Action<int> OnHourChanged;
+
+    public Action<int> OnDayChanged;
+    
     private int _lastHourValue = -1;
 
     private void Awake()
@@ -42,8 +47,14 @@ public class TimeOfDaySystem : MonoBehaviour
     private void Update()
     {
         currentTime += Time.deltaTime * timeMultiplier;
+        
         if (currentTime >= 24f)
+        {
             currentTime -= 24f;
+
+            CurrentDay++;
+            OnDayChanged?.Invoke(CurrentDay);
+        }
 
         UpdateLighting();
         UpdateTimeDisplay();
@@ -89,5 +100,23 @@ public class TimeOfDaySystem : MonoBehaviour
     public bool IsNightTime()
     {
         return currentTime is >= 18f or <= 6f;
+    }
+
+    public void SetCurrentDay(int day)
+    {
+        CurrentDay = day;
+    }
+
+    public void SetCurrentTime(float time)
+    {
+        currentTime = time;
+
+        var currentHourInt = Mathf.FloorToInt(currentTime);
+        _lastHourValue = currentHourInt;
+
+        OnHourChanged?.Invoke(currentHourInt);
+
+        Debug.Log(
+            $"[TimeSystem] Đã nạp thời gian nhảy cóc thành công: {currentHourInt}h. Đã phát tín hiệu đồng bộ toàn Scene!");
     }
 }

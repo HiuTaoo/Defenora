@@ -9,19 +9,42 @@ public class AutoLightToggle : MonoBehaviour
     private void Awake()
     {
         pointLight = GetComponent<Light2D>();
-        timeSystem = GetTimeOfDaySystem();
     }
 
-    void Update()
+    private void Start()
     {
-        GetTimeOfDaySystem();
+        timeSystem = TimeOfDaySystem.Instance;
 
-        pointLight.enabled = timeSystem.GetCurrentTime() is >= 18 or < 6;
+        if (timeSystem != null)
+            timeSystem.OnHourChanged += HandleHourChanged;
+        else
+            Debug.LogError($"[{gameObject.name}] Không tìm thấy TimeOfDaySystem.Instance ở hàm Start!");
+
+        EvaluateAndToggleLight();
     }
 
-    private TimeOfDaySystem GetTimeOfDaySystem()
+    private void OnDestroy()
     {
-        timeSystem ??= TimeOfDaySystem.Instance;
-        return timeSystem;
+        if (timeSystem != null) timeSystem.OnHourChanged -= HandleHourChanged;
+    }
+
+    private void HandleHourChanged(int currentHour)
+    {
+        EvaluateAndToggleLight();
+    }
+
+    private void EvaluateAndToggleLight()
+    {
+        if (timeSystem == null) timeSystem = TimeOfDaySystem.Instance;
+        if (timeSystem == null || pointLight == null) return;
+
+        var shouldBeOn = timeSystem.IsNightTime();
+
+        if (pointLight.enabled != shouldBeOn)
+        {
+            pointLight.enabled = shouldBeOn;
+            Debug.Log(
+                $"[{gameObject.name}] Đã thực hiện đổi trạng thái đèn thành: {shouldBeOn} tại mốc {timeSystem.GetCurrentHourInt()}h");
+        }
     }
 }

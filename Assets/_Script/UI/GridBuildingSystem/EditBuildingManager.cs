@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using _Script.Enum;
+using _Script.UI.UI_Script;
 using UnityEngine;
 
 public class EditBuildingManager : MonoBehaviour
@@ -164,47 +165,116 @@ public class EditBuildingManager : MonoBehaviour
             }
         }
 
-        if (Inventory.Instance != null)
+        if (Inventory.Instance == null || WalletManager.Instance == null || ShopManager.Instance == null)
         {
-            foreach (var kvp in totalRequiredResources)
-            {
-                var requiredItem = kvp.Key;
-                var totalAmountNeeded = kvp.Value;
-
-                if (Inventory.Instance.GetAmount(requiredItem) < totalAmountNeeded)
-                {
-                    Debug.LogWarning(
-                        $"[EditBuildingManager] Không đủ tài nguyên tổng hợp! Cần tổng cộng {totalAmountNeeded}x {requiredItem.itemName}, nhưng kho chỉ có {Inventory.Instance.GetAmount(requiredItem)}.");
-
-                    UINotificationManager.Instance.ShowNotification(
-                        "Not enough resources to proceed with construction!", NotificationColorType.Error);
-                    return;
-                }
-            }
-        }
-        else
-        {
-            Debug.LogError("[EditBuildingManager] Inventory.Instance bị null! Không thể đối chiếu tài nguyên.");
+            Debug.LogError("[EditBuildingManager] Hệ thống Inventory, Wallet hoặc Shop bị null!");
             return;
         }
 
-        foreach (var building in listPlacedBuilding) building.ConsumeBuildResources();
+        var totalCoinsToSpend = 0;
+        var resourcesToConsumeFromInventory = new Dictionary<ItemData, int>();
+        var isMissingAnyResource = false;
+
+        foreach (var kvp in totalRequiredResources)
+        {
+            var requiredItem = kvp.Key;
+            var totalAmountNeeded = kvp.Value;
+
+            var currentInventoryAmount = Inventory.Instance.GetAmount(requiredItem);
+
+            if (currentInventoryAmount >= totalAmountNeeded)
+            {
+                resourcesToConsumeFromInventory[requiredItem] = totalAmountNeeded;
+            }
+            else
+            {
+                isMissingAnyResource = true;
+                resourcesToConsumeFromInventory[requiredItem] = currentInventoryAmount;
+
+                var missingAmount = totalAmountNeeded - currentInventoryAmount;
+                var itemPrice = ShopManager.Instance.GetResourcePrice(requiredItem);
+
+                if (itemPrice <= 0)
+                {
+                    Debug.LogWarning(
+                        $"[EditBuildingManager] {requiredItem.itemName} thiếu nhưng không có giá bán trong Shop!");
+                    UINotificationManager.Instance.ShowNotification(
+                        $"Cannot buy missing {requiredItem.itemName} with coins!", NotificationColorType.Error);
+                    return;
+                }
+
+                totalCoinsToSpend += missingAmount * itemPrice;
+            }
+        }
+
+        if (totalCoinsToSpend > 0)
+            if (WalletManager.Instance.CurrentCoins < totalCoinsToSpend)
+            {
+                Debug.LogWarning(
+                    $"[EditBuildingManager] Thiếu tài nguyên và không đủ vàng để bù! Cần {totalCoinsToSpend} Vàng.");
+                UINotificationManager.Instance.ShowNotification("Not enough resources and coins to build!",
+                    NotificationColorType.Error);
+                return;
+            }
+
+        if (isMissingAnyResource && totalCoinsToSpend > 0)
+        {
+            if (ConfirmDialog.Instance == null)
+            {
+                Debug.LogError(
+                    "[EditBuildingManager] Không tìm thấy ConfirmDialog.Instance trên Scene để hiển thị bảng hỏi!");
+                return;
+            }
+
+            var promptQuestion =
+                $"You are missing some materials! Do you want to spend {totalCoinsToSpend} Coins to buy the missing resources and start construction?";
+
+            ConfirmDialog.Instance.Show(
+                promptQuestion,
+                () => { ExecuteConstruction(resourcesToConsumeFromInventory, totalCoinsToSpend); },
+                () => { Debug.Log("[EditBuildingManager] Người chơi từ chối trả vàng. Đã hủy lệnh xây dựng."); }
+            );
+        }
+        else
+        {
+            ExecuteConstruction(resourcesToConsumeFromInventory, 0);
+        }
+    }
+
+    private void ExecuteConstruction(Dictionary<ItemData, int> inventoryCosts, int coinCost)
+    {
+        if (coinCost > 0)
+        {
+            WalletManager.Instance.TrySpendCoins(coinCost);
+            Debug.Log($"[EditBuildingManager] Khấu trừ thành công {coinCost} Vàng quy đổi tài nguyên.");
+        }
+
+        foreach (var kvp in inventoryCosts)
+            if (kvp.Value > 0)
+            {
+                Inventory.Instance.Remove(kvp.Key, kvp.Value);
+                Debug.Log($"[EditBuildingManager] Khấu trừ {kvp.Value}x {kvp.Key.itemName} trong kho.");
+            }
 
         UpdateGraphNode();
         ChangeBuildingState();
         CreateBuildStructureTask();
 
         if (UnitManager.Instance != null)
+        {
             foreach (var building in listPlacedBuilding)
+            {
                 if (!UnitManager.Instance.buildings.Contains(building))
                     UnitManager.Instance.buildings.Add(building);
+            }
+        }
 
         RollBackBuildingVisual();
         listPlacedBuilding.Clear();
 
-        Debug.Log("[EditBuildingManager] Đã đối chiếu tổng chi phí, khấu trừ kho đồ và kích hoạt xây dựng thành công!");
+        Debug.Log("[EditBuildingManager] Đã kích hoạt dự án xây dựng thành công!");
     }
-
+    
     public void CancelAllPlacedBuildings()
     {
         if (listPlacedBuilding.Count == 0) return;

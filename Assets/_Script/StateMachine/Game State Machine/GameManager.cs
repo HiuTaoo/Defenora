@@ -12,14 +12,14 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
-        
+
+        WalletManager.OnCoinChanged += HandleCoinChange;
     }
 
     private IEnumerator Start()
     {
         InitializeStateMachine();
 
-        // Chạy tiến trình khởi chạy game và đợi cho đến khi hoàn thành xong xuôi
         yield return StartCoroutine(StartGameCoroutine());
     }
 
@@ -27,14 +27,12 @@ public class GameManager : MonoBehaviour
     {
         StateMachine = new GameStateMachine();
 
-        // Nạp các Singleton Manager vào Context
         gameContext = new GameStateContext(StateMachine)
         {
-            // Các Manager này giờ là MonoBehaviour tự khởi tạo từ đầu
             UIManager = UIManager.Instance,         
             CameraManager = CameraManager.Instance,
-            AudioManager = AudioManager.Instance,   // Nếu bạn cũng đã làm AudioManager thành MonoBehaviour
-            InputManager = new InputManager()       // Cái này không cần gắn GameObject thì vẫn để C# thường
+            AudioManager = AudioManager.Instance,
+            InputManager = new InputManager()      
         };
 
         StateMachine.SetContext(gameContext);
@@ -42,7 +40,8 @@ public class GameManager : MonoBehaviour
         StateMachine.RegisterState(GameStateType.Playing, new PlayingState());
         StateMachine.RegisterState(GameStateType.Paused, new PausedState());
         StateMachine.RegisterState(GameStateType.Editor, new EditorState());
-        
+        StateMachine.RegisterState(GameStateType.Win, new WinState());
+        StateMachine.RegisterState(GameStateType.GameOver, new GameOverState());
         
     }
 
@@ -118,7 +117,7 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Game Flow Management (Khởi Chạy & Chơi Lại)
+    #region Game Flow Management
 
     private IEnumerator StartGameCoroutine()
     {
@@ -147,8 +146,10 @@ public class GameManager : MonoBehaviour
                 Debug.Log("[GameManager] Đã tạo dựng thành công hệ sinh thái tài nguyên vòng lặp đầu tiên.");
             }
         }
-
         ChangeToPlayingState();
+
+        yield return new WaitForEndOfFrame();
+        SaveLoadSystem.Instance.SaveGame();
     }
 
     public void StartGame()
@@ -164,21 +165,77 @@ public class GameManager : MonoBehaviour
 
         if (SaveLoadSystem.Instance.HasSaveData()) SaveLoadSystem.Instance.DeleteSaveData();
 
+        SaveLoadSystem.Instance.ClearCurrentSceneObjects();
+
         StartGame();
     }
 
-    public void ApplyStartGameSettings()
+    private void ApplyStartGameSettings()
     {
         ObjectSpawner.Instance.SpawnObjectsOnAllLayers();
         if (UnitManager.Instance != null)
             UnitManager.Instance.UpdateGraphNodeWhenStart();
         else
-            Debug.LogError("[GameManager] Không tìm thấy ObjectSpawner.Instance để kiến tạo tài nguyên!");
-        WalletManager.Instance.SetCoinsOnLoad(10);
+            Debug.LogError("[GameManager] Không tìm thấy UnitManager.Instance để kiến tạo tài nguyên!");
+
+        WalletManager.Instance.SetCoinsOnLoad(20);
         ShopManager.Instance.GenerateDailyItems();
+        if (TimeOfDaySystem.Instance != null)
+        {
+            TimeOfDaySystem.Instance.SetCurrentDay(1);
+            TimeOfDaySystem.Instance.SetCurrentTime(5.9f);
+        }
+
+        var node = GraphNode.Instance.GetBestWalkableNodeArea();
+        if (GraphNode.Instance.GetNodeWorldData(node, out var spawnPos, out var layerIndex))
+        {
+            var player = PlayerController.Instance;
+
+            player.transform.position = spawnPos;
+            if (player.rb != null) player.rb.position = spawnPos;
+
+            if (player.characterMovement != null) player.characterMovement.CurrentLayer = layerIndex;
+            if (player.floorAgent != null) player.floorAgent.MoveToFloor(layerIndex);
+        }
+    }
+
+    #endregion
+
+    #region Win-Lose
+
+    public void HandleCoinChange(int currentCoins)
+    {
+        if (StateMachine.CurrentStateType != GameStateType.Playing) return;
+
+        if (currentCoins < 0)
+        {
+            Debug.LogWarning("[GameManager] 🚨 Tài khoản xu của người chơi bị âm! Kích hoạt kết thúc game (THUA)...");
+            TriggerGameOver();
+        }
+    }
+
+    public void TriggerGameOver()
+    {
+        StateMachine.ChangeState(GameStateType.GameOver);
+        if (SaveLoadSystem.Instance != null) SaveLoadSystem.Instance.SaveGame();
+
+        Debug.Log("[GameManager] 💀 GAME OVER! Bạn đã thua cuộc.");
+    }
+
+    public void TriggerGameWin()
+    {
+        // StateMachine.ChangeState(GameStateType.Win);
+        // UIManager.Instance.ShowUI(GameStateType.Win, UINames.WinMenu);
+
+        Debug.Log("[GameManager] 🏆 VICTORY! Bạn đã hoàn thành màn chơi.");
     }
 
     #endregion
 
     #endregion
+
+    private void OnDestroy()
+    {
+        WalletManager.OnCoinChanged -= HandleCoinChange;
+    }
 }

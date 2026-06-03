@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
 [RequireComponent(typeof(FloorAgent))]
 [RequireComponent(typeof(StairCollision))]
@@ -299,6 +295,6 @@ public class AgentPhysics2D : MonoBehaviour
     }
 
     private float GetMoveSpeed() {
-        return GameObject.Find("---Player---").GetComponentInChildren<CharacterMovement>().moveSpeed;
+        return PlayerController.Instance.GetComponentInChildren<CharacterMovement>().moveSpeed;
     }
 }

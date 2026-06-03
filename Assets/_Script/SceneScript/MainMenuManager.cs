@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using _Script.UI.UI_Script;
 using DG.Tweening;
 using TMPro;
 using UnityEditor;
@@ -8,6 +9,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+
 // Cần thiết để dùng Coroutine
 // Cần thiết để dùng UI Slider
 
@@ -43,12 +45,16 @@ public class MainMenuManager : MonoBehaviour
     [Tooltip("Chữ 'Click to Start' (sẽ bị tắt khi bấm)")]
     [SerializeField] private GameObject hideUI;
 
+    [Header("Confirm Dialog")] public ConfirmDialog confirmDialog;
+
     private bool isTransitioning = false;
 
     private void Awake()
     {
         Time.timeScale = 1f;
         Time.fixedDeltaTime = 0.02f;
+
+        confirmDialog = GetComponentInChildren<ConfirmDialog>();
     }
     
     private void Start()
@@ -57,6 +63,9 @@ public class MainMenuManager : MonoBehaviour
         {
             loadingGroup.SetActive(false);
         }
+
+        if (PoolManager.Instance != null)
+            PoolManager.Instance.ClearAndRefillPools();
     }
 
     private void Update()
@@ -139,6 +148,15 @@ public class MainMenuManager : MonoBehaviour
     }
 
     public void RestartGame()
+    {
+        confirmDialog.Show(
+            "Do you want to restart the game?",
+            Restart,
+            () => { }
+        );
+    }
+
+    private void Restart()
     {
         if (isTransitioning) return;
 

@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
+using UnityEngine;
 
 public class WalletManager : MonoBehaviour
 {
@@ -37,6 +37,13 @@ public class WalletManager : MonoBehaviour
         
         Debug.LogWarning("[Wallet] Không đủ coin để thực hiện giao dịch!");
         return false;
+    }
+
+    public void ForceSpendCoins(int amount)
+    {
+        currentCoins -= amount;
+        OnCoinChanged?.Invoke(currentCoins);
+        Debug.Log($"[Wallet] Bạn đã tiêu {amount} coin. Còn lại: {currentCoins}");
     }
 
     // Hàm bổ sung phục vụ cho Save/Load

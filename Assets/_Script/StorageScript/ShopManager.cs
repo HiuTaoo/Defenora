@@ -197,7 +197,7 @@ public class ShopManager : MonoBehaviour
             }
             else if (clickedSlot.UnitPrefab != null)
             {
-                var playerGO = GameObject.FindWithTag("Player");
+                var playerGO = PlayerController.Instance;
                 var playerPosition = Vector3.zero;
                 var foundPlayer = false;
 
@@ -248,7 +248,7 @@ public class ShopManager : MonoBehaviour
                         var randomOffset = Random.insideUnitSphere * 1.5f;
                         randomOffset.z = 0f;
                         spawnPosition += randomOffset;
-                        var playerComp = playerGO.GetComponent<PlayerController>();
+                        var playerComp = playerGO;
                         targetLayerIndex = playerComp.characterMovement.CurrentLayer;
                     }
 
@@ -311,6 +311,16 @@ public class ShopManager : MonoBehaviour
         }
         spawnedSlotObjects.Clear();
     }
+
+    public int GetResourcePrice(ItemData item)
+    {
+        if (shopConfiguration == null || item == null) return 0;
+
+        var matchedItem = shopConfiguration.availableResources.Find(r => r.itemData == item);
+
+        return matchedItem.itemData != null ? matchedItem.price : 0;
+    }
+
     
     // Thêm 2 hàm này vào cuối file ShopManager.cs của bạn:
 

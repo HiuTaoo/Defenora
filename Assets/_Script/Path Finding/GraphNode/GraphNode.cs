@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -298,7 +297,7 @@ public class GraphNode : MonoBehaviour
 
     #endregion
 
-        #region Access & Utility
+    #region Access & Utility
 
     public Node GetNode(Vector3Int position, int layerIndex)
     {
@@ -374,6 +373,136 @@ public class GraphNode : MonoBehaviour
                 node.parent = null;
             }
         }
+    }
+
+    #endregion
+
+    #region Method
+
+    public Node GetRandomWalkableNode()
+    {
+        if (!isGraphBuilt || layerGraphs.Count == 0)
+        {
+            Debug.LogWarning("Graph chưa được build hoặc không có dữ liệu tầng!");
+            return null;
+        }
+
+        var walkableNodes = new List<Node>();
+
+        foreach (var graphKvp in layerGraphs)
+        {
+            var graph = graphKvp.Value;
+
+            foreach (var nodeKvp in graph.nodes)
+            {
+                var node = nodeKvp.Value;
+
+                if (node != null && node.isWalkable) walkableNodes.Add(node);
+            }
+        }
+
+        if (walkableNodes.Count > 0)
+        {
+            var randomIndex = Random.Range(0, walkableNodes.Count);
+            return walkableNodes[randomIndex];
+        }
+
+        Debug.LogWarning("Không tìm thấy node walkable nào trong toàn bộ các layer!");
+        return null;
+    }
+
+    /// <summary>
+    ///     Tìm một node ngẫu nhiên có độ thông thoáng tốt nhất (ưu tiên 9 ô walkable, rồi giảm dần 8, 7...)
+    /// </summary>
+    public Node GetBestWalkableNodeArea()
+    {
+        if (!isGraphBuilt || layerGraphs.Count == 0)
+        {
+            Debug.LogWarning("Graph chưa được build hoặc không có dữ liệu tầng!");
+            return null;
+        }
+
+        var scoreGroups = new Dictionary<int, List<Node>>();
+        for (var i = 0; i <= 9; i++) scoreGroups[i] = new List<Node>();
+
+        var directions8 = new[]
+        {
+            new Vector3Int(0, 1, 0),
+            new Vector3Int(0, -1, 0),
+            new Vector3Int(-1, 0, 0),
+            new Vector3Int(1, 0, 0),
+            new Vector3Int(-1, 1, 0),
+            new Vector3Int(1, 1, 0),
+            new Vector3Int(-1, -1, 0),
+            new Vector3Int(1, -1, 0)
+        };
+
+        foreach (var graphKvp in layerGraphs)
+        {
+            var graph = graphKvp.Value;
+
+            foreach (var nodeKvp in graph.nodes)
+            {
+                var centerNode = nodeKvp.Value;
+
+                if (centerNode == null || !centerNode.isWalkable) continue;
+
+                var walkableCount = 1;
+
+                foreach (var dir in directions8)
+                {
+                    var neighborPos = centerNode.position + dir;
+
+                    if (graph.nodes.TryGetValue(neighborPos, out var neighborNode))
+                        if (neighborNode != null && neighborNode.isWalkable)
+                            walkableCount++;
+                }
+
+                scoreGroups[walkableCount].Add(centerNode);
+            }
+        }
+
+        for (var targetScore = 9; targetScore >= 1; targetScore--)
+            if (scoreGroups[targetScore].Count > 0)
+            {
+                var randomIndex = Random.Range(0, scoreGroups[targetScore].Count);
+                return scoreGroups[targetScore][randomIndex];
+            }
+
+        Debug.LogWarning("Không tìm thấy bất kỳ node walkable nào trên bản đồ!");
+        return null;
+    }
+
+    public bool GetNodeWorldData(Node node, out Vector3 worldPosition, out int layerIndex)
+    {
+        worldPosition = Vector3.zero;
+        layerIndex = 0;
+
+        if (node == null)
+        {
+            Debug.LogWarning("[GraphNode] Node truyền vào bị null!");
+            return false;
+        }
+
+        layerIndex = node.layerIndex;
+
+        if (layerIndex >= 0 && layerIndex < layerDatas.Length)
+        {
+            var layerData = layerDatas[layerIndex];
+
+            if (layerData.walkableTilemap != null && layerData.walkableTilemap.Length > 0)
+            {
+                var targetTilemap = layerData.walkableTilemap[0];
+                if (targetTilemap != null)
+                {
+                    worldPosition = targetTilemap.GetCellCenterWorld(node.position);
+                    return true;
+                }
+            }
+        }
+
+        worldPosition = new Vector3(node.position.x + 0.5f, node.position.y + 0.5f, 0);
+        return true;
     }
 
     #endregion

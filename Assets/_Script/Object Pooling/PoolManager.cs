@@ -83,6 +83,32 @@ public class PoolManager : MonoBehaviour
             Destroy(obj);
         }
     }
+
+    public void ClearAndRefillPools()
+    {
+        Debug.Log("[PoolManager] ♻️ Bắt đầu tiến trình dọn dẹp toàn cục hệ thống Object Pool...");
+
+        foreach (var kvp in pools)
+        {
+            var prefab = kvp.Key;
+            var pool = kvp.Value;
+
+            if (pool == null) continue;
+
+            pool.ClearPool();
+
+            if (pool.ParentTransform != null && pool.ParentTransform.gameObject != null)
+                Destroy(pool.ParentTransform.gameObject);
+        }
+
+        pools.Clear();
+
+        Debug.Log("[PoolManager] ✨ Đã hủy sạch dữ liệu cũ thành công. Bắt đầu kích hoạt Prewarm lại...");
+
+        InitializePools();
+
+        Debug.Log("[PoolManager] ✅ Hoàn thành quy trình làm mới hệ thống Object Pool!");
+    }
 }
 
 [Serializable]

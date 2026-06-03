@@ -17,7 +17,8 @@ public class RegionObject : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         standardAnimator = GetComponent<Animator>();
-        customAnimator = GetComponent<SimpleSpriteAnimator>(); 
+        customAnimator = GetComponent<SimpleSpriteAnimator>();
+        regionManager = RegionManager.Instance;
     }
 
     void Start()

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Globalization;
 using _Script.BT;
-using _Script.BT.Node.BuilderNode;
 using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.TorchGoblinNode;
 using _Script.BT.Node.EnemyNode.unitNode;
 using _Script.Enum;
+using _Script.Object_Pooling;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEditor;
 using UnityEngine;
@@ -27,7 +27,7 @@ namespace _Script.Unit_Management_System.Enemy
             base.Awake();
             unitType = UnitType.TorchGoblin;
             bt = CreateBehaviourTree(this);
-            attackLayerMask = LayerMask.GetMask("NPC", "Building");
+            attackLayerMask = LayerMask.GetMask("NPC", "Building", "Player");
         }
 
         protected override void Update()
@@ -51,7 +51,6 @@ namespace _Script.Unit_Management_System.Enemy
         #region BT
         private BehaviourTree CreateBehaviourTree(TorchGoblin torchGoblin)
         {
-            
             var attackBuildingSequence = new SequenceNode(
                 new FindNearestBuildingNode(torchGoblin),
                 new TorchGoblinMoveToTargetBuildingNode(torchGoblin), 
@@ -62,6 +61,11 @@ namespace _Script.Unit_Management_System.Enemy
             var attackNPCSequence = new SequenceNode(
                 new HasNPCInTorchGoblinAttackRangeNode(torchGoblin),                 
                 new TorchGoblinAttackNPCNode(torchGoblin)           
+            );
+
+            var attackPlayerSequence = new SequenceNode(
+                new HasPlayerInTorchGoblinAttackRangeNode(torchGoblin),
+                new EnemyAttackPlayerNode(torchGoblin)
             );
 
             var backToSpawnPointSequence = new SequenceNode(
@@ -75,8 +79,9 @@ namespace _Script.Unit_Management_System.Enemy
                 new SequenceNode(        
                     new IsNightStartNode(torchGoblin),
                     new SelectorNode(
-                        attackNPCSequence,
-                        attackBuildingSequence)
+                        attackPlayerSequence, // 🌟 ĐƯƠ TRÊN ĐẦU: Thấy Player là bỏ hết việc để cắn!
+                        attackNPCSequence, // Không thấy Player mới đi tìm lính NPC
+                        attackBuildingSequence) // Không thấy ai mới đi đập nhà tĩnh
                 )
             );
 
@@ -158,39 +163,56 @@ namespace _Script.Unit_Management_System.Enemy
         {
             float damageRadius = attackRange;
             Vector2 facingDir = GetCurrentFacingVector();
+            var maxAllowableAngle = viewAngle / 2f;
 
             int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, damageRadius, results, attackLayerMask);
 
             for (int i = 0; i < hitCount; i++)
             {
                 Collider2D hitCol = results[i];
+                if (hitCol == null || hitCol.isTrigger || hitCol.gameObject == gameObject) continue;
 
-                if (hitCol.gameObject == gameObject) continue;
+                var targetGO = hitCol.gameObject;
+                if (targetGO.CompareTag("Enemy")) continue;
 
-                if (hitCol.isTrigger) continue;
-
-                if (hitCol.gameObject.CompareTag("Enemy")) continue;
-
+                var isPlayer = targetGO.CompareTag("Player");
                 var targetHealth = hitCol.GetComponentInChildren<Health>();
-        
-                if (targetHealth == null || targetHealth.CurrentHealth <= 0) continue;
 
-                if (hitCol.TryGetComponent<global::Building>(out var building))
-                {
-                    if (building.buildingState != BuildingState.Completed) continue;
-                }
+                if (!isPlayer && (targetHealth == null || targetHealth.CurrentHealth <= 0)) continue;
 
-                Vector2 closest = hitCol.ClosestPoint(transform.position);
-                Vector2 dirToTarget = (closest - (Vector2)transform.position).normalized;
+                if (hitCol.TryGetComponent(out global::Building building) &&
+                    building.buildingState != BuildingState.Completed) continue;
 
-                float angle = Vector2.Angle(facingDir, dirToTarget);
+                var closestPoint = hitCol.ClosestPoint(transform.position);
+                var dirToTarget = (closestPoint - (Vector2)transform.position).normalized;
 
-                if (angle <= (viewAngle / 2f))
-                {
+                if (Vector2.Angle(facingDir, dirToTarget) > maxAllowableAngle) continue;
+
+                if (isPlayer)
+                    HandlePlayerHit(hitCol.transform.position);
+                else
                     targetHealth.TakeDamage(attackDamage);
-            
-                    results[i] = null; 
-                }
+
+                results[i] = null;
+            }
+        }
+
+        private void HandlePlayerHit(Vector3 playerPosition)
+        {
+            if (WalletManager.Instance == null)
+            {
+                Debug.LogError("[TorchGoblin] Không tìm thấy WalletManager.Instance để trừ vàng của Player!");
+                return;
+            }
+
+            // Khấu trừ vàng trực tiếp và văng túi tiền rơi ra ngoài đất
+            WalletManager.Instance.ForceSpendCoins(1);
+
+            var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.goldBagPrefab, playerPosition,
+                Quaternion.identity);
+            if (coinObj != null && coinObj.TryGetComponent(out Item coinItem))
+            {
+                coinItem.StartDrop(playerPosition, transform.position);
             }
         }
 
@@ -226,7 +248,63 @@ namespace _Script.Unit_Management_System.Enemy
             }
             return npcs;
         }
-        
+
+        public new GameObject DetectPlayer(float range, Vector2 dir)
+        {
+            if (PlayerController.Instance == null) return null;
+
+            var playerObj = PlayerController.Instance.gameObject;
+            Vector2 myPos = transform.position;
+            Vector2 playerPos = playerObj.transform.position;
+
+            var sqrDist = (playerPos - myPos).sqrMagnitude;
+            if (sqrDist > range * range) return null;
+
+            dir.Normalize();
+
+            var dirToPlayer = (playerPos - myPos).normalized;
+
+            var angle = Vector2.Angle(dir, dirToPlayer);
+            if (angle > viewAngle / 2f) return null;
+
+            var playerCollider = playerObj.GetComponentInParent<Collider2D>();
+            if (playerCollider == null) return null;
+
+            var b = playerCollider.bounds;
+            Vector2[] samplePoints =
+            {
+                b.center,
+                new(b.center.x, b.max.y),
+                new(b.center.x, b.min.y),
+                new(b.min.x, b.center.y),
+                new(b.max.x, b.center.y)
+            };
+
+            var visible = false;
+
+            foreach (var point in samplePoints)
+            {
+                var dirRay = point - myPos;
+                var dist = dirRay.magnitude;
+                dirRay.Normalize();
+
+                var ray = Physics2D.Raycast(myPos, dirRay, dist, obstacleLayer);
+
+                if (ray.collider == null)
+                {
+                    visible = true;
+                    break;
+                }
+            }
+
+            return visible ? playerObj : null;
+        }
+
+        public bool CheckPlayerInAttackRange()
+        {
+            var player = DetectPlayer(attackRange, GetCurrentFacingVector());
+            return player != null;
+        }
         
         #endregion
 

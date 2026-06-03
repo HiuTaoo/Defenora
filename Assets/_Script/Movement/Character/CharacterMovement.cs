@@ -1,15 +1,10 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 public class CharacterMovement : MonoBehaviour
 {
     [SerializeField] public float moveSpeed = 3.5f;
 
-    private Tilemap tilemap;
     private FloorAgent floorAgent;
     private AgentPhysics2D agentPhysics2D;
     public Rigidbody2D rb;
@@ -39,7 +34,6 @@ public class CharacterMovement : MonoBehaviour
         floorAgent = GetComponent<FloorAgent>();
         agentPhysics2D = GetComponent<AgentPhysics2D>();
         circleCollider2D = GetComponentInParent<CircleCollider2D>();
-        tilemap = GameObject.Find("Tilemap Null").GetComponent<Tilemap>();
         cam = GameObject.Find("Main Camera").GetComponent<Camera>();
     }
 
@@ -67,8 +61,6 @@ public class CharacterMovement : MonoBehaviour
             return;
         }
 
-        //Debug.Log($"Clicked world pos: {mouseWorldPos}, grid pos: {targetPosition}");
-
         int layerCount = GraphNode.Instance.layerDatas.Length;
         int layer = 0;
         bool canMove = false;
@@ -89,7 +81,6 @@ public class CharacterMovement : MonoBehaviour
 
         if (canMove)
         {
-            //Debug.Log($"Di chuyển tới: {targetPosition} ở tầng {layer}");
             MoveToPosition(targetPosition, layer);
         }
         else
@@ -105,8 +96,6 @@ public class CharacterMovement : MonoBehaviour
         gridPosition.z = 0;
 
         currentPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(gridPosition, floorAgent.currentFloorIndex, position, layer);
-
-        //currentPath.PrintPath();
 
         StopAllCoroutines();
         moveCoroutine = StartCoroutine(FollowPathCoroutine(currentPath));
@@ -132,13 +121,11 @@ public class CharacterMovement : MonoBehaviour
             for (int i = 0; i < segment.positions.Count; i++)
             {
                 var tilePos = segment.positions[i];
-                
-                Vector3 targetCenter = tilemap.GetCellCenterWorld(tilePos);
-                targetCenter.z = transform.parent.position.z;
+
+                var targetCenter = new Vector3(tilePos.x + 0.5f, tilePos.y + 0.5f, transform.parent.position.z);
 
                 while (unit.currentState == UnitState.Move && (transform.parent.position - targetCenter).sqrMagnitude > 0.01f)
                 {
-                    
                     if (stopRequested)
                     {
                         moving = false;
@@ -163,7 +150,6 @@ public class CharacterMovement : MonoBehaviour
                             moveSpeed,
                             circleCollider2D))
                     {
-      
                         moving = false;
 
                         if (unit != null)
@@ -184,7 +170,6 @@ public class CharacterMovement : MonoBehaviour
                         _currentLayer = segment.layerIndex;
                     yield return null;
                 }
-                
             }
         }
 

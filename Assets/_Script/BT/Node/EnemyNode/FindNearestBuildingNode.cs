@@ -6,7 +6,6 @@ namespace _Script.BT.Node.EnemyNode.unitNode
 {
     public class FindNearestBuildingNode : BTActionNode
     {
-        
         public FindNearestBuildingNode(Unit unit) : base(unit) { }
 
         public override BTStatus Tick()

@@ -19,24 +19,37 @@ public class SpawnPoint : MonoBehaviour
     [Header("Spawn List")]
     public List<SpawnData> spawnList = new List<SpawnData>();
 
-    private bool hasSpawned = false;
+    private TimeOfDaySystem timeSystem;
 
-    private void Update()
+    private void Start()
     {
-        float currentTime = TimeOfDaySystem.Instance.GetCurrentTime();
+        timeSystem = TimeOfDaySystem.Instance;
 
-        if (currentTime >= 0f && currentTime < 0.5f)
+        if (timeSystem != null)
         {
-            if (!hasSpawned)
-            {
-                StartSpawningAll();
-                hasSpawned = true;
-            }
+            timeSystem.OnDayChanged += HandleDayChanged;
+            Debug.Log($"[{gameObject.name}] 🟢 Đã kết nối thành công với hệ thống ngày đêm. Đang chờ ngày mới...");
         }
-        else if (currentTime >= 0.5f)
+        else
         {
-            hasSpawned = false;
+            Debug.LogError(
+                $"[{gameObject.name}] ❌ Không tìm thấy TimeOfDaySystem.Instance trên Scene để đăng ký gọi quái!");
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (timeSystem != null)
+        {
+            timeSystem.OnDayChanged -= HandleDayChanged;
+        }
+    }
+
+    private void HandleDayChanged(int newDay)
+    {
+        Debug.Log($"[{gameObject.name}] 🌅 Nhận tín hiệu Ngày mới (Ngày {newDay})! Bắt đầu gọi quái xuất trận...");
+
+        StartSpawningAll();
     }
 
     public void StartSpawningAll()
@@ -57,16 +70,18 @@ public class SpawnPoint : MonoBehaviour
                 yield return new WaitForSeconds(spawnDelay);
             }
         }
-        
-        Debug.Log("Đã hoàn thành spawn toàn bộ danh sách!");
+
+        Debug.Log($"[{gameObject.name}] Đã hoàn thành spawn toàn bộ danh sách quái cho ngày mới!");
     }
 
     private void SpawnObject(GameObject prefab)
     {
         var enemy = PoolManager.Instance.Spawn(prefab, transform.position, Quaternion.identity);
         var unit = enemy.GetComponent<Unit>();
+        
         unit.characterMovement.CurrentLayer = layerIndex;
         unit.enemySpawnPoint = transform.gameObject;
+        
         UnitManager.Instance.RegisterUnit(unit);
     }
 }

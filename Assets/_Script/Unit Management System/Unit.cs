@@ -819,6 +819,59 @@ public abstract class Unit : MonoBehaviour, IPoolable
         return npcsInRange;
     }
 
+    public GameObject DetectPlayer(float range, Vector2 dir)
+    {
+        if (PlayerController.Instance == null) return null;
+
+        var playerObj = PlayerController.Instance.gameObject;
+        Vector2 myPos = transform.position;
+        Vector2 playerPos = playerObj.transform.position;
+
+        var sqrDist = (playerPos - myPos).sqrMagnitude;
+        if (sqrDist > range * range)
+            return null;
+
+        dir.Normalize();
+        var dirToPlayer = (playerPos - myPos).normalized;
+
+        if (Vector2.Dot(dir, dirToPlayer) <= 0)
+            return null;
+
+        var playerCollider = playerObj.GetComponent<Collider2D>();
+        if (playerCollider == null) return null;
+
+        var b = playerCollider.bounds;
+
+        Vector2[] samplePoints =
+        {
+            b.center,
+            new(b.center.x, b.max.y),
+            new(b.center.x, b.min.y),
+            new(b.min.x, b.center.y),
+            new(b.max.x, b.center.y)
+        };
+
+        var visible = false;
+
+        foreach (var point in samplePoints)
+        {
+            var dirRay = point - myPos;
+            var dist = dirRay.magnitude;
+            dirRay.Normalize();
+
+            var playerLayer = LayerMask.GetMask("Player");
+            var ray = Physics2D.Raycast(
+                myPos,
+                dirRay,
+                dist,
+                playerLayer);
+
+            if (ray.collider == null) visible = true;
+        }
+
+        return visible ? playerObj : null;
+    }
+
     public EnemyDirection GetDirection(Vector2 from, Vector2 to)
     {
         var dir = to - from;

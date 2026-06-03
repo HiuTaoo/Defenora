@@ -126,6 +126,8 @@ public abstract class DecorObject : MonoBehaviour, IChoppable, IPoolable
         {
             render.gameObject.SetActive(true);
         }
+
+        RegionManager.Instance.RegisterObject(gameObject);
     }
 
     /// <summary>
@@ -141,5 +143,7 @@ public abstract class DecorObject : MonoBehaviour, IChoppable, IPoolable
             spriteAnimator.Stop();
             spriteAnimator.enabled = false;
         }
+
+        RegionManager.Instance.UnregisterObject(gameObject);
     }
 }

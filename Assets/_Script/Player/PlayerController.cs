@@ -1,9 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour, ISaveable
 {
+    public static PlayerController Instance { get; private set; }
+    
     [Header("Builder Info")]
     public float moveSpeed = 3.5f;
 
@@ -12,17 +12,29 @@ public class PlayerController : MonoBehaviour, ISaveable
     public AgentPhysics2D agentPhysics2D;
     public CircleCollider2D builderCollider;
     public CharacterMovement characterMovement;
+    public FloorAgent floorAgent;
 
     public Vector2 MovementInput { get; private set; }
 
 
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         agentPhysics2D = GetComponentInChildren<AgentPhysics2D>();
         builderCollider = GetComponent<CircleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         characterMovement = GetComponentInChildren<CharacterMovement>();
+        floorAgent = GetComponentInChildren<FloorAgent>();
     }
 
     private void Update()

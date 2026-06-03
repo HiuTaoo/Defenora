@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using _Script.Task;
 using UnityEngine;
 
@@ -23,7 +22,7 @@ public class PlayerInteraction : MonoBehaviour
     private Collider2D[] playerResults = new Collider2D[10];
     private RaycastHit2D[] raycastResults = new RaycastHit2D[5];
 
-    public System.Action<GameObject, InteractButtonState> OnInteractButtonPressed;
+    public Action<GameObject, InteractButtonState> OnInteractButtonPressed;
 
     public static PlayerInteraction Instance { get; private set; }
 
@@ -64,7 +63,7 @@ public class PlayerInteraction : MonoBehaviour
     private void FixedUpdate()
     {
         CheckCollideWithObject();
-        playerLayerIndex = transform.parent.Find("Player Movement").GetComponent<FloorAgent>().currentFloorIndex;
+        playerLayerIndex = transform.parent.GetComponentInChildren<FloorAgent>().currentFloorIndex;
     }
 
     private void LateUpdate()

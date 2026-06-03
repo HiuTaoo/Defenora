@@ -245,10 +245,12 @@ public abstract class Animal : MonoBehaviour, IPoolable
     {
         if (health != null)
             health.SetMaxHealth(health.maxHealth, true);
+        RegionManager.Instance.RegisterObject(gameObject);
     }
 
     public void OnDespawned()
     {
+        RegionManager.Instance.UnregisterObject(gameObject);
     }
 }
 

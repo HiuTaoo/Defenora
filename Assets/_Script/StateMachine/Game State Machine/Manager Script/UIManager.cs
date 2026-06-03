@@ -26,6 +26,8 @@ public class UIManager: MonoBehaviour
     [SerializeField] private GameObject shopGUI;
     //editor
     [SerializeField] private GameObject availableUnitGUI;
+
+    [SerializeField] private GameObject gameOverGUI;
     
     public Dictionary<GameStateType, Dictionary<string, GameObject>> stateUIs;
     private Dictionary<GameStateType, UIConfig> stateConfigs;
@@ -58,6 +60,7 @@ public class UIManager: MonoBehaviour
         RegisterUI(GameStateType.Editor, UINames.AvailableUnitsGUI, availableUnitGUI, new UIConfig { FadeIn = true });
         RegisterUI(GameStateType.Playing, UINames.Inventory, inventoryGUI, new UIConfig {FadeIn = true});
         RegisterUI(GameStateType.Playing, UINames.Shop, shopGUI, new UIConfig {FadeIn = true});
+        RegisterUI(GameStateType.GameOver, UINames.GameOverGUI, gameOverGUI, new UIConfig { FadeIn = true });
         
         trainingWindowUI = GetComponentInChildren<TrainingWindowUI>(true);
         if (trainingWindowUI != null)
@@ -437,6 +440,9 @@ public static class UINames
 
     //Playing UI
     public const string InteractButton = "InteractButton";
+
+    public const string WinGUI = "WinGUI";
+    public const string GameOverGUI = "GameOverGUI";
 
     // Common UI
     public const string LoadingScreen = "LoadingScreen";

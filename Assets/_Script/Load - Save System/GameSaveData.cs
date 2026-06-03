@@ -7,6 +7,10 @@ using UnityEngine;
 public class GameSaveData
 {
     public int totalCoins;
+    public bool isGameOver;
+    public int currentDay;
+    public float currentTimeInDay;
+    
     public UnitSaveData unitSaveData = new UnitSaveData();
     public BuildingSaveData buildingSaveData = new BuildingSaveData();
     public ObjectSpawnData objectSpawnData = new ObjectSpawnData();

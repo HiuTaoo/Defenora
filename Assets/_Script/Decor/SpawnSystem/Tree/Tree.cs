@@ -170,6 +170,8 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
         {
             render.gameObject.SetActive(true);
         }
+
+        RegionManager.Instance.RegisterObject(gameObject);
     }
 
     /// <summary>
@@ -187,5 +189,7 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
             spriteAnimator.Stop();
             spriteAnimator.enabled = false;
         }
+
+        RegionManager.Instance.UnregisterObject(gameObject);
     }
 }

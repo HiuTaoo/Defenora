@@ -8,7 +8,7 @@ namespace _Script.ItemScript
     {
         public static ItemManager Instance { get; private set; }
 
-        [SerializeField] private List<Item> activeItems = new();
+        [SerializeField] public List<Item> activeItems = new();
 
         [SerializeField] private List<Item> pendingItems = new();
 
@@ -103,6 +103,8 @@ namespace _Script.ItemScript
 
         public void PopulateItemSaveData(GameSaveData saveData)
         {
+            ReleasePendingItems();
+
             saveData.itemManagerSaveData.items.Clear();
 
             foreach (var item in activeItems)
@@ -129,6 +131,15 @@ namespace _Script.ItemScript
                 }
             }
             activeItems.Clear();
+
+            for (int i = pendingItems.Count - 1; i >= 0; i--)
+            {
+                if (pendingItems[i] != null)
+                {
+                    PoolManager.Instance.Despawn(pendingItems[i].gameObject);
+                }
+            }
+            pendingItems.Clear();
 
             if (saveData.itemManagerSaveData == null || saveData.itemManagerSaveData.items == null) return;
 
