@@ -44,6 +44,8 @@ namespace _Script.Object_Pooling
         public GameObject shopItemSlotPrefab;
         public GameObject toastItemPrefab;
 
+        [Header("Effects Prefab")] public GameObject healEffectPrefab;
+
         [Header("Tree Prefab")]
         public GameObject[] treePrefabs;
 

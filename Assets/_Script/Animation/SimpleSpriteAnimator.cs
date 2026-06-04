@@ -8,6 +8,7 @@ public class SimpleSpriteAnimator : MonoBehaviour
 
     [SerializeField] private float frameRate = 0.12f;   
     [SerializeField] private bool loop = true;
+    public bool IsPlaying { get; private set; }
 
     [Header("--- Wind Gust / Desynchronization ---")]
     [Tooltip("Tỷ lệ ngẫu nhiên thay đổi tốc độ chạy anim giữa các cây để tăng độ lệch (ví dụ lệch +- 15%)")]
@@ -32,7 +33,6 @@ public class SimpleSpriteAnimator : MonoBehaviour
     private SpriteRenderer _spriteRenderer;
     private int _currentFrameIndex;
     private float _frameTimer;
-    private bool _isPlaying;
 
     private float _actualFrameRate;
     private bool _isPausing;
@@ -66,22 +66,29 @@ public class SimpleSpriteAnimator : MonoBehaviour
     {
         if (animationFrames == null || animationFrames.Length == 0) return;
         
-        _isPlaying = true;
+        IsPlaying = true;
         _isPausing = false;
         _frameTimer = 0f;
 
-        var randomOffset = Random.Range(-speedRandomness, speedRandomness);
-        _actualFrameRate = frameRate * (1f + randomOffset);
+        if (!loop)
+        {
+            _actualFrameRate = frameRate;
+            _currentFrameIndex = 0;
+        }
+        else
+        {
+            var randomOffset = Random.Range(-speedRandomness, speedRandomness);
+            _actualFrameRate = frameRate * (1f + randomOffset);
+            ResetTargetShakeCycles();
+            _currentFrameIndex = Random.Range(0, animationFrames.Length);
+        }
 
-        ResetTargetShakeCycles();
-
-        _currentFrameIndex = Random.Range(0, animationFrames.Length); 
         _spriteRenderer.sprite = animationFrames[_currentFrameIndex];
     }
 
     public void Stop()
     {
-        _isPlaying = false;
+        IsPlaying = false;
         _isPausing = false;
     }
 
@@ -97,7 +104,7 @@ public class SimpleSpriteAnimator : MonoBehaviour
 
     private void Update()
     {
-        if (!_isPlaying || animationFrames == null || animationFrames.Length <= 1) return;
+        if (!IsPlaying || animationFrames == null || animationFrames.Length <= 1) return;
 
         if (_isPausing)
         {
@@ -139,7 +146,7 @@ public class SimpleSpriteAnimator : MonoBehaviour
                 else
                 {
                     _currentFrameIndex = animationFrames.Length - 1;
-                    _isPlaying = false;
+                    IsPlaying = false;
                     return;
                 }
             }
@@ -170,4 +177,8 @@ public class SimpleSpriteAnimator : MonoBehaviour
         _targetShakeCycles = Random.Range(minShakeCycles, maxShakeCycles + 1);
     }
 
+    public void RestartAnimation()
+    {
+        Play();
+    }
 }

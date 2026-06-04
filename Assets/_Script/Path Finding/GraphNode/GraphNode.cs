@@ -371,8 +371,19 @@ public class GraphNode : MonoBehaviour
                 node.gCost = 0;
                 node.hCost = 0;
                 node.parent = null;
+                node.isWalkable = true;
             }
         }
+    }
+
+    public void ResetAllWalkableNodesOnly()
+    {
+        if (layerGraphs == null || layerGraphs.Count == 0) return;
+
+        foreach (var layerGraph in layerGraphs.Values)
+        foreach (var node in layerGraph.nodes.Values)
+            if (node != null)
+                node.isWalkable = true;
     }
 
     #endregion

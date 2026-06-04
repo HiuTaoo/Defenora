@@ -5,6 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("Survival Settings")] [Tooltip("Số ngày người chơi cần vượt qua để giành chiến thắng")]
+    public int daysToSurviveToWin = 5;
+    
     public static GameManager Instance { get; private set; }
     public GameStateMachine StateMachine { get; private set; }
     public GameStateContext gameContext { get; private set; }
@@ -18,7 +21,10 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Start()
     {
+        Time.timeScale = 1;
         InitializeStateMachine();
+
+        if (TimeOfDaySystem.Instance != null) TimeOfDaySystem.Instance.OnDayChanged += HandleDayChanged;
 
         yield return StartCoroutine(StartGameCoroutine());
     }
@@ -138,14 +144,21 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("[GameManager] File save trống! Bắt đầu tạo dựng thế giới mới tinh...");
+            Debug.Log(
+                "[GameManager] Không có file save (hoặc vừa bấm RESTART)! Bắt đầu dọn dẹp và tạo thế giới mới...");
+
+            yield return null;
+            yield return null;
+
+            if (GraphNode.Instance != null) GraphNode.Instance.ResetAllWalkableNodesOnly();
 
             if (ObjectSpawner.Instance != null)
             {
                 ApplyStartGameSettings();
-                Debug.Log("[GameManager] Đã tạo dựng thành công hệ sinh thái tài nguyên vòng lặp đầu tiên.");
+                Debug.Log("[GameManager] 🌳 Đã tái tạo hệ sinh thái tài nguyên mới tinh. Số lượng cây dày đặc 100%!");
             }
         }
+        
         ChangeToPlayingState();
 
         yield return new WaitForEndOfFrame();
@@ -154,14 +167,20 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        Time.timeScale = 1;
         StartCoroutine(StartGameCoroutine());
+        gameContext.StateMachine.ChangeState(GameStateType.Playing);
     }
 
     public void RestartGame()
     {
         if (SaveLoadSystem.Instance == null) return;
 
-        Debug.Log("[GameManager] 🚨 Yêu cầu khởi động lại! Tiến hành xóa file dữ liệu save...");
+        Debug.Log("[GameManager] 🚨 Yêu cầu khởi động lại! Bắt đầu thiết lập lại State Machine khẩn cấp...");
+
+        Time.timeScale = 1f;
+
+        ChangeToPlayingState();
 
         if (SaveLoadSystem.Instance.HasSaveData()) SaveLoadSystem.Instance.DeleteSaveData();
 
@@ -172,11 +191,14 @@ public class GameManager : MonoBehaviour
 
     private void ApplyStartGameSettings()
     {
-        ObjectSpawner.Instance.SpawnObjectsOnAllLayers();
-        if (UnitManager.Instance != null)
-            UnitManager.Instance.UpdateGraphNodeWhenStart();
+        if (GraphNode.Instance != null)
+        {
+            GraphNode.Instance.ResetAllWalkableNodesOnly();
+        }
         else
-            Debug.LogError("[GameManager] Không tìm thấy UnitManager.Instance để kiến tạo tài nguyên!");
+            Debug.LogError("[GameManager] Không tìm thấy GraphNode.Instance để kiến tạo tài nguyên!");
+
+        if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.SpawnObjectsOnAllLayers();
 
         WalletManager.Instance.SetCoinsOnLoad(20);
         ShopManager.Instance.GenerateDailyItems();
@@ -203,6 +225,18 @@ public class GameManager : MonoBehaviour
 
     #region Win-Lose
 
+    private void HandleDayChanged(int newDay)
+    {
+        if (StateMachine.CurrentStateType != GameStateType.Playing) return;
+
+        Debug.Log($"[GameManager] ☀️ Đã bước sang ngày thứ {newDay} / {daysToSurviveToWin}");
+
+        if (newDay >= daysToSurviveToWin)
+        {
+            Debug.Log($"[GameManager] 🏆 Chúc mừng! Bạn đã sinh tồn thành công {daysToSurviveToWin} ngày!");
+            TriggerGameWin();
+        }
+    }
     public void HandleCoinChange(int currentCoins)
     {
         if (StateMachine.CurrentStateType != GameStateType.Playing) return;
@@ -216,6 +250,7 @@ public class GameManager : MonoBehaviour
 
     public void TriggerGameOver()
     {
+        Time.timeScale = 0;
         StateMachine.ChangeState(GameStateType.GameOver);
         if (SaveLoadSystem.Instance != null) SaveLoadSystem.Instance.SaveGame();
 
@@ -224,8 +259,9 @@ public class GameManager : MonoBehaviour
 
     public void TriggerGameWin()
     {
-        // StateMachine.ChangeState(GameStateType.Win);
-        // UIManager.Instance.ShowUI(GameStateType.Win, UINames.WinMenu);
+        Time.timeScale = 0;
+        StateMachine.ChangeState(GameStateType.Win);
+        if (SaveLoadSystem.Instance != null) SaveLoadSystem.Instance.SaveGame();
 
         Debug.Log("[GameManager] 🏆 VICTORY! Bạn đã hoàn thành màn chơi.");
     }
@@ -237,5 +273,6 @@ public class GameManager : MonoBehaviour
     private void OnDestroy()
     {
         WalletManager.OnCoinChanged -= HandleCoinChange;
+        if (TimeOfDaySystem.Instance != null) TimeOfDaySystem.Instance.OnDayChanged -= HandleDayChanged;
     }
 }

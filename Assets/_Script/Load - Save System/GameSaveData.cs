@@ -7,6 +7,7 @@ using UnityEngine;
 public class GameSaveData
 {
     public int totalCoins;
+    public bool isWin;
     public bool isGameOver;
     public int currentDay;
     public float currentTimeInDay;

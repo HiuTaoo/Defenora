@@ -13,6 +13,8 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
 
         public override BTStatus Tick()
         {
+            if (archer.assignedBuilding != null)
+                return BTStatus.Success;
             if (archer.archerBlackBoard.nearestBuilding == null) return BTStatus.Success;
 
             var distance = Vector2.Distance(

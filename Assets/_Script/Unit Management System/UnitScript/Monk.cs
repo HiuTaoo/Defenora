@@ -4,15 +4,14 @@ using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.MonkNode.MonkIdle;
+using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using UnityEditor;
 using UnityEngine;
 
 public class Monk : Unit
 {
-    [Header("Priest Specific")] public float healCooldown;
-
-    public MonkBlackBoard monkBlackBoard;
+    public float healCooldown => unitStatsManager != null ? unitStatsManager.AttackCooldown : 3;
     private float nextHealTime;
 
     public float healAmount
@@ -45,6 +44,8 @@ public class Monk : Unit
         }
     }
 
+    public MonkBlackBoard monkBlackBoard;
+
     protected override void Awake()
     {
         base.Awake();
@@ -65,6 +66,20 @@ public class Monk : Unit
 
     private BehaviourTree CreateBehaviorTree(Monk monk)
     {
+        // =================================================================
+        // 🚑 PHÂN HỆ CẤP CỨU ĐỒNG ĐỘI (ƯU TIÊN TỐI CAO)
+        // =================================================================
+        var healAllySequence = new SequenceNode(
+            new IsAllyNeedHealNode(monk),
+            new SelectorNode(
+                new MonkExecuteHealActionNode(monk),
+                new MonkMoveToSafeRangeNode(monk)
+            )
+        );
+
+        // =================================================================
+        // 🌲 PHÂN HỆ ĐI DẠO HÒA BÌNH (MOBILE IDLE)
+        // =================================================================
         var idleSequence = new SequenceNode(
             new IsIdleMonkNode(monk),
             new FindNextPatrolPositionMonkNode(monk),
@@ -72,8 +87,10 @@ public class Monk : Unit
             new WaitNode(monk));
 
         var root = new SelectorNode(
-            idleSequence
+            healAllySequence,
+            idleSequence      
         );
+        
         return new BehaviourTree(root);
     }
 
@@ -81,6 +98,12 @@ public class Monk : Unit
 
     public override void UseSpecialAbility()
     {
+        if (monkBlackBoard.lowHPAlly == null) return;
+
+        var healEffect = PoolManager.Instance.Spawn(PrefabConfig.Instance.healEffectPrefab,
+            monkBlackBoard.lowHPAlly.transform.position, Quaternion.identity);
+
+        healEffect.transform.SetParent(monkBlackBoard.lowHPAlly.transform);
     }
 
     public override List<(string name, string value)> GetSpecialStats()

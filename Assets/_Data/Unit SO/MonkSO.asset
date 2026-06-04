@@ -21,7 +21,8 @@ MonoBehaviour:
   healthPerLevel: 10
   attackDamagePerLevel: 0
   viewDistancePerLevel: 0.25
+  attackCooldown: 3
   baseHealAmount: 30
   baseHealRange: 3
   healAmountPerLevel: 5
-  healRangePerLevel: 0.25
+  healRangePerLevel: 0.2

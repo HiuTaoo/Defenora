@@ -168,6 +168,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     public void PopulateSaveData(GameSaveData saveData)
     {
         saveData.totalCoins = WalletManager.Instance.CurrentCoins;
+        saveData.isWin = GameManager.Instance != null &&
+                         GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Win;
         saveData.isGameOver = GameManager.Instance != null &&
                               GameManager.Instance.StateMachine.CurrentStateType == GameStateType.GameOver;
         if (TimeOfDaySystem.Instance != null)
@@ -1035,10 +1037,17 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             var json = File.ReadAllText(saveFilePath);
             var temporaryData = JsonUtility.FromJson<GameSaveData>(json);
 
-            if (temporaryData != null && temporaryData.isGameOver)
+            if (temporaryData != null && (temporaryData.isWin || temporaryData.isGameOver))
             {
-                Debug.LogWarning(
-                    "[SaveLoadSystem] Phát hiện file save cũ đã bị GAME OVER từ trước. Tiến hành dọn dẹp để chuẩn bị lập map mới...");
+                if (temporaryData.isWin)
+                    Debug.LogWarning(
+                        "[SaveLoadSystem] 🏆 Phát hiện file save cũ đã CHIẾN THẮNG. Tiến hành dọn sạch Scene để lập map mới tinh từ MainMenu!");
+                else
+                    Debug.LogWarning(
+                        "[SaveLoadSystem] 💀 Phát hiện file save cũ đã GAME OVER. Tiến hành dọn sạch Scene để lập map mới tinh từ MainMenu!");
+
+                ClearCurrentSceneObjects(); 
+                
                 DeleteSaveData();
                 return false;
             }
@@ -1132,6 +1141,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             ObjectSpawner.Instance.spawnedBushes.Clear();
             ObjectSpawner.Instance.spawnedRocks.Clear();
             ObjectSpawner.Instance.spawnedAnimals.Clear();
+
             if (ObjectSpawner.Instance.layerClusters != null) ObjectSpawner.Instance.layerClusters.Clear();
         }
 

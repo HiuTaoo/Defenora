@@ -727,11 +727,6 @@ public class ObjectSpawner : MonoBehaviour
             rockObj.layer = layerIndexMask;
 
             rockComponent.positionInGrid = position;
-
-            if (spawnSettings.rocksBlockMovement)
-            {
-                GraphNode.Instance.SetWalkableNode(position, layerIndex, false);
-            }
         }
 
         return new SpawnedRock(rockObj, position, layerIndex, parentCluster);
