@@ -1,16 +1,11 @@
 ﻿using _Script.Enum;
-using _Script.Unit_Management_System.Enemy;
-using UnityEngine;
 
 namespace _Script.BT.Node.EnemyNode.unitNode
 {
     public class FindNearestTargetNode : BTActionNode
     {
-        private readonly TorchGoblin goblin;
-
         public FindNearestTargetNode(Unit unit) : base(unit)
         {
-            goblin = unit as TorchGoblin;
         }
 
         public override BTStatus Tick()
@@ -35,7 +30,6 @@ namespace _Script.BT.Node.EnemyNode.unitNode
                         unit.currentTargetLayerIndex = PlayerController.Instance.floorAgent.currentFloorIndex;
                     }
 
-                    Debug.Log("Success");
                     return BTStatus.Success;
                 }
             }
@@ -48,10 +42,10 @@ namespace _Script.BT.Node.EnemyNode.unitNode
                 return BTStatus.Success;
             }
 
-            var allNPCs = goblin.DetectAllNPCsInRange(goblin.viewDistance);
+            var allNPCs = unit.DetectAllNPCsInRange(unit.viewDistance);
             if (allNPCs != null && allNPCs.Count > 0)
             {
-                var nearestNPC = goblin.SelectClosestTarget(allNPCs);
+                var nearestNPC = unit.SelectClosestTarget(allNPCs);
                 if (nearestNPC != null)
                 {
                     unit.currentTarget = nearestNPC.transform;

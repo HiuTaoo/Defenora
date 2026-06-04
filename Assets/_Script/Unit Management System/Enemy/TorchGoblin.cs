@@ -62,10 +62,10 @@ namespace _Script.Unit_Management_System.Enemy
                         new EnemyAttackPlayerNode(torchGoblin)
                     ),
                     new SequenceNode(
-                        new HasNPCInTorchGoblinAttackRangeNode(torchGoblin),
+                        new HasNPCInEnemyAttackRangeNode(torchGoblin),
                         new TorchGoblinAttackNPCNode(torchGoblin)
                     ),
-                    new TorchGoblinAttack(torchGoblin)
+                    new EnemyAttackBuildingNode(torchGoblin)
                 ),
                 
                 new ClearBuildingTargetNode(torchGoblin) 
@@ -93,23 +93,7 @@ namespace _Script.Unit_Management_System.Enemy
 
         #region Method
 
-        public bool CheckTargetBuildingInAttackRange()
-        {
-            if(currentTarget == null)
-                return false;
-            
-            var building = currentTarget;
-
-            var buildingCol = building.GetComponent<Collider2D>();
-            if (buildingCol == null || buildingCol.isTrigger)
-                return false;
-
-            Vector2 closest = buildingCol.ClosestPoint(transform.position);
-
-            float dist = Vector2.Distance(transform.position, closest);
-
-            return dist <= (attackRange * 0.75);
-        }
+        
         
         
 
@@ -234,22 +218,7 @@ namespace _Script.Unit_Management_System.Enemy
             var npcs = DetectNPCs(attackRange, GetCurrentFacingVector());
             return npcs.Count > 0;
         }
-        public List<GameObject> DetectAllNPCsInRange(float range)
-        {
-            List<GameObject> npcs = new List<GameObject>();
-            int size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results, 
-                LayerMask.GetMask("NPC"));
-
-            for (var i = 0; i < size; i++)
-            {
-                var hit = results[i];
-                if (hit != null && hit.CompareTag("NPC"))
-                {
-                    npcs.Add(hit.gameObject);
-                }
-            }
-            return npcs;
-        }
+   
 
         public new GameObject DetectPlayer(float range, Vector2 dir)
         {

@@ -900,6 +900,39 @@ public abstract class Unit : MonoBehaviour, IPoolable
         currentTargetLayerIndex = -1;
     }
 
+    public List<GameObject> DetectAllNPCsInRange(float range)
+    {
+        var npcs = new List<GameObject>();
+        var size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results,
+            LayerMask.GetMask("NPC"));
+
+        for (var i = 0; i < size; i++)
+        {
+            var hit = results[i];
+            if (hit != null && hit.CompareTag("NPC")) npcs.Add(hit.gameObject);
+        }
+
+        return npcs;
+    }
+
+    public bool CheckTargetBuildingInAttackRange()
+    {
+        if (currentTarget == null)
+            return false;
+
+        var building = currentTarget;
+
+        var buildingCol = building.GetComponent<Collider2D>();
+        if (buildingCol == null || buildingCol.isTrigger)
+            return false;
+
+        var closest = buildingCol.ClosestPoint(transform.position);
+
+        var dist = Vector2.Distance(transform.position, closest);
+
+        return dist <= attackRange * 0.75;
+    }
+
     #endregion
 
     #endregion
