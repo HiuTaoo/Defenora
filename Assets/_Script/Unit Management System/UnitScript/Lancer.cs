@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.GlobalAlarm;
-using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
 using _Script.BT.Node.LancerNode;
-using _Script.BT.Node.LancerNode.LancerDetectedEnemy;
 using _Script.BT.Node.LancerNode.LancerDetectedEnemy.LancerCombatLoop;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.LancerNode.LancerIntercept;
-using _Script.BT.Node.unitNode.unitCombat.SearchLastSeenPosition;
 using _Script.BT.Node.WarriorNode.WarriorCombat.SearchLastSeenPosition;
 using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorArlert;
 using _Script.Unit_Management_System.Animation;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEditor;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class Lancer : Unit
 {
@@ -345,13 +339,15 @@ public class Lancer : Unit
         if (detectTimer >= detectInterval)
         {
             detectTimer = 0f;
+            var enemyLayer = -1;
 
             if (lancerBlackBoard.detectedEnemy != null)
             {
+                enemyLayer = lancerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
                 if (CheckEnemyStillInRange(lancerBlackBoard.detectedEnemy, viewDistance))
                 {
-                    GlobalAlarmSystem.TriggerAlarm(lancerBlackBoard.detectedEnemy, 
-                        lancerBlackBoard.detectedEnemy.transform.position);
+                    GlobalAlarmSystem.TriggerAlarm(lancerBlackBoard.detectedEnemy,
+                        lancerBlackBoard.detectedEnemy.transform.position, enemyLayer);
                     return; 
                 }
             }
@@ -363,8 +359,9 @@ public class Lancer : Unit
         
             if (newTarget != null)
             {
-                lancerBlackBoard.detectedEnemy = newTarget; 
-                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position);
+                lancerBlackBoard.detectedEnemy = newTarget;
+                enemyLayer = lancerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position, enemyLayer);
             }
         }
     }

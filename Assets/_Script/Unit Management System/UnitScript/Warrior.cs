@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using _Script.BT;
 using _Script.BT.BlackBoard;
@@ -314,13 +312,16 @@ public class Warrior : Unit
         if (detectTimer >= detectInterval)
         {
             detectTimer = 0f;
+            var enemyLayer = -1;
 
             if (warriorBlackBoard.detectedEnemy != null)
             {
                 if (CheckEnemyStillInRange(warriorBlackBoard.detectedEnemy, viewDistance))
                 {
-                    GlobalAlarmSystem.TriggerAlarm(warriorBlackBoard.detectedEnemy, 
-                        warriorBlackBoard.detectedEnemy.transform.position);
+                    enemyLayer = warriorBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()
+                        ._currentFloorIndex;
+                    GlobalAlarmSystem.TriggerAlarm(warriorBlackBoard.detectedEnemy,
+                        warriorBlackBoard.detectedEnemy.transform.position, enemyLayer);
                     return; 
                 }
             }
@@ -332,8 +333,9 @@ public class Warrior : Unit
         
             if (newTarget != null)
             {
-                warriorBlackBoard.detectedEnemy = newTarget; 
-                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position);
+                warriorBlackBoard.detectedEnemy = newTarget;
+                enemyLayer = warriorBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position, enemyLayer);
             }
         }
     }

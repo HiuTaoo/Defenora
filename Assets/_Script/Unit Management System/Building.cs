@@ -48,6 +48,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     private SpriteRenderer spriteRenderer;
     public BuildingVisualManager buildingVisualManager;
     public Light2D light2D;
+    public AutoLightToggle autoLightToggle;
 
     public int LayerIndex
     {
@@ -63,6 +64,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         health = GetComponentInChildren<Health>();
         buildingVisualManager = GetComponent<BuildingVisualManager>();
         light2D = GetComponentInChildren<Light2D>();
+        autoLightToggle = GetComponentInChildren<AutoLightToggle>();
 
         customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
 
@@ -575,6 +577,9 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             currentTask = null;
         }
 
+        if (light2D != null) light2D.enabled = true;
+        if (autoLightToggle != null) autoLightToggle.enabled = true;
+
         OnBuiltObject?.Invoke(this);
     }
 
@@ -651,6 +656,10 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             currentTask = null;
         }
 
+        if (autoLightToggle != null) autoLightToggle.enabled = false;
+
+        if (light2D != null) light2D.enabled = false;
+
         EvacuateAllUnits();
     }
 
@@ -701,7 +710,10 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
         if (buildingCollider != null)
             buildingCollider.enabled = true;
-        
+
+        if (light2D != null) light2D.enabled = true;
+        if (autoLightToggle != null) autoLightToggle.enabled = true;
+
         UpdateLightRange();
     }
 

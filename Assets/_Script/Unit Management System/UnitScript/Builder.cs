@@ -85,8 +85,9 @@ public class Builder : Unit
                     isPanicking = true;
                     characterMovement.RequestStopMoving();
                     bt?.ClearState();
+                    var enemyLayer = hit.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
 
-                    GlobalAlarmSystem.TriggerAlarm(hit.gameObject, hit.transform.position);
+                    GlobalAlarmSystem.TriggerAlarm(hit.gameObject, hit.transform.position, enemyLayer);
                     break;
                 }
         }
@@ -764,7 +765,7 @@ public class Builder : Unit
 
     #region Unity Lifecycle Events
 
-    protected override void HandleGlobalAlarm(GameObject enemy, Vector3 spottedPosition)
+    protected override void HandleGlobalAlarm(GameObject enemy, Vector3 spottedPosition, int layerIndex)
     {
         if (isPanicking) return;
 

@@ -26,10 +26,10 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
     [HideInInspector] public int enemyLayer;
 
-    [Header("Array Non Alloc")] 
+    [Header("Array Non Alloc")] [HideInInspector]
     public Collider2D[] results;
 
-    public Collider2D[] animalResult;
+    [HideInInspector] public Collider2D[] animalResult;
 
     [Header("Target")] public Transform currentTarget;
 
@@ -112,12 +112,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
         UpdateHealth();
     }
 
-    /*private void Start()
-    {
-        health.maxHealth = unitStatsManager.MaxHealth;
-        health.SetCurrentHealth(unitStatsManager.MaxHealth);
-    }*/
-
     protected virtual void Update()
     {
         SynchronizedLayerIndex();
@@ -131,8 +125,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
         }
         HandleGridUnstuck();
     }
-
-    //public void SetId(string newId) => id = newId;
 
     protected virtual void OnEnable()
     {
@@ -739,6 +731,54 @@ public abstract class Unit : MonoBehaviour, IPoolable
             }
         }
     }
+
+    /// <summary>
+    ///     Reset toàn bộ các biến dữ liệu, mục tiêu và bộ đệm trạng thái về giá trị mặc định khi Unit được tái sinh.
+    ///     Tránh lỗi rác bộ nhớ hoặc giữ mục tiêu cũ khi lấy ra từ Object Pool.
+    /// </summary>
+    public virtual void ResetUnitVariablesOnSpawn()
+    {
+        currentState = UnitState.Idle;
+        animState = AnimState.Idle;
+        isAttacking = false;
+        isInWindup = false;
+        isKnockedBack = false;
+        enabled = true;
+
+        currentTarget = null;
+        currentTargetLayerIndex = -1;
+        lastSeenPosition = Vector2.zero;
+        lastSeenLayerIndex = -1;
+        isAlerted = false;
+        assignedBuilding = null;
+
+        aggroTimer = 0f;
+        detectTimer = 0f;
+        _stuckTimer = 0f;
+        lastAttackTime = -999f;
+        lastKnockbackTime = -999f;
+
+        _lastPosition = transform.position;
+
+        if (damageEffectCoroutine != null)
+        {
+            StopCoroutine(damageEffectCoroutine);
+            damageEffectCoroutine = null;
+        }
+
+        if (hitStunCoroutine != null)
+        {
+            StopCoroutine(hitStunCoroutine);
+            hitStunCoroutine = null;
+        }
+
+        if (spriteRenderer != null) spriteRenderer.color = Color.white;
+
+        var col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = true;
+
+        bt?.ClearState();
+    }
     
     #region Enemy Method
 
@@ -1016,7 +1056,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
     #region Handle Event
 
-    protected virtual void HandleGlobalAlarm(GameObject spottedEnemy, Vector3 spottedPosition)
+    protected virtual void HandleGlobalAlarm(GameObject spottedEnemy, Vector3 spottedPosition, int layerIndex)
     {
         if (currentTarget != null) return;
         if (spottedEnemy == null) return;
@@ -1025,10 +1065,11 @@ public abstract class Unit : MonoBehaviour, IPoolable
         if (Vector2.Distance(transform.position, spottedPosition) > hearRange) return;
 
         lastSeenPosition = spottedPosition;
-        lastSeenLayerIndex = spottedEnemy.GetComponentInChildren<FloorAgent>()?._currentFloorIndex ?? 0;
+        lastSeenLayerIndex = layerIndex;
 
         isAlerted = true;
         aggroTimer = aggroDuration;
+        Debug.Log($"{unitType} handle alarm!");
     }
 
     protected virtual void HandleHealthChanged(float current, float max)
@@ -1118,11 +1159,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         if (health != null && unitStatsManager != null) health.SetMaxHealth(unitStatsManager.MaxHealth, true);
 
-        currentState = UnitState.Idle;
-        animState = AnimState.Idle;
-
-        _stuckTimer = 0f;
-        _lastPosition = transform.position;
+        ResetUnitVariablesOnSpawn();
     }
 
     public void OnDespawned()
