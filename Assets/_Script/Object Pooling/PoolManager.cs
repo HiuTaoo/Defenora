@@ -57,7 +57,7 @@ public class PoolManager : MonoBehaviour
     {
         if (!pools.ContainsKey(prefab))
         {
-            CreatePool(prefab, 0); 
+            CreatePool(prefab, 100); 
         }
 
         return pools[prefab].Get(pos, rot);

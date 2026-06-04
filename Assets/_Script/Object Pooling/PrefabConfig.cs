@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace _Script.Object_Pooling
@@ -78,31 +79,22 @@ namespace _Script.Object_Pooling
 
         private void BuildLookup()
         {
-            AddPrefab(archerPrefab);
-            AddPrefab(monkPrefab);
-            AddPrefab(warriorPrefab);
-            AddPrefab(builderPrefab);
-            AddPrefab(lancerPrefab);
-            
-            AddPrefab(torchGoblinPrefab);
-            AddPrefab(tntGoblinPrefab);
-            AddPrefab(barrelPrefab);
+            var fields = typeof(PrefabConfig).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-            AddPrefab(fortressPrefab);
-            AddPrefab(watchTowerPrefab);
-            AddPrefab(storagePrefab);
-            AddPrefab(archeryPrefab);
-            AddPrefab(barrackPrefab);
-            AddPrefab(monasteryPrefab);
+            foreach (var field in fields)
+                if (field.FieldType == typeof(GameObject))
+                {
+                    var prefab = field.GetValue(this) as GameObject;
+                    AddPrefab(prefab);
+                }
+                else if (field.FieldType == typeof(GameObject[]))
+                {
+                    var prefabArray = field.GetValue(this) as GameObject[];
+                    AddPrefabArray(prefabArray);
+                }
 
-            AddPrefab(woodPrefab);
-            AddPrefab(dynamitePrefab);
-            AddPrefab(arrowPrefab);
-
-            AddPrefabArray(treePrefabs);
-            AddPrefabArray(rockPrefabs);
-            AddPrefabArray(bushPrefabs);
-            AddPrefabArray(animalPrefabs);
+            Debug.Log(
+                $"[PrefabConfig] 🚀 Tự động hóa quét hoàn tất! Đã nạp {prefabLookup.Count} Prefabs vào Dictionary.");
         }
 
         private void AddPrefab(GameObject prefab)

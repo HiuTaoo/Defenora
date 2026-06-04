@@ -1270,7 +1270,8 @@ public class ObjectSpawner : MonoBehaviour
                     {
                         GraphNode.Instance.SetWalkableNode(rock.gridPosition, rock.layerIndex, true);
                     }
-                    DestroyImmediate(rock.rockObject);
+
+                    PoolManager.Instance.Despawn(rock.rockObject);
                 }
             }
         }
@@ -1281,7 +1282,7 @@ public class ObjectSpawner : MonoBehaviour
             {
                 if (animal.animalObject != null)
                 {
-                    DestroyImmediate(animal.animalObject);
+                    PoolManager.Instance.Despawn(animal.animalObject);
                 }
             }
         }
@@ -1303,8 +1304,8 @@ public class ObjectSpawner : MonoBehaviour
                     if (spawnSettings.rocksBlockMovement)
                     {
                         GraphNode.Instance.SetWalkableNode(rock.gridPosition, rock.layerIndex, true);
+                        PoolManager.Instance.Despawn(rock.rockObject);
                     }
-                    DestroyImmediate(rock.rockObject);
                 }
             }
             spawnedRocks.Remove(layerIndex);
@@ -1316,7 +1317,7 @@ public class ObjectSpawner : MonoBehaviour
             {
                 if (animal.animalObject != null)
                 {
-                    DestroyImmediate(animal.animalObject);
+                    PoolManager.Instance.Despawn(animal.animalObject);
                 }
             }
             spawnedAnimals.Remove(layerIndex);
@@ -1332,7 +1333,7 @@ public class ObjectSpawner : MonoBehaviour
                 if (tree.treeComponent != null)
                 {
                     GraphNode.Instance.SetWalkableNode(tree.gridPosition, tree.layerIndex, true);
-                    DestroyImmediate(tree.treeComponent.gameObject);
+                    PoolManager.Instance.Despawn(tree.treeComponent.gameObject);
                 }
             }
         }
@@ -1346,8 +1347,8 @@ public class ObjectSpawner : MonoBehaviour
                     if (spawnSettings.bushesBlockMovement)
                     {
                         GraphNode.Instance.SetWalkableNode(bush.gridPosition, bush.layerIndex, true);
+                        PoolManager.Instance.Despawn(bush.bushObject);
                     }
-                    DestroyImmediate(bush.bushObject);
                 }
             }
         }
@@ -1366,7 +1367,7 @@ public class ObjectSpawner : MonoBehaviour
                 if (tree.treeComponent != null)
                 {
                     GraphNode.Instance.SetWalkableNode(tree.gridPosition, tree.layerIndex, true);
-                    DestroyImmediate(tree.treeComponent.gameObject);
+                    PoolManager.Instance.Despawn(tree.treeComponent.gameObject);
                 }
             }
 
@@ -1383,7 +1384,8 @@ public class ObjectSpawner : MonoBehaviour
                     {
                         GraphNode.Instance.SetWalkableNode(bush.gridPosition, bush.layerIndex, true);
                     }
-                    DestroyImmediate(bush.bushObject);
+
+                    PoolManager.Instance.Despawn(bush.bushObject);
                 }
             }
 

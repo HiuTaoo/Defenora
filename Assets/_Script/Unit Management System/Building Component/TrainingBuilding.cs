@@ -1,15 +1,12 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using _Script.Data;
 using _Script.Enum;
-using _Script.Object_Pooling;
-using _Script.ScriptableObjectScript;
 using UnityEngine;
 
 public abstract class TrainingBuilding : Building
 {
-    [System.Serializable]
+    [Serializable]
     protected class TrainingSlot
     {
         public Unit npcUnit;
@@ -112,6 +109,9 @@ public abstract class TrainingBuilding : Building
             {
                 UnitManager.Instance.RegisterUnit(unitComponent);
             }
+
+            unitComponent.characterMovement.CurrentLayer = layerIndex;
+            unitComponent.floorAgent.MoveToFloor(layerIndex);
         }
 
         SyncDebugView();

@@ -90,17 +90,13 @@ public class Barrack : TrainingBuilding
     {
         if (guardComponent != null)
         {
-            // 🌟 ĐÃ SỬA: Kiểm tra số lượng trực tiếp từ GuardComponent
-            // Nếu số lượng lính đang gác đã đạt tối đa số điểm Spot trên tháp
             if (guardComponent.listArcherPositions.Count >= guardComponent.positionSpots.Length)
             {
-                // ➔ THÁP ĐÃ ĐẦY: Cho đứng ngẫu nhiên dưới mặt đất quanh nhà
                 unit.transform.position = GetRandomPositionAroundBuilding();
                 Debug.Log($"[Barrack] Tháp canh đã đầy chỗ ({guardComponent.listArcherPositions.Count}/{guardComponent.positionSpots.Length})! Xếp {unit.unitName} đứng dưới đất.");
             }
             else
             {
-                // ➔ THÁP CÒN TRỐNG: Lấy Spot trống và đưa Archer lên gác
                 Vector3 targetSpot = guardComponent.GetAvailableSpot();
                 unit.transform.position = targetSpot;
                 

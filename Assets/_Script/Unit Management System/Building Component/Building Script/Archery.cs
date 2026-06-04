@@ -75,6 +75,9 @@ public class Archery : TrainingBuilding
         {
             UnitManager.Instance.RegisterUnit(archerComponent);
         }
+
+        archerComponent.characterMovement.CurrentLayer = layerIndex;
+        archerComponent.floorAgent.MoveToFloor(layerIndex);
         
         SyncDebugView();
     }
