@@ -71,7 +71,7 @@ namespace _Script.Unit_Management_System.Enemy
         private BehaviourTree CreateBehaviourTree(Barrel barrel)
         {
             var attackBuildingSequence = new SequenceNode(
-                new FindNearestBuildingNode(barrel),
+                new FindNearestTargetNode(barrel),
                 new BarrelMoveToTargetBuildingNode(barrel),
                 new BarrelExplodeNode(barrel)
             );

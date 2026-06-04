@@ -1,32 +1,29 @@
-public class SelectorNode : BTComposite
+using System.Collections.Generic;
+
+namespace _Script.BT
 {
-    public SelectorNode(params BTNode[] nodes) : base(nodes)
+    public class SelectorNode : BTComposite
     {
-    }
+        public SelectorNode(params BTNode[] nodes) : base(nodes) {}
 
-    public override BTStatus Tick()
-    {
-        var intermediateNodeFound = false;
-
-        for (var i = 0; i < children.Count; i++)
+        public override BTStatus Tick()
         {
-            if (intermediateNodeFound)
+            for (var i = 0; i < children.Count; i++)
             {
-                children[i].ClearState();
-                continue;
+                var status = children[i].Tick();
+
+                if (status != BTStatus.Failure)
+                {
+                    for (int j = i + 1; j < children.Count; j++)
+                    {
+                        children[j].ClearState(); 
+                    }
+                    
+                    return status;
+                }
             }
 
-            var status = children[i].Tick();
-
-            if (status != BTStatus.Failure) intermediateNodeFound = true;
+            return BTStatus.Failure;
         }
-
-        for (var i = 0; i < children.Count; i++)
-        {
-            var status = children[i].Tick();
-            if (status != BTStatus.Failure) return status;
-        }
-
-        return BTStatus.Failure;
     }
 }

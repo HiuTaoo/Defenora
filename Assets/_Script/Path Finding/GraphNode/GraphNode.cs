@@ -505,5 +505,11 @@ public class GraphNode : MonoBehaviour
         return true;
     }
 
+    public bool IsWalkableNode(Vector3Int targetPosition, int layerIndex)
+    {
+        var node = GetNode(targetPosition, layerIndex);
+        return node != null && node.isWalkable;
+    }
+
     #endregion
 }

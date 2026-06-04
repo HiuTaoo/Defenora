@@ -49,44 +49,46 @@ namespace _Script.Unit_Management_System.Enemy
         }
 
         #region BT
+
+        #region BT
         private BehaviourTree CreateBehaviourTree(TorchGoblin torchGoblin)
         {
-            var attackBuildingSequence = new SequenceNode(
-                new FindNearestBuildingNode(torchGoblin),
-                new TorchGoblinMoveToTargetBuildingNode(torchGoblin), 
-                new TorchGoblinAttack(torchGoblin),        
-                new ClearBuildingTargetNode(torchGoblin)  
-            );
-
-            var attackNPCSequence = new SequenceNode(
-                new HasNPCInTorchGoblinAttackRangeNode(torchGoblin),                 
-                new TorchGoblinAttackNPCNode(torchGoblin)           
-            );
-
-            var attackPlayerSequence = new SequenceNode(
-                new HasPlayerInTorchGoblinAttackRangeNode(torchGoblin),
-                new EnemyAttackPlayerNode(torchGoblin)
+            var huntAndAttackSequence = new SequenceNode(
+                new FindNearestTargetNode(torchGoblin),
+                new TorchGoblinMoveToTargetNode(torchGoblin),
+                new SelectorNode(
+                    new SequenceNode(
+                        new HasPlayerInTorchGoblinAttackRangeNode(torchGoblin),
+                        new EnemyAttackPlayerNode(torchGoblin)
+                    ),
+                    new SequenceNode(
+                        new HasNPCInTorchGoblinAttackRangeNode(torchGoblin),
+                        new TorchGoblinAttackNPCNode(torchGoblin)
+                    ),
+                    new TorchGoblinAttack(torchGoblin)
+                ),
+                
+                new ClearBuildingTargetNode(torchGoblin) 
             );
 
             var backToSpawnPointSequence = new SequenceNode(
                 new IsDawnNode(torchGoblin),
-                new ResetStateNode(torchGoblin), 
-                new MoveToSpawnPointNode(torchGoblin), 
+                new ResetStateNode(torchGoblin),
+                new MoveToSpawnPointNode(torchGoblin),
                 new DespawnNode(torchGoblin));
 
             var root = new SelectorNode( 
                 backToSpawnPointSequence,
                 new SequenceNode(        
                     new IsNightStartNode(torchGoblin),
-                    new SelectorNode(
-                        attackPlayerSequence, // 🌟 ĐƯƠ TRÊN ĐẦU: Thấy Player là bỏ hết việc để cắn!
-                        attackNPCSequence, // Không thấy Player mới đi tìm lính NPC
-                        attackBuildingSequence) // Không thấy ai mới đi đập nhà tĩnh
+                    huntAndAttackSequence     
                 )
             );
 
             return new BehaviourTree(root);
         }
+
+        #endregion
         #endregion
 
         #region Method
@@ -325,11 +327,9 @@ namespace _Script.Unit_Management_System.Enemy
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            // 1. Vẽ vùng nhìn (Màu vàng)
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, viewDistance);
 
-            // 2. Vẽ vùng tấn công (Màu đỏ)
             DrawAttackCone();
         }
 

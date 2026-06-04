@@ -10,7 +10,6 @@ using _Script.BT.Node.EnemyNode.unitNode;
 using _Script.Enum;
 using _Script.ItemScript;
 using _Script.Object_Pooling;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace _Script.Unit_Management_System.Enemy
@@ -41,7 +40,7 @@ namespace _Script.Unit_Management_System.Enemy
         private BehaviourTree CreateBehaviourTree(TNTGoblin tntGoblin)
         {
             var attackBuildingSequence = new SequenceNode(
-                new FindNearestBuildingNode(tntGoblin),
+                new FindNearestTargetNode(tntGoblin),
                 new TNTGoblinMoveToTargetBuildingNode(tntGoblin), 
                 new TNTGoblinAttack(tntGoblin),        
                 new ClearBuildingTargetNode(tntGoblin)  

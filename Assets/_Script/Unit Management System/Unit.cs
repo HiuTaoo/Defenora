@@ -741,7 +741,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         foreach (var building in closestBuildings)
         {
-            if (building == null || building.buildingState == BuildingState.Destroyed)
+            if (building == null || building.buildingState != BuildingState.Completed)
                 continue;
 
             var path = FindBestPathToAnyAdjacent(building.gameObject, building.layerIndex);
