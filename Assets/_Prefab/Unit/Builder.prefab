@@ -452,7 +452,8 @@ MonoBehaviour:
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
-  viewAngle: 0
+  viewAngle: 180
+  stuckCheckInterval: 5
   workBoxSize: {x: 1, y: 1}
   workRange: 0.2
   currentTask:

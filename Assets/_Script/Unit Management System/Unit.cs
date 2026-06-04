@@ -608,6 +608,11 @@ public abstract class Unit : MonoBehaviour, IPoolable
         return UnitState.Idle;
     }
 
+    public BehaviourTree GetBT()
+    {
+        return bt;
+    }
+
     public void ClearAggro()
     {
         currentTarget = null;
@@ -787,7 +792,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         if (validBuildings.Count > 0)
         {
-            int randomIndex = UnityEngine.Random.Range(0, validBuildings.Count);
+            int randomIndex = Random.Range(0, validBuildings.Count);
         
             Debug.Log($"[AI Random] Quét được {validBuildings.Count} nhà hợp lệ ở gần. Đã bốc ngẫu nhiên công trình: {validBuildings[randomIndex].gameObject.name}");
             return validBuildings[randomIndex];

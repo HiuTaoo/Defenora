@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using _Script.BT;
 using _Script.BT.BlackBoard;
+using _Script.BT.GlobalAlarm;
 using _Script.BT.Node.BuilderNode;
 using _Script.BT.Node.BuilderNode.Build;
 using _Script.BT.Node.BuilderNode.Build.ClearObstacleSequence;
@@ -22,8 +23,9 @@ using Random = UnityEngine.Random;
 public class Builder : Unit
 {
     [Header("Builder Info")] public Vector2 workBoxSize = new(1f, 1f);
-
     public float workRange = 1f;
+
+    public bool isPanicking { get; set; }
 
     [Header("Task")] public Task currentTask;
 
@@ -70,6 +72,25 @@ public class Builder : Unit
             return;
 
         base.Update();
+
+        if (!isPanicking)
+        {
+            var hits = Physics2D.OverlapCircleAll(transform.position, viewDistance);
+            foreach (var hit in hits)
+                if (hit != null && hit.CompareTag("Enemy"))
+                {
+                    Debug.LogWarning(
+                        $"[Sensor Update] 🚨 {gameObject.name} phát hiện quái vật {hit.name}! Bật cờ hoảng loạn!");
+
+                    isPanicking = true;
+                    characterMovement.RequestStopMoving();
+                    bt?.ClearState();
+
+                    GlobalAlarmSystem.TriggerAlarm(hit.gameObject, hit.transform.position);
+                    break;
+                }
+        }
+        
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
     }
@@ -240,6 +261,7 @@ public class Builder : Unit
         );
 
         var root = new SelectorNode(
+            new PanicFleeActionNode(builder),
             new SequenceNode(
                 new IsInventoryFullNode(builder),
                 emergencyTransportSequence 
@@ -617,6 +639,8 @@ public class Builder : Unit
         targetGO = null;
         UpdateAnim();
         animFSM.ChangeState(UnitState.Idle, AnimState.Idle);
+
+        isPanicking = false;
     }
 
     public void UpdateAnim()
@@ -738,7 +762,26 @@ public class Builder : Unit
     }
     #endregion
 
+    #region Unity Lifecycle Events
 
+    protected override void HandleGlobalAlarm(GameObject enemy, Vector3 spottedPosition)
+    {
+        if (isPanicking) return;
+
+        if (Vector2.Distance(transform.position, spottedPosition) > hearRange) return;
+
+        Debug.LogWarning(
+            $"[Global Alarm Event] 🚨 {gameObject.name} nhận được tín hiệu báo động! Có {enemy.name} tại {spottedPosition}! Bật cờ hoảng loạn lập tức!");
+
+        isPanicking = true;
+
+        if (characterMovement != null) characterMovement.RequestStopMoving();
+
+        bt?.ClearState();
+    }
+
+    #endregion
+    
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {

@@ -9,5 +9,6 @@
     Working,
     Patrolling,
     Heal,
-    Dead
+    Dead,
+    Flee
 }
