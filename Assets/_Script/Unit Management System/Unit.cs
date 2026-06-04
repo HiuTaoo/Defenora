@@ -656,9 +656,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         if (_stuckTimer >= stuckCheckInterval)
         {
-            _stuckTimer = 0f;
-            _lastPosition = transform.position;
-
             var currentLayer = layerIndex;
             var gridX = Mathf.FloorToInt(transform.position.x);
             var gridY = Mathf.FloorToInt(transform.position.y);
@@ -666,49 +663,58 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
             var currentNode = GraphNode.Instance.GetNode(currentGridPos, currentLayer);
 
-            Debug.LogWarning($"[Unstuck Lưới Mới] Phát hiện [{unitType}] {gameObject.name} đứng im tại ô {currentGridPos} quá {stuckCheckInterval}s! Bắt đầu chạy bộ loang rộng bán kính để tìm ô trống...");
+            if (currentNode != null && currentNode.isWalkable)
+            {
+                _stuckTimer = 0f;
+                _lastPosition = transform.position;
+                return;
+            }
 
-            bool targetFound = false;
-            Vector3Int bestTargetGrid = Vector3Int.zero;
+            _stuckTimer = 0f;
+            _lastPosition = transform.position;
+
+            Debug.LogWarning(
+                $"[Unstuck Lưới Mới] Phát hiện [{unitType}] {gameObject.name} đứng im tại ô CẤM ĐI {currentGridPos} quá {stuckCheckInterval}s! Bắt đầu chạy bộ loang rộng bán kính để tìm ô trống...");
+
+            var targetFound = false;
+            var bestTargetGrid = Vector3Int.zero;
 
             const int maxRadiusSearch = 5;
-            for (int r = 1; r <= maxRadiusSearch; r++)
+            for (var r = 1; r <= maxRadiusSearch; r++)
             {
-                List<Vector3Int> candidatesAtRadius = new List<Vector3Int>();
+                var candidatesAtRadius = new List<Vector3Int>();
 
-                for (int xOffset = -r; xOffset <= r; xOffset++)
+                for (var xOffset = -r; xOffset <= r; xOffset++)
                 {
-                    for (int yOffset = -r; yOffset <= r; yOffset++)
+                    for (var yOffset = -r; yOffset <= r; yOffset++)
                     {
                         if (Mathf.Abs(xOffset) == r || Mathf.Abs(yOffset) == r)
                         {
-                            Vector3Int checkPos = currentGridPos + new Vector3Int(xOffset, yOffset, 0);
+                            var checkPos = currentGridPos + new Vector3Int(xOffset, yOffset, 0);
                             var node = GraphNode.Instance.GetNode(checkPos, currentLayer);
 
-                            if (node != null && node.isWalkable)
-                            {
-                                candidatesAtRadius.Add(checkPos);
-                            }
+                            if (node != null && node.isWalkable) candidatesAtRadius.Add(checkPos);
                         }
                     }
                 }
 
                 if (candidatesAtRadius.Count > 0)
                 {
-                    candidatesAtRadius.Sort((a, b) => 
+                    candidatesAtRadius.Sort((a, b) =>
                         Vector3.Distance(transform.position, new Vector3(a.x + 0.5f, a.y + 0.5f, 0))
-                        .CompareTo(Vector3.Distance(transform.position, new Vector3(b.x + 0.5f, b.y + 0.5f, 0)))
+                            .CompareTo(Vector3.Distance(transform.position, new Vector3(b.x + 0.5f, b.y + 0.5f, 0)))
                     );
 
                     bestTargetGrid = candidatesAtRadius[0];
                     targetFound = true;
-                    break; 
+                    break;
                 }
             }
 
             if (targetFound)
             {
-                var targetWorldPos = new Vector3(bestTargetGrid.x + 0.5f, bestTargetGrid.y + 0.5f, transform.position.z);
+                var targetWorldPos =
+                    new Vector3(bestTargetGrid.x + 0.5f, bestTargetGrid.y + 0.5f, transform.position.z);
 
                 transform.position = targetWorldPos;
                 _lastPosition = targetWorldPos;
@@ -718,16 +724,17 @@ public abstract class Unit : MonoBehaviour, IPoolable
                 if (currentState == UnitState.Move)
                     currentState = UnitState.Idle;
 
-                Debug.Log($"[Unstuck Thành Công] Đã giải cứu [{unitType}] {gameObject.name} ra khỏi vùng kẹt thành công sang ô trống lớp bán kính mới: {bestTargetGrid}");
+                Debug.Log(
+                    $"[Unstuck Thành Công] Đã giải cứu [{unitType}] {gameObject.name} ra khỏi vùng kẹt thành công sang ô trống lớp bán kính mới: {bestTargetGrid}");
             }
             else
             {
-                Debug.LogError($"[Unstuck Thất Bại] Đã quét nới rộng đến {maxRadiusSearch} ô xung quanh vị trí {currentGridPos} nhưng không tìm thấy bất kỳ ô trống nào!");
+                Debug.LogError(
+                    $"[Unstuck Thất Bại] Đã quét nới rộng đến {maxRadiusSearch} ô xung quanh vị trí {currentGridPos} nhưng không tìm thấy bất kỳ ô trống nào!");
             }
         }
     }
-
-
+    
     #region Enemy Method
 
     public Building FindNearestBuilding(Vector3 currentPosition)
@@ -828,20 +835,19 @@ public abstract class Unit : MonoBehaviour, IPoolable
         Vector2 playerPos = playerObj.transform.position;
 
         var sqrDist = (playerPos - myPos).sqrMagnitude;
-        if (sqrDist > range * range)
-            return null;
+        if (sqrDist > range * range) return null;
 
         dir.Normalize();
+
         var dirToPlayer = (playerPos - myPos).normalized;
 
-        if (Vector2.Dot(dir, dirToPlayer) <= 0)
-            return null;
+        var angle = Vector2.Angle(dir, dirToPlayer);
+        if (angle > viewAngle / 2f) return null;
 
-        var playerCollider = playerObj.GetComponent<Collider2D>();
+        var playerCollider = playerObj.GetComponentInParent<Collider2D>();
         if (playerCollider == null) return null;
 
         var b = playerCollider.bounds;
-
         Vector2[] samplePoints =
         {
             b.center,
@@ -859,14 +865,13 @@ public abstract class Unit : MonoBehaviour, IPoolable
             var dist = dirRay.magnitude;
             dirRay.Normalize();
 
-            var playerLayer = LayerMask.GetMask("Player");
-            var ray = Physics2D.Raycast(
-                myPos,
-                dirRay,
-                dist,
-                playerLayer);
+            var ray = Physics2D.Raycast(myPos, dirRay, dist, obstacleLayer);
 
-            if (ray.collider == null) visible = true;
+            if (ray.collider == null)
+            {
+                visible = true;
+                break;
+            }
         }
 
         return visible ? playerObj : null;

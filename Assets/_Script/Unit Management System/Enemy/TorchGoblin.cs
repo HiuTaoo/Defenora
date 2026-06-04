@@ -218,58 +218,6 @@ namespace _Script.Unit_Management_System.Enemy
             var npcs = DetectNPCs(attackRange, GetCurrentFacingVector());
             return npcs.Count > 0;
         }
-   
-
-        public new GameObject DetectPlayer(float range, Vector2 dir)
-        {
-            if (PlayerController.Instance == null) return null;
-
-            var playerObj = PlayerController.Instance.gameObject;
-            Vector2 myPos = transform.position;
-            Vector2 playerPos = playerObj.transform.position;
-
-            var sqrDist = (playerPos - myPos).sqrMagnitude;
-            if (sqrDist > range * range) return null;
-
-            dir.Normalize();
-
-            var dirToPlayer = (playerPos - myPos).normalized;
-
-            var angle = Vector2.Angle(dir, dirToPlayer);
-            if (angle > viewAngle / 2f) return null;
-
-            var playerCollider = playerObj.GetComponentInParent<Collider2D>();
-            if (playerCollider == null) return null;
-
-            var b = playerCollider.bounds;
-            Vector2[] samplePoints =
-            {
-                b.center,
-                new(b.center.x, b.max.y),
-                new(b.center.x, b.min.y),
-                new(b.min.x, b.center.y),
-                new(b.max.x, b.center.y)
-            };
-
-            var visible = false;
-
-            foreach (var point in samplePoints)
-            {
-                var dirRay = point - myPos;
-                var dist = dirRay.magnitude;
-                dirRay.Normalize();
-
-                var ray = Physics2D.Raycast(myPos, dirRay, dist, obstacleLayer);
-
-                if (ray.collider == null)
-                {
-                    visible = true;
-                    break;
-                }
-            }
-
-            return visible ? playerObj : null;
-        }
 
         public bool CheckPlayerInAttackRange()
         {

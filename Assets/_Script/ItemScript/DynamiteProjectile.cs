@@ -1,4 +1,4 @@
-﻿using System;
+﻿using _Script.Object_Pooling;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 
@@ -25,7 +25,7 @@ namespace _Script.ItemScript
 
         private void Awake()
         {
-            enemyLayer = LayerMask.GetMask("NPC", "Building");
+            enemyLayer = LayerMask.GetMask("NPC", "Building", "Player");
             animator = GetComponent<Animator>();
         }
 
@@ -89,14 +89,12 @@ namespace _Script.ItemScript
 
             foreach (var hit in hits)
             {
-                if (hit.CompareTag("Building") || hit.CompareTag("NPC")) 
+                if (hit.CompareTag("Building") || hit.CompareTag("NPC") || hit.CompareTag("Player")) 
                 {
                     OnHit(hit.gameObject);
                 }
             }
 
-            // Optional: Chạy hiệu ứng hạt (Particle System) hoặc âm thanh nổ ở đây
-            // Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
             animator.Play("Explosion");
         }
 
@@ -107,11 +105,32 @@ namespace _Script.ItemScript
             {
                 health.TakeDamage(damage);
             }
+
+            var isPlayer = target.CompareTag("Player");
+            if (isPlayer)
+                HandlePlayerHit(target.transform.position);
+            
         }
 
         public void ResetProjectile()
         {
             PoolManager.Instance.Despawn(gameObject);
+        }
+
+        private void HandlePlayerHit(Vector3 playerPosition)
+        {
+            if (WalletManager.Instance == null)
+            {
+                Debug.LogError("[Dynamite] Không tìm thấy WalletManager.Instance để trừ vàng của Player!");
+                return;
+            }
+
+            WalletManager.Instance.ForceSpendCoins(1);
+
+            var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.goldBagPrefab, playerPosition,
+                Quaternion.identity);
+            if (coinObj != null && coinObj.TryGetComponent(out Item coinItem))
+                coinItem.StartDrop(playerPosition, transform.position);
         }
 
         private void OnDrawGizmosSelected()

@@ -10,6 +10,7 @@ using _Script.BT.Node.EnemyNode.unitNode;
 using _Script.Enum;
 using _Script.ItemScript;
 using _Script.Object_Pooling;
+using UnityEditor;
 using UnityEngine;
 
 namespace _Script.Unit_Management_System.Enemy
@@ -19,7 +20,6 @@ namespace _Script.Unit_Management_System.Enemy
         [Header("Torch Goblin Stat")] 
         public EnemyDirection enemyDirection;
 
-        public GameObject subTarget;
 
         protected override void Awake()
         {
@@ -39,33 +39,39 @@ namespace _Script.Unit_Management_System.Enemy
 
         private BehaviourTree CreateBehaviourTree(TNTGoblin tntGoblin)
         {
-            var attackBuildingSequence = new SequenceNode(
+            var huntAndAttackSequence = new SequenceNode(
                 new FindNearestTargetNode(tntGoblin),
-                new TNTGoblinMoveToTargetBuildingNode(tntGoblin), 
-                new TNTGoblinAttack(tntGoblin),        
-                new ClearBuildingTargetNode(tntGoblin)  
-            );
-            
-            var attackNPCSequence = new SequenceNode(
-                new HasNPCInTNTGoblinAttackRangeNode(tntGoblin),                 
-                new TNTGoblinAttackNPCNode(tntGoblin)           
+                new TNTGoblinMoveToTargetNode(tntGoblin),
+                new SelectorNode(
+                    new SequenceNode(
+                        new HasPlayerInTNTGoblinAttackRangeNode(tntGoblin),
+                        new TNTGoblinAttackPlayerNode(tntGoblin)
+                    ),
+                    new SequenceNode(
+                        new HasNPCInEnemyAttackRangeNode(tntGoblin),
+                        new TNTGoblinAttackNPCNode(tntGoblin)
+                    ),
+                    new EnemyAttackBuildingNode(tntGoblin)
+                ),
+                new ClearBuildingTargetNode(tntGoblin) 
             );
             
             var backToSpawnPointSequence = new SequenceNode(
                 new IsDawnNode(tntGoblin),
-                new ResetStateNode(tntGoblin), 
-                new MoveToSpawnPointNode(tntGoblin), 
+                new ResetStateNode(tntGoblin),
+                new MoveToSpawnPointNode(tntGoblin),
                 new DespawnNode(tntGoblin));
 
+            // ROOT CỦA CÂY BEHAVIOR TREE
             var root = new SelectorNode(
                 backToSpawnPointSequence,
                 new SequenceNode(
                     new IsNightStartNode(tntGoblin),
-                    new SelectorNode(
-                        attackNPCSequence,
-                        attackBuildingSequence)));
-            
-            return new  BehaviourTree(root);
+                    huntAndAttackSequence
+                )
+            );
+
+            return new BehaviourTree(root);
         }
 
         #region Method
@@ -160,9 +166,9 @@ namespace _Script.Unit_Management_System.Enemy
     
             if (dynamiteComp != null)
             {
-                if (subTarget != null && subTarget.activeInHierarchy)
+                if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
                 {
-                    dynamiteComp.Init(transform.position, subTarget.transform.position, attackDamage);
+                    dynamiteComp.Init(transform.position, currentTarget.transform.position, attackDamage);
                 }
                 else if (currentTarget != null)
                 {
@@ -188,8 +194,39 @@ namespace _Script.Unit_Management_System.Enemy
             
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, attackRange);
+
+            DrawAttackCone();
         }
 
+        private void DrawAttackCone()
+        {
+            var origin = transform.position;
+            var damageRange = attackRange;
+
+            var direction = Vector3.right;
+            if (enemyDirection == EnemyDirection.Up) direction = Vector3.up;
+            else if (enemyDirection == EnemyDirection.Down) direction = Vector3.down;
+            else direction = transform.localScale.x > 0 ? Vector3.right : Vector3.left;
+
+
+            Handles.color = new Color(1f, 0f, 0f, 0.2f);
+            Handles.DrawSolidArc(
+                origin,
+                Vector3.forward,
+                Quaternion.Euler(0, 0, -viewAngle / 2) * direction,
+                viewAngle,
+                damageRange
+            );
+
+
+            Gizmos.color = Color.red;
+
+            var leftBoundary = Quaternion.Euler(0, 0, -viewAngle / 2) * direction;
+            var rightBoundary = Quaternion.Euler(0, 0, viewAngle / 2) * direction;
+
+            Gizmos.DrawLine(origin, origin + leftBoundary * damageRange);
+            Gizmos.DrawLine(origin, origin + rightBoundary * damageRange);
+        }
     
 #endif
     }
