@@ -764,6 +764,37 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         return nearest;
     }
+    
+    public Building FindRandomBuilding(Vector3 currentPosition)
+    {
+        var closestBuildings = UnitManager.Instance.buildings
+            .OrderBy(b => (b.transform.position - currentPosition).sqrMagnitude)
+            .Take(5);
+
+        List<Building> validBuildings = new List<Building>();
+
+        foreach (var building in closestBuildings)
+        {
+            if (building == null || building.buildingState != BuildingState.Completed)
+                continue;
+
+            var path = FindBestPathToAnyAdjacent(building.gameObject, building.layerIndex);
+            if (path == null)
+                continue;
+
+            validBuildings.Add(building);
+        }
+
+        if (validBuildings.Count > 0)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, validBuildings.Count);
+        
+            Debug.Log($"[AI Random] Quét được {validBuildings.Count} nhà hợp lệ ở gần. Đã bốc ngẫu nhiên công trình: {validBuildings[randomIndex].gameObject.name}");
+            return validBuildings[randomIndex];
+        }
+
+        return null;
+    }
 
     public List<GameObject> DetectNPCs(float range, Vector2 dir)
     {

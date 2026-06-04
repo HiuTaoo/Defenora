@@ -7,6 +7,7 @@ using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.BarrelNode;
 using _Script.BT.Node.EnemyNode.unitNode;
 using _Script.Enum;
+using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
@@ -45,7 +46,7 @@ namespace _Script.Unit_Management_System.Enemy
             base.Awake();
             bt = CreateBehaviourTree(this);
             unitType = UnitType.Barrel;
-            damageLayerMask = LayerMask.GetMask("Building", "NPC");
+            damageLayerMask = LayerMask.GetMask("Building", "NPC", "Player");
             animator = GetComponent<Animator>();
             animator.Play("In");
         }
@@ -57,22 +58,14 @@ namespace _Script.Unit_Management_System.Enemy
             animFSM.ChangeState(currentState, animState);
         }
 
-#if UNITY_EDITOR
-        // Vẽ vùng sát thương màu đỏ trong Scene View để dễ căn chỉnh
-        private void OnDrawGizmosSelected()
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, explosionRadius);
-        }
-#endif
 
         #region Behaviour Tree
 
         private BehaviourTree CreateBehaviourTree(Barrel barrel)
         {
-            var attackBuildingSequence = new SequenceNode(
-                new FindNearestTargetNode(barrel),
-                new BarrelMoveToTargetBuildingNode(barrel),
+            var attackSequence = new SequenceNode(
+                new BarrelFindNearestTargetNode(barrel),
+                new BarrelMoveToTargetNode(barrel),
                 new BarrelExplodeNode(barrel)
             );
 
@@ -86,7 +79,7 @@ namespace _Script.Unit_Management_System.Enemy
                 backToSpawnPointSequence,
                 new SequenceNode(
                     new IsNightStartNode(barrel),
-                    attackBuildingSequence
+                    attackSequence 
                 ));
 
             return new BehaviourTree(root);
@@ -172,8 +165,26 @@ namespace _Script.Unit_Management_System.Enemy
                     var targetHealth = hitCol.GetComponentInChildren<Health>();
                     if (targetHealth != null && targetHealth.CurrentHealth > 0)
                         targetHealth.TakeDamage(explosionDamage);
+                    if(hitCol.gameObject.CompareTag("Player"))
+                        HandlePlayerHit(hitCol.transform.position);
                 }
             }
+        }
+        
+        private void HandlePlayerHit(Vector3 playerPosition)
+        {
+            if (WalletManager.Instance == null)
+            {
+                Debug.LogError("[Dynamite] Không tìm thấy WalletManager.Instance để trừ vàng của Player!");
+                return;
+            }
+
+            WalletManager.Instance.ForceSpendCoins(5);
+
+            var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.goldBagPrefab, playerPosition,
+                Quaternion.identity);
+            if (coinObj != null && coinObj.TryGetComponent(out Item coinItem))
+                coinItem.StartDrop(playerPosition, transform.position);
         }
 
         #region Logic Quét Mục Tiêu
@@ -241,5 +252,14 @@ namespace _Script.Unit_Management_System.Enemy
         }
 
         #endregion
+        
+        
+#if UNITY_EDITOR
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, explosionRadius);
+        }
+#endif
     }
 }
