@@ -12,6 +12,7 @@ public abstract class Animal : MonoBehaviour, IPoolable
     protected AgentPhysics2D agentPhysics2D;
     [HideInInspector] public FloorAgent floorAgent;
     [HideInInspector] public Health health;
+    [HideInInspector] public SpriteRenderer spriteRenderer;
 
     [Header("Animal Info")]
     public AnimalType animalType;
@@ -40,6 +41,7 @@ public abstract class Animal : MonoBehaviour, IPoolable
         floorAgent = GetComponentInChildren<FloorAgent>();
         random = new System.Random();
         health = GetComponentInChildren<Health>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
         animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
     }
@@ -111,7 +113,7 @@ public abstract class Animal : MonoBehaviour, IPoolable
 
         bool isBlocked = agentPhysics2D.IsBlock(currentPosition, runDirection, moveDistance + 0.05f, animalCollider2D);
 
-        if (!isBlocked && GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Playing)
+        if (!isBlocked)
         {
             Vector2 newPosition = currentPosition + runDirection * moveDistance;
             rb.MovePosition(newPosition);
@@ -219,6 +221,10 @@ public abstract class Animal : MonoBehaviour, IPoolable
     {
         InstaniateObject(PrefabConfig.Instance.meatPrefab,
             gameObject.transform.position, layerIndex, 1);
+        var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, transform.position,
+            Quaternion.identity);
+        coinObj.GetComponent<Coin>().StartDrop(coinObj.transform.position, layerIndex);
+        
         PoolManager.Instance.Despawn(transform.gameObject);
     }
     

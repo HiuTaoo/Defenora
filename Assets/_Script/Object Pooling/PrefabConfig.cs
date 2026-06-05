@@ -35,6 +35,7 @@ namespace _Script.Object_Pooling
         public GameObject goldBagPrefab;
         public GameObject arrowPrefab;
         public GameObject dynamitePrefab;
+        public GameObject coinPrefab;
         
         [Header("GUI Prefab")]
         public GameObject addUnitButtonPrefab;
@@ -59,8 +60,6 @@ namespace _Script.Object_Pooling
         [Header("Animal Prefab")]
         public GameObject[] animalPrefabs;
         
-
-
         private Dictionary<string, GameObject> prefabLookup 
             = new Dictionary<string, GameObject>();
 

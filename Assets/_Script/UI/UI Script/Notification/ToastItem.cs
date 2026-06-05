@@ -5,8 +5,8 @@ using UnityEngine;
 [RequireComponent(typeof(TextMeshProUGUI))]
 public class ToastItem : MonoBehaviour, IPoolable
 {
-    [SerializeField] private float lifeTime = 2.0f;
-    [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private float lifeTime = 3.0f;
+    [SerializeField] private float fadeDuration = 1f;
 
     private TextMeshProUGUI _textMesh;
     private Coroutine _lifeCoroutine;

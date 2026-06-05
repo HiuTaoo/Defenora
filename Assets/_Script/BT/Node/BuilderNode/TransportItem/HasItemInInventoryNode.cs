@@ -18,7 +18,8 @@ namespace _Script.BT.Node.BuilderNode
                 || builder.currentInventory.IsEmpty)
                 return BTStatus.Failure;
 
-            if (ItemManager.Instance.FindNearestItem(builder.transform.position, builder.floorAgent._currentFloorIndex,
+            if (!builder.currentInventory.IsFull && ItemManager.Instance.FindNearestItem(builder.transform.position,
+                    builder.floorAgent._currentFloorIndex,
                     builder))
                 return BTStatus.Failure;
 

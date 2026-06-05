@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using UnityEngine;
 
@@ -8,14 +9,22 @@ namespace _Script.ItemScript
     {
         public static ItemManager Instance { get; private set; }
 
+        [Header("Item Lists")]
         [SerializeField] public List<Item> activeItems = new();
-
         [SerializeField] private List<Item> pendingItems = new();
+
+        [Header("Coin Lists")] [SerializeField]
+        public List<Coin> activeCoins = new();
 
         private float _clearPendingTimer;
         private const float ClearPendingInterval = 30f; 
 
         public List<Item> GetActiveItems() => activeItems;
+
+        public List<Coin> GetActiveCoins()
+        {
+            return activeCoins;
+        }
 
         private void Awake()
         {
@@ -34,6 +43,8 @@ namespace _Script.ItemScript
                 ReleasePendingItems();
             }
         }
+
+        #region Item Management Logic
 
         public void RegisterItem(Item item)
         {
@@ -101,11 +112,30 @@ namespace _Script.ItemScript
             return nearestItem;
         }
 
+        #endregion
+
+        #region Coin Management Logic
+
+        public void RegisterCoin(Coin coin)
+        {
+            if (coin != null && !activeCoins.Contains(coin)) activeCoins.Add(coin);
+        }
+
+        public void UnregisterCoin(Coin coin)
+        {
+            if (coin != null && activeCoins.Contains(coin)) activeCoins.Remove(coin);
+        }
+
+        #endregion
+
+        #region Save / Load Logic
+
         public void PopulateItemSaveData(GameSaveData saveData)
         {
             ReleasePendingItems();
 
             saveData.itemManagerSaveData.items.Clear();
+            saveData.itemManagerSaveData.coins.Clear();
 
             foreach (var item in activeItems)
             {
@@ -119,6 +149,19 @@ namespace _Script.ItemScript
                     position = item.transform.position
                 });
             }
+
+            foreach (var coin in activeCoins)
+            {
+                if (coin == null) continue;
+
+                saveData.itemManagerSaveData.coins.Add(new CoinSaveData
+                {
+                    coinValue = 1,
+                    layerIndex = coin.layerIndex,
+                    position = coin.transform.position
+                });
+            }
+
         }
 
         public void LoadItemsFromSaveData(GameSaveData saveData)
@@ -140,6 +183,12 @@ namespace _Script.ItemScript
                 }
             }
             pendingItems.Clear();
+
+            for (var i = activeCoins.Count - 1; i >= 0; i--)
+                if (activeCoins[i] != null)
+                    PoolManager.Instance.Despawn(activeCoins[i].gameObject);
+
+            activeCoins.Clear();
 
             if (saveData.itemManagerSaveData == null || saveData.itemManagerSaveData.items == null) return;
 
@@ -174,6 +223,38 @@ namespace _Script.ItemScript
                 }
             }
             Debug.Log($"[SaveLoadSystem] Đã khôi phục thành công {activeItems.Count} vật phẩm trên mặt đất.");
+
+            if (saveData.itemManagerSaveData.coins != null)
+            {
+                var coinPrefab = PrefabConfig.Instance.coinPrefab;
+                var goldBagPrefab = PrefabConfig.Instance.goldBagPrefab;
+
+                foreach (var savedCoin in saveData.itemManagerSaveData.coins)
+                {
+                    if (coinPrefab == null || goldBagPrefab == null) continue;
+
+                    var prefabToSpawn = savedCoin.coinValue == 1 ? coinPrefab : goldBagPrefab;
+
+                    var spawnedObj = PoolManager.Instance.Spawn(prefabToSpawn, savedCoin.position, Quaternion.identity);
+                    if (spawnedObj != null)
+                    {
+                        var coinComp = spawnedObj.GetComponent<Coin>();
+                        if (coinComp != null)
+                        {
+                            coinComp.layerIndex = savedCoin.layerIndex;
+                            coinComp._isDropping = false;
+                            coinComp._isCollected = false;
+                            coinComp.SetCoinValue(savedCoin.coinValue);
+                            RegisterCoin(coinComp);
+                        }
+                    }
+                }
+            }
+
+            Debug.Log(
+                $"[SaveLoadSystem] Khôi phục xong: {activeItems.Count} Items và {activeCoins.Count} Coins/GoldBags trên mặt đất.");
         }
+
+        #endregion
     }
 }

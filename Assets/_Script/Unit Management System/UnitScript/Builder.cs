@@ -362,10 +362,8 @@ public class Builder : Unit
             transform.localScale = scale;
         }
 
-        // 🟢 SỬA LOGIC TRÁNH XUNG ĐỘT: Kiểm tra xem chính cái "targetGO" (vật đang bị Builder gõ) là cái gì
         if (targetGO.TryGetComponent<Tree>(out var tree))
         {
-            // TRƯỜNG HỢP 1: Thực sự đang chặt một cây tài nguyên (Task Chặt Cây)
             if (tree.currentChopHit >= tree.maxChopHit)
             {
                 if (currentTask != null)
@@ -377,12 +375,16 @@ public class Builder : Unit
             
                 InstaniateObject(PrefabConfig.Instance.woodPrefab,
                     tree.gameObject.transform.position, tree.layerIndex, 1);
+
+                var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, transform.position,
+                    Quaternion.identity);
+                coinObj.GetComponent<Coin>().StartDrop(coinObj.transform.position, layerIndex);
+                
                 return true;
             }
         }
         else
         {
-            // TRƯỜNG HỢP 2: Đang xử lý vật cản trên móng nhà (Task Xây Nhà)
             var targetObtacle = builderBlackBoard.currentObstacle;
 
             if (targetObtacle is DecorObject && targetObtacle != null)
@@ -391,7 +393,6 @@ public class Builder : Unit
                 if (obj.currentChopHit >= obj.maxChopHit)
                 {
                     builderBlackBoard.currentObstacle = null;
-                    // Tuyệt đối không chạm vào currentTask ở đây!
                     return true;
                 }
             }

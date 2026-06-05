@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.UI.UI_Script;
+using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
-using TMPro; 
 
 public class TrainingWindowUI : MonoBehaviour
 {
@@ -28,7 +27,6 @@ public class TrainingWindowUI : MonoBehaviour
     
     private List<GameObject> targetClassSpawnedObjects = new List<GameObject>();
     private List<GameObject> civilianSpawnedObjects = new List<GameObject>();
-    // 🌟 THÊM: Quản lý các slot tài nguyên được sinh ra để tránh rác bộ nhớ
     private List<GameObject> resourceSpawnedObjects = new List<GameObject>();
 
     private int currentSelectedConfigIndex = 0;
@@ -73,7 +71,7 @@ public class TrainingWindowUI : MonoBehaviour
 
         if (configs == null || configs.Length == 0) 
         {
-            ClearRequirementResourcesView(); // 🌟 Xóa view tài nguyên nếu không có config
+            ClearRequirementResourcesView(); 
             return;
         }
 
@@ -134,11 +132,9 @@ public class TrainingWindowUI : MonoBehaviour
             }
         }
 
-        // 🌟 THÊM: Cập nhật danh sách tài nguyên yêu cầu của config đang chọn
         UpdateRequirementResourcesDisplay(activeConfig);
     }
 
-    // 🌟 THÊM: Logic sinh prefab tài nguyên yêu cầu
     private void UpdateRequirementResourcesDisplay(TrainingConfig config)
     {
         ClearRequirementResourcesView();
@@ -149,7 +145,6 @@ public class TrainingWindowUI : MonoBehaviour
         {
             if (cost.itemData == null || cost.amount <= 0) continue;
 
-            // Sinh prefab slot theo yêu cầu bằng inventorySlotPrefab
             var resourceObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.inventorySlotPrefab,
                 requirementResourcePanel.transform.position, Quaternion.identity);
 
@@ -159,7 +154,6 @@ public class TrainingWindowUI : MonoBehaviour
             
             resourceSpawnedObjects.Add(resourceObj);
 
-            // Gán dữ liệu (icon, số lượng) thông qua Component UIResourceSlot đính trên prefab
             var resourceSlotUI = resourceObj.GetComponent<UIResourceSlot>();
             if (resourceSlotUI != null)
             {
@@ -167,11 +161,9 @@ public class TrainingWindowUI : MonoBehaviour
             }
         }
 
-        // Cập nhật lại giao diện tự động ép các thẻ tài nguyên xếp ngay ngắn
         LayoutRebuilder.ForceRebuildLayoutImmediate(requirementResourcePanel);
     }
 
-    // 🌟 THÊM: Dọn dẹp Panel tài nguyên yêu cầu cũ
     private void ClearRequirementResourcesView()
     {
         foreach (var obj in resourceSpawnedObjects)
@@ -194,11 +186,10 @@ public class TrainingWindowUI : MonoBehaviour
         TrainingConfig activeConfig = configs[currentSelectedConfigIndex];
         UnitType dynamicTargetType = activeConfig.targetType;
 
-        // Kiểm tra xem người chơi còn đủ tài nguyên không trước khi ấn Train tại UI
-        // (Lớp cha TrainingBuilding đã có hàm HasEnoughResources)
         if (!currentActiveBuilding.HasEnoughResources(activeConfig))
         {
-            Debug.LogWarning("Không đủ tài nguyên để nhấn huấn luyện!");
+            UINotificationManager.Instance.ShowNotification("Not enough resources for training!",
+                NotificationColorType.Warning);
             return;
         }
 

@@ -11,7 +11,6 @@ public class UnitInventory : MonoBehaviour
     [Header("Debug View")]
     [SerializeField] private List<InventoryEntry> debugItems = new List<InventoryEntry>();
 
-    // Chuyển đổi hoàn toàn từ Dictionary sang List để đồng bộ thuật toán stack
     private List<InventorySlot> items = new List<InventorySlot>();
 
     public int CurrentCapacity

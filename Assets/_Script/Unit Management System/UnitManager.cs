@@ -11,7 +11,7 @@ public class UnitManager : MonoBehaviour
     [Header("Unit Management")] public List<Unit> allUnits = new();
 
     public List<Building> buildings = new();
-    private Transform buildingParent;
+    public Transform buildingParent;
     public Dictionary<string, GameObject> buildingPrefabs;
     public Action OnUnitRegistered;
 

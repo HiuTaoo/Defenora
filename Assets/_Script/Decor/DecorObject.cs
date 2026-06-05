@@ -12,7 +12,7 @@ public abstract class DecorObject : MonoBehaviour, IChoppable, IPoolable
     private bool hasBeenChopped = false;
 
     private CapsuleCollider2D decorCollider;
-    private SpriteRenderer spriteRenderer;
+    public SpriteRenderer spriteRenderer;
     private SimpleSpriteAnimator spriteAnimator;
 
     public Action<IChoppable> OnChoppedObject { get; set; }

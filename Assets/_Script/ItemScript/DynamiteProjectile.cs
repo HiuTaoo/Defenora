@@ -31,6 +31,7 @@ namespace _Script.ItemScript
 
         public void Init(Vector2 startPos, Vector2 targetPos, float damage)
         {
+            SetDamage(damage);
             transform.position = startPos;
             startPosition = startPos;
             targetPosition = targetPos;
@@ -127,10 +128,29 @@ namespace _Script.ItemScript
 
             WalletManager.Instance.ForceSpendCoins(1);
 
-            var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.goldBagPrefab, playerPosition,
+            var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, playerPosition,
                 Quaternion.identity);
-            if (coinObj != null && coinObj.TryGetComponent(out Item coinItem))
-                coinItem.StartDrop(playerPosition, transform.position);
+            if (coinObj != null && coinObj.TryGetComponent(out Coin coin))
+                coin.StartDrop(transform.position, CheckTargetLayer(transform.position));
+        }
+
+        private int CheckTargetLayer(Vector3 targetPosition)
+        {
+            var layerCount = GraphNode.Instance.layerDatas.Length;
+            var layer = 0;
+
+            for (var i = layerCount - 1; i >= 0; i--)
+            {
+                var graph = GraphNode.Instance.layerGraphs[i];
+                if (graph.nodes.TryGetValue(Vector3Int.FloorToInt(targetPosition), out var node))
+                    if (node != null && node.isWalkable)
+                    {
+                        layer = i;
+                        break;
+                    }
+            }
+
+            return layer;
         }
 
         private void OnDrawGizmosSelected()

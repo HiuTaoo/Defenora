@@ -49,8 +49,6 @@ namespace _Script.Unit_Management_System.Enemy
         }
 
         #region BT
-
-        #region BT
         private BehaviourTree CreateBehaviourTree(TorchGoblin torchGoblin)
         {
             var huntAndAttackSequence = new SequenceNode(
@@ -89,14 +87,8 @@ namespace _Script.Unit_Management_System.Enemy
         }
 
         #endregion
-        #endregion
 
         #region Method
-
-        
-        
-        
-
         public void UpdateDirection()
         {
             if (currentTarget == null)
@@ -191,14 +183,13 @@ namespace _Script.Unit_Management_System.Enemy
                 return;
             }
 
-            // Khấu trừ vàng trực tiếp và văng túi tiền rơi ra ngoài đất
             WalletManager.Instance.ForceSpendCoins(1);
 
-            var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.goldBagPrefab, playerPosition,
+            var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, playerPosition,
                 Quaternion.identity);
-            if (coinObj != null && coinObj.TryGetComponent(out Item coinItem))
+            if (coinObj != null && coinObj.TryGetComponent(out Coin coin))
             {
-                coinItem.StartDrop(playerPosition, transform.position);
+                coin.StartDrop(transform.position, layerIndex);
             }
         }
 

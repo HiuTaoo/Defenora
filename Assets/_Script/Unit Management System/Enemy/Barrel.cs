@@ -5,7 +5,6 @@ using _Script.BT;
 using _Script.BT.Node.BuilderNode.RepairStructure;
 using _Script.BT.Node.EnemyNode;
 using _Script.BT.Node.EnemyNode.BarrelNode;
-using _Script.BT.Node.EnemyNode.unitNode;
 using _Script.Enum;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
@@ -183,8 +182,8 @@ namespace _Script.Unit_Management_System.Enemy
 
             var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.goldBagPrefab, playerPosition,
                 Quaternion.identity);
-            if (coinObj != null && coinObj.TryGetComponent(out Item coinItem))
-                coinItem.StartDrop(playerPosition, transform.position);
+            if (coinObj != null && coinObj.TryGetComponent(out Coin coin))
+                coin.StartDrop(transform.position, layerIndex);
         }
 
         #region Logic Quét Mục Tiêu

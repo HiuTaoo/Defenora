@@ -36,6 +36,8 @@ public class WalletManager : MonoBehaviour
         }
         
         Debug.LogWarning("[Wallet] Không đủ coin để thực hiện giao dịch!");
+        UINotificationManager.Instance.ShowNotification("Not enough coins in the wallet to make this transaction!",
+            NotificationColorType.Warning);
         return false;
     }
 

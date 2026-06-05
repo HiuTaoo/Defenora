@@ -213,7 +213,7 @@ public class EditBuildingManager : MonoBehaviour
                 Debug.LogWarning(
                     $"[EditBuildingManager] Thiếu tài nguyên và không đủ vàng để bù! Cần {totalCoinsToSpend} Vàng.");
                 UINotificationManager.Instance.ShowNotification("Not enough resources and coins to build!",
-                    NotificationColorType.Error);
+                    NotificationColorType.Warning);
                 return;
             }
 
@@ -265,7 +265,10 @@ public class EditBuildingManager : MonoBehaviour
             foreach (var building in listPlacedBuilding)
             {
                 if (!UnitManager.Instance.buildings.Contains(building))
+                {
                     UnitManager.Instance.buildings.Add(building);
+                    building.transform.SetParent(UnitManager.Instance.buildingParent);
+                }
             }
         }
 

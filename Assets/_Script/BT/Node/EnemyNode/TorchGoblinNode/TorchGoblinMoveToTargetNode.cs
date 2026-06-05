@@ -1,6 +1,4 @@
-﻿using _Script.BT.Node.EnemyNode.unitNode;
-using _Script.Enum;
-using _Script.Unit_Management_System.Enemy;
+﻿using _Script.Unit_Management_System.Enemy;
 using UnityEngine;
 
 namespace _Script.BT.Node.EnemyNode
@@ -63,7 +61,7 @@ namespace _Script.BT.Node.EnemyNode
                 PathFinding path = null;
                 var isTargetNodeWalkable = GraphNode.Instance.IsWalkableNode(targetGridPos, goblin.currentTargetLayerIndex);
 
-                if (!isTargetNodeWalkable)
+                if (!isTargetNodeWalkable && goblin.currentTarget.CompareTag("Building"))
                 {
                     path = goblin.FindBestPathToAnyAdjacentWithoutDiagonal(
                         goblin.currentTarget.gameObject,

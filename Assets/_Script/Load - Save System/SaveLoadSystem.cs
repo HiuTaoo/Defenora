@@ -20,8 +20,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     [Header("Load Optimization")] public int objectsPerFrame = 50;
 
-    public bool useObjectPooling = true;
-    public int backgroundObjectsPerFrame = 2;
     public bool loadAsync = true;
 
     private Transform decorObjectParent;
@@ -33,7 +31,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     private List<ISaveable> saveables = new();
 
     private UnitManager unitManager;
-
 
     private string saveFilePath => Path.Combine(Application.persistentDataPath, "savegame.json");
 
@@ -341,7 +338,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             var buildingData = saveData.buildingSaveData;
 
             foreach (var building in unitManager.buildings)
-                Destroy(building.gameObject);
+                PoolManager.Instance.Despawn(building.gameObject);
             unitManager.buildings.Clear();
 
             foreach (var buildingDatum in buildingData.buildings)
@@ -365,8 +362,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                         if (itemSO != null) storageBuilding.Add(itemSO, savedSlot.amount);
                     }
 
-                var customRender = building.transform.Find("Custom Render Sprite");
-                if (customRender != null) customRender.GetComponent<CustomRender>().layerIndex = building.LayerIndex;
+                building.customRenderer.layerIndex = building.LayerIndex;
             }
 
             #endregion
@@ -376,7 +372,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             var unitData = saveData.unitSaveData;
 
             foreach (var unit in unitManager.allUnits)
-                Destroy(unit.gameObject);
+                PoolManager.Instance.Despawn(unit.gameObject);
             unitManager.allUnits.Clear();
 
             foreach (var unitDatum in unitData.units)
@@ -651,28 +647,22 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
     {
         if (saveData == null) yield break;
 
-        var regionTasks = new Dictionary<Vector2Int, List<Action<bool>>>();
+        var regionTasks = new Dictionary<Vector2Int, List<DecorSpawnTask>>();
 
-        void AddTaskToRegion(Vector3 pos, Action<bool> loadTask)
+        void AddDecorTaskToRegion(Vector3 pos, DecorSpawnTask task)
         {
-            if (RegionManager.Instance == null)
-            {
-                Debug.LogError("RegionManager.Instance is null. Cannot group decor objects by region.");
-                return;
-            }
+            if (RegionManager.Instance == null) return;
 
             var key = RegionManager.Instance.GetRegionKey(pos);
+            if (!RegionManager.Instance.HasRegion(key)) return;
 
-            if (!RegionManager.Instance.HasRegion(key))
+            if (!regionTasks.TryGetValue(key, out var list))
             {
-                Debug.LogWarning($"Object at {pos} is outside map region. Region key: {key}");
-                return;
+                list = new List<DecorSpawnTask>();
+                regionTasks[key] = list;
             }
 
-            if (!regionTasks.ContainsKey(key))
-                regionTasks[key] = new List<Action<bool>>();
-
-            regionTasks[key].Add(loadTask);
+            list.Add(task);
         }
 
         foreach (var layerData in saveData.layerData)
@@ -689,47 +679,27 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             ObjectSpawner.Instance.spawnedRocks[currentLayerIndex] = new List<SpawnedRock>();
             ObjectSpawner.Instance.spawnedAnimals[currentLayerIndex] = new List<SpawnedAnimal>();
 
-            var currentClustersRef = ObjectSpawner.Instance.layerClusters[currentLayerIndex];
-
             foreach (var data in layerData.trees)
             {
                 var worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
-                AddTaskToRegion(worldPos, isHidden =>
-                {
-                    var obj = LoadTree(data, currentClustersRef, isHidden);
-                    if (obj != null) ObjectSpawner.Instance.spawnedTrees[currentLayerIndex].Add(obj);
-                });
+                AddDecorTaskToRegion(worldPos, new DecorSpawnTask(DecorType.Tree, currentLayerIndex, data));
             }
 
             foreach (var data in layerData.bushes)
             {
                 var worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
-                AddTaskToRegion(worldPos, isHidden =>
-                {
-                    var obj = LoadBush(data, currentClustersRef, isHidden);
-                    if (obj != null) ObjectSpawner.Instance.spawnedBushes[currentLayerIndex].Add(obj);
-                });
+                AddDecorTaskToRegion(worldPos, new DecorSpawnTask(DecorType.Bush, currentLayerIndex, data));
             }
 
             foreach (var data in layerData.rocks)
             {
                 var worldPos = ObjectSpawner.Instance.GridToWorld(data.gridPosition);
-                AddTaskToRegion(worldPos, isHidden =>
-                {
-                    var obj = LoadRock(data, currentClustersRef, isHidden);
-                    if (obj != null) ObjectSpawner.Instance.spawnedRocks[currentLayerIndex].Add(obj);
-                });
+                AddDecorTaskToRegion(worldPos, new DecorSpawnTask(DecorType.Rock, currentLayerIndex, data));
             }
 
             foreach (var data in layerData.animals)
-            {
-                var worldPos = data.currentPosition;
-                AddTaskToRegion(worldPos, isHidden =>
-                {
-                    var obj = LoadAnimal(data, isHidden);
-                    if (obj != null) ObjectSpawner.Instance.spawnedAnimals[currentLayerIndex].Add(obj);
-                });
-            }
+                AddDecorTaskToRegion(data.currentPosition,
+                    new DecorSpawnTask(DecorType.Animal, currentLayerIndex, data));
         }
 
         var firstRegionKeys = RegionManager.Instance.GetRegionKeysAroundCamera();
@@ -740,37 +710,64 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             .OrderBy(key => (RegionManager.Instance.GetRegionCenter(key) - cameraPos).sqrMagnitude)
             .ToList();
 
-        var processedCount = 0;
         var allSortedRegionKeys = new List<Vector2Int>();
         allSortedRegionKeys.AddRange(firstRegionKeys);
         allSortedRegionKeys.AddRange(remainingRegionKeys);
 
+        var processedCount = 0;
+        var clustersCache = ObjectSpawner.Instance.layerClusters;
+
         foreach (var key in allSortedRegionKeys)
         {
-            if (!regionTasks.ContainsKey(key)) continue;
+            if (!regionTasks.TryGetValue(key, out var tasks)) continue;
 
             var isBackground = !firstRegionKeys.Contains(key);
 
-            foreach (var loadTask in regionTasks[key])
+            foreach (var task in tasks)
             {
-                loadTask.Invoke(isBackground);
+                switch (task.type)
+                {
+                    case DecorType.Tree:
+                        var treeData = (SpawnedTreeData)task.dataReference;
+                        var treeObj = LoadTree(treeData, clustersCache[task.layerIndex], isBackground);
+                        if (treeObj != null) ObjectSpawner.Instance.spawnedTrees[task.layerIndex].Add(treeObj);
+                        break;
+
+                    case DecorType.Bush:
+                        var bushData = (SpawnedBushData)task.dataReference;
+                        var bushObj = LoadBush(bushData, clustersCache[task.layerIndex], isBackground);
+                        if (bushObj != null) ObjectSpawner.Instance.spawnedBushes[task.layerIndex].Add(bushObj);
+                        break;
+
+                    case DecorType.Rock:
+                        var rockData = (SpawnedRockData)task.dataReference;
+                        var rockObj = LoadRock(rockData, clustersCache[task.layerIndex], isBackground);
+                        if (rockObj != null) ObjectSpawner.Instance.spawnedRocks[task.layerIndex].Add(rockObj);
+                        break;
+
+                    case DecorType.Animal:
+                        var animalData = (SpawnedAnimalData)task.dataReference;
+                        var animalObj = LoadAnimal(animalData, isBackground);
+                        if (animalObj != null) ObjectSpawner.Instance.spawnedAnimals[task.layerIndex].Add(animalObj);
+                        break;
+                }
 
                 processedCount++;
                 if (processedCount >= objectsPerFrame)
                 {
                     processedCount = 0;
-                    yield return null; 
+                    yield return null;
                 }
             }
         }
 
         UnitManager.Instance.UpdateGraphNodeWhenStart();
-        Debug.Log("[SaveLoadSystem] Đã khôi phục xong toàn bộ thực thể Decor trên bản đồ.");
+        Debug.Log("[SaveLoadSystem] Đã khôi phục xong toàn bộ thực thể Decor trên bản đồ (Không sinh rác Action).");
 
         if (ObjectSpawner.Instance != null)
             ObjectSpawner.Instance.LinkChoppedTreesOnMapLoaded();
 
-        OnLoaded?.Invoke(); 
+        OnLoaded?.Invoke();
     }
 
     private void LoadLayerData(LayerSpawnData layerData)
@@ -855,8 +852,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         treeObj.transform.SetParent(decorObjectParent);
         treeObj.OverrideId(treeData.id);
 
-        var sr = treeObj.GetComponent<SpriteRenderer>();
-        if (sr != null) sr.enabled = !startHidden;
+        var tree = treeObj.GetComponent<Tree>();
+        if (tree != null && tree.spriteRenderer != null) tree.spriteRenderer.enabled = !startHidden;
 
         var anim = treeObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
@@ -869,24 +866,22 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             treeComponent.currentChopHit = treeData.currentChopHit;
             treeComponent.maxChopHit = treeData.maxChopHit;
 
-
             var layerName = $"Layer {treeData.layerIndex + 1}";
             var layerIndex = LayerMask.NameToLayer(layerName);
             treeObj.layer = layerIndex;
 
             if (treeComponent.treeState == TreeState.Chopped)
             {
-                var customRenderSprite = treeObj.transform.Find("Custom Render Sprite");
-                if (customRenderSprite != null)
-                    customRenderSprite.gameObject.SetActive(false);
+                treeComponent.customRender.gameObject.SetActive(false);
                 //treeComponent.treeCollider.enabled = false;
             }
+
+            if (treeComponent.customRender != null)
+                treeComponent.customRender.layerIndex = treeData.layerIndex;
 
             GraphNode.Instance.SetWalkableNode(treeData.gridPosition, treeComponent.layerIndex, false);
         }
 
-        var customRender = treeObj.transform.Find("Custom Render Sprite");
-        if (customRender != null) customRender.GetComponent<CustomRender>().layerIndex = treeData.layerIndex;
         TreeCluster parentCluster = null;
         if (treeData.parentClusterIndex >= 0 && treeData.parentClusterIndex < clusters.Count)
             parentCluster = clusters[treeData.parentClusterIndex];
@@ -910,8 +905,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         bushObj.OverrideId(bushData.id);
 
         // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
-        var sr = bushObj.GetComponent<SpriteRenderer>();
-        if (sr != null) sr.enabled = !startHidden;
+        var bush = bushObj.GetComponent<Bush>();
+        if (bush != null && bush.spriteRenderer != null) bush.spriteRenderer.enabled = !startHidden;
 
         var anim = bushObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
@@ -949,9 +944,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         rockObj.transform.SetParent(decorObjectParent);
         rockObj.OverrideId(rockData.id);
 
-        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
-        var sr = rockObj.GetComponent<SpriteRenderer>();
-        if (sr != null) sr.enabled = !startHidden;
+        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Poo
+        var rock = rockObj.GetComponent<Rock>();
+        if (rock != null && rock.spriteRenderer != null) rock.spriteRenderer.enabled = !startHidden;
 
         var anim = rockObj.GetComponent<Animator>();
         if (anim != null) anim.enabled = !startHidden;
@@ -965,9 +960,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             var layerIndexMask = LayerMask.NameToLayer("Decor");
             rockObj.layer = layerIndexMask;
         }
-
-        var customRender = rockObj.transform.Find("Custom Render Sprite");
-        if (customRender != null) customRender.GetComponent<CustomRender>().layerIndex = rockData.layerIndex;
 
         TreeCluster parentCluster = null;
         if (rockData.parentClusterIndex >= 0 && rockData.parentClusterIndex < clusters.Count)
@@ -991,11 +983,8 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         animalObj.OverrideId(animalData.id);
 
         // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
-        var sr = animalObj.GetComponent<SpriteRenderer>();
-        if (sr != null) sr.enabled = !startHidden;
-
-        var anim = animalObj.GetComponent<Animator>();
-        if (anim != null) anim.enabled = !startHidden;
+        var animal = animalObj.GetComponent<Animal>();
+        if (animal != null && animal.spriteRenderer != null) animal.spriteRenderer.enabled = !startHidden;
 
         if (animalObj.TryGetComponent(out Animal animalComponent))
         {
@@ -1111,8 +1100,12 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                 if (item != null && item.gameObject != null) PoolManager.Instance.Despawn(item.gameObject);
             }
             ItemManager.Instance.activeItems.Clear();
-            
-            Debug.Log("[SaveLoadSystem] 🧹 Đã dọn sạch sành sanh cả Active lẫn Pending items của ItemManager.");
+
+            var remainingCoinsOnGround = ItemManager.Instance.activeCoins.ToList();
+            foreach (var coin in remainingCoinsOnGround)
+                if (coin != null && coin.gameObject != null)
+                    PoolManager.Instance.Despawn(coin.gameObject);
+            ItemManager.Instance.activeCoins.Clear();
         }
 
         if (ObjectSpawner.Instance != null)

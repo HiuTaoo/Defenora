@@ -1,11 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using _Script.Enum;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
 
 public class SelectUnitSystem : MonoBehaviour
 {
@@ -14,6 +10,7 @@ public class SelectUnitSystem : MonoBehaviour
     private UnitManager unitManager;
     private SpriteRenderer selectUnitSpriteRenderer;
     private FloorAgent floorAgent;
+    private CharacterMovement characterMovement;
 
     public GameObject selectedUnit;
     public GameObject targetBuilding;
@@ -30,9 +27,9 @@ public class SelectUnitSystem : MonoBehaviour
     private Vector2 initialUnitPosition;
     private int previousLayerIndex;
 
-    public System.Action<GameObject> OnSelectUnit;
-    public System.Action<bool> OnDragUnit;
-    public System.Action<Vector3> OnLerpToSelectedUnit;
+    public Action<GameObject> OnSelectUnit;
+    public Action<bool> OnDragUnit;
+    public Action<Vector3> OnLerpToSelectedUnit;
 
     private void Awake()
     {
@@ -217,6 +214,7 @@ public class SelectUnitSystem : MonoBehaviour
                 
                 selectUnitSpriteRenderer = selectedUnit.GetComponent<SpriteRenderer>();
                 floorAgent = selectedUnit.GetComponentInChildren<FloorAgent>();
+                characterMovement = selectedUnit.GetComponentInChildren<CharacterMovement>();
             }
             else if (clickedObj.layer == LayerMask.NameToLayer("Building"))
             {
@@ -225,7 +223,6 @@ public class SelectUnitSystem : MonoBehaviour
                 isBuilding = true;
                 
                 selectUnitSpriteRenderer = targetBuilding.GetComponent<SpriteRenderer>();
-                floorAgent = targetBuilding.GetComponentInChildren<FloorAgent>();
             }
         }
         else
@@ -321,11 +318,13 @@ public class SelectUnitSystem : MonoBehaviour
         if (node != null && node.isWalkable)
         {
             selectedUnit.transform.position = snappedPos;
+            characterMovement.CurrentLayer = targetLayerIndexDrag;
             floorAgent.MoveToFloor(targetLayerIndexDrag);
         }
         else
         {
             selectedUnit.transform.position = initialUnitPosition;
+            characterMovement.CurrentLayer = previousLayerIndex;
             floorAgent.MoveToFloor(previousLayerIndex);
         }
     }

@@ -38,8 +38,8 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     private Coroutine buildEffectCoroutine;
     private CapsuleCollider2D buildingCollider;
     private ObjectFootprint buildingFootprint;
+    [HideInInspector] public CustomRender customRenderer;
 
-    private GameObject customRenderer;
     private bool hasBeenBuilded;
 
     private bool isBeingBuilded;
@@ -66,7 +66,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         light2D = GetComponentInChildren<Light2D>();
         autoLightToggle = GetComponentInChildren<AutoLightToggle>();
 
-        customRenderer = transform.Find("Custom Render Sprite")?.gameObject;
+        customRenderer = GetComponentInChildren<CustomRender>();
 
         if (configData != null)
         {
@@ -144,15 +144,15 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         {
             case BuildingState.UnderConstruction:
                 ChangeTransparent(1f);
-                customRenderer?.SetActive(false);
+                customRenderer?.gameObject.SetActive(false);
                 break;
             case BuildingState.Completed:
-                customRenderer?.SetActive(true);
+                customRenderer?.gameObject.SetActive(true);
                 foreach (Transform child in transform)
                     child.gameObject.SetActive(true);
                 break;
             case BuildingState.Destroyed:
-                customRenderer?.SetActive(false);
+                customRenderer?.gameObject.SetActive(false);
                 break;
             case BuildingState.Pending:
                 ChangeTransparent(0.5f);

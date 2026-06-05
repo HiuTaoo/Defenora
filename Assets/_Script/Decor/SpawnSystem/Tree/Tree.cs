@@ -12,11 +12,12 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
     public Task currentTask;
 
     [Header("--- Visual Settings (No Animator) ---")] [SerializeField]
-    private Sprite choppedSprite; 
+    private Sprite choppedSprite;
 
-    private SpriteRenderer spriteRenderer;
+    public SpriteRenderer spriteRenderer;
     private SimpleSpriteAnimator spriteAnimator; 
     public CapsuleCollider2D treeCollider;
+    public CustomRender customRender;
 
     private bool isBeingChopped = false;
     private bool hasBeenChopped = false;
@@ -32,6 +33,7 @@ public class Tree : MonoBehaviour, IChoppable, IPoolable
         spriteRenderer = GetComponent<SpriteRenderer>();
         spriteAnimator = GetComponent<SimpleSpriteAnimator>();
         treeCollider = GetComponent<CapsuleCollider2D>();
+        customRender = GetComponentInChildren<CustomRender>();
     }
 
     private void Update()
