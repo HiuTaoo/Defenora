@@ -69,7 +69,7 @@ public class Archer : Unit
     private BehaviourTree CreateBehaviourTree(Archer archer)
     {
         // =================================================================
-        // KHỐI LOGIC CHUNG: PHÁT HIỆN & TẤN CÔNG ĐỊCH (Giữ nguyên vẹn)
+        // KHO ĐẠN LOGIC CƠ BẢN (HÀNH VI LÕI)
         // =================================================================
         var attackActionSequence = new SequenceNode(
             new IsArcherCooldownReadyNode(archer),
@@ -87,61 +87,10 @@ public class Archer : Unit
             )
         );
 
-        var idleSequence = new SequenceNode(
-            new HasNoEnemyInRangeNode(archer),
-            new RotateScanNode(archer),
-            new WaitRandomTimeNode(archer)
-        );
-        
-        
-        var stationedCombatSelector = new SelectorNode(
-            detectedSequence,
-            new StationedLookAtAlarmNode(archer),
-            idleSequence 
-        );
-
-        var stationedBranchSequence = new SequenceNode(
-            new IsArcherStationedNode(archer),
-            stationedCombatSelector
-        );
-
-        // =================================================================
-        // ⚔️ PHÂN HỆ CHIẾN ĐẤU & ĐÁNH CHẶN KHẨN CẤP CHO ARCHER TỰ DO (MOBILE)
-        // =================================================================
-        // Nhánh phản xạ khi nghe còi báo động toàn cục từ xa
         var alarmResponseSequence = new SequenceNode(
             new IsUnitAlertedNode(archer),
             new ArcherMoveToInterceptPositionNode(archer),
-            new WaitRandomTimeNode(archer),
             new ClearAlertNode(archer)
-        );
-
-        // 🟢 ĐỒNG BỘ KIẾN TRÚC GIỐNG LANCER: Gom nhóm toàn bộ trạng thái bận chiến đấu/báo động
-        // Chỉ khi nào Archer có mục tiêu Aggro HOẶC đang nhận cờ báo động khẩn cấp, khối này mới chạy.
-        var combatAndAlarmBranch = new SelectorNode(
-            detectedSequence, // Ưu tiên 1: Thấy quái trực diện -> Bắn luôn
-            alarmResponseSequence // Ưu tiên 2: Đồng đội hú từ xa -> Chạy lại đón đầu ứng cứu
-        );
-
-
-        // =================================================================
-        // 🌲 PHÂN HỆ HÒA BÌNH / ĐI DẠO KHI BẢN ĐỒ HOÀN TOÀN YÊN BÌNH (MOBILE IDLE)
-        // =================================================================
-        var mobileNightReturnSequence = new SequenceNode(
-            new IsNightTimeConditionNode(archer),
-            new IsInSafetyRangeOfBuildingNode(archer),
-            new MoveToNearestBuildingActionNode(archer)
-        );
-
-        var nightStationedGuardSequence = new SequenceNode(
-            new IsNightTimeConditionNode(archer),
-            new RotateScanNode(archer),
-            new WaitRandomTimeNode(archer)
-        );
-
-        var mobileNightTotalSelector = new SelectorNode(
-            mobileNightReturnSequence,
-            nightStationedGuardSequence
         );
 
         var huntAnimalsSequence = new SequenceNode(
@@ -153,53 +102,102 @@ public class Archer : Unit
             )
         );
 
-        var patrolAssignedBuildingSequence = new SequenceNode(
-            new IsAssignedToBuildingConditionNode(archer),
+        // =================================================================
+        // ⛩️ PHÂN HỆ 1: ARCHER ĐÃ LEO LÊN THÁP GÁC CỐ ĐỊNH (STATIONED)
+        // =================================================================
+        var stationedLookAroundSequence = new SequenceNode(
+            new RotateScanNode(archer),
+            new WaitRandomTimeNode(archer)
+        );
+
+        var stationedTotalSelector = new SelectorNode(
+            detectedSequence,
+            new StationedLookAtAlarmNode(archer),
+            stationedLookAroundSequence
+        );
+
+        var stationedBranchSequence = new SequenceNode(
+            new IsArcherStationedNode(archer),
+            stationedTotalSelector
+        );
+
+        // =================================================================
+        // 🏰 PHÂN HỆ 2: ARCHER ĐÃ ĐƯỢC GÁN VÀO NHÀ (NHƯNG DI ĐỘNG, TUẦN TRA QUANH TÒA NHÀ)
+        // =================================================================
+
+        var assignedBuildingReturnHomeSequence = new SequenceNode(
+            new IsOutsideBuildingRangeConditionNode(archer),
+            new MoveToBuildingNode(archer)
+        );
+
+        var assignedBuildingNightSequence = new SequenceNode(
+            new IsNightTimeConditionNode(archer),
+            new PatrolAroundTowerActionNode(archer),
+            new RotateScanNode(archer),
+            new WaitRandomTimeNode(archer)
+        );
+
+        var assignedBuildingDaytimeSequence = new SequenceNode(
             new HasIdleTimeNode(archer),
             new PatrolAroundTowerActionNode(archer),
             new WaitRandomTimeNode(archer)
         );
 
-        var wanderFreeSequence = new SequenceNode(
-            new HasIdleTimeNode(archer),          
-            new ArcherWanderActionNode(archer),
-            new WaitRandomTimeNode(archer)        
+        var assignedBuildingTimeSelector = new SelectorNode(
+            assignedBuildingNightSequence,
+            assignedBuildingDaytimeSequence
         );
 
-        var mobileDaytimeMovementSelector = new SelectorNode(
-            patrolAssignedBuildingSequence,
-            wanderFreeSequence
+        var assignedBuildingPeacefulSelector = new SelectorNode(
+            assignedBuildingReturnHomeSequence,
+            assignedBuildingTimeSelector
         );
 
-        var mobileDaytimeSelector = new SelectorNode(
+        var assignedBuildingTotalSelector = new SelectorNode(
+            detectedSequence,
+            alarmResponseSequence,
             huntAnimalsSequence,
-            mobileDaytimeMovementSelector
+            assignedBuildingPeacefulSelector
         );
 
-        var mobileIdleSelector = new SelectorNode(
-            mobileNightTotalSelector,
-            mobileDaytimeSelector
+        var assignedBuildingBranchSequence = new SequenceNode(
+            new IsAssignedToBuildingConditionNode(archer),
+            assignedBuildingTotalSelector
         );
-
 
         // =================================================================
-        // ⛩️ TRỤC CHÍNH ĐIỀU PHỐI CỦA ARCHER TỰ DO (MOBILE BRANCH)
+        // 🌲 PHÂN HỆ 3: ARCHER HOÀN TOÀN TỰ DO / KHÔNG CÓ NHÀ (FREE WANDERER)
         // =================================================================
-        var mobileBranchSequence = new SequenceNode(
-            new SelectorNode(
-                // 1. Nếu đang có biến cố chiến sự (Có mục tiêu hoặc có báo động) -> Xử lý trọn gói tại đây, 
-                // KHÔNG cho phép luồng chạy tuột xuống phần đi dạo hòa bình bên dưới!
-                combatAndAlarmBranch,
-
-                // 2. Nếu bản đồ hòa bình hoàn toàn (Không có quái, không có báo động) -> Thong thả đi dạo, tuần tra, về nhà ngủ
-                mobileIdleSelector
-            )
+        var freeWandererNightSequence = new SequenceNode(
+            new IsNightTimeConditionNode(archer),
+            new MoveToNearestBuildingActionNode(archer)
         );
 
-        // ROOT TREE QUYẾT ĐỊNH TỐI CAO
+        var freeWandererDaytimeSequence = new SequenceNode(
+            new HasIdleTimeNode(archer),
+            new ArcherWanderActionNode(archer),
+            new WaitRandomTimeNode(archer)
+        );
+
+        var freeWandererPeacefulSelector = new SelectorNode(
+            freeWandererNightSequence,
+            freeWandererDaytimeSequence 
+        );
+
+        var freeWandererTotalSelector = new SelectorNode(
+            detectedSequence,
+            alarmResponseSequence,
+            huntAnimalsSequence,
+            freeWandererPeacefulSelector 
+        );
+
+        // =================================================================
+        // 🌳 TRỤC ĐIỀU PHỐI GỐC (ROOT TREE) TỐI CAO 
+        // =================================================================
         var root = new SelectorNode(
             stationedBranchSequence,
-            mobileBranchSequence
+            assignedBuildingBranchSequence,
+            freeWandererTotalSelector      
         );
 
         return new BehaviourTree(root);
@@ -518,6 +516,12 @@ public class Archer : Unit
             {
                 ClearAggro();
                 archerBlackBoard.detectedEnemy = null;
+
+                isAlerted = false;
+                lastSeenPosition = Vector2.zero;
+                lastSeenLayerIndex = -1;
+
+                bt?.ClearState();
             }
         }
     }

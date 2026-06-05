@@ -4,7 +4,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
 {
     public class PatrolAroundTowerActionNode : BTActionNode
     {
-        private const float PATROL_RADIUS = 4f;
         private readonly Archer archer;
         private bool hasStartedMove;
         private Vector3Int wanderTarget;
@@ -29,7 +28,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
 
                 wanderTarget = GetRandomGridPointAround(
                     Vector3Int.RoundToInt(centerPosition),
-                    PATROL_RADIUS
+                    archer.assignedBuilding.range
                 );
 
                 var node = GraphNode.Instance.GetNode(wanderTarget, archer.characterMovement.CurrentLayer);

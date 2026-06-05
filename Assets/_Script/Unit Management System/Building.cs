@@ -576,9 +576,9 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             currentTask.Complete();
             currentTask = null;
         }
-
-        if (light2D != null) light2D.enabled = true;
+        
         if (autoLightToggle != null) autoLightToggle.enabled = true;
+        autoLightToggle.EvaluateAndToggleLight();
 
         OnBuiltObject?.Invoke(this);
     }
@@ -711,8 +711,8 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         if (buildingCollider != null)
             buildingCollider.enabled = true;
 
-        if (light2D != null) light2D.enabled = true;
         if (autoLightToggle != null) autoLightToggle.enabled = true;
+        autoLightToggle.EvaluateAndToggleLight();
 
         UpdateLightRange();
     }

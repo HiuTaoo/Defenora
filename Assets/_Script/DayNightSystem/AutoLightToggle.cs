@@ -33,7 +33,7 @@ public class AutoLightToggle : MonoBehaviour
         EvaluateAndToggleLight();
     }
 
-    private void EvaluateAndToggleLight()
+    public void EvaluateAndToggleLight()
     {
         if (timeSystem == null) timeSystem = TimeOfDaySystem.Instance;
         if (timeSystem == null || pointLight == null) return;

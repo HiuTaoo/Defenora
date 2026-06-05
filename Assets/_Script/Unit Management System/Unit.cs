@@ -36,7 +36,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
     public int currentTargetLayerIndex;
     public Vector2 lastSeenPosition;
     public int lastSeenLayerIndex;
-    [HideInInspector] public bool isAlerted;
+    public bool isAlerted;
     public float aggroTimer;
     public float aggroDuration = 5f;
 

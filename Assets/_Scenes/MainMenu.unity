@@ -6865,6 +6865,8 @@ MonoBehaviour:
     type: 3}
   toastItemPrefab: {fileID: 3125938656542567082, guid: 057f771d0d04b8b42b72e66b69642e93,
     type: 3}
+  healEffectPrefab: {fileID: 7192455100553882867, guid: f6522e39dea506f48b264ea176d5842c,
+    type: 3}
   treePrefabs:
   - {fileID: 5697450924608689214, guid: 7c2fe03ab850967418e7136975dfb126, type: 3}
   - {fileID: 5276064107349130557, guid: 2529afe1a7cb22248bc4d6412437fcf7, type: 3}

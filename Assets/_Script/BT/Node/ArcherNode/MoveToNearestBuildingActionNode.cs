@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using _Script.Enum;
+using UnityEngine;
 
 namespace _Script.BT.Node.ArcherNode.ArcherIdle
 {
@@ -9,6 +10,7 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
         private readonly Archer archer;
         private bool hasStartedMove;
         private Vector3 targetGridPos;
+        private int targetLayer; 
 
         public MoveToNearestBuildingActionNode(Unit unit) : base(unit)
         {
@@ -17,19 +19,42 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
 
         public override BTStatus Tick()
         {
+            if (hasStartedMove && archer.characterMovement.moving)
+            {
+                archer.currentState = UnitState.Move;
+                archer.animState = AnimState.Moving;
+                return BTStatus.Running;
+            }
+
             if (!hasStartedMove)
             {
                 if (archer.archerBlackBoard.nearestBuilding == null)
                     archer.archerBlackBoard.nearestBuilding = FindNearestBuilding();
 
-                if (archer.archerBlackBoard.nearestBuilding == null) return BTStatus.Failure;
+                if (archer.archerBlackBoard.nearestBuilding == null)
+                    return BTStatus.Failure;
 
                 var building = archer.archerBlackBoard.nearestBuilding.GetComponent<Building>();
+                if (building == null)
+                    building = archer.archerBlackBoard.nearestBuilding.GetComponentInChildren<Building>();
+
+                if (building == null) return BTStatus.Failure;
+
+                var currentDistanceToBuilding = Vector2.Distance(archer.transform.position,
+                    archer.archerBlackBoard.nearestBuilding.transform.position);
+                var safeRadius = 6.0f;
+                if (currentDistanceToBuilding <= safeRadius)
+                {
+                    hasStartedMove = false;
+                    archer.currentState = UnitState.Idle;
+                    archer.animState = AnimState.Idle;
+                    return BTStatus.Success;
+                }
 
                 targetGridPos = building.GetRandomPositionAroundBuilding();
-                var targetLayer = archer.archerBlackBoard.nearestBuilding.GetComponentInChildren<Building>()
-                    .layerIndex;
+                targetLayer = building.layerIndex;
 
+                archer.currentState = UnitState.Move;
                 archer.animState = AnimState.Moving;
                 archer.characterMovement.MoveToPosition(Vector3Int.FloorToInt(targetGridPos), targetLayer);
 
@@ -37,11 +62,17 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
                 return BTStatus.Running;
             }
 
-            if (archer.characterMovement.moving)
-                return BTStatus.Running;
+            if (!archer.characterMovement.moving)
+            {
+                Debug.Log($"[🚨 ARCHER NIGHT] ✨ {archer.gameObject.name} đã đi bộ về nhà an toàn ẩn nấp!");
+                hasStartedMove = false;
 
-            hasStartedMove = false;
-            return BTStatus.Success;
+                archer.currentState = UnitState.Idle;
+                archer.animState = AnimState.Idle;
+                return BTStatus.Success;
+            }
+
+            return BTStatus.Running;
         }
 
         private GameObject FindNearestBuilding()
@@ -53,6 +84,10 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
             foreach (var hit in hits)
                 if (hit.CompareTag(BUILDING_TAG))
                 {
+                    var building = hit.GetComponent<Building>();
+                    if (building != null && building.buildingState != BuildingState.Completed)
+                        continue;
+                    
                     var distance = Vector2.Distance(archer.transform.position, hit.transform.position);
                     if (distance < minDistance)
                     {
@@ -62,12 +97,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
                 }
 
             return nearest;
-        }
-
-        public override void ClearState()
-        {
-            base.ClearState();
-            hasStartedMove = false;
         }
     }
 }
