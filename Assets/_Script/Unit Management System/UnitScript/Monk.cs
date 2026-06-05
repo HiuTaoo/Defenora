@@ -4,6 +4,7 @@ using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.MonkNode.MonkIdle;
+using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorArlert;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using UnityEditor;
@@ -57,6 +58,7 @@ public class Monk : Unit
     protected override void Update()
     {
         base.Update();
+        UpdateSensors();
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
         CheckEnemyDirection();
@@ -98,12 +100,18 @@ public class Monk : Unit
 
     public override void UseSpecialAbility()
     {
-        if (monkBlackBoard.lowHPAlly == null) return;
+        if (monkBlackBoard.aoeHealTargets == null || monkBlackBoard.aoeHealTargets.Count == 0) 
+            return;
 
-        var healEffect = PoolManager.Instance.Spawn(PrefabConfig.Instance.healEffectPrefab,
-            monkBlackBoard.lowHPAlly.transform.position, Quaternion.identity);
+        foreach (var ally in monkBlackBoard.aoeHealTargets)
+        {
+            if (ally == null) continue;
 
-        healEffect.transform.SetParent(monkBlackBoard.lowHPAlly.transform);
+            var healEffect = PoolManager.Instance.Spawn(PrefabConfig.Instance.healEffectPrefab,
+                ally.transform.position, Quaternion.identity);
+
+            healEffect.transform.SetParent(ally.transform);
+        }
     }
 
     public override List<(string name, string value)> GetSpecialStats()
@@ -215,6 +223,42 @@ public class Monk : Unit
     {
         currentState = UnitState.Idle;
         animState = AnimState.Idle;
+    }
+    
+    private void UpdateSensors()
+    {
+        detectTimer += Time.deltaTime; 
+        if (detectTimer >= detectInterval) 
+        {
+            detectTimer = 0f;
+
+            if (isAlerted)
+            {
+                var dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+                var enemies = DetectEnemies(viewDistance, dir);
+
+                var closestEnemy = SelectClosestTarget(enemies);
+
+                if (closestEnemy != null)
+                {
+                    monkBlackBoard.detectedEnemy = closestEnemy;
+                    
+                    lastSeenPosition = closestEnemy.transform.position; 
+                }
+                else
+                {
+                    Debug.Log($"[🧘 MONK SENSOR] 🛡️ Sạch bóng quân thù trong tầm rada! Tự động hạ cờ báo động khẩn cấp.");
+                    
+                    isAlerted = false; // Hạ cờ an toàn!
+                    lastSeenPosition = Vector2.zero;
+                    lastSeenLayerIndex = -1;
+                    monkBlackBoard.detectedEnemy = null;
+                    
+                    bt?.ClearState(); 
+                    ResetState();
+                }
+            }
+        }
     }
 
     #endregion

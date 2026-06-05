@@ -6,6 +6,11 @@ public class MonkExecuteHealActionNode : BTActionNode
 {
     private readonly Monk monk;
     private float _lastHealTime = -999f;
+    
+    // Đã dọn dẹp sạch sẽ các biến đếm Timer thủ công cũ!
+    private bool hasHealed;
+    private int lastFrameChecked = -1;
+    private BTStatus lastStatus = BTStatus.Running;
 
     public MonkExecuteHealActionNode(Unit unit) : base(unit)
     {
@@ -16,48 +21,121 @@ public class MonkExecuteHealActionNode : BTActionNode
     {
         if (monk == null) return BTStatus.Failure;
 
-        if (Time.time < _lastHealTime + monk.healCooldown)
+        if (Time.time < _lastHealTime + monk.healCooldown && !hasHealed)
         {
             monk.currentState = UnitState.Idle;
             monk.animState = AnimState.Idle;
+            return BTStatus.Failure;
+        }
+
+        if (Time.frameCount == lastFrameChecked)
+        {
+            if (lastStatus == BTStatus.Running)
+            {
+                monk.currentState = UnitState.Heal;
+                monk.animState = AnimState.Heal;
+            }
+            return lastStatus;
+        }
+
+        lastFrameChecked = Time.frameCount;
+
+        if (hasHealed && monk.isAttacking)
+        {
+            monk.currentState = UnitState.Heal;
+            monk.animState = AnimState.Heal;
+            lastStatus = BTStatus.Running;
             return BTStatus.Running;
         }
 
-        var layerMask = LayerMask.GetMask("NPC") | LayerMask.GetMask("Player");
-        var size = Physics2D.OverlapCircleNonAlloc(monk.transform.position, monk.healRange, monk.results, layerMask);
-
-        var heavilyHealedAnyAlly = false;
-
-        for (var i = 0; i < size; i++)
+        if (hasHealed && !monk.isAttacking)
         {
-            var hit = monk.results[i];
-            if (hit == null || hit.gameObject == monk.gameObject || hit.CompareTag("Enemy")) continue;
+            _lastHealTime = Time.time; 
 
-            var targetHealth = hit.GetComponentInChildren<Health>();
-            if (targetHealth == null || targetHealth.CurrentHealth <= 0) continue;
+            monk.EndAttackSignal();
+            monk.ResetAnim(); 
+            monk.currentState = UnitState.Idle;
+            monk.animState = AnimState.Idle;
 
-            if (targetHealth.CurrentHealth < targetHealth.maxHealth)
+            ResetInternal();
+
+            lastStatus = BTStatus.Success;
+            return BTStatus.Success; 
+        }
+
+        if (!hasHealed)
+        {
+            var layerMask = LayerMask.GetMask("NPC") | LayerMask.GetMask("Player");
+            var size = Physics2D.OverlapCircleNonAlloc(monk.transform.position, monk.healRange, monk.results, layerMask);
+
+            var heavilyHealedAnyAlly = false;
+
+            monk.monkBlackBoard.aoeHealTargets.Clear(); 
+
+            for (var i = 0; i < size; i++)
             {
-                targetHealth.Heal(monk.healAmount);
+                var hit = monk.results[i];
+                if (hit == null || hit.gameObject == monk.gameObject || hit.CompareTag("Enemy")) continue;
 
-                monk.monkBlackBoard.lowHPAlly = hit.gameObject;
-                monk.UseSpecialAbility();
+                var targetHealth = hit.GetComponentInChildren<Health>();
+                if (targetHealth == null || targetHealth.CurrentHealth <= 0) continue;
 
-                heavilyHealedAnyAlly = true;
+                if (targetHealth.CurrentHealth < targetHealth.maxHealth)
+                {
+                    targetHealth.Heal(monk.healAmount);
+
+                    monk.monkBlackBoard.aoeHealTargets.Add(hit.gameObject);
+                    
+                    monk.monkBlackBoard.lowHPAlly = hit.gameObject;
+                    heavilyHealedAnyAlly = true;
+                }
+            }
+
+            if (heavilyHealedAnyAlly)
+            {
+                Debug.LogWarning($"[🚨 MONK AOE MAGIC] ✨ {monk.gameObject.name} đã kích hoạt trận pháp hồi máu diện rộng trong bán kính {monk.healRange} ô!");
+                
+                monk.StartAttackSignal();
+
+                monk.isAlerted = false;
+                monk.lastSeenPosition = Vector2.zero;
+                monk.lastSeenLayerIndex = -1;
+
+                monk.currentState = UnitState.Heal;
+                monk.animState = AnimState.Heal;
+
+                hasHealed = true;
+                lastStatus = BTStatus.Running;
+                return BTStatus.Running;
+            }
+            else
+            {
+                ResetInternal();
+                lastStatus = BTStatus.Failure;
+                return BTStatus.Failure;
             }
         }
 
-        if (heavilyHealedAnyAlly)
-        {
-            Debug.LogWarning(
-                $"[🚨 MONK AOE MAGIC] ✨ {monk.gameObject.name} đã kích hoạt trận pháp hồi máu diện rộng trong bán kính {monk.healRange} ô!");
-            _lastHealTime = Time.time;
+        return BTStatus.Running;
+    }
 
+    public override void ClearState()
+    {
+        base.ClearState();
+        if (monk != null && hasHealed)
+        {
+            monk.EndAttackSignal();
+            monk.ResetAnim();
             monk.currentState = UnitState.Idle;
             monk.animState = AnimState.Idle;
-            return BTStatus.Success;
         }
+        ResetInternal();
+    }
 
-        return BTStatus.Failure;
+    private void ResetInternal()
+    {
+        hasHealed = false;
+        lastFrameChecked = -1;
+        lastStatus = BTStatus.Running;
     }
 }
