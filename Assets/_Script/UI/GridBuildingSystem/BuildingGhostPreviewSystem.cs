@@ -31,7 +31,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
     void Start()
     {
         gridManager = FindObjectOfType<EditBuildingManager>();
-
     }
 
     void Update()
@@ -75,7 +74,11 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         currentGhost = PoolManager.Instance.Spawn(ghostPrefabToSpawn, transform.position, Quaternion.identity);
         currentFootprint = currentGhost.GetComponent<ObjectFootprint>();
         spriteRenderer = currentGhost.GetComponent<SpriteRenderer>();
-        Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+
+        var colliders =
+            currentGhost
+                .GetComponentsInChildren<
+                    Collider2D>(); // Đổi từ GetComponentsInChildren thô sang nhắm trực tiếp vào Object vừa sinh để tránh tắt nhầm Collider của System gốc
         foreach (var col in colliders)
         {
             col.enabled = false;
@@ -93,16 +96,38 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         }
     }
 
+    public void ClearAllGhostPreviews()
+    {
+        CancelGhost();
+
+        currentFootprint = null;
+        currentBuildingPrefab = null;
+        canPlace = false;
+        menuItem = null;
+
+        if (menuItem != null)
+        {
+            menuItem.DeSelectAllTileItem();
+        }
+        else
+        {
+            var activeMenu = FindObjectOfType<MenuItem>();
+            if (activeMenu != null) activeMenu.DeSelectAllTileItem();
+        }
+
+        if (MenuEditorController.Instance != null) MenuEditorController.Instance.CheckAndHideCancelButton();
+
+        Debug.Log("[GhostSystem] 🧹 Đã dọn dẹp sạch sẽ toàn bộ Ghost Preview và khôi phục trạng thái lưới tự do.");
+    }
+
     private bool ValidateFootprint(Vector2Int anchorCell)
     {
         return gridManager.CanPlaceFootprint(anchorCell, currentFootprint, LayerManager.Instance.layerIndex);
     }
 
-
     private void PlaceBuilding(Vector2Int anchorCell)
     {
         gridManager.PlaceBuilding(anchorCell, currentBuildingPrefab);
-        //CancelGhost();
     }
 
     private void UpdateGhostVisual(bool isValid)
@@ -113,7 +138,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
             renderer.color = color;
         }
     }
-
 
     private Vector3 GetMouseWorldPosition()
     {
@@ -130,7 +154,6 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         return new Vector2Int(x, y);
     }
 
-
     public Vector3 CellToWorld(Vector2Int cellPos)
     {
         float cellSize = 1f;
@@ -142,28 +165,39 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         );
     }
 
-
     public void RegisterMenuItem(MenuItem item)
     {
         item.OnMenuItemClicked -= HandleGhostPreview;
         item.OnMenuItemClicked += HandleGhostPreview;
     }
 
-    /// <summary>
-    /// Hàm xử lý khi MenuItem click → spawn ghost với prefab nhận được.
-    /// </summary>
     private void HandleGhostPreview(BuildingData data)
     {
         if (data == null) return;
 
-        // Tìm kiếm Prefab gốc dựa vào enum BuildingType có sẵn trong file dữ liệu cấu hình
         var buildingPrefab = UnitManager.Instance.GetBuildPrefabPublic(data.buildingType);
 
         if (buildingPrefab != null)
+        {
+            menuItem = FindActiveMenuItem(data);
+
             SpawnGhost(buildingPrefab);
+        }
         else
+        {
             Debug.LogError(
                 $"[Ghost System] Không tìm thấy Prefab nào tương ứng với loại công trình: {data.buildingType}");
+        }
+    }
+
+    private MenuItem FindActiveMenuItem(BuildingData data)
+    {
+        var allItems = FindObjectsOfType<MenuItem>(true);
+        foreach (var item in allItems)
+            if (item != null && item.BuildingConfig == data)
+                return item;
+
+        return null;
     }
 
     public void CheckMouseIsOnUI()
@@ -186,6 +220,4 @@ public class BuildingGhostPreviewSystem : MonoBehaviour
         if(currentGhost != null)
             currentGhost.GetComponent<Building>().UpdateRenderSortingOrder(layer);
     }
-
-
 }

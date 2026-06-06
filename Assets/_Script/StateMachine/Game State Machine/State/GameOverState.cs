@@ -5,6 +5,7 @@ public class GameOverState : IGameState
     public void Enter(GameStateContext context)
     {
         Debug.Log("You Lose");
+        context.UIManager.HideAllUIs();
         context.UIManager.ShowStateUI(GameStateType.GameOver);
     }
 

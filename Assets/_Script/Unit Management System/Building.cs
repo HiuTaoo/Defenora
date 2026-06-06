@@ -565,6 +565,8 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
         OnBuiltObject?.Invoke(this);
     }
+    
+    
 
     public void OnRepair()
     {

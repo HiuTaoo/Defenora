@@ -93,7 +93,6 @@ public class SelectUnitSystem : MonoBehaviour
                 MoveByCell(initialUnitPosition + offset);
                 OnDragUnit?.Invoke(true);
                 selectUnitSpriteRenderer.sortingOrder = 99999;
-
             }
 
             if (isDragging && !canMoveSelectedUnit)
@@ -123,13 +122,7 @@ public class SelectUnitSystem : MonoBehaviour
 
                 CheckTargetLayer(mousePosition);
                 CheckCanMovePlayerTo(mousePosition);
-                //OnSelectUnit?.Invoke(false, false);
             }
-
-            /*if (selectedUnit != null && !isDragging && !isPlacing) {
-                OnSelectUnit?.Invoke(selectedUnit);
-                OnLerpToSelectedUnit?.Invoke(selectedUnit.transform.position);
-            }*/
             
             if (!isDragging && !isPlacing && isMouseDown) 
             {
@@ -165,7 +158,6 @@ public class SelectUnitSystem : MonoBehaviour
         );
 
         selectedUnit.transform.position = snappedPos;
-
     }
 
     public GameObject FindTargetUnit(LayerMask targetLayer)
@@ -187,17 +179,20 @@ public class SelectUnitSystem : MonoBehaviour
 
         return null;
     }
+
     public void CancelPlaceBuilding()
     {
         isPlacing = false;
-        BuildingGhostPreviewSystem.Instance.currentGhost = null;
+        if (BuildingGhostPreviewSystem.Instance != null) BuildingGhostPreviewSystem.Instance.ClearAllGhostPreviews();
+
         MenuItem menuItem = FindObjectOfType<MenuItem>();
         menuItem.DeSelectAllTileItem();
-        MenuEditorController.Instance.cancelEditBuildingMode.SetActive(false);
-        
+        if (MenuEditorController.Instance != null) MenuEditorController.Instance.CheckAndHideCancelButton();
+
         targetBuilding = null;
         selectedUnit = null;
     }
+
     #region Check
     private void CheckTargetUnit()
     {
@@ -206,7 +201,7 @@ public class SelectUnitSystem : MonoBehaviour
 
         if (clickedObj != null)
         {
-            if (clickedObj.layer == LayerMask.NameToLayer("NPC"))
+            if (clickedObj.layer == LayerMask.NameToLayer("NPC") && clickedObj.CompareTag("NPC"))
             {
                 selectedUnit = clickedObj;
                 targetBuilding = null; 
@@ -224,6 +219,12 @@ public class SelectUnitSystem : MonoBehaviour
                 
                 selectUnitSpriteRenderer = targetBuilding.GetComponent<SpriteRenderer>();
             }
+            else
+            {
+                isBuilding = false;
+                selectedUnit = null;
+                targetBuilding = null;
+            }
         }
         else
         {
@@ -232,6 +233,7 @@ public class SelectUnitSystem : MonoBehaviour
             targetBuilding = null;
         }
     }
+
     private void CheckTargetLayer(Vector3 targetPosition)
     {
         int layerCount = GraphNode.Instance.layerDatas.Length;
@@ -284,7 +286,6 @@ public class SelectUnitSystem : MonoBehaviour
                 return true;
             }
         }
-
         else if (unit.assignedBuilding != null && unit.assignedBuilding != building 
             && building.CanAddUnit(unit))
         {

@@ -1,7 +1,9 @@
 using System.Collections;
+using System.Collections.Generic;
 using _Script.Object_Pooling;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
+// Cần thiết để sử dụng List cho việc gom ô loang
 using Random = UnityEngine.Random;
 
 public abstract class Animal : MonoBehaviour, IPoolable
@@ -26,6 +28,15 @@ public abstract class Animal : MonoBehaviour, IPoolable
     public int maxDuration = 15;
     public float runSpeed = 5f;
     public float panicTime = 3f;
+
+    // ======================================================================
+    // 🟢 THÊM CẤU HÌNH HỆ THỐNG CHỐNG KẸT LƯỚI (UNSTUCK SYSTEM)
+    // ======================================================================
+    [Header("Unstuck System")] [SerializeField]
+    private float stuckCheckInterval = 5.0f; // 5 giây quét kiểm tra 1 lần
+
+    private Vector3 _lastPosition; // Lưu vị trí frame trước đó để đo khoảng cách
+    private float _stuckTimer; // Bộ đếm tích lũy thời gian kẹt đứng im
 
     protected Coroutine panicCoroutine;
     protected System.Random random;
@@ -57,6 +68,10 @@ public abstract class Animal : MonoBehaviour, IPoolable
     private void Update()
     {
         currentHealth = health.CurrentHealth;
+        layerIndex = floorAgent.currentFloorIndex; // Luôn đồng bộ layer Index chính xác từ tầng đang đứng
+
+        // 🟢 Thực hiện quét chống kẹt liên tục mỗi frame
+        HandleAnimalUnstuck();
     }
 
 
@@ -188,6 +203,101 @@ public abstract class Animal : MonoBehaviour, IPoolable
         }
     }
     #endregion
+
+    private void HandleAnimalUnstuck()
+    {
+        if (GraphNode.Instance == null) return;
+
+        if (Vector3.Distance(transform.position, _lastPosition) > 0.05f)
+        {
+            _lastPosition = transform.position;
+            _stuckTimer = 0f;
+            return;
+        }
+
+        _stuckTimer += Time.deltaTime;
+
+        if (_stuckTimer >= stuckCheckInterval)
+        {
+            var currentLayer = layerIndex;
+            var gridX = Mathf.FloorToInt(transform.position.x);
+            var gridY = Mathf.FloorToInt(transform.position.y);
+            var currentGridPos = new Vector3Int(gridX, gridY, 0);
+
+            var currentNode = GraphNode.Instance.GetNode(currentGridPos, currentLayer);
+
+            if (currentNode != null && currentNode.isWalkable)
+            {
+                _stuckTimer = 0f;
+                _lastPosition = transform.position;
+                return;
+            }
+
+            _stuckTimer = 0f;
+            _lastPosition = transform.position;
+
+            Debug.LogWarning(
+                $"[Animal Unstuck] Phát hiện thú [{animalType}] {gameObject.name} kẹt tại ô cấm {currentGridPos} quá {stuckCheckInterval}s! Đang loang dịch chuyển khẩn cấp...");
+
+            var targetFound = false;
+            var bestTargetGrid = Vector3Int.zero;
+
+            const int maxRadiusSearch = 5;
+            for (var r = 1; r <= maxRadiusSearch; r++)
+            {
+                var candidatesAtRadius = new List<Vector3Int>();
+
+                for (var xOffset = -r; xOffset <= r; xOffset++)
+                for (var yOffset = -r; yOffset <= r; yOffset++)
+                    if (Mathf.Abs(xOffset) == r || Mathf.Abs(yOffset) == r)
+                    {
+                        var checkPos = currentGridPos + new Vector3Int(xOffset, yOffset, 0);
+                        var node = GraphNode.Instance.GetNode(checkPos, currentLayer);
+
+                        if (node != null && node.isWalkable) candidatesAtRadius.Add(checkPos);
+                    }
+
+                if (candidatesAtRadius.Count > 0)
+                {
+                    candidatesAtRadius.Sort((a, b) =>
+                        Vector3.Distance(transform.position, new Vector3(a.x + 0.5f, a.y + 0.5f, 0))
+                            .CompareTo(Vector3.Distance(transform.position, new Vector3(b.x + 0.5f, b.y + 0.5f, 0)))
+                    );
+
+                    bestTargetGrid = candidatesAtRadius[0];
+                    targetFound = true;
+                    break;
+                }
+            }
+
+            if (targetFound)
+            {
+                var targetWorldPos =
+                    new Vector3(bestTargetGrid.x + 0.5f, bestTargetGrid.y + 0.5f, transform.position.z);
+
+                transform.position = targetWorldPos;
+                if (rb != null) rb.position = targetWorldPos;
+
+                _lastPosition = targetWorldPos;
+
+                if (isDangerous)
+                {
+                    isDangerous = false;
+                    if (panicCoroutine != null) StopCoroutine(panicCoroutine);
+                    panicCoroutine = null;
+                    randomAnimationCoroutine = StartCoroutine(RandomAnimationLoop());
+                }
+
+                Debug.Log(
+                    $"[Animal Unstuck Thành Công] Đã giải cứu [{animalType}] sang ô trống an toàn: {bestTargetGrid}");
+            }
+            else
+            {
+                Debug.LogError(
+                    $"[Animal Unstuck Thất Bại] Đã quét rộng {maxRadiusSearch} ô quanh {currentGridPos} nhưng không tìm được ô trống nào cho thú!");
+            }
+        }
+    }
     
     protected virtual void HandleDeath()
     {
@@ -250,19 +360,72 @@ public abstract class Animal : MonoBehaviour, IPoolable
     public void OnSpawned()
     {
         if (health != null)
+        {
             health.SetMaxHealth(health.maxHealth, true);
-        RegionManager.Instance.RegisterObject(gameObject);
+            currentHealth = health.maxHealth;
+        }
+
+        isDangerous = false;
+        runDirection = Vector2.zero;
+        enabled = true;
+
+        if (animalCollider2D != null)
+            animalCollider2D.enabled = true;
+
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.isKinematic = false;
+        }
+
+        if (spriteRenderer != null)
+            spriteRenderer.color = Color.white;
+
+        StopAllAnimalCoroutines();
+
+        if (gameObject.activeInHierarchy)
+        {
+            randomAnimationCoroutine = StartCoroutine(RandomAnimationLoop());
+            checkDangerCoroutine = StartCoroutine(CheckDangerLoop());
+        }
+
+        _lastPosition = transform.position;
+        _stuckTimer = 0f;
+
+        if (RegionManager.Instance != null) RegionManager.Instance.RegisterObject(gameObject);
     }
 
     public void OnDespawned()
     {
-        RegionManager.Instance.UnregisterObject(gameObject);
+        StopAllAnimalCoroutines();
+        _stuckTimer = 0f;
+
+        if (RegionManager.Instance != null) RegionManager.Instance.UnregisterObject(gameObject);
+    }
+
+    private void StopAllAnimalCoroutines()
+    {
+        if (panicCoroutine != null)
+        {
+            StopCoroutine(panicCoroutine);
+            panicCoroutine = null;
+        }
+
+        if (randomAnimationCoroutine != null)
+        {
+            StopCoroutine(randomAnimationCoroutine);
+            randomAnimationCoroutine = null;
+        }
+
+        if (checkDangerCoroutine != null)
+        {
+            StopCoroutine(checkDangerCoroutine);
+            checkDangerCoroutine = null;
+        }
     }
 }
-
 
 public enum AnimalType
 {
     Sheep
 }
-

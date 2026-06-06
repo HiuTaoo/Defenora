@@ -37,4 +37,32 @@ public class MenuEditorController : MonoBehaviour
             cancelEditBuildingMode.SetActive(true);
     }
 
+    public void CheckAndHideCancelButton()
+    {
+        if (cancelEditBuildingMode == null) return;
+
+        var hasAnySelected = false;
+
+        foreach (var item in menuItems)
+        {
+            if (item == null) continue;
+
+            var children = item.GetComponentsInChildren<Transform>(true);
+            foreach (var child in children)
+                if (child.name == "Selected" && child.gameObject.activeInHierarchy)
+                {
+                    hasAnySelected = true;
+                    break;
+                }
+
+            if (hasAnySelected) break;
+        }
+
+        if (!hasAnySelected)
+        {
+            cancelEditBuildingMode.SetActive(false);
+            Debug.Log("[MenuEditor] Không còn MenuItem nào được chọn. Đã tự động ẩn panel Cancel!");
+        }
+    }
+
 }
