@@ -43,8 +43,6 @@ public class AutoLightToggle : MonoBehaviour
         if (pointLight.enabled != shouldBeOn)
         {
             pointLight.enabled = shouldBeOn;
-            Debug.Log(
-                $"[{gameObject.name}] Đã thực hiện đổi trạng thái đèn thành: {shouldBeOn} tại mốc {timeSystem.GetCurrentHourInt()}h");
         }
     }
 }

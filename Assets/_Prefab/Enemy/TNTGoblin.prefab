@@ -194,7 +194,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5378173627430152881
 Transform:
   m_ObjectHideFlags: 0
@@ -291,7 +291,7 @@ GameObject:
   - component: {fileID: 8498909686415606170}
   - component: {fileID: 1686913580285628678}
   m_Layer: 10
-  m_Name: TNT Goblin
+  m_Name: TNTGoblin
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -491,7 +491,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b94d30f41f2448087ff9846ff31dd58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: TNT Goblin
+  unitName: TNTGoblin
   unitType: 6
   currentState: 0
   animState: 0
@@ -528,7 +528,6 @@ MonoBehaviour:
   viewAngle: 180
   stuckCheckInterval: 5
   enemyDirection: 0
-  subTarget: {fileID: 0}
 --- !u!114 &8498909686415606170
 MonoBehaviour:
   m_ObjectHideFlags: 0

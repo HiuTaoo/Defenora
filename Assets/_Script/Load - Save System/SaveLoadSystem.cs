@@ -131,6 +131,15 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         yield return StartCoroutine(LoadSpawnDataGridBased(saveData.objectSpawnData));
 
         LoadTaskDataOnly(saveData);
+        
+        foreach (var enemy in UnitManager.Instance.enemies)
+        {
+            if (enemy != null) enemy.GetBT()?.ClearState();
+        }
+        foreach (var unit in UnitManager.Instance.allUnits)
+        {
+            if (unit != null) unit.GetBT()?.ClearState();
+        }
 
         Time.timeScale = originalTimeScale > 0 ? originalTimeScale : 1f;
     }
@@ -322,6 +331,50 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         }
         #endregion
         
+        #region Save Enemy Data
+        saveData.enemySaveData.Clear();
+        foreach (var enemy in unitManager.enemies)
+        {
+            if (enemy == null || enemy.health.CurrentHealth <= 0) continue;
+
+            string matchedSpawnPointId = "";
+            if (enemy.enemySpawnPoint != null)
+            {
+                if (enemy.enemySpawnPoint.TryGetComponent<SpawnPoint>(out var sp))
+                {
+                    matchedSpawnPointId = sp.GetId();
+                }
+            }
+
+            saveData.enemySaveData.Add(new EnemySaveLoadData
+            {
+                id = enemy.GetId(),
+                unitName = enemy.unitName,
+                unitType = enemy.unitType,
+                level = enemy.unitStatsManager.currentLevel,
+                position = enemy.transform.position,
+                layerIndex = enemy.floorAgent.currentFloorIndex,
+                currentHealth = enemy.health.CurrentHealth,
+                spawnPointId = matchedSpawnPointId 
+            });
+        }
+        #endregion
+
+        #region Save SpawnPoint Data
+        saveData.spawnPointSaveData.Clear();
+        var allSpawnPoints = FindObjectsOfType<SpawnPoint>();
+        foreach (var sp in allSpawnPoints)
+        {
+            if (sp == null) continue;
+            saveData.spawnPointSaveData.Add(new SpawnPointSaveLoadData
+            {
+                id = sp.GetId(),
+                layerIndex = sp.layerIndex,
+                position = sp.transform.position
+            });
+        }
+        #endregion
+        
     }
 
     public void LoadFromSaveData(GameSaveData saveData)
@@ -494,6 +547,101 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             #region Load Respawn Info
 
             if (ObjectSpawner.Instance != null) ObjectSpawner.Instance.LoadSpawnerFromSaveData(saveData);
+
+            #endregion
+            
+            #region Load Enemy & SpawnPoint Links
+            foreach (var enemy in unitManager.enemies.ToList())
+            {
+                if (enemy != null && enemy.gameObject != null)
+                    PoolManager.Instance.Despawn(enemy.gameObject);
+            }
+            unitManager.enemies.Clear();
+            
+            if (SpawnManager.Instance != null && SpawnManager.Instance.spawnPoints != null)
+            {
+                SpawnManager.Instance.spawnPoints.Clear();
+            }
+
+            var oldSpawnPoints = FindObjectsOfType<SpawnPoint>();
+            foreach (var sp in oldSpawnPoints)
+            {
+                if (sp != null && sp.gameObject != null)
+                {
+                    PoolManager.Instance.Despawn(sp.gameObject);
+                }
+            }
+
+            var spawnPointLookup = new Dictionary<string, SpawnPoint>();
+            GameObject spawnPointPrefab = PrefabConfig.Instance.spawnPointPrefab; 
+            if (saveData.spawnPointSaveData != null && spawnPointPrefab != null)
+            {
+                foreach (var savedSP in saveData.spawnPointSaveData)
+                {
+                    GameObject spObj = PoolManager.Instance.Spawn(spawnPointPrefab, savedSP.position, Quaternion.identity);
+                    if (spObj == null) continue;
+
+                    SpawnPoint spComp = spObj.GetComponent<SpawnPoint>();
+                    if (spComp != null)
+                    {
+                        if (spObj.TryGetComponent<UniqueId>(out var uniqueId))
+                        {
+                            uniqueId.OverrideId(savedSP.id);
+                        }
+                        
+                        spComp.layerIndex = savedSP.layerIndex;
+
+                        var spLayerName = $"Layer {savedSP.layerIndex + 1}";
+                        spObj.layer = LayerMask.NameToLayer(spLayerName);
+
+                        spawnPointLookup[savedSP.id] = spComp;
+                        SpawnManager.Instance.spawnPoints.Add(spComp);
+                        spComp.transform.SetParent(SpawnManager.Instance.transform);
+                    }
+                }
+                Debug.Log($"[SaveLoadSystem] Đã khôi phục thành công {spawnPointLookup.Count} cổng sinh quái từ file save.");
+            }
+
+            if (saveData.enemySaveData != null)
+            {
+                foreach (var savedEnemy in saveData.enemySaveData)
+                {
+
+                    GameObject enemyPrefab = PrefabConfig.Instance.GetPrefab(savedEnemy.unitType.ToString());
+                    if (enemyPrefab == null) continue;
+
+                    GameObject enemyObj = PoolManager.Instance.Spawn(enemyPrefab, savedEnemy.position, Quaternion.identity);
+                    if (enemyObj == null) continue;
+
+                    Unit enemyComp = enemyObj.GetComponent<Unit>();
+                    if (enemyComp != null)
+                    {
+                        enemyComp.OverrideId(savedEnemy.id);
+                        enemyComp.unitType = savedEnemy.unitType;
+                        enemyComp.unitName = savedEnemy.unitName;
+                        enemyComp.unitStatsManager.SetLevel(savedEnemy.level);
+                        enemyComp.characterMovement.CurrentLayer = savedEnemy.layerIndex;
+                        enemyComp.floorAgent.MoveToFloor(savedEnemy.layerIndex);
+                        
+                        if (enemyComp.health != null && enemyComp.unitStatsManager != null)
+                        {
+                            enemyComp.health.maxHealth = enemyComp.unitStatsManager.MaxHealth;
+                            enemyComp.health.SetCurrentHealth(savedEnemy.currentHealth);
+                        }
+
+                        enemyComp.currentState = UnitState.Idle;
+                        enemyComp.animState = AnimState.Idle;
+
+                        if (!string.IsNullOrEmpty(savedEnemy.spawnPointId) && spawnPointLookup.TryGetValue(savedEnemy.spawnPointId, out var sp))
+                        {
+                            enemyComp.enemySpawnPoint = sp.gameObject; 
+                        }
+
+                        unitManager.RegisterUnit(enemyComp);
+                    }
+                }
+                Debug.Log($"[SaveLoadSystem] Đã hồi sinh xong {unitManager.enemies.Count} kẻ địch và gán về đúng cổng.");
+            }
 
             #endregion
         }
@@ -1137,6 +1285,14 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
             if (ObjectSpawner.Instance.layerClusters != null) ObjectSpawner.Instance.layerClusters.Clear();
         }
+        
+        var remainingEnemies = UnitManager.Instance.enemies.ToList();
+        foreach (var enemy in remainingEnemies)
+        {
+            if (enemy != null && enemy.gameObject != null)
+                PoolManager.Instance.Despawn(enemy.gameObject);
+        }
+        UnitManager.Instance.enemies.Clear();
 
         if (EditBuildingManager.Instance != null) EditBuildingManager.Instance.ResetEditorManager();
     }

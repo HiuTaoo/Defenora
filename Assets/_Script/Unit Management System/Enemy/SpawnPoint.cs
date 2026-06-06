@@ -1,77 +1,49 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using _Script.Object_Pooling;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class SpawnPoint : MonoBehaviour
 {
-    [Serializable]
-    public struct SpawnData
-    {
-        public GameObject prefab;
-        public int count;
-    }
-
     [Header("Settings")]
     public int layerIndex;
     public float spawnDelay = 1f;
 
-    [Header("Spawn List")]
-    public List<SpawnData> spawnList = new List<SpawnData>();
+    [Header("Spawn Settings")]
+    [Tooltip("Danh sách các loại quái vật ĐƯỢC PHÉP xuất hiện tại cổng này")]
+    public List<GameObject> allowedEnemyPrefabs = new List<GameObject>();
 
-    private TimeOfDaySystem timeSystem;
-
-    private void Start()
+    /// <summary>
+    /// Hàm này bây giờ sẽ do SpawnManager gọi xuống từ bên ngoài
+    /// </summary>
+    public void OrderSpawnRandomly(int count)
     {
-        timeSystem = TimeOfDaySystem.Instance;
-
-        if (timeSystem != null)
+        if (allowedEnemyPrefabs == null || allowedEnemyPrefabs.Count == 0)
         {
-            timeSystem.OnDayChanged += HandleDayChanged;
-            Debug.Log($"[{gameObject.name}] 🟢 Đã kết nối thành công với hệ thống ngày đêm. Đang chờ ngày mới...");
+            Debug.LogWarning($"[{gameObject.name}] ⚠️ Không có Prefab quái nào được gán!");
+            return;
         }
-        else
-        {
-            Debug.LogError(
-                $"[{gameObject.name}] ❌ Không tìm thấy TimeOfDaySystem.Instance trên Scene để đăng ký gọi quái!");
-        }
-    }
 
-    private void OnDestroy()
-    {
-        if (timeSystem != null)
-        {
-            timeSystem.OnDayChanged -= HandleDayChanged;
-        }
-    }
-
-    private void HandleDayChanged(int newDay)
-    {
-        Debug.Log($"[{gameObject.name}] 🌅 Nhận tín hiệu Ngày mới (Ngày {newDay})! Bắt đầu gọi quái xuất trận...");
-
-        StartSpawningAll();
-    }
-
-    public void StartSpawningAll()
-    {
         StopAllCoroutines();
-        StartCoroutine(SpawnSequenceRoutine());
+        StartCoroutine(SpawnRandomSequenceRoutine(count));
     }
 
-    private IEnumerator SpawnSequenceRoutine()
+    private IEnumerator SpawnRandomSequenceRoutine(int count)
     {
-        foreach (SpawnData data in spawnList)
+        for (int i = 0; i < count; i++)
         {
-            if (data.prefab == null || data.count <= 0) continue;
+            int randomIndex = Random.Range(0, allowedEnemyPrefabs.Count);
+            GameObject chosenPrefab = allowedEnemyPrefabs[randomIndex];
 
-            for (int i = 0; i < data.count; i++)
+            if (chosenPrefab != null)
             {
-                SpawnObject(data.prefab);
-                yield return new WaitForSeconds(spawnDelay);
+                SpawnObject(chosenPrefab);
             }
-        }
 
-        Debug.Log($"[{gameObject.name}] Đã hoàn thành spawn toàn bộ danh sách quái cho ngày mới!");
+            yield return new WaitForSeconds(spawnDelay);
+        }
+        Debug.Log($"[{gameObject.name}] ⚔️ Cổng đã hoàn thành sinh {count} quái vật theo lệnh.");
     }
 
     private void SpawnObject(GameObject prefab)

@@ -64,7 +64,7 @@ GameObject:
   - component: {fileID: 1453032743043013705}
   - component: {fileID: 131003130809898399}
   m_Layer: 10
-  m_Name: Torch Goblin
+  m_Name: TorchGoblin
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -264,7 +264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4be625aef7e4a98b1a0babf33c5606a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: Torch Goblin
+  unitName: TorchGoblin
   unitType: 5
   currentState: 0
   animState: 0
@@ -274,6 +274,7 @@ MonoBehaviour:
   obstacleLayer: 0
   enemyLayer: 0
   results: []
+  animalResult: []
   currentTarget: {fileID: 0}
   currentTargetLayerIndex: 0
   lastSeenPosition: {x: 0, y: 0}
@@ -285,21 +286,20 @@ MonoBehaviour:
   detectInterval: 0.25
   hearRange: 15
   animFSM: {fileID: 0}
-  statsManager: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
-  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
   attackRange: 1
-  attackCooldown: 1
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
   viewAngle: 180
+  stuckCheckInterval: 5
   enemyDirection: 0
   attackLayerMask: 0
 --- !u!114 &1453032743043013705
@@ -327,7 +327,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b05ca8733e085f4e88e0e0a44cd9aec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 3aec4fae-ae81-4fc0-9526-162a5a65d852
+  id: 
 --- !u!1 &3122822280748698295
 GameObject:
   m_ObjectHideFlags: 0

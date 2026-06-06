@@ -15,8 +15,9 @@ namespace _Script.Object_Pooling
         public GameObject builderPrefab;
         public GameObject lancerPrefab;
         public GameObject civilianPrefab;
-        
-        [Header("Enemy Prefab")]
+
+        [Header("Enemy Prefab")] 
+        public GameObject spawnPointPrefab;
         public GameObject torchGoblinPrefab;
         public GameObject tntGoblinPrefab;
         public GameObject barrelPrefab;

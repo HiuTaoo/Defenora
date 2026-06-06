@@ -8,14 +8,17 @@ using UnityEngine;
 
 public class UnitManager : MonoBehaviour
 {
-    [Header("Unit Management")] public List<Unit> allUnits = new();
-
+    [Header("Unit Management")]
+    public List<Unit> allUnits = new();
     public List<Building> buildings = new();
+    public List<Unit> enemies = new(); 
+    
     public Transform buildingParent;
     public Dictionary<string, GameObject> buildingPrefabs;
     public Action OnUnitRegistered;
 
     private Transform unitParent;
+    private Transform enemyParent; 
 
     public static UnitManager Instance { get; private set; }
 
@@ -48,6 +51,14 @@ public class UnitManager : MonoBehaviour
 
         unitParent = transform.Find("Unit");
         buildingParent = transform.Find("Building");
+        
+        enemyParent = transform.Find("Enemy");
+        if (enemyParent == null)
+        {
+            GameObject enemyParentObj = new GameObject("Enemy");
+            enemyParentObj.transform.SetParent(transform);
+            enemyParent = enemyParentObj.transform;
+        }
     }
 
     #region Register Methods
@@ -55,8 +66,9 @@ public class UnitManager : MonoBehaviour
     public void RefreshUnitList()
     {
         allUnits.Clear();
+        enemies.Clear(); 
+        
         var foundUnits = FindObjectsOfType<Unit>();
-
         foreach (var unit in foundUnits) RegisterUnit(unit);
     }
 
@@ -69,17 +81,50 @@ public class UnitManager : MonoBehaviour
 
     public void RegisterUnit(Unit unit)
     {
-        if (!allUnits.Contains(unit))
+        if (unit.CompareTag("Enemy"))
         {
-            allUnits.Add(unit);
-            unit.transform.SetParent(unitParent);
-            OnUnitRegistered?.Invoke();
+            if (!enemies.Contains(unit))
+            {
+                enemies.Add(unit);
+                if (enemyParent != null) unit.transform.SetParent(enemyParent);
+                OnUnitRegistered?.Invoke();
+            }
+        }
+        else
+        {
+            if (!allUnits.Contains(unit))
+            {
+                allUnits.Add(unit);
+                if (unitParent != null) unit.transform.SetParent(unitParent);
+                OnUnitRegistered?.Invoke();
+            }
         }
 
         unit.OnUnitDestroyed -= OnUnitDestroyed;
         unit.OnUnitDestroyed += OnUnitDestroyed;
     }
+    
+    public void UnregisterUnit(Unit unit)
+    {
+        if (unit == null) return;
 
+        unit.OnUnitDestroyed -= OnUnitDestroyed;
+
+        if (allUnits.Contains(unit))
+        {
+            allUnits.Remove(unit);
+        }
+
+        if (enemies.Contains(unit))
+        {
+            enemies.Remove(unit);
+        }
+
+        foreach (var station in buildings) 
+        {
+            station.RemoveUnit(unit);
+        }
+    }
 
     public void RegisterBuilding(Building building)
     {
@@ -88,9 +133,15 @@ public class UnitManager : MonoBehaviour
 
     private void OnUnitDestroyed(Unit unit)
     {
-        allUnits.Remove(unit);
-
-        foreach (var station in buildings) station.RemoveUnit(unit);
+        if (unit.CompareTag("Enemy"))
+        {
+            if (enemies.Contains(unit)) enemies.Remove(unit);
+        }
+        else
+        {
+            if (allUnits.Contains(unit)) allUnits.Remove(unit);
+            foreach (var station in buildings) station.RemoveUnit(unit);
+        }
     }
 
     public Unit CreateUnit(UnitType unitType, Vector3 position)
@@ -102,14 +153,15 @@ public class UnitManager : MonoBehaviour
             return null;
         }
 
-        var unitObj = Instantiate(prefab, position, Quaternion.identity);
-        unitObj.transform.SetParent(unitParent);
+        var unitObj = PoolManager.Instance.Spawn(prefab, position, Quaternion.identity);
         var unit = unitObj.GetComponent<Unit>();
 
         if (unit != null)
         {
             RegisterUnit(unit);
-            unit.unitName = $"{unitType}_{allUnits.Count}";
+            
+            int count = unit.CompareTag("Enemy") ? enemies.Count : allUnits.Count;
+            unit.unitName = $"{unitType}_{count}";
         }
 
         return unit;
@@ -131,7 +183,7 @@ public class UnitManager : MonoBehaviour
         if (building != null)
         {
             RegisterBuilding(building);
-            building.name = $"{buildingType}_{allUnits.Count}";
+            building.name = $"{buildingType}_{buildings.Count}"; 
         }
 
         return building;
@@ -165,11 +217,7 @@ public class UnitManager : MonoBehaviour
 
     public List<Building> FindBuilding(BuildingType buildingType)
     {
-        var listBuilding = new List<Building>();
-        foreach (var building in buildings)
-            if (building.buildingType == buildingType)
-                listBuilding.Add(building);
-        return buildings;
+        return buildings.Where(b => b.buildingType == buildingType).ToList(); 
     }
 
     public List<Building> FindBuildingNeedRepair()
@@ -303,9 +351,6 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    ///     Cho phép các hệ thống Editor truy cập và lấy Prefab xây dựng dựa vào Loại công trình (Enum)
-    /// </summary>
     public GameObject GetBuildPrefabPublic(BuildingType buildingType)
     {
         return GetBuildPrefab(buildingType);

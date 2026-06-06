@@ -19,6 +19,8 @@ public class GameSaveData
     public ShopSaveData shopSaveData = new ShopSaveData();
     public ItemManagerSaveData itemManagerSaveData = new ItemManagerSaveData();
     public SpawnerCycleSaveData spawnerCycleData = new();
+    public List<EnemySaveLoadData> enemySaveData = new List<EnemySaveLoadData>();
+    public List<SpawnPointSaveLoadData> spawnPointSaveData = new List<SpawnPointSaveLoadData>();
     
     public Vector3 playerPosition;
     public int playerLayerIndex;
