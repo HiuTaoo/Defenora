@@ -271,6 +271,6 @@ namespace _Script.Unit_Management_System.Enemy
             Gizmos.DrawLine(origin, origin + rightBoundary * damageRange);
         
         }
-    }
 #endif
+    }
 }

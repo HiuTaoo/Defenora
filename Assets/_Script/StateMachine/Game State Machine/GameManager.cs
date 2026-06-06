@@ -144,21 +144,61 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log(
-                "[GameManager] Không có file save (hoặc vừa bấm RESTART)! Bắt đầu dọn dẹp và tạo thế giới mới...");
+            Debug.Log("[GameManager] Không có file save (hoặc vừa bấm RESTART)! Bắt đầu tạo thế giới...");
 
-            yield return null;
-            yield return null;
+            var isWorldGenerationValid = false;
+            var generationRetries = 0;
+            const int maxGenerationRetries = 5;
 
-            if (GraphNode.Instance != null) GraphNode.Instance.ResetAllWalkableNodesOnly();
-
-            if (ObjectSpawner.Instance != null)
+            while (!isWorldGenerationValid && generationRetries < maxGenerationRetries)
             {
-                ApplyStartGameSettings();
-                Debug.Log("[GameManager] 🌳 Đã tái tạo hệ sinh thái tài nguyên mới tinh. Số lượng cây dày đặc 100%!");
+                if (GraphNode.Instance != null) GraphNode.Instance.ResetAllWalkableNodesOnly();
+
+                if (ObjectSpawner.Instance != null)
+                {
+                    ApplyStartGameSettings();
+                    yield return null;
+
+                    if (SpawnManager.Instance != null && PlayerController.Instance != null)
+                    {
+                        var pPos = PlayerController.Instance.transform.position;
+                        var pLayer = PlayerController.Instance.GetCurrentLayerIndex();
+
+                        Debug.Log(
+                            $"[GameManager] [Lần thử {generationRetries + 1}] Đang quét tìm đường đặt 3 cổng quái liên thông...");
+
+                        var spawnSuccess = SpawnManager.Instance.GenerateSpawnPointsWithSafeZone(2, pPos, pLayer);
+
+                        if (spawnSuccess)
+                        {
+                            Debug.Log(
+                                "[GameManager] 🟢 Tạo bản đồ và các cổng quái thành công! Bản đồ hợp lệ hoàn toàn.");
+                            isWorldGenerationValid = true;
+                        }
+                        else
+                        {
+                            generationRetries++;
+                            Debug.LogWarning(
+                                $"[GameManager] ⚠️ Thất bại khi tìm vị trí đặt cổng thông suốt tới Player. Tiến hành dọn dẹp và RE-BAKE lại map lần {generationRetries}...");
+
+                            SaveLoadSystem.Instance.ClearCurrentSceneObjects();
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("[GameManager] ❌ Thiếu cấu phần hệ thống quan trọng để check sinh cổng!");
+                        yield break;
+                    }
+                }
+            }
+
+            if (!isWorldGenerationValid)
+            {
+                Debug.LogError(
+                    "[GameManager] 🛑 LỖI CHÍ MẠNG: Đã thử tái tạo map 5 lần nhưng không thể đặt cổng quái hợp lệ liên thông tới Player! Chặn không cho StartGame.");
+                yield break; 
             }
         }
-        
         ChangeToPlayingState();
 
         yield return new WaitForEndOfFrame();

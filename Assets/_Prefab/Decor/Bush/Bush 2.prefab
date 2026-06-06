@@ -104,9 +104,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf68ef9126f45f9418d3e7c1f96b5933, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxChopHit: 2
+  maxChopHit: 3
   layerIndex: 0
   currentChopHit: 0
+  spriteRenderer: {fileID: 0}
   positionInGrid: {x: 0, y: 0, z: 0}
   isDecorative: 1
 --- !u!114 &5024684931273837129
@@ -222,8 +223,13 @@ MonoBehaviour:
   - {fileID: -1728759922, guid: 754d1c8ddbcabfa47bb6a6a64e14991c, type: 3}
   - {fileID: 1188742668, guid: 754d1c8ddbcabfa47bb6a6a64e14991c, type: 3}
   frameRate: 0.1
-  playOnAwake: 1
   loop: 1
+  speedRandomness: 0.15
+  useRandomPause: 1
+  minPauseDuration: 0.5
+  maxPauseDuration: 2
+  minShakeCycles: 3
+  maxShakeCycles: 7
 --- !u!1 &8794550294110042826
 GameObject:
   m_ObjectHideFlags: 0

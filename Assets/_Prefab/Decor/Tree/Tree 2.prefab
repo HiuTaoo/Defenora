@@ -236,7 +236,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   treeState: 0
-  maxChopHit: 8
+  maxChopHit: 20
   layerIndex: 0
   currentChopHit: 0
   positionInGrid: {x: 0, y: 0, z: 0}
@@ -251,7 +251,9 @@ MonoBehaviour:
     _internalProgress: 0
     builders: []
   choppedSprite: {fileID: 21300000, guid: 5c3c471e14681154ebe1f9596d03a82d, type: 3}
+  spriteRenderer: {fileID: 0}
   treeCollider: {fileID: 0}
+  customRender: {fileID: 0}
 --- !u!114 &8825140872732629244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -330,5 +332,10 @@ MonoBehaviour:
   - {fileID: -862765204, guid: d0e1cb3ee3a0fe34799e95593c2363e5, type: 3}
   - {fileID: -606284007, guid: d0e1cb3ee3a0fe34799e95593c2363e5, type: 3}
   frameRate: 0.1
-  playOnAwake: 1
   loop: 1
+  speedRandomness: 0.15
+  useRandomPause: 1
+  minPauseDuration: 0.5
+  maxPauseDuration: 2
+  minShakeCycles: 3
+  maxShakeCycles: 7

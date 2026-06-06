@@ -479,8 +479,9 @@ public class Warrior : Unit
             Gizmos.DrawLine(origin, origin + rightBoundary * damageRange);
             
         }
-    }
-
 #endif
+}
+
+
 
 

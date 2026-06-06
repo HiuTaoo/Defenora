@@ -2,7 +2,7 @@
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Coin : MonoBehaviour
+public class Coin : MonoBehaviour, IPoolable
 {
     [Header("Drop Settings")] private Vector3 _startPos;
     private Vector3 _endPos;
@@ -160,5 +160,28 @@ public class Coin : MonoBehaviour
     public void SetCoinValue(int value)
     {
         coinValue = value;
+    }
+
+    public void OnSpawned()
+    {
+        _elapsed = 0f;
+        _isDropping = false;
+
+        _isCollected = false;
+
+        enabled = true;
+
+        coinValue = 1;
+        layerIndex = 0;
+
+        _startPos = Vector3.zero;
+        _endPos = Vector3.zero;
+    }
+
+    public void OnDespawned()
+    {
+        _isDropping = false;
+
+        if (ItemManager.Instance != null) ItemManager.Instance.UnregisterCoin(this);
     }
 }

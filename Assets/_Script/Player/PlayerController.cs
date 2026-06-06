@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour, ISaveable
@@ -13,6 +14,12 @@ public class PlayerController : MonoBehaviour, ISaveable
     public CircleCollider2D builderCollider;
     public CharacterMovement characterMovement;
     public FloorAgent floorAgent;
+
+    [Header("Player Unstuck System")] [SerializeField]
+    private float stuckCheckInterval = 5.0f;
+
+    private Vector3 _lastPosition;
+    private float _stuckTimer; 
 
     public Vector2 MovementInput { get; private set; }
 
@@ -37,9 +44,15 @@ public class PlayerController : MonoBehaviour, ISaveable
         floorAgent = GetComponentInChildren<FloorAgent>();
     }
 
+    private void Start()
+    {
+        _lastPosition = transform.position;
+    }
+
     private void Update()
     {
         HandleInput();
+        HandlePlayerUnstuck(); 
     }
 
     private void FixedUpdate()
@@ -109,6 +122,96 @@ public class PlayerController : MonoBehaviour, ISaveable
         }
     }
 
+    // ======================================================================
+    // 🟢 HÀM XỬ LÝ CHỐNG KẸT LƯỚI CHO PLAYER 
+    // ======================================================================
+    private void HandlePlayerUnstuck()
+    {
+        if (GraphNode.Instance == null) return;
+
+        if (Vector3.Distance(transform.position, _lastPosition) > 0.05f)
+        {
+            _lastPosition = transform.position;
+            _stuckTimer = 0f;
+            return;
+        }
+
+        _stuckTimer += Time.deltaTime;
+
+        if (_stuckTimer >= stuckCheckInterval)
+        {
+            var currentLayer = GetCurrentLayerIndex();
+            var gridX = Mathf.FloorToInt(transform.position.x);
+            var gridY = Mathf.FloorToInt(transform.position.y);
+            var currentGridPos = new Vector3Int(gridX, gridY, 0);
+
+            var currentNode = GraphNode.Instance.GetNode(currentGridPos, currentLayer);
+
+            if (currentNode != null && currentNode.isWalkable)
+            {
+                _stuckTimer = 0f;
+                _lastPosition = transform.position;
+                return;
+            }
+
+            _stuckTimer = 0f;
+            _lastPosition = transform.position;
+
+            Debug.LogWarning(
+                $"[Player Unstuck] Phát hiện Player đứng im tại ô CẤM ĐI {currentGridPos} quá {stuckCheckInterval}s! Tiến hành loang tìm ô trống...");
+
+            var targetFound = false;
+            var bestTargetGrid = Vector3Int.zero;
+
+            const int maxRadiusSearch = 5;
+            for (var r = 1; r <= maxRadiusSearch; r++)
+            {
+                var candidatesAtRadius = new List<Vector3Int>();
+
+                for (var xOffset = -r; xOffset <= r; xOffset++)
+                for (var yOffset = -r; yOffset <= r; yOffset++)
+                    if (Mathf.Abs(xOffset) == r || Mathf.Abs(yOffset) == r)
+                    {
+                        var checkPos = currentGridPos + new Vector3Int(xOffset, yOffset, 0);
+                        var node = GraphNode.Instance.GetNode(checkPos, currentLayer);
+
+                        if (node != null && node.isWalkable) candidatesAtRadius.Add(checkPos);
+                    }
+
+                if (candidatesAtRadius.Count > 0)
+                {
+                    candidatesAtRadius.Sort((a, b) =>
+                        Vector3.Distance(transform.position, new Vector3(a.x + 0.5f, a.y + 0.5f, 0))
+                            .CompareTo(Vector3.Distance(transform.position, new Vector3(b.x + 0.5f, b.y + 0.5f, 0)))
+                    );
+
+                    bestTargetGrid = candidatesAtRadius[0];
+                    targetFound = true;
+                    break;
+                }
+            }
+
+            if (targetFound)
+            {
+                var targetWorldPos =
+                    new Vector3(bestTargetGrid.x + 0.5f, bestTargetGrid.y + 0.5f, transform.position.z);
+
+                transform.position = targetWorldPos;
+                if (rb != null) rb.position = targetWorldPos;
+
+                _lastPosition = targetWorldPos;
+
+                Debug.Log(
+                    $"[Player Unstuck Thành Công] Đã giải cứu Player ra khỏi vùng kẹt sang ô trống: {bestTargetGrid}");
+            }
+            else
+            {
+                Debug.LogError(
+                    $"[Player Unstuck Thất Bại] Đã quét rộng đến {maxRadiusSearch} ô nhưng không tìm được vị trí trống nào giải cứu Player!");
+            }
+        }
+    }
+
     public void PopulateSaveData(GameSaveData saveData)
     {
         saveData.playerPosition = transform.position;
@@ -133,5 +236,8 @@ public class PlayerController : MonoBehaviour, ISaveable
         {
             floorAgent.MoveToFloor(saveData.playerLayerIndex);
         }
+
+        _lastPosition = transform.position;
+        _stuckTimer = 0f;
     }
 }

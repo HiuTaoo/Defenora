@@ -8,19 +8,21 @@ public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance;
 
-    [Header("--- Shop Data Configuration ---")]
-    [SerializeField] private ShopData shopConfiguration; 
+    [Header("--- Shop Data Configuration ---")] [SerializeField]
+    private ShopData shopConfiguration;
 
-    [Header("--- UI Content Panels Reference ---")]
-    [SerializeField] private RectTransform unitContentPanel;     
-    [SerializeField] private RectTransform resourceContentPanel; 
+    [Header("--- UI Content Panels Reference ---")] [SerializeField]
+    private RectTransform unitContentPanel;
+
+    [SerializeField] private RectTransform resourceContentPanel;
 
     [Header("--- Shop Mode Settings ---")]
     [Tooltip("Nếu true: Bật chế độ Daily (Random số lượng slot cố định, mua xong tự ẩn ô, tự làm mới qua ngày).\nNếu false: Hiện toàn bộ danh sách cấu hình, mua vô hạn.")]
-    [SerializeField] private bool isDailyMode = false; 
+    [SerializeField]
+    private bool isDailyMode;
 
-    [Tooltip("Số lượng ô hiển thị ngẫu nhiên cho mỗi nhóm khi bật Daily Mode")]
-    [SerializeField] private int slotsPerGroup = 8; 
+    [Tooltip("Số lượng ô hiển thị ngẫu nhiên cho mỗi nhóm khi bật Daily Mode")] [SerializeField]
+    private int slotsPerGroup = 8;
 
     private List<ShopUnitEntry> dailyUnits = new List<ShopUnitEntry>();
     private List<ShopItemEntry> dailyResources = new List<ShopItemEntry>();
@@ -37,19 +39,34 @@ public class ShopManager : MonoBehaviour
     private void Start()
     {
         InitializeShopUI();
-    }
 
-    private void Update()
-    {
         if (isDailyMode && TimeOfDaySystem.Instance != null)
         {
-            int currentDay = Mathf.FloorToInt(TimeOfDaySystem.Instance.GetCurrentTime() / 24f); 
-            if (currentDay != lastRefreshedDay)
-            {
-                lastRefreshedDay = currentDay;
-                GenerateDailyItems(); 
-                BuildShopUI();        
-            }
+            TimeOfDaySystem.Instance.OnDayChanged += HandleDayChanged;
+            Debug.Log("[ShopManager] 🟢 Đã kết nối Event OnDayChanged thành công để tự động reset Shop!");
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (TimeOfDaySystem.Instance != null) TimeOfDaySystem.Instance.OnDayChanged -= HandleDayChanged;
+    }
+
+
+    /// <summary>
+    ///     Hàm xử lý tự động làm mới hàng hóa khi nhận được tín hiệu qua ngày mới từ Event
+    /// </summary>
+    private void HandleDayChanged(int newDay)
+    {
+        if (!isDailyMode) return;
+
+        if (newDay != lastRefreshedDay)
+        {
+            lastRefreshedDay = newDay;
+            GenerateDailyItems();
+            BuildShopUI();
+            Debug.Log(
+                $"[ShopManager] 🏪 [Event] Đã bước sang ngày mới {newDay}! Tiến hành reset và đổi danh sách hàng hóa.");
         }
     }
 
@@ -66,6 +83,9 @@ public class ShopManager : MonoBehaviour
 
         if (isDailyMode)
         {
+            if (TimeOfDaySystem.Instance != null && lastRefreshedDay == -1)
+                lastRefreshedDay = TimeOfDaySystem.Instance.CurrentDay;
+
             if (dailyUnits.Count == 0 && dailyResources.Count == 0)
             {
                 GenerateDailyItems();
@@ -208,15 +228,15 @@ public class ShopManager : MonoBehaviour
                     foundPlayer = true;
                 }
                 else
-            {
-                var camera = Camera.main;
-                if (camera != null)
                 {
-                    playerPosition = camera.transform.position;
-                    playerPosition.z = 0f;
-                    foundPlayer = true;
+                    var camera = Camera.main;
+                    if (camera != null)
+                    {
+                        playerPosition = camera.transform.position;
+                        playerPosition.z = 0f;
+                        foundPlayer = true;
+                    }
                 }
-            }
 
                 if (foundPlayer)
                 {
@@ -321,17 +341,11 @@ public class ShopManager : MonoBehaviour
         return matchedItem.itemData != null ? matchedItem.price : 0;
     }
 
-    
-    // Thêm 2 hàm này vào cuối file ShopManager.cs của bạn:
-
 #region Save/Load Logic
 
-/// <summary>
-/// Chuẩn bị dữ liệu Shop để SaveLoadSystem ghi vào file JSON
-/// </summary>
 public void PopulateShopSaveData(GameSaveData saveData)
 {
-    saveData.shopSaveData.lastRefreshedDay = this.lastRefreshedDay;
+    saveData.shopSaveData.lastRefreshedDay = lastRefreshedDay;
     saveData.shopSaveData.dailyUnits.Clear();
     saveData.shopSaveData.dailyResources.Clear();
 
@@ -356,16 +370,13 @@ public void PopulateShopSaveData(GameSaveData saveData)
     }
 }
 
-/// <summary>
-/// Khôi phục lại trạng thái các ô hàng từ file dữ liệu cũ
-/// </summary>
 public void LoadShopFromSaveData(GameSaveData saveData)
 {
     if (!isDailyMode || saveData.shopSaveData == null) return;
 
-    this.lastRefreshedDay = saveData.shopSaveData.lastRefreshedDay;
-    this.dailyUnits.Clear();
-    this.dailyResources.Clear();
+    lastRefreshedDay = saveData.shopSaveData.lastRefreshedDay;
+    dailyUnits.Clear();
+    dailyResources.Clear();
 
     foreach (var savedUnit in saveData.shopSaveData.dailyUnits)
     {
@@ -373,7 +384,6 @@ public void LoadShopFromSaveData(GameSaveData saveData)
             .Find(u => u.unitPrefab != null && u.unitPrefab.name == savedUnit.unitPrefabName);
 
         if (matchedConfig.unitPrefab != null)
-        {
             dailyUnits.Add(new ShopUnitEntry
             {
                 unitName = matchedConfig.unitName,
@@ -381,20 +391,17 @@ public void LoadShopFromSaveData(GameSaveData saveData)
                 unitIcon = matchedConfig.unitIcon,
                 price = savedUnit.price
             });
-        }
     }
 
     foreach (var savedRes in saveData.shopSaveData.dailyResources)
     {
-        ItemData matchedItem = SOManager.Instance.GetItemDataById(savedRes.itemID);
+        var matchedItem = SOManager.Instance.GetItemDataById(savedRes.itemID);
         if (matchedItem != null)
-        {
             dailyResources.Add(new ShopItemEntry
             {
                 itemData = matchedItem,
                 price = savedRes.price
             });
-        }
     }
 
     BuildShopUI();
