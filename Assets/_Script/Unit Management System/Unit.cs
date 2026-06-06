@@ -1139,7 +1139,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
         isKnockedBack = true;
 
         EndAttackSignal();
-
         StopMove();
 
         currentState = UnitState.Idle;
