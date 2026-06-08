@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -50,6 +49,7 @@ namespace _Script.Unit_Management_System.Building
                     position = spot,
                     unitId = unit.GetId()
                 });
+            AudioManager.Instance.PlaySFX(SoundNames.SfxSuccess);
         }
 
         public void OnUnitRemoved(global::Unit unit)
@@ -60,8 +60,6 @@ namespace _Script.Unit_Management_System.Building
             int index = listArcherPositions.FindIndex(s => s.unitId == unit.GetId());
             if (index >= 0)
                 listArcherPositions.RemoveAt(index);
-            
-            
         }
 
         public Vector3 GetAvailableSpot()

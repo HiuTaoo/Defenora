@@ -1234,26 +1234,22 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
         if (ItemManager.Instance != null)
         {
-            var activeItemsOnGround = ItemManager.Instance.activeItems.ToList();
-            foreach (var item in activeItemsOnGround)
-            {
-                if (item != null && item.gameObject != null) PoolManager.Instance.Despawn(item.gameObject);
-            }
-            ItemManager.Instance.activeItems.Clear();
             ItemManager.Instance.ReleasePendingItems();
-            
-            var remainingItems = ItemManager.Instance.activeItems.ToList();
-            foreach (var item in remainingItems)
+
+            var itemsToClear = ItemManager.Instance.activeItems.ToList();
+            for (var i = itemsToClear.Count - 1; i >= 0; i--)
             {
-                if (item != null && item.gameObject != null) PoolManager.Instance.Despawn(item.gameObject);
+                if (itemsToClear[i] != null && itemsToClear[i].gameObject != null)
+                    PoolManager.Instance.Despawn(itemsToClear[i].gameObject);
             }
             ItemManager.Instance.activeItems.Clear();
 
-            var remainingCoinsOnGround = ItemManager.Instance.activeCoins.ToList();
-            foreach (var coin in remainingCoinsOnGround)
-                if (coin != null && coin.gameObject != null)
-                    PoolManager.Instance.Despawn(coin.gameObject);
-            ItemManager.Instance.activeCoins.Clear();
+            var coinsToClear = ItemManager.Instance.activeCoins.ToList();
+            for (var i = coinsToClear.Count - 1; i >= 0; i--)
+                if (coinsToClear[i] != null && coinsToClear[i].gameObject != null)
+                    PoolManager.Instance.Despawn(coinsToClear[i].gameObject);
+
+            ItemManager.Instance.activeCoins.Clear(); 
         }
 
         if (ObjectSpawner.Instance != null)

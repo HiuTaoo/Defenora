@@ -1,9 +1,8 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Script.UI.Button
 {
-    public class AddUnitButton: MonoBehaviour, IPoolable
+    public class AddUnitButton : MonoBehaviour, IPoolable
     {
         private UnityEngine.UI.Button button;
 
@@ -14,6 +13,8 @@ namespace _Script.UI.Button
 
         private void OnAddUnitClicked()
         {
+            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxClick);
+
             GameManager.Instance.OpenAvailableUnitGUI();
             UIManager.Instance.availableUnitPanel.ShowAvailableUnitInfo(
                 SelectUnitSystem.Instance.targetBuilding.GetComponent<Building>());
@@ -23,6 +24,7 @@ namespace _Script.UI.Button
         {
             button.onClick.RemoveAllListeners();
             button.interactable = true;
+            
             button.onClick.AddListener(OnAddUnitClicked);
         }
 

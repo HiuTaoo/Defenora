@@ -172,17 +172,7 @@ public class Storage : Building, IStorage
         }
         return total;
     }
-
-    protected override void OnUnitAdded(Unit unit)
-    {
-        GetComponent<GuardComponent>()?.OnUnitAdded(unit);
-    }
-
-    protected override void OnUnitRemoved(Unit unit)
-    {
-        GetComponent<GuardComponent>()?.OnUnitRemoved(unit);
-    }
-
+    
     protected override void HandleDeath()
     {
         base.HandleDeath();

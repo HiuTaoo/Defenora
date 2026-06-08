@@ -45,6 +45,10 @@ public class MainMenuManager : MonoBehaviour
     [Tooltip("Chữ 'Click to Start' (sẽ bị tắt khi bấm)")]
     [SerializeField] private GameObject hideUI;
 
+    [SerializeField] private GameObject audioSettingUI;
+
+    [SerializeField] private AudioSource audioSource;
+
     [Header("Confirm Dialog")] public ConfirmDialog confirmDialog;
 
     private bool isTransitioning = false;
@@ -64,8 +68,12 @@ public class MainMenuManager : MonoBehaviour
             loadingGroup.SetActive(false);
         }
 
+        if (audioSettingUI != null)
+            audioSettingUI.SetActive(false);
+
         if (PoolManager.Instance != null)
             PoolManager.Instance.ClearAndRefillPools();
+        AudioManager.Instance.PlayMusic(SoundNames.MainMenuTheme);
     }
 
     private void Update()
@@ -75,7 +83,9 @@ public class MainMenuManager : MonoBehaviour
             if (!IsPointerOverUI() && !isTransitioning)
             {
                 if (hideUI != null) hideUI.gameObject.SetActive(false);
+                AudioManager.Instance.PauseMusic();
                 StartWhiteWipeTransition();
+                AudioManager.Instance.PlaySFX(SoundNames.SfxChangeScene);
             }
         }
     }
@@ -178,6 +188,16 @@ public class MainMenuManager : MonoBehaviour
         {
             Debug.LogError($"[Main Menu] Lỗi khi xóa file save: {e.Message}");
         }
+    }
+
+    public void OpenAudioSettingUI()
+    {
+        audioSettingUI.SetActive(true);
+    }
+
+    public void CloseAudioSettingUI()
+    {
+        audioSettingUI.SetActive(false);
     }
  
 }

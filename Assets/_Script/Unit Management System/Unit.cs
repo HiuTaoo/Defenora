@@ -58,6 +58,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public CharacterMovement characterMovement;
     [HideInInspector] public FloorAgent floorAgent;
+    [HideInInspector] public AudioSource audioSource;
 
     [Header("Combat Stats")] public float attackRange;
 
@@ -99,6 +100,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         sortingYX = GetComponent<DynamicSortingYX>();
         health = GetComponentInChildren<Health>();
         unitStatsManager = GetComponentInChildren<UnitStatsManager>();
+        audioSource = GetComponentInChildren<AudioSource>();
 
         enemyLayer = LayerMask.GetMask("NPC");
         obstacleLayer = LayerMask.GetMask("VisionBlocker");

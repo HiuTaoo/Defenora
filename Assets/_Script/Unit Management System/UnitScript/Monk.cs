@@ -4,7 +4,6 @@ using _Script.BT;
 using _Script.BT.BlackBoard;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.MonkNode.MonkIdle;
-using _Script.BT.Node.WarriorNode.WarriorCombat.WarriorArlert;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using UnityEditor;
@@ -112,6 +111,8 @@ public class Monk : Unit
 
             healEffect.transform.SetParent(ally.transform);
         }
+
+        AudioManager.Instance.PlaySFX3D(SoundNames.SfxHeal, audioSource);
     }
 
     public override List<(string name, string value)> GetSpecialStats()

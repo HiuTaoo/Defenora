@@ -21,6 +21,7 @@ public class EditorState : IGameState
         context.UIManager.HideUI(GameStateType.Editor, UINames.EditorMenu);
         if (EditBuildingManager.Instance != null)
             EditBuildingManager.Instance.ResetEditorManager();
+        if (SelectUnitSystem.Instance != null) SelectUnitSystem.Instance.CancelPlaceBuilding();
         if (BuildingGhostPreviewSystem.Instance != null) BuildingGhostPreviewSystem.Instance.ClearAllGhostPreviews();
     }
 

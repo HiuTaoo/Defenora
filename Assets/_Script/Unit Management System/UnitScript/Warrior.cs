@@ -371,7 +371,7 @@ public class Warrior : Unit
             if (angle <= (viewAngle / 2f))
             {
                 targetHealth.TakeDamage(attackDamage);
-                
+                AudioManager.Instance.PlaySFX3D(SoundNames.SfxSwordSlash, audioSource);
                 results[i] = null; 
             }
         }

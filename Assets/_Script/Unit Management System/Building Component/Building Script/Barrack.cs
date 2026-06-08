@@ -93,6 +93,7 @@ public class Barrack : TrainingBuilding
             if (guardComponent.listArcherPositions.Count >= guardComponent.positionSpots.Length)
             {
                 unit.transform.position = GetRandomPositionAroundBuilding();
+                AudioManager.Instance.PlaySFX(SoundNames.SfxSuccess);
                 Debug.Log($"[Barrack] Tháp canh đã đầy chỗ ({guardComponent.listArcherPositions.Count}/{guardComponent.positionSpots.Length})! Xếp {unit.unitName} đứng dưới đất.");
             }
             else
@@ -106,6 +107,7 @@ public class Barrack : TrainingBuilding
                     unitId = unit.GetId()
                 });
                 archer.isStationed = true;
+                AudioManager.Instance.PlaySFX(SoundNames.SfxSuccess);
                 Debug.Log($"[Barrack] Tháp còn trống! Đã đưa {unit.unitName} lên vị trí gác: {targetSpot}");
             }
         }
@@ -116,6 +118,7 @@ public class Barrack : TrainingBuilding
     else
     {
         unit.transform.position = GetRandomPositionAroundBuilding();
+        AudioManager.Instance.PlaySFX(SoundNames.SfxSuccess);
     }
 
     OnStationedUnitsChanged?.Invoke();

@@ -15,7 +15,6 @@ using _Script.ItemScript;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using _Script.Task;
-using _Script.Unit_Management_System.Animation;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -91,12 +90,13 @@ public class Builder : Unit
                     break;
                 }
         }
-        
+
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
     }
 
     #region BT
+
     public BehaviourTree CreateBuilderBT(Builder builder)
     {
         var itemDropWaitTime = 0.8f;
@@ -251,9 +251,9 @@ public class Builder : Unit
         );
 
         var wanderFreeSequence = new SequenceNode(
-            new HasIdleTimeNode(builder),           
+            new HasIdleTimeNode(builder),
             new MoveFollowAvaiablePathNode(builder),
-            new WaitRandomTimeNode(builder)         
+            new WaitRandomTimeNode(builder)
         );
 
         var idleSelector = new SelectorNode(
@@ -265,22 +265,22 @@ public class Builder : Unit
             new PanicFleeActionNode(builder),
             new SequenceNode(
                 new IsInventoryFullNode(builder),
-                emergencyTransportSequence 
+                emergencyTransportSequence
             ),
             repairStructureSelector,
             new SelectorNode(
                 buildStructureSelector,
-                chopTreeSelector 
+                chopTreeSelector
             ),
             transportItemSequence,
-            idleSelector 
+            idleSelector
         );
 
         return new BehaviourTree(root);
     }
 
     #endregion
-    
+
     #region Move to task target
 
     public bool IsCollidingWithTaskTarget()
@@ -321,7 +321,7 @@ public class Builder : Unit
 
         itemComponent.assignBuilder = this;
         if (spawnedObj != null) itemComponent.StartDrop(worldPosition, transform.position);
-        
+
         return spawnedObj;
     }
 
@@ -341,7 +341,7 @@ public class Builder : Unit
 
         return extraStats;
     }
-    
+
     #region Do Task
 
     public bool IsChopped()
@@ -372,14 +372,14 @@ public class Builder : Unit
                     TaskManager.Instance.RemoveTask(currentTask);
                     currentTask = null;
                 }
-            
+
                 InstaniateObject(PrefabConfig.Instance.woodPrefab,
                     tree.gameObject.transform.position, tree.layerIndex, 1);
 
                 var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, transform.position,
                     Quaternion.identity);
                 coinObj.GetComponent<Coin>().StartDrop(coinObj.transform.position, layerIndex);
-                
+
                 return true;
             }
         }
@@ -397,6 +397,7 @@ public class Builder : Unit
                 }
             }
         }
+
         return false;
     }
 
@@ -415,6 +416,7 @@ public class Builder : Unit
             if (hit.CompareTag("Tree") && hit.gameObject == currentTask.targetGameObject)
             {
                 currentTarget = hit.gameObject.GetComponent<Tree>();
+                PlayAxeHitSFX();
                 break;
             }
 
@@ -422,6 +424,7 @@ public class Builder : Unit
                 hit.gameObject.GetComponent<IChoppable>() == builderBlackBoard.currentObstacle)
             {
                 currentTarget = hit.gameObject.GetComponent<Bush>();
+                PlayAxeHitSFX();
                 break;
             }
 
@@ -429,6 +432,7 @@ public class Builder : Unit
                 hit.gameObject.GetComponent<IChoppable>() == builderBlackBoard.currentObstacle)
             {
                 currentTarget = hit.gameObject.GetComponent<Rock>();
+                PlayAxeHitSFX();
                 break;
             }
         }
@@ -526,6 +530,7 @@ public class Builder : Unit
                 if (building != null)
                 {
                     building.HandleBuilt(CurrentWorkRate);
+                    PlayHammerHitSFX();
                     break;
                 }
 
@@ -537,6 +542,7 @@ public class Builder : Unit
                     if (health.CurrentHealth < health.maxHealth)
                     {
                         building.HandleRepair();
+                        PlayHammerHitSFX();
                         break;
                     }
             }
@@ -546,7 +552,7 @@ public class Builder : Unit
     #endregion
 
     #region Methods
-    
+
 
     public void PickupItem(Item item)
     {
@@ -754,14 +760,15 @@ public class Builder : Unit
         if (GraphNode.Instance == null) return false;
 
         var testPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-            Vector3Int.FloorToInt(transform.position), 
-            layerIndex,                                
-            targetGridPos,                             
-            targetLayerIndex                           
+            Vector3Int.FloorToInt(transform.position),
+            layerIndex,
+            targetGridPos,
+            targetLayerIndex
         );
-        
+
         return testPath.totalCost > 0;
     }
+
     #endregion
 
     #region Unity Lifecycle Events
@@ -783,7 +790,20 @@ public class Builder : Unit
     }
 
     #endregion
-    
+
+    #region Play SFX
+
+    public void PlayHammerHitSFX()
+    {
+        AudioManager.Instance.PlaySFX3D(SoundNames.SfxHammerHit, audioSource);
+    }
+
+    public void PlayAxeHitSFX()
+    {
+        AudioManager.Instance.PlaySFX3D(SoundNames.SfxAxeHit, audioSource);
+    }
+    #endregion
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {

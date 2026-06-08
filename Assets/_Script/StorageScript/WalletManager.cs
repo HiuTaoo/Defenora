@@ -21,6 +21,7 @@ public class WalletManager : MonoBehaviour
         if (amount <= 0) return;
         currentCoins += amount;
         OnCoinChanged?.Invoke(currentCoins);
+        AudioManager.Instance.PlaySFX(SoundNames.SfxCollect);
         Debug.Log($"[Wallet] Bạn nhận được {amount} coin. Tổng: {currentCoins}");
     }
 
@@ -38,6 +39,7 @@ public class WalletManager : MonoBehaviour
         Debug.LogWarning("[Wallet] Không đủ coin để thực hiện giao dịch!");
         UINotificationManager.Instance.ShowNotification("Not enough coins in the wallet to make this transaction!",
             NotificationColorType.Warning);
+        AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
         return false;
     }
 
@@ -48,7 +50,6 @@ public class WalletManager : MonoBehaviour
         Debug.Log($"[Wallet] Bạn đã tiêu {amount} coin. Còn lại: {currentCoins}");
     }
 
-    // Hàm bổ sung phục vụ cho Save/Load
     public void SetCoinsOnLoad(int amount)
     {
         currentCoins = amount;

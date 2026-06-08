@@ -4,7 +4,9 @@
     {
         public void Enter(GameStateContext context)
         {
+            context.UIManager.HideAllUIs();
             context.UIManager.ShowStateUI(GameStateType.Win);
+            context.AudioManager.PlayMusic(SoundNames.VictoryTheme);
         }
 
         public void Exit(GameStateContext context)

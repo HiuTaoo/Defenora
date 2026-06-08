@@ -200,6 +200,7 @@ public class EditBuildingManager : MonoBehaviour
                         $"[EditBuildingManager] {requiredItem.itemName} thiếu nhưng không có giá bán trong Shop!");
                     UINotificationManager.Instance.ShowNotification(
                         $"Cannot buy missing {requiredItem.itemName} with coins!", NotificationColorType.Error);
+                    AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
                     return;
                 }
 
@@ -214,6 +215,7 @@ public class EditBuildingManager : MonoBehaviour
                     $"[EditBuildingManager] Thiếu tài nguyên và không đủ vàng để bù! Cần {totalCoinsToSpend} Vàng.");
                 UINotificationManager.Instance.ShowNotification("Not enough resources and coins to build!",
                     NotificationColorType.Warning);
+                AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
                 return;
             }
 
@@ -274,7 +276,7 @@ public class EditBuildingManager : MonoBehaviour
 
         RollBackBuildingVisual();
         listPlacedBuilding.Clear();
-
+        AudioManager.Instance.PlaySFX(SoundNames.SfxBuildConfirm);
         Debug.Log("[EditBuildingManager] Đã kích hoạt dự án xây dựng thành công!");
     }
     

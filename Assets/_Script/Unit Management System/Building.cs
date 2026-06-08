@@ -244,6 +244,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
     {
         var availableSpot = GetRandomPositionAroundBuilding();
         if (availableSpot != null) unit.transform.position = availableSpot;
+        AudioManager.Instance.PlaySFX(SoundNames.SfxSuccess);
     }
 
     protected virtual void OnUnitRemoved(Unit unit)
@@ -562,12 +563,10 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         if (buildingType == BuildingType.Storage) Inventory.Instance.RefreshStorageSubscriptions();
 
         health.RestoreHealth();
-
+        AudioManager.Instance.PlaySFX(SoundNames.SfxSuccess);
         OnBuiltObject?.Invoke(this);
     }
     
-    
-
     public void OnRepair()
     {
         hasBeenBuilded = true;
@@ -581,7 +580,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
         
         if (autoLightToggle != null) autoLightToggle.enabled = true;
         autoLightToggle.EvaluateAndToggleLight();
-
+        AudioManager.Instance.PlaySFX(SoundNames.SfxSuccess);
         OnBuiltObject?.Invoke(this);
     }
 

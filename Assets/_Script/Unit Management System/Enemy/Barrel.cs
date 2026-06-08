@@ -168,6 +168,8 @@ namespace _Script.Unit_Management_System.Enemy
                         HandlePlayerHit(hitCol.transform.position);
                 }
             }
+
+            AudioManager.Instance.PlaySFX3D(SoundNames.SfxExplode, audioSource);
         }
         
         private void HandlePlayerHit(Vector3 playerPosition)

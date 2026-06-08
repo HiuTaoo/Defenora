@@ -164,6 +164,7 @@ public abstract class TrainingBuilding : Building
         if (!HasEnoughResources(selectedConfig))
         {
             Debug.LogWarning($"[Training] Không đủ tài nguyên để huấn luyện {targetType}!");
+            AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
             return; 
         }
 

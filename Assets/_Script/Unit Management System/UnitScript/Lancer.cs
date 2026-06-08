@@ -403,6 +403,7 @@ public class Lancer : Unit
             if (angle <= (attackAngle / 2f))
             {
                 targetHealth.TakeDamage(attackDamage);
+                AudioManager.Instance.PlaySFX3D(SoundNames.SfxLancerHit, audioSource);
                 results[i] = null; 
             }
         }

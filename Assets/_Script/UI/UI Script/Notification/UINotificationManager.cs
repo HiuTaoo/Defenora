@@ -72,6 +72,7 @@ public class UINotificationManager : MonoBehaviour
 
             var scrollRect = notificationContainer.GetComponentInParent<ScrollRect>();
             if (scrollRect != null) scrollRect.verticalNormalizedPosition = 0f;
+            AudioManager.Instance.PlaySFX(SoundNames.SfxNotification);
         }
         else
         {

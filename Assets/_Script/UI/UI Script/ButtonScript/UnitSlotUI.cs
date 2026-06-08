@@ -69,8 +69,12 @@ namespace _Script.UI.UI_Script
         private void OnSlotClicked()
         {
             if (hasTriggeredHold) return;
-
             if (currentUnit == null) return;
+
+            // 1. PHÁT SFX KHI CLICK CHỌN UNIT
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFX(SoundNames.SfxClick); // Đọc từ AudioManager gốc
+
             onClickCallback?.Invoke(currentUnit);
         }
 
@@ -78,12 +82,20 @@ namespace _Script.UI.UI_Script
         {
             if (currentUnit == null || currentUnit.assignedBuilding == null) return;
 
+            // 2. PHÁT SFX KHI ẤN GIỮ THÀNH CÔNG (Cảnh báo mở Dialog)
+            if (AudioManager.Instance != null)
+                // Bạn có thể dùng chung SFX_Click hoặc thay bằng SFX hằng số khác như SFX_Warning/SFX_Alert nếu muốn
+                AudioManager.Instance.PlaySFX(SoundNames.SfxClick);
+
             var str = $"Do you want to remove {currentUnit.unitType} from {currentUnit.assignedBuilding.buildingType}?";
             ConfirmDialog.Instance.Show(str, RemoveUnit);
         }
 
         private void RemoveUnit()
         {
+            // 3. (Tùy chọn) PHÁT SFX KHI THỰC SỰ BẤM XÓA UNIT THÀNH CÔNG
+            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxClick);
+
             if (currentUnit != null && currentUnit.assignedBuilding != null)
             {
                 currentUnit.assignedBuilding.RemoveUnit(currentUnit);

@@ -208,6 +208,7 @@ public class ShopManager : MonoBehaviour
             {
                 Inventory.Instance.Add(clickedSlot.ItemData, 1);
                 Debug.Log($"[Shop] Mua thành công 1x {clickedSlot.ItemData.name}");
+                if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxPaySuccess);
                 
                 if (isDailyMode)
                 {
@@ -291,6 +292,7 @@ public class ShopManager : MonoBehaviour
 
                             if (UnitManager.Instance != null)
                                 UnitManager.Instance.RegisterUnit(unitComponent);
+                           
                         }
                     }
                 }
@@ -300,6 +302,7 @@ public class ShopManager : MonoBehaviour
                         "[Shop] Không thể mua Unit vì không tìm thấy cả Player lẫn Main Camera để lấy vị trí gốc!");
                 }
 
+                if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxPaySuccess);
                 Debug.Log($"[Shop] Mua và xuất kích thành công Unit: {clickedSlot.UnitPrefab.name}");
 
                 if (isDailyMode)

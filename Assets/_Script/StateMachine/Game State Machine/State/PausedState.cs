@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PausedState : IGameState
 {
@@ -10,18 +8,16 @@ public class PausedState : IGameState
         context.UIManager.HideAllUIs();
         context.UIManager.ShowUINotHideHistory(GameStateType.Paused, UINames.PauseMenu);
         context.UIManager.ShowUINotHideHistory(GameStateType.Paused, UINames.PauseButton);
-        // Pause game time
         Time.timeScale = 0f;
 
-        // Có thể pause audio
-        //context.AudioManager?.PlaySFX("pause_sound");
+        context.AudioManager.PauseMusic();
     }
 
     public void Exit(GameStateContext context)
     {
         context.UIManager.HideAllUIs(GameStateType.Paused);
-        // Resume game time
         Time.timeScale = 1f;
+        context.AudioManager.ResumeMusic();
     }
 
     public void Tick(GameStateContext context)

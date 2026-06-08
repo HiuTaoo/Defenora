@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System;
 using TMPro;
-using System;
-using _Script.Enum;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class ShopItemSlotUI : MonoBehaviour, IPoolable
 {
@@ -101,7 +100,7 @@ public class ShopItemSlotUI : MonoBehaviour, IPoolable
     }
 
     /// <summary>
-    /// Được gọi ngay trước khi ô Shop này bị thu hồi về ngầm trong Pool
+    /// Được gọi ngay trước khi ô Shop này bị thu hồi về ngầm trong Pool[cite: 5]
     /// </summary>
     public void OnDespawned()
     {

@@ -186,7 +186,8 @@ public class SelectUnitSystem : MonoBehaviour
         if (BuildingGhostPreviewSystem.Instance != null) BuildingGhostPreviewSystem.Instance.ClearAllGhostPreviews();
 
         MenuItem menuItem = FindObjectOfType<MenuItem>();
-        menuItem.DeSelectAllTileItem();
+        if (menuItem != null)
+            menuItem.DeSelectAllTileItem();
         if (MenuEditorController.Instance != null) MenuEditorController.Instance.CheckAndHideCancelButton();
 
         targetBuilding = null;

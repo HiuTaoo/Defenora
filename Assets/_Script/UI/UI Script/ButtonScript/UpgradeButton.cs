@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Script.UI.UI_Script.ButtonScript
 {
@@ -20,9 +19,12 @@ namespace _Script.UI.UI_Script.ButtonScript
 
         private void LevelUpUnit()
         {
+            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxClick);
+
             if (currentUnit != null && currentUnit.unitStatsManager != null)
             {
                 currentUnit.unitStatsManager.LevelUp();
+                
             }
         }
 

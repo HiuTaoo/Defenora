@@ -2,8 +2,6 @@
 using DG.Tweening;
 using UnityEngine;
 
-// Nhớ thêm thư viện DOTween
-
 public class LayerManager : MonoBehaviour
 {
     public static LayerManager Instance;
@@ -64,25 +62,45 @@ public class LayerManager : MonoBehaviour
 
     public void Show()
     {
+        // Thay vì kiểm tra anyKeyDown mơ hồ, chúng ta lọc chính xác ký tự đầu vào
         if (Input.anyKeyDown)
         {
+            var hasSwitched = false; // Cờ hiệu đánh dấu xem có thực sự đổi layer không
+
             switch (Input.inputString)
             {
                 case "1":
-                    layerIndex = 0;
+                    if (layerIndex != 0)
+                    {
+                        layerIndex = 0;
+                        hasSwitched = true;
+                    }
                     MoveRibbonToLeft(0);
                     break;
                 case "2":
-                    layerIndex = 1;
+                    if (layerIndex != 1)
+                    {
+                        layerIndex = 1;
+                        hasSwitched = true;
+                    }
                     MoveRibbonToLeft(1);
                     break;
                 case "3":
-                    layerIndex = 2;
+                    if (layerIndex != 2)
+                    {
+                        layerIndex = 2;
+                        hasSwitched = true;
+                    }
                     MoveRibbonToLeft(2);
                     break;
             }
 
-            ChangeLayer();
+            // VỊ TRÍ 1: Chỉ phát SFX khi người chơi bấm đúng phím 1, 2, 3 và Layer thực sự thay đổi
+            if (hasSwitched)
+            {
+                PlayLayerSwitchSFX();
+                ChangeLayer();
+            }
         }
     }
 
@@ -92,8 +110,21 @@ public class LayerManager : MonoBehaviour
 
         layerIndex = (layerIndex + 1) % ribbons.Length;
 
+        // VỊ TRÍ 2: Phát SFX khi người chơi click chuột vào nút UI gọi hàm chuyển tiếp này
+        PlayLayerSwitchSFX();
+
         MoveRibbonToLeft(layerIndex);
         ChangeLayer();
+    }
+
+    /// <summary>
+    ///     Hàm phụ trợ gọi AudioManager phát SFX an toàn qua Singleton toàn cục
+    /// </summary>
+    private void PlayLayerSwitchSFX()
+    {
+        if (AudioManager.Instance != null)
+            // Sử dụng tiếng SFX_Click của bạn, hoặc bạn có thể tạo hằng số mới như SFX_LayerChange tùy ý[cite: 8]
+            AudioManager.Instance.PlaySFX(SoundNames.SfxButtonTap);
     }
 
     public void MoveRibbonToLeft(int activeIndex)

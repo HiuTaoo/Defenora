@@ -22,11 +22,13 @@ namespace _Script.ItemScript
         private bool isExploded;
         
         private Animator animator;
+        private AudioSource audioSource;
 
         private void Awake()
         {
             enemyLayer = LayerMask.GetMask("NPC", "Building", "Player");
             animator = GetComponent<Animator>();
+            audioSource = GetComponentInChildren<AudioSource>();
         }
 
         public void Init(Vector2 startPos, Vector2 targetPos, float damage)
@@ -70,6 +72,7 @@ namespace _Script.ItemScript
             {
                 transform.position = targetPosition;
                 Explode();
+                AudioManager.Instance.PlaySFX3D(SoundNames.SfxSmallExplode, audioSource);
                 return;
             }
 
@@ -95,7 +98,6 @@ namespace _Script.ItemScript
                     OnHit(hit.gameObject);
                 }
             }
-
             animator.Play("Explosion");
         }
 

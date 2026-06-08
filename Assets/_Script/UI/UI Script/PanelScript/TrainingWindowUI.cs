@@ -190,6 +190,7 @@ public class TrainingWindowUI : MonoBehaviour
         {
             UINotificationManager.Instance.ShowNotification("Not enough resources for training!",
                 NotificationColorType.Warning);
+            AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
             return;
         }
 
@@ -208,6 +209,9 @@ public class TrainingWindowUI : MonoBehaviour
         else
         {
             Debug.LogWarning("Không tìm thấy Civilian rảnh rỗi nào ngoài làng để huấn luyện!");
+            UINotificationManager.Instance.ShowNotification("No free Civilians found for training!",
+                NotificationColorType.Warning);
+            AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
         }
     }
 

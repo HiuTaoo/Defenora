@@ -236,6 +236,7 @@ public class Archer : Unit
         var dir = (predictedPos - (Vector2)firePoint.position).normalized;
 
         arrowComponent.Init(firePoint.position, dir, attackDamage);
+        AudioManager.Instance.PlaySFX3D(SoundNames.SfxShoot, audioSource);
     }
 
     #region Event

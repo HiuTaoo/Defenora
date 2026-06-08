@@ -170,9 +170,11 @@ namespace _Script.Unit_Management_System.Enemy
                     HandlePlayerHit(hitCol.transform.position);
                 else
                     targetHealth.TakeDamage(attackDamage);
-
+                
                 results[i] = null;
             }
+
+            AudioManager.Instance.PlaySFX3D(SoundNames.SfxLancerHit, audioSource);
         }
 
         private void HandlePlayerHit(Vector3 playerPosition)
