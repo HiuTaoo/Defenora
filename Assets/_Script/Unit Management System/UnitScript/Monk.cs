@@ -127,68 +127,7 @@ public class Monk : Unit
     }
 
     #region Method
-
-    public List<GameObject> DetectEnemies(float range, Vector2 dir)
-    {
-        var enemiesInRange = new List<GameObject>();
-
-        var size = Physics2D.OverlapCircleNonAlloc(
-            transform.position,
-            range,
-            results,
-            enemyLayer);
-
-        dir.Normalize();
-
-        Vector2 myPos = transform.position;
-
-        for (var i = 0; i < size; i++)
-        {
-            var hit = results[i];
-            if (hit == null || !hit.CompareTag("Enemy"))
-                continue;
-
-            Vector2 dirToEnemy = (hit.transform.position - (Vector3)myPos).normalized;
-            if (Vector2.Dot(dir, dirToEnemy) <= 0)
-                continue;
-
-            var b = hit.bounds;
-            Vector2[] samplePoints =
-            {
-                b.center,
-                new(b.center.x, b.max.y),
-                new(b.center.x, b.min.y),
-                new(b.min.x, b.center.y),
-                new(b.max.x, b.center.y)
-            };
-
-            var visible = false;
-
-            foreach (var point in samplePoints)
-            {
-                var dirRay = point - myPos;
-                var dist = dirRay.magnitude;
-                dirRay.Normalize();
-
-                var ray = Physics2D.Raycast(
-                    myPos,
-                    dirRay,
-                    dist,
-                    obstacleLayer);
-
-                if (ray.collider == null)
-                {
-                    visible = true;
-                    break;
-                }
-            }
-
-            if (visible) enemiesInRange.Add(hit.gameObject);
-        }
-
-        return enemiesInRange;
-    }
-
+    
     public bool CheckEnemyStillInRange(float range)
     {
         var size = Physics2D.OverlapCircleNonAlloc(transform.position, range, results);

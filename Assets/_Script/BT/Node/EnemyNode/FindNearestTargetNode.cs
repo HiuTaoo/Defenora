@@ -34,7 +34,7 @@ namespace _Script.BT.Node.EnemyNode.unitNode
                 }
             }
 
-            Building nearestBuilding = unit.FindNearestBuilding(unit.transform.position);
+            var nearestBuilding = unit.FindRandomBuilding(unit.transform.position);
             if (nearestBuilding != null)
             {
                 unit.currentTarget = nearestBuilding.transform;

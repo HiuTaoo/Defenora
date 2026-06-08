@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using _Script.Object_Pooling;
 using UnityEngine;
-// Hãy đảm bảo nạp đúng namespace của PoolManager
-using Random = UnityEngine.Random;
 
 public class SpawnManager : MonoBehaviour
 {
@@ -33,6 +31,8 @@ public class SpawnManager : MonoBehaviour
 
     private TimeOfDaySystem timeSystem;
 
+    private int _monstersToSpawnTonight; 
+
     private void Awake()
     {
         if (Instance == null)
@@ -52,8 +52,8 @@ public class SpawnManager : MonoBehaviour
         timeSystem = TimeOfDaySystem.Instance;
         if (timeSystem != null)
         {
-            timeSystem.OnDayChanged += HandleNewDayWave;
-            Debug.Log("[SpawnManager] 🟢 Kết nối ngày đêm thành công. Sẵn sàng điều phối các đợt quái!");
+            timeSystem.OnHourChanged += HandleHourTracking;
+            Debug.Log("[SpawnManager] 🟢 Kết nối hệ thống giờ thành công. Sẵn sàng điều phối quái theo khung giờ đêm!");
         }
         else
         {
@@ -65,65 +65,69 @@ public class SpawnManager : MonoBehaviour
     {
         if (timeSystem != null)
         {
-            timeSystem.OnDayChanged -= HandleNewDayWave;
+            timeSystem.OnHourChanged -= HandleHourTracking;
         }
     }
 
     /// <summary>
-    /// Xử lý phân bổ quái khi nhận tín hiệu ngày mới
+    /// Hàm theo dõi và bắt chính xác mốc giờ 0h và 1h đêm để mở 2 cổng quái riêng biệt
     /// </summary>
-    private void HandleNewDayWave(int newDay)
+    private void HandleHourTracking(int currentHour)
     {
         spawnPoints.RemoveAll(sp => sp == null);
-        if (spawnPoints.Count == 0) return;
 
-        var pointCount = spawnPoints.Count;
-    
-        int totalMonstersToSpawn = baseSpawnCount + (newDay * countMultiplierPerDay);
-
-        var dayInCycle = (newDay - 1) % 3;
-
-        var singlePointIndex = (newDay - 1 - (newDay - 1) / 3) % pointCount;
-
-        if (dayInCycle == 3)
+        if (spawnPoints.Count < 2)
         {
-            Debug.Log(
-                $"[SpawnManager] ☀️ NGÀY {newDay} (Ngày 4 chu kỳ): 💥 BÙNG NỔ TỔNG LỰC! Tất cả {pointCount} cổng cùng mở! Tổng quái: {totalMonstersToSpawn}");
-
-            DistributeMonstersToPoints(totalMonstersToSpawn);
+            Debug.LogWarning(
+                "[SpawnManager] ⚠️ Map phải có ít nhất 2 SpawnPoint để thực hiện kịch bản sinh quái 0h và 1h!");
+            return;
         }
-        else
+
+        var currentDay = timeSystem.CurrentDay;
+
+        if (currentHour == 0)
         {
-            var activePointIndex = singlePointIndex % pointCount;
+            _monstersToSpawnTonight = baseSpawnCount + currentDay * countMultiplierPerDay;
 
-            var gateName = spawnPoints[activePointIndex].gameObject.name;
-            var currentStepInCycle = dayInCycle + 1;
+            var countForFirstGate = _monstersToSpawnTonight / 2;
 
+            var gate1Name = spawnPoints[0].gameObject.name;
             Debug.Log(
-                $"[SpawnManager] ☀️ NGÀY {newDay} (Ngày {currentStepInCycle} chu kỳ): 🚨 CHỈ MỞ CỔNG: [{gateName}]. Các hướng khác an toàn!");
+                $"[SpawnManager] 🌑 00:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 1 [{gate1Name}] BẮT ĐẦU MỞ! Sinh trước {countForFirstGate} quái vật.");
 
-            spawnPoints[activePointIndex].OrderSpawnRandomly(totalMonstersToSpawn);
+            spawnPoints[0].OrderSpawnRandomly(countForFirstGate);
+        }
+
+        else if (currentHour == 1)
+        {
+            var countForSecondGate = _monstersToSpawnTonight - _monstersToSpawnTonight / 2;
+
+            if (countForSecondGate > 0)
+            {
+                var gate2Name = spawnPoints[1].gameObject.name;
+                Debug.Log(
+                    $"[SpawnManager] ⚔️ 01:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 2 [{gate2Name}] TIẾP TỤC MỞ! Sinh nốt {countForSecondGate} quái vật.");
+
+                spawnPoints[1].OrderSpawnRandomly(countForSecondGate);
+            }
         }
     }
 
     /// <summary>
-    /// Thuật toán chia đều số lượng quái cho các cổng hiện có
+    /// Thuật toán chia đều số lượng quái cho các cổng hiện có (Giữ lại dự phòng cho hàm cheat/test)
     /// </summary>
     private void DistributeMonstersToPoints(int totalCount)
     {
         int pointCount = spawnPoints.Count;
+        if (pointCount == 0) return;
         
         int baseShare = totalCount / pointCount;
-        
         int remainder = totalCount % pointCount;
 
         for (int i = 0; i < pointCount; i++)
         {
             int countForThisPoint = baseShare;
-            if (i == 0)
-            {
-                countForThisPoint += remainder;
-            }
+            if (i == 0) countForThisPoint += remainder;
 
             if (countForThisPoint > 0)
             {
@@ -135,16 +139,10 @@ public class SpawnManager : MonoBehaviour
     public bool GenerateSpawnPointsWithSafeZone(int numberOfPoints, Vector3 playerPosition, int playerLayerIndex)
     {
         var prefabToUse = PrefabConfig.Instance.spawnPointPrefab;
-
-        if (prefabToUse == null)
-        {
-            Debug.LogError("[SpawnManager] ❌ Không tìm thấy Prefab của SpawnPoint!");
-            return false;
-        }
+        if (prefabToUse == null) return false;
 
         var pointsSpawnedSuccessfully = 0;
         var playerGridPos = new Vector3Int(Mathf.FloorToInt(playerPosition.x), Mathf.FloorToInt(playerPosition.y), 0);
-
         var angleStep = Mathf.PI * 2f / numberOfPoints;
 
         for (var i = 0; i < numberOfPoints; i++)
@@ -152,7 +150,6 @@ public class SpawnManager : MonoBehaviour
             var foundValidPosition = false;
             var finalSpawnPos = Vector3.zero;
             var targetLayerIndex = playerLayerIndex;
-
             var minAngleForThisPoint = i * angleStep;
             var maxAngleForThisPoint = (i + 1) * angleStep;
 
@@ -164,7 +161,6 @@ public class SpawnManager : MonoBehaviour
                 float posX = Mathf.RoundToInt(playerPosition.x + Mathf.Cos(angle) * radius);
                 float posY = Mathf.RoundToInt(playerPosition.y + Mathf.Sin(angle) * radius);
                 var candidatePos = new Vector3(posX + 0.5f, posY + 0.5f, 0f);
-
                 var candidateGridPos =
                     new Vector3Int(Mathf.FloorToInt(candidatePos.x), Mathf.FloorToInt(candidatePos.y), 0);
 
@@ -178,7 +174,6 @@ public class SpawnManager : MonoBehaviour
                 foreach (var existingSP in spawnPoints)
                 {
                     if (existingSP == null) continue;
-
                     if (existingSP.layerIndex == targetLayerIndex)
                     {
                         var distanceToOtherSP = Vector3.Distance(candidatePos, existingSP.transform.position);
@@ -204,7 +199,6 @@ public class SpawnManager : MonoBehaviour
                         candidateGridPos, targetLayerIndex,
                         playerGridPos, playerLayerIndex
                     );
-
                     if (testPath == null || testPath.segments.Count == 0) continue;
                 }
 
@@ -229,23 +223,19 @@ public class SpawnManager : MonoBehaviour
 
                         spawnPoints.Add(spComp);
                         spObj.transform.SetParent(transform);
-
                         pointsSpawnedSuccessfully++;
                     }
                 }
             }
         }
-
         return pointsSpawnedSuccessfully == numberOfPoints;
     }
 
-    #region Cheat / Test Methods (Dành cho bạn debug nhanh)
-    
+    #region Cheat / Test Methods
     public void ForceSpawnWave(int customTotalCount)
     {
         Debug.Log($"[SpawnManager] 🛠️ Ép sinh đợt quái test với số lượng: {customTotalCount}");
         DistributeMonstersToPoints(customTotalCount);
     }
-
     #endregion
 }

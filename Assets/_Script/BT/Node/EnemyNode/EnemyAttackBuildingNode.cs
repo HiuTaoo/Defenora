@@ -29,12 +29,6 @@ public class EnemyAttackBuildingNode : BTActionNode
             return BTStatus.Success;
         }
 
-        if (!unit.CheckTargetBuildingInAttackRange())
-        {
-            ResetState();
-            return BTStatus.Failure;
-        }
-
         if (unit.isAttacking) return BTStatus.Running;
 
         if (Time.time >= unit.lastAttackTime + unit.attackCooldown)

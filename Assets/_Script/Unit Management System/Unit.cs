@@ -843,6 +843,39 @@ public abstract class Unit : MonoBehaviour, IPoolable
         return null;
     }
 
+    public List<GameObject> DetectEnemies(float range, Vector2 dir)
+    {
+        var enemiesInRange = new List<GameObject>();
+
+        var size = Physics2D.OverlapCircleNonAlloc(
+            transform.position,
+            range,
+            results,
+            enemyLayer);
+
+        dir.Normalize();
+
+        Vector2 myPos = transform.position;
+
+        for (var i = 0; i < size; i++)
+        {
+            var hit = results[i];
+            if (hit == null || !hit.CompareTag("Enemy"))
+                continue;
+
+            Vector2 dirToEnemy = (hit.transform.position - (Vector3)myPos).normalized;
+
+            if (Vector2.Dot(dir, dirToEnemy) <= 0)
+                continue;
+
+            enemiesInRange.Add(hit.gameObject);
+
+            Debug.DrawLine(myPos, hit.transform.position, Color.green);
+        }
+
+        return enemiesInRange;
+    }
+
     public List<GameObject> DetectNPCs(float range, Vector2 dir)
     {
         var npcsInRange = new List<GameObject>();
@@ -1084,6 +1117,52 @@ public abstract class Unit : MonoBehaviour, IPoolable
         {
             if (damageEffectCoroutine != null) StopCoroutine(damageEffectCoroutine);
             damageEffectCoroutine = StartCoroutine(DamageEffect());
+
+            if (!CompareTag("Enemy"))
+            {
+                var attacker = currentTarget != null ? currentTarget.gameObject : null;
+
+                if (attacker == null)
+                {
+                    var size = Physics2D.OverlapCircleNonAlloc(transform.position, viewDistance, results, enemyLayer);
+
+                    var closestDist = float.MaxValue;
+                    GameObject suspectedAttacker = null;
+
+                    for (var i = 0; i < size; i++)
+                    {
+                        var hit = results[i];
+                        if (hit != null && hit.CompareTag("Enemy"))
+                        {
+                            var dist = (hit.transform.position - transform.position).sqrMagnitude;
+                            if (dist < closestDist)
+                            {
+                                closestDist = dist;
+                                suspectedAttacker = hit.gameObject;
+                            }
+                        }
+                    }
+
+                    if (suspectedAttacker != null)
+                    {
+                        attacker = suspectedAttacker;
+                        currentTarget = suspectedAttacker.transform;
+                        currentTargetLayerIndex = layerIndex;
+                    }
+                }
+
+                if (attacker != null)
+                {
+                    GlobalAlarmSystem.TriggerAlarm(attacker, transform.position, layerIndex);
+                    Debug.Log(
+                        $"[Alarm Alert] {unitType} {unitName} bị đánh lén! Đã truy vết quái [{attacker.name}] và gửi Alert tới đồng minh.");
+                }
+                else
+                {
+                    Debug.Log(
+                        $"[Alarm Alert] {unitType} bị mất máu do môi trường/bẫy. Không tìm thấy quái xung quanh.");
+                }
+            }
 
             if (currentState != UnitState.Dead && !isKnockedBack
                                                && Time.time >= lastKnockbackTime + knockbackCooldown)

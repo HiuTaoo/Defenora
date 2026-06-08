@@ -76,11 +76,17 @@ namespace _Script.ItemScript
 
             var hit = Physics2D.Linecast(start, end, targetLayerMask);
 
-            if (hit.collider != null && (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Animal")))
+            if (hit.collider != null)
             {
-                transform.position = hit.point;
-                OnHit(hit.collider.gameObject);
-                return;
+                if (hit.collider.CompareTag("NPC"))
+                {
+                }
+                else if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Animal"))
+                {
+                    transform.position = hit.point;
+                    OnHit(hit.collider.gameObject);
+                    return;
+                }
             }
 
             transform.position = end;

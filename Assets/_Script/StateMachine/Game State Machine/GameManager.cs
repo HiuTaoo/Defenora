@@ -51,7 +51,6 @@ public class GameManager : MonoBehaviour
         
     }
 
-
     private void Update()
     {
         StateMachine.Tick();
@@ -196,6 +195,8 @@ public class GameManager : MonoBehaviour
             {
                 Debug.LogError(
                     "[GameManager] 🛑 LỖI CHÍ MẠNG: Đã thử tái tạo map 5 lần nhưng không thể đặt cổng quái hợp lệ liên thông tới Player! Chặn không cho StartGame.");
+                SaveLoadSystem.Instance.ClearCurrentSceneObjects();
+                QuitGame();
                 yield break; 
             }
         }

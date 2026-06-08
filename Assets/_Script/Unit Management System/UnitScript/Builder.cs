@@ -74,21 +74,24 @@ public class Builder : Unit
 
         if (!isPanicking)
         {
-            var hits = Physics2D.OverlapCircleAll(transform.position, viewDistance);
-            foreach (var hit in hits)
-                if (hit != null && hit.CompareTag("Enemy"))
-                {
-                    Debug.LogWarning(
-                        $"[Sensor Update] 🚨 {gameObject.name} phát hiện quái vật {hit.name}! Bật cờ hoảng loạn!");
+            var facingDir = transform.localScale.x >= 0 ? Vector2.right : Vector2.left;
 
-                    isPanicking = true;
-                    characterMovement.RequestStopMoving();
-                    bt?.ClearState();
-                    var enemyLayer = hit.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+            var enemiesSpotted = DetectEnemies(viewDistance, facingDir);
 
-                    GlobalAlarmSystem.TriggerAlarm(hit.gameObject, hit.transform.position, enemyLayer);
-                    break;
-                }
+            if (enemiesSpotted != null && enemiesSpotted.Count > 0)
+            {
+                var firstEnemy = enemiesSpotted[0];
+
+                Debug.LogWarning(
+                    $"[Sensor Update] 🚨 {gameObject.name} nhìn thấy quái vật {firstEnemy.name} ở phía trước! Bật cờ hoảng loạn!");
+
+                isPanicking = true;
+                characterMovement.RequestStopMoving();
+                bt?.ClearState();
+
+                var enemyFloor = firstEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+                GlobalAlarmSystem.TriggerAlarm(firstEnemy.gameObject, firstEnemy.transform.position, enemyFloor);
+            }
         }
 
         bt?.Tick();

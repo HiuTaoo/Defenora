@@ -11,8 +11,8 @@ public class WaitRandomTimeNode : BTActionNode
     private float timer;
     private bool initialized;
 
-    private readonly float minTime = 5f;
-    private readonly float maxTime = 10f;
+    private readonly float minTime = 2f;
+    private readonly float maxTime = 5f;
 
     public override BTStatus Tick()
     {

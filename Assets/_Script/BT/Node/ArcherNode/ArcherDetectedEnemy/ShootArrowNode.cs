@@ -1,4 +1,5 @@
 ﻿using _Script.Unit_Management_System.Animation;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 
 namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
@@ -19,6 +20,30 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
         public override BTStatus Tick()
         {
             var target = archer.archerBlackBoard.detectedEnemy;
+
+            if (target != null)
+            {
+                var targetHealth = target.GetComponentInChildren<Health>();
+
+                if (!target.activeInHierarchy || (targetHealth != null && targetHealth.IsDead))
+                {
+                    Debug.Log(
+                        $"[{archer.gameObject.name}] 🎯 Mục tiêu đã chết hoặc biến mất! Ngừng bắn mũi tên ngay lập tức.");
+
+                    if (hasShot)
+                    {
+                        archer.EndAttackSignal();
+                        archer.ResetAnim();
+                        archer.currentState = UnitState.Idle;
+                    }
+
+                    archer.archerBlackBoard.detectedEnemy = null;
+
+                    ResetInternal();
+                    lastStatus = BTStatus.Failure;
+                    return BTStatus.Failure;
+                }
+            }
 
             if (target == null && !hasShot)
             {
