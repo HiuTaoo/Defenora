@@ -225,9 +225,8 @@ public class Builder : Unit
         var repairStructureSelector = new SelectorNode(continueRepairSequence, findNewRepairSequence);
 
         // ==========================================
-        // 4. CÁC NHÁNH KHÁC & ROOT SELECTOR (Giữ nguyên)
+        // 4. CÁC NHÁNH KHÁC & ROOT SELECTOR 
         // ==========================================
-        // ... Phần dưới giữ nguyên hoàn toàn như cũ ...
         var emergencyTransportSequence = new SequenceNode(
             new HasItemInInventoryNode(builder),
             new CreateTransportTask(builder),

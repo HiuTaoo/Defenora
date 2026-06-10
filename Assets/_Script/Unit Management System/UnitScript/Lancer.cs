@@ -279,21 +279,39 @@ public class Lancer : Unit
             var enemyLayer = -1;
 
             if (lancerBlackBoard.detectedEnemy != null)
+        {
+            var currentEnemy = lancerBlackBoard.detectedEnemy;
+            var targetHealth = currentEnemy.GetComponentInChildren<Health>();
+
+            if (!currentEnemy.activeInHierarchy || (targetHealth != null && targetHealth.IsDead))
+            {
+                Debug.Log($"[{gameObject.name}] 🚨 Kẻ địch đã chết hoặc biến mất về Pool. Hủy trạng thái Aggro!");
+
+                lancerBlackBoard.detectedEnemy = null;
+
+                currentTarget = null;
+                isAlerted = false;
+
+                bt?.ClearState();
+            }
+        }
+
+            if (lancerBlackBoard.detectedEnemy != null)
             {
                 enemyLayer = lancerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
                 if (CheckEnemyStillInRange(lancerBlackBoard.detectedEnemy, viewDistance))
                 {
                     GlobalAlarmSystem.TriggerAlarm(lancerBlackBoard.detectedEnemy,
                         lancerBlackBoard.detectedEnemy.transform.position, enemyLayer);
-                    return; 
+                    return;
                 }
             }
 
             var dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
             var enemies = DetectEnemies(viewDistance, dir);
-        
-            var newTarget = SelectClosestTarget(enemies); 
-        
+
+            var newTarget = SelectClosestTarget(enemies);
+
             if (newTarget != null)
             {
                 lancerBlackBoard.detectedEnemy = newTarget;

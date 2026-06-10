@@ -865,6 +865,9 @@ public class ObjectSpawner : MonoBehaviour
         foreach (var position in validPositions)
         {
             if (respawnCount >= maxRespawnCount) break;
+            
+            if (IsPositionOccupied(position, layerIndex)) 
+                continue;
 
             if (IsTooCloseToExistingTree(position, currentTrees)) continue;
 
@@ -1219,6 +1222,11 @@ public class ObjectSpawner : MonoBehaviour
 
             treeComponent.positionInGrid = position;
             GraphNode.Instance.SetWalkableNode(position, layerIndex, false);
+            if (!occupiedPositions.ContainsKey(layerIndex))
+            {
+                occupiedPositions[layerIndex] = new HashSet<Vector3Int>();
+            }
+            occupiedPositions[layerIndex].Add(position);
         }
         return new SpawnedTree(treeComponent, position, layerIndex, cluster);
     }
@@ -1266,7 +1274,7 @@ public class ObjectSpawner : MonoBehaviour
             {
                 if (rock.rockObject != null)
                 {
-                    if (spawnSettings.rocksBlockMovement)
+                    if (spawnSettings.rocksBlockMovement && GraphNode.Instance != null)
                     {
                         GraphNode.Instance.SetWalkableNode(rock.gridPosition, rock.layerIndex, true);
                     }
@@ -1289,6 +1297,45 @@ public class ObjectSpawner : MonoBehaviour
 
         spawnedRocks.Clear();
         spawnedAnimals.Clear();
+        if (occupiedPositions != null) occupiedPositions.Clear();
+    }
+
+    public void ClearAllTrees()
+    {
+        foreach (var layerTrees in spawnedTrees.Values)
+        {
+            foreach (var tree in layerTrees)
+            {
+                if (tree.treeComponent != null)
+                {
+                    if (GraphNode.Instance != null)
+                    {
+                        GraphNode.Instance.SetWalkableNode(tree.gridPosition, tree.layerIndex, true);
+                    }
+                    PoolManager.Instance.Despawn(tree.treeComponent.gameObject);
+                }
+            }
+        }
+
+        foreach (var layerBushes in spawnedBushes.Values)
+        {
+            foreach (var bush in layerBushes)
+            {
+                if (bush.bushObject != null)
+                {
+                    if (spawnSettings.bushesBlockMovement && GraphNode.Instance != null)
+                    {
+                        GraphNode.Instance.SetWalkableNode(bush.gridPosition, bush.layerIndex, true);
+                    }
+
+                    PoolManager.Instance.Despawn(bush.bushObject);
+                }
+            }
+        }
+
+        spawnedTrees.Clear();
+        spawnedBushes.Clear();
+        layerClusters.Clear();
     }
 
     public void ClearObjectsOnLayer(int layerIndex)
@@ -1322,40 +1369,6 @@ public class ObjectSpawner : MonoBehaviour
             }
             spawnedAnimals.Remove(layerIndex);
         }
-    }
-
-    public void ClearAllTrees()
-    {
-        foreach (var layerTrees in spawnedTrees.Values)
-        {
-            foreach (var tree in layerTrees)
-            {
-                if (tree.treeComponent != null)
-                {
-                    GraphNode.Instance.SetWalkableNode(tree.gridPosition, tree.layerIndex, true);
-                    PoolManager.Instance.Despawn(tree.treeComponent.gameObject);
-                }
-            }
-        }
-
-        foreach (var layerBushes in spawnedBushes.Values)
-        {
-            foreach (var bush in layerBushes)
-            {
-                if (bush.bushObject != null)
-                {
-                    if (spawnSettings.bushesBlockMovement)
-                    {
-                        GraphNode.Instance.SetWalkableNode(bush.gridPosition, bush.layerIndex, true);
-                        PoolManager.Instance.Despawn(bush.bushObject);
-                    }
-                }
-            }
-        }
-
-        spawnedTrees.Clear();
-        spawnedBushes.Clear();
-        layerClusters.Clear();
     }
 
     private void ClearTreesOnLayer(int layerIndex)

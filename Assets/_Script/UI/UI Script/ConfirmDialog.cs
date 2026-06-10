@@ -44,7 +44,7 @@ namespace _Script.UI.UI_Script
             onNoCallback = onNo;
 
             dialogPanel.SetActive(true);
-            
+            AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
             //transform.SetAsLastSibling(); 
         }
 

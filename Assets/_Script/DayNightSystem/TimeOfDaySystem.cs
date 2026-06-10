@@ -65,8 +65,11 @@ public class TimeOfDaySystem : MonoBehaviour
             _lastHourValue = currentHourInt;
 
             if (currentHourInt == 6)
+            {
                 if (AudioManager.Instance != null)
                     AudioManager.Instance.PlaySFX(SoundNames.SfxNewDay);
+                SaveLoadSystem.Instance.SaveGame();
+            }
 
             OnHourChanged?.Invoke(currentHourInt);
         }

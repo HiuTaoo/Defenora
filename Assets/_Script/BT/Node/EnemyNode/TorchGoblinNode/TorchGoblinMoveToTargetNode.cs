@@ -44,12 +44,12 @@ namespace _Script.BT.Node.EnemyNode
             {
                 StopGoblin();
                 ResetNode();
-                return BTStatus.Success;
+                return BTStatus.Success; 
             }
 
             if (hasStartedMove && currentPathLayerIndex != goblin.currentTargetLayerIndex)
             {
-                Debug.Log($"[{goblin.gameObject.name}] Phát hiện mục tiêu đổi tầng (Từ Layer {currentPathLayerIndex + 1} sang {goblin.currentTargetLayerIndex + 1})! Tính toán lại đường đi đa tầng...");
+                Debug.Log($"[{goblin.gameObject.name}] Mục tiêu đổi tầng! Tính toán lại đường đi đa tầng...");
                 hasStartedMove = false;
             }
 
@@ -102,7 +102,12 @@ namespace _Script.BT.Node.EnemyNode
 
         private void StopGoblin()
         {
-            goblin.characterMovement.RequestStopMoving();
+            if (goblin.characterMovement != null)
+            {
+                goblin.characterMovement.RequestStopMoving();
+                goblin.characterMovement.moving = false; 
+            }
+            
             goblin.currentState = UnitState.Idle;
             goblin.animState = AnimState.Idle;
         }

@@ -157,6 +157,25 @@ public class Warrior : Unit
     
     private void CheckEnemyAggro()
     {
+        if (warriorBlackBoard.detectedEnemy != null)
+        {
+            var currentEnemy = warriorBlackBoard.detectedEnemy;
+            var targetHealth = currentEnemy.GetComponentInChildren<Health>();
+
+            if (!currentEnemy.activeInHierarchy || (targetHealth != null && targetHealth.IsDead))
+            {
+                Debug.Log($"[{gameObject.name}] ⚔️ Kẻ địch của Chiến binh đã chết hoặc biến mất. Hủy Aggro lập tức!");
+
+                ClearAggro();
+                isAlerted = false;
+
+                warriorBlackBoard.detectedEnemy = null;
+
+                bt?.ClearState();
+                return;
+            }
+        }
+
         if (warriorBlackBoard.detectedEnemy != null &&
             CheckEnemyStillInRange(warriorBlackBoard.detectedEnemy, viewDistance))
         {
@@ -180,10 +199,9 @@ public class Warrior : Unit
 
             if (aggroTimer <= 0)
             {
-                //currentTarget = null;
-                if(isAlerted)
+                if (isAlerted)
                     ClearAggro();
-                
+
                 warriorBlackBoard.detectedEnemy = null;
             }
         }

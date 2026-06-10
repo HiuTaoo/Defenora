@@ -92,7 +92,6 @@ namespace _Script.BT.Node.BuilderNode.Idle
             builder.UpdateAnim();
             builder.animState = AnimState.Moving;
             
-            // Phát lệnh dịch chuyển bộ
             builder.characterMovement.MoveToPosition(targetGridPos, targetItem.layerIndex);
 
             hasStartedMove = true;
