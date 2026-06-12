@@ -74,7 +74,15 @@ namespace _Script.Unit_Management_System.Enemy
                 new MoveToSpawnPointNode(barrel),
                 new DespawnNode(barrel));
 
+            var defendSpawnPointSequence = new SequenceNode(
+                new IsSpawnPointUnderAttackNode(barrel),
+                new EnemyFindNearestAttackerNode(barrel),
+                new BarrelMoveToTargetNode(barrel),
+                new BarrelExplodeNode(barrel)
+            );
+
             var root = new SelectorNode(
+                defendSpawnPointSequence,
                 backToSpawnPointSequence,
                 new SequenceNode(
                     new IsNightStartNode(barrel),
@@ -101,14 +109,14 @@ namespace _Script.Unit_Management_System.Enemy
 
             return extraStats;
         }
-
+        
         protected override void HandleDeath()
         {
             var col = GetComponent<Collider2D>();
-            col.enabled = false;
+            if (col != null) col.enabled = false;
 
             if (!isExploding) TriggerExplosion();
-            enabled = false;
+    
         }
 
         public void TriggerExplosion()
@@ -253,7 +261,29 @@ namespace _Script.Unit_Management_System.Enemy
         }
 
         #endregion
-        
+
+        public override void ResetUnitVariablesOnSpawn()
+        {
+            base.ResetUnitVariablesOnSpawn();
+
+            enabled = true;
+
+            if (health != null)
+            {
+                health.enabled = true;
+                health.RestoreHealth();
+            }
+
+            foreach (Transform child in transform) child.gameObject.SetActive(true);
+
+            isExploding = false;
+        }
+
+        public new void OnSpawned()
+        {
+            base.OnSpawned();
+            ResetUnitVariablesOnSpawn();
+        }
         
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()

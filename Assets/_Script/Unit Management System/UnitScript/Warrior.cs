@@ -55,6 +55,12 @@ public class Warrior : Unit
 
     private BehaviourTree CreateBehaviourTree(Warrior warrior)
     {
+        var raidCampaignSequence = new SequenceNode(
+            new IsInRaidCampaignNode(warrior),
+            new RaidCampaignExecutionNode(warrior),
+            new WarriorRaidCombatActionNode(warrior)
+        );
+        
         var holdBorderSequence = new SequenceNode(
             new HasMaxDistanceExceeded(warrior), 
             new StopMovingNode(warrior)         
@@ -112,6 +118,7 @@ public class Warrior : Unit
         var root = new SelectorNode(
             //death sequence,
             //hurt/stun sequence,
+            raidCampaignSequence,
             combatBranch,
             responseBranchWithGuard,
             idleSequence

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using UnityEngine;
@@ -202,121 +203,167 @@ public class ShopManager : MonoBehaviour
     {
         if (WalletManager.Instance == null) return;
 
-        if (WalletManager.Instance.TrySpendCoins(clickedSlot.CurrentPrice))
+        // 1. KIỂM TRA ĐIỀU KIỆN KINH TẾ TRƯỚC (Không trừ tiền ngay)
+        if (!WalletManager.Instance.CanSpendCoins(clickedSlot.CurrentPrice))
         {
-            if (clickedSlot.ItemData != null)
-            {
-                Inventory.Instance.Add(clickedSlot.ItemData, 1);
-                Debug.Log($"[Shop] Mua thành công 1x {clickedSlot.ItemData.name}");
-                if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxPaySuccess);
-                
-                if (isDailyMode)
-                {
-                    var match = dailyResources.Find(r => r.itemData == clickedSlot.ItemData);
-                    dailyResources.Remove(match);
-                }
-            }
-            else if (clickedSlot.UnitPrefab != null)
-            {
-                var playerGO = PlayerController.Instance;
-                var playerPosition = Vector3.zero;
-                var foundPlayer = false;
+            // Thông báo không đủ tiền (Đã được WalletManager.TrySpendCoins xử lý cảnh báo, 
+            // nhưng ở đây ta dùng CanSpendCoins nên cần kích hoạt cảnh báo thủ công nếu muốn,
+            // hoặc gọi TrySpendCoins với giá trị 0/để Wallet tự báo nếu CanSpendCoins trả về false)
+            UINotificationManager.Instance.ShowNotification("Not enough coins in the wallet to make this transaction!",
+                NotificationColorType.Warning);
+            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
+            return;
+        }
 
-                if (playerGO != null)
+        var isPurchaseSuccessful = false; // Cờ đánh dấu giao dịch thành công
+
+        // =================================================================
+        // TRƯỜNG HỢP A: MUA VẬT PHẨM (RESOURCE / ITEM)
+        // =================================================================
+        if (clickedSlot.ItemData != null)
+        {
+            // Thử thêm vào kho (Hàm Add trả về int? hoặc int tùy theo bản fix trước)
+            var quantity = Inventory.Instance.Add(clickedSlot.ItemData, 1);
+
+            // Nếu hệ thống trả về null (không có kho) hoặc số lượng thêm được bằng 0 (kho đầy)
+            if (quantity == null || quantity == 0)
+            {
+                UINotificationManager.Instance.ShowNotification(
+                    "There are currently no storage to store items, build an storage !", NotificationColorType.Warning);
+                return; // Hủy mua, không trừ tiền!
+            }
+
+            // Đã nhét vào kho thành công -> Xác nhận mua
+            isPurchaseSuccessful = true;
+            Debug.Log($"[Shop] Mua thành công 1x {clickedSlot.ItemData.name}");
+
+            if (isDailyMode)
+            {
+                var match = dailyResources
+                    .Cast<ShopItemEntry?>()
+                    .FirstOrDefault(r => r.Value.itemData == clickedSlot.ItemData);
+
+                if (match != null) dailyResources.Remove(match.Value);
+            }
+        }
+        // =================================================================
+        // TRƯỜNG HỢP B: MUA ĐƠN VỊ LÍNH (UNIT)
+        // =================================================================
+        else if (clickedSlot.UnitPrefab != null)
+        {
+            var playerGO = PlayerController.Instance;
+            var playerPosition = Vector3.zero;
+            var foundPlayer = false;
+
+            if (playerGO != null)
+            {
+                playerPosition = playerGO.transform.position;
+                playerPosition.z = 0f;
+                foundPlayer = true;
+            }
+            else
+            {
+                var camera = Camera.main;
+                if (camera != null)
                 {
-                    playerPosition = playerGO.transform.position;
+                    playerPosition = camera.transform.position;
                     playerPosition.z = 0f;
                     foundPlayer = true;
                 }
+            }
+
+            if (foundPlayer)
+            {
+                Building closestBuilding = null;
+                var closestDistance = float.MaxValue;
+
+                if (UnitManager.Instance != null && UnitManager.Instance.buildings != null)
+                    foreach (var building in UnitManager.Instance.buildings)
+                    {
+                        if (building == null) continue;
+                        var distance = (building.transform.position - playerPosition).sqrMagnitude;
+                        if (distance < closestDistance)
+                        {
+                            closestDistance = distance;
+                            closestBuilding = building;
+                        }
+                    }
+
+                var spawnPosition = playerPosition;
+                var targetLayerIndex = 0;
+
+                if (closestBuilding != null)
+                {
+                    spawnPosition = closestBuilding.GetRandomPositionAroundBuilding();
+                    targetLayerIndex = closestBuilding.LayerIndex;
+                }
                 else
                 {
-                    var camera = Camera.main;
-                    if (camera != null)
-                    {
-                        playerPosition = camera.transform.position;
-                        playerPosition.z = 0f;
-                        foundPlayer = true;
-                    }
-                }
-
-                if (foundPlayer)
-                {
-                    Building closestBuilding = null;
-                    var closestDistance = float.MaxValue;
-
-                    if (UnitManager.Instance != null && UnitManager.Instance.buildings != null)
-                        foreach (var building in UnitManager.Instance.buildings)
-                        {
-                            if (building == null) continue;
-                            var distance = (building.transform.position - playerPosition).sqrMagnitude;
-                            if (distance < closestDistance)
-                            {
-                                closestDistance = distance;
-                                closestBuilding = building;
-                            }
-                        }
-
-                    var spawnPosition = playerPosition;
-                    var targetLayerIndex = 0;
-
-                    if (closestBuilding != null)
-                    {
-                        spawnPosition = closestBuilding.GetRandomPositionAroundBuilding();
-                        targetLayerIndex = closestBuilding.LayerIndex;
-                    }
-                    else
-                    {
-                        var randomOffset = Random.insideUnitSphere * 1.5f;
-                        randomOffset.z = 0f;
-                        spawnPosition += randomOffset;
-                        var playerComp = playerGO;
+                    var randomOffset = Random.insideUnitSphere * 1.5f;
+                    randomOffset.z = 0f;
+                    spawnPosition += randomOffset;
+                    var playerComp = playerGO;
+                    if (playerComp != null && playerComp.characterMovement != null)
                         targetLayerIndex = playerComp.characterMovement.CurrentLayer;
-                    }
+                }
 
-                    var spawnedUnitObj =
-                        PoolManager.Instance.Spawn(clickedSlot.UnitPrefab, spawnPosition, Quaternion.identity);
-                    if (spawnedUnitObj != null)
+                // Tiến hành Spawn lính từ Pool
+                var spawnedUnitObj =
+                    PoolManager.Instance.Spawn(clickedSlot.UnitPrefab, spawnPosition, Quaternion.identity);
+
+                if (spawnedUnitObj != null)
+                {
+                    var unitComponent = spawnedUnitObj.GetComponent<Unit>();
+                    if (unitComponent != null)
                     {
-                        var unitComponent = spawnedUnitObj.GetComponent<Unit>();
-                        if (unitComponent != null)
-                        {
-                            if (unitComponent.floorAgent == null)
-                                unitComponent.floorAgent = unitComponent.GetComponentInChildren<FloorAgent>();
+                        if (unitComponent.floorAgent == null)
+                            unitComponent.floorAgent = unitComponent.GetComponentInChildren<FloorAgent>();
 
-                            if (unitComponent.characterMovement == null)
-                                unitComponent.characterMovement =
-                                    unitComponent.GetComponentInChildren<CharacterMovement>();
+                        if (unitComponent.characterMovement == null)
+                            unitComponent.characterMovement = unitComponent.GetComponentInChildren<CharacterMovement>();
 
+                        if (unitComponent.characterMovement != null)
                             unitComponent.characterMovement.CurrentLayer = targetLayerIndex;
-                            unitComponent.floorAgent.MoveToFloor(targetLayerIndex);
+                        if (unitComponent.floorAgent != null) unitComponent.floorAgent.MoveToFloor(targetLayerIndex);
 
-                            if (UnitManager.Instance != null)
-                                UnitManager.Instance.RegisterUnit(unitComponent);
-                           
+                        if (UnitManager.Instance != null)
+                            UnitManager.Instance.RegisterUnit(unitComponent);
+
+                        // Đã gọi lính ra sàn đấu thành công -> Xác nhận mua
+                        isPurchaseSuccessful = true;
+                        Debug.Log($"[Shop] Mua và xuất kích thành công Unit: {clickedSlot.UnitPrefab.name}");
+
+                        if (isDailyMode)
+                        {
+                            var match = dailyResources
+                                .Cast<ShopItemEntry?>()
+                                .FirstOrDefault(r => r.Value.itemData == clickedSlot.ItemData);
+
+                            if (match != null) dailyResources.Remove(match.Value);
                         }
                     }
-                }
-                else
-                {
-                    Debug.LogError(
-                        "[Shop] Không thể mua Unit vì không tìm thấy cả Player lẫn Main Camera để lấy vị trí gốc!");
-                }
-
-                if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(SoundNames.SfxPaySuccess);
-                Debug.Log($"[Shop] Mua và xuất kích thành công Unit: {clickedSlot.UnitPrefab.name}");
-
-                if (isDailyMode)
-                {
-                    var match = dailyUnits.Find(u => u.unitPrefab == clickedSlot.UnitPrefab);
-                    dailyUnits.Remove(match);
                 }
             }
+            else
+            {
+                Debug.LogError(
+                    "[Shop] Không thể mua Unit vì không tìm thấy cả Player lẫn Main Camera để lấy vị trí gốc!");
+                return;
+            }
+        }
+
+        if (isPurchaseSuccessful)
+        {
+            WalletManager.Instance.ForceSpendCoins(clickedSlot.CurrentPrice);
+
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFX(SoundNames.SfxPaySuccess);
 
             if (isDailyMode)
             {
                 spawnedSlotObjects.Remove(clickedSlot.gameObject);
                 PoolManager.Instance.Despawn(clickedSlot.gameObject);
-                
+
                 LayoutRebuilder.ForceRebuildLayoutImmediate(unitContentPanel);
                 LayoutRebuilder.ForceRebuildLayoutImmediate(resourceContentPanel);
             }

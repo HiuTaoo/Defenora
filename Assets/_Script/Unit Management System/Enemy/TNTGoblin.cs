@@ -55,6 +55,23 @@ namespace _Script.Unit_Management_System.Enemy
                 ),
                 new ClearBuildingTargetNode(tntGoblin) 
             );
+
+            var defendSpawnPointSequence = new SequenceNode(
+                new IsSpawnPointUnderAttackNode(tntGoblin),
+                new EnemyFindNearestAttackerNode(tntGoblin),
+                new TNTGoblinMoveToTargetNode(tntGoblin),
+                new SelectorNode(
+                    new SequenceNode(
+                        new HasPlayerInTNTGoblinAttackRangeNode(tntGoblin),
+                        new TNTGoblinAttackPlayerNode(tntGoblin)
+                    ),
+                    new SequenceNode(
+                        new HasNPCInEnemyAttackRangeNode(tntGoblin),
+                        new TNTGoblinAttackNPCNode(tntGoblin)
+                    ),
+                    new EnemyAttackBuildingNode(tntGoblin)
+                )
+            );
             
             var backToSpawnPointSequence = new SequenceNode(
                 new IsDawnNode(tntGoblin),
@@ -64,6 +81,7 @@ namespace _Script.Unit_Management_System.Enemy
 
             // ROOT CỦA CÂY BEHAVIOR TREE
             var root = new SelectorNode(
+                defendSpawnPointSequence,
                 backToSpawnPointSequence,
                 new SequenceNode(
                     new IsNightStartNode(tntGoblin),

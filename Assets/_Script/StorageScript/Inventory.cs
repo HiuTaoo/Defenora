@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using _Script.Enum;
-using _Script.Storage;
 using _Script.Storage._Script.Storage;
 using UnityEngine;
 
@@ -143,6 +142,7 @@ public class Inventory : MonoBehaviour
 
     public int Add(ItemData itemData, int amount)
     {
+        if (_activeStorages == null || _activeStorages.Count == 0) return 0;
         if (amount <= 0 || itemData == null) return 0;
 
         int remainingAmount = amount;

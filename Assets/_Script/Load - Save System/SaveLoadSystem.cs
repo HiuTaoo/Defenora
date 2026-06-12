@@ -591,9 +591,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                         
                         spComp.layerIndex = savedSP.layerIndex;
 
-                        var spLayerName = $"Layer {savedSP.layerIndex + 1}";
-                        spObj.layer = LayerMask.NameToLayer(spLayerName);
-
                         spawnPointLookup[savedSP.id] = spComp;
                         SpawnManager.Instance.spawnPoints.Add(spComp);
                         spComp.transform.SetParent(SpawnManager.Instance.transform);

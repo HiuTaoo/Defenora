@@ -5,8 +5,7 @@ namespace _Script.Unit_Management_System.HealthComponent
 {
     public class Health: MonoBehaviour
     {
-        [Header("Health Settings")]
-        public float maxHealth = 1f;
+        [Header("Health Settings")] public float maxHealth = 100f;
         
         public float CurrentHealth { get; private set; }
 
@@ -22,6 +21,11 @@ namespace _Script.Unit_Management_System.HealthComponent
         private void Awake()
         {
             statsManager = transform.parent.GetComponentInChildren<UnitStatsManager>();
+        }
+
+        private void Start()
+        {
+            if (CurrentHealth <= 0) CurrentHealth = maxHealth;
         }
 
         public void TakeDamage(float damage)

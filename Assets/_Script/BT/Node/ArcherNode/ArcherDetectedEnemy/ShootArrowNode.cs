@@ -27,9 +27,6 @@ namespace _Script.BT.Node.ArcherNode.ArcherDetectedEnemy
 
                 if (!target.activeInHierarchy || (targetHealth != null && targetHealth.IsDead))
                 {
-                    Debug.Log(
-                        $"[{archer.gameObject.name}] 🎯 Mục tiêu đã chết hoặc biến mất! Ngừng bắn mũi tên ngay lập tức.");
-
                     if (hasShot)
                     {
                         archer.EndAttackSignal();

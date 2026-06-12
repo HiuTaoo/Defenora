@@ -753,6 +753,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         lastSeenLayerIndex = -1;
         isAlerted = false;
         assignedBuilding = null;
+        health.SetCurrentHealth(1);
 
         aggroTimer = 0f;
         detectTimer = 0f;
@@ -874,6 +875,41 @@ public abstract class Unit : MonoBehaviour, IPoolable
         }
 
         return enemiesInRange;
+    }
+
+    public List<GameObject> DetectSpawnPoints(float range, Vector2 dir)
+    {
+        var spawnPointsInRange = new List<GameObject>();
+
+        var spawnPointLayerMask = LayerMask.GetMask("SpawnPoint");
+
+        var size = Physics2D.OverlapCircleNonAlloc(
+            transform.position,
+            range,
+            results,
+            spawnPointLayerMask);
+
+        dir.Normalize();
+        Vector2 myPos = transform.position;
+
+        for (var i = 0; i < size; i++)
+        {
+            var hit = results[i];
+
+            if (hit == null || !hit.CompareTag("SpawnPoint"))
+                continue;
+
+            Vector2 dirToSpawnPoint = (hit.transform.position - (Vector3)myPos).normalized;
+
+            if (Vector2.Dot(dir, dirToSpawnPoint) <= 0)
+                continue;
+
+            spawnPointsInRange.Add(hit.gameObject);
+
+            Debug.DrawLine(myPos, hit.transform.position, Color.red);
+        }
+
+        return spawnPointsInRange;
     }
 
     public List<GameObject> DetectNPCs(float range, Vector2 dir)
@@ -1104,7 +1140,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         isAlerted = true;
         aggroTimer = aggroDuration;
-        Debug.Log($"{unitType} handle alarm!");
     }
 
     protected virtual void HandleHealthChanged(float current, float max)
@@ -1185,8 +1220,18 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         if (assignedBuilding != null) assignedBuilding.RemoveUnit(this);
 
-        if (UnitManager.Instance.allUnits.Contains(this))
-            UnitManager.Instance.allUnits.Remove(this);
+        if (!CompareTag("Enemy"))
+        {
+            if (UnitManager.Instance.allUnits.Contains(this))
+                UnitManager.Instance.allUnits.Remove(this);
+        }
+        else
+        {
+            if (UnitManager.Instance.enemies.Contains(this))
+                UnitManager.Instance.enemies.Remove(this);
+            if (RaidManager.Instance.raidSubscribedUnits.Contains(this))
+                RaidManager.Instance.raidSubscribedUnits.Remove(this);
+        }
 
         enabled = false;
     }
@@ -1200,6 +1245,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
     public void Die()
     {
+        UnitManager.Instance.UnregisterUnit(this);
         PoolManager.Instance.Despawn(transform.gameObject);
     }
 
@@ -1240,6 +1286,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         if (health != null && unitStatsManager != null) health.SetMaxHealth(unitStatsManager.MaxHealth, true);
 
         ResetUnitVariablesOnSpawn();
+        health.RestoreHealth();
     }
 
     public void OnDespawned()

@@ -3,6 +3,7 @@
 public class PooledEffect : MonoBehaviour, IPoolable
 {
     private SimpleSpriteAnimator _animator;
+    [SerializeField] private Vector3 defaultPrefabScale = new(0.65f, 0.65f, 0.65f);
 
     private void Awake()
     {
@@ -22,17 +23,20 @@ public class PooledEffect : MonoBehaviour, IPoolable
             Destroy(gameObject);
     }
 
-    // =================================================================
-    // LÕI INTERFACE IPOOLABLE (Đồng bộ theo cơ chế Object Pool của game ông)
-    // =================================================================
 
     public void OnSpawned()
     {
+        transform.localScale = defaultPrefabScale;
         if (_animator != null) _animator.RestartAnimation();
     }
 
     public void OnDespawned()
     {
+        transform.SetParent(null);
+
+        transform.localScale = defaultPrefabScale;
+
+        gameObject.SetActive(false);
         if (_animator != null) _animator.Stop();
     }
 }

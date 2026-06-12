@@ -49,8 +49,10 @@ namespace _Script.Unit_Management_System.Enemy
         }
 
         #region BT
+        #region BT
         private BehaviourTree CreateBehaviourTree(TorchGoblin torchGoblin)
         {
+            // --- NHÁNH 1: SĂN LÙNG VÀ TẤN CÔNG (HUNT & ATTACK) ---
             var huntAndAttackSequence = new SequenceNode(
                 new FindNearestTargetNode(torchGoblin),
                 new TorchGoblinMoveToTargetNode(torchGoblin),
@@ -65,19 +67,39 @@ namespace _Script.Unit_Management_System.Enemy
                     ),
                     new EnemyAttackBuildingNode(torchGoblin)
                 ),
-                
                 new ClearBuildingTargetNode(torchGoblin) 
             );
 
+            var defendSpawnPointSequence = new SequenceNode(
+                new IsSpawnPointUnderAttackNode(torchGoblin),
+                new EnemyFindNearestAttackerNode(torchGoblin),
+                new TorchGoblinMoveToTargetNode(torchGoblin),
+                new SelectorNode(
+                    new SequenceNode(
+                        new HasPlayerInTorchGoblinAttackRangeNode(torchGoblin),
+                        new EnemyAttackPlayerNode(torchGoblin)
+                    ),
+                    new SequenceNode(
+                        new HasNPCInEnemyAttackRangeNode(torchGoblin),
+                        new TorchGoblinAttackNPCNode(torchGoblin)
+                    ),
+                    new EnemyAttackBuildingNode(torchGoblin)
+                )
+            );
+
+            // --- NHÁNH 3: RÚT LUI KHI BÌNH MINH ---
             var backToSpawnPointSequence = new SequenceNode(
                 new IsDawnNode(torchGoblin),
                 new ResetStateNode(torchGoblin),
                 new MoveToSpawnPointNode(torchGoblin),
                 new DespawnNode(torchGoblin));
 
-            var root = new SelectorNode( 
-                backToSpawnPointSequence,
-                new SequenceNode(        
+            // --- ROOT SELECTOR ---
+            // Đặt defendSpawnPointSequence lên ĐẦU TIÊN để luôn ưu tiên bảo vệ tính mạng/SpawnPoint
+            var root = new SelectorNode(
+                defendSpawnPointSequence, // 1. Ưu tiên cao nhất: Có bị phá nhà không? Có thì ở lại thủ!
+                backToSpawnPointSequence, // 2. Nếu nhà yên bình + trời sáng -> Đi về và biến mất
+                new SequenceNode( // 3. Nếu ban đêm -> Đi săn bình thường
                     new IsNightStartNode(torchGoblin),
                     huntAndAttackSequence     
                 )
@@ -85,6 +107,8 @@ namespace _Script.Unit_Management_System.Enemy
 
             return new BehaviourTree(root);
         }
+
+        #endregion
 
         #endregion
 

@@ -68,6 +68,11 @@ public class Archer : Unit
 
     private BehaviourTree CreateBehaviourTree(Archer archer)
     {
+        var raidCampaignSequence = new SequenceNode(
+            new IsInRaidCampaignNode(archer),
+            new RaidCampaignExecutionNode(archer),
+            new ArcherRaidCombatActionNode(archer)
+        );
         // =================================================================
         // KHO ĐẠN LOGIC CƠ BẢN (HÀNH VI LÕI)
         // =================================================================
@@ -195,6 +200,7 @@ public class Archer : Unit
         // 🌳 TRỤC ĐIỀU PHỐI GỐC (ROOT TREE) TỐI CAO 
         // =================================================================
         var root = new SelectorNode(
+            raidCampaignSequence,
             stationedBranchSequence,
             assignedBuildingBranchSequence,
             freeWandererTotalSelector      

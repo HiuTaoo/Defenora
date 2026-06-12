@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using _Script.Object_Pooling;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class SpawnManager : MonoBehaviour
 {
     public static SpawnManager Instance { get; private set; }
+    public static event Action OnAllSpawnPointsDestroyed;
 
     [Header("Spawn Points Management")]
     [Tooltip("Kéo tất cả các SpawnPoint trên Map vào đây, hoặc để trống để tự động quét lúc Start")]
@@ -30,7 +33,6 @@ public class SpawnManager : MonoBehaviour
     private float minDistanceBetweenPoints = 10f;
 
     private TimeOfDaySystem timeSystem;
-
     private int _monstersToSpawnTonight; 
 
     private void Awake()
@@ -69,35 +71,55 @@ public class SpawnManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Hàm theo dõi và bắt chính xác mốc giờ 0h và 1h đêm để mở 2 cổng quái riêng biệt
-    /// </summary>
     private void HandleHourTracking(int currentHour)
     {
         spawnPoints.RemoveAll(sp => sp == null);
 
-        if (spawnPoints.Count < 2)
-        {
-            Debug.LogWarning(
-                "[SpawnManager] ⚠️ Map phải có ít nhất 2 SpawnPoint để thực hiện kịch bản sinh quái 0h và 1h!");
-            return;
-        }
+        if (spawnPoints.Count == 0) return;
 
         var currentDay = timeSystem.CurrentDay;
+
+        if (spawnPoints.Count == 1)
+        {
+            var singleGate = spawnPoints[0];
+
+            if (currentHour == 0)
+            {
+                _monstersToSpawnTonight = baseSpawnCount + currentDay * countMultiplierPerDay;
+                var countForFirstWave = _monstersToSpawnTonight / 2;
+
+                Debug.LogWarning($"[SpawnManager] ⚠️ CHỈ CÒN 1 CỔNG [{singleGate.gameObject.name}]. " +
+                                 $"🌑 00:00 ĐÊM: Kích hoạt ĐỢT 1 sinh {countForFirstWave} quái.");
+
+                singleGate.OrderSpawnRandomly(countForFirstWave);
+            }
+            else if (currentHour == 1)
+            {
+                var countForSecondWave = _monstersToSpawnTonight - _monstersToSpawnTonight / 2;
+
+                if (countForSecondWave > 0)
+                {
+                    Debug.LogWarning($"[SpawnManager] ⚠️ CHỈ CÒN 1 CỔNG [{singleGate.gameObject.name}]. " +
+                                     $"⚔️ 01:00 ĐÊM: Kích hoạt ĐỢT 2 sinh nốt {countForSecondWave} quái.");
+
+                    singleGate.OrderSpawnRandomly(countForSecondWave);
+                }
+            }
+
+            return; // Ngắt luồng xử lý tại đây
+        }
 
         if (currentHour == 0)
         {
             _monstersToSpawnTonight = baseSpawnCount + currentDay * countMultiplierPerDay;
-
             var countForFirstGate = _monstersToSpawnTonight / 2;
 
             var gate1Name = spawnPoints[0].gameObject.name;
             Debug.Log(
-                $"[SpawnManager] 🌑 00:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 1 [{gate1Name}] BẮT ĐẦU MỞ! Sinh trước {countForFirstGate} quái vật.");
+                $"[SpawnManager] 🌑 00:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 1 [{gate1Name}] MỞ! Sinh trước {countForFirstGate} quái vật.");
 
             spawnPoints[0].OrderSpawnRandomly(countForFirstGate);
         }
-
         else if (currentHour == 1)
         {
             var countForSecondGate = _monstersToSpawnTonight - _monstersToSpawnTonight / 2;
@@ -106,16 +128,31 @@ public class SpawnManager : MonoBehaviour
             {
                 var gate2Name = spawnPoints[1].gameObject.name;
                 Debug.Log(
-                    $"[SpawnManager] ⚔️ 01:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 2 [{gate2Name}] TIẾP TỤC MỞ! Sinh nốt {countForSecondGate} quái vật.");
+                    $"[SpawnManager] ⚔️ 01:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 2 [{gate2Name}] MỞ! Sinh nốt {countForSecondGate} quái vật.");
 
                 spawnPoints[1].OrderSpawnRandomly(countForSecondGate);
             }
         }
     }
 
-    /// <summary>
-    /// Thuật toán chia đều số lượng quái cho các cổng hiện có (Giữ lại dự phòng cho hàm cheat/test)
-    /// </summary>
+    public void RemoveSpawnPoint(SpawnPoint spawnPoint)
+    {
+        if (spawnPoint == null) return;
+
+        if (spawnPoints.Contains(spawnPoint))
+        {
+            spawnPoints.Remove(spawnPoint);
+            Debug.LogWarning(
+                $"[SpawnManager] 💥 Đã gỡ bỏ [{spawnPoint.gameObject.name}] khỏi danh sách. Còn lại: {spawnPoints.Count} cổng.");
+        }
+
+        if (spawnPoints.Count == 0)
+        {
+            Debug.LogError("[SpawnManager] 🏆 HOÀN THÀNH CHIẾN DỊCH! Tất cả cổng quái trên hành tinh đã bị dọn sạch!");
+            OnAllSpawnPointsDestroyed?.Invoke();
+        }
+    }
+
     private void DistributeMonstersToPoints(int totalCount)
     {
         int pointCount = spawnPoints.Count;
@@ -218,9 +255,6 @@ public class SpawnManager : MonoBehaviour
                         spComp.layerIndex = targetLayerIndex;
                         spObj.name = $"Procedural_SpawnPoint_Layer{targetLayerIndex}_{pointsSpawnedSuccessfully}";
 
-                        var spLayerName = $"Layer {targetLayerIndex + 1}";
-                        spObj.layer = LayerMask.NameToLayer(spLayerName);
-
                         spawnPoints.Add(spComp);
                         spObj.transform.SetParent(transform);
                         pointsSpawnedSuccessfully++;
@@ -229,6 +263,13 @@ public class SpawnManager : MonoBehaviour
             }
         }
         return pointsSpawnedSuccessfully == numberOfPoints;
+    }
+
+    public int CalculateEnemySpawnTonight()
+    {
+        var currentDay = timeSystem.CurrentDay;
+        _monstersToSpawnTonight = baseSpawnCount + currentDay * countMultiplierPerDay;
+        return _monstersToSpawnTonight;
     }
 
     #region Cheat / Test Methods

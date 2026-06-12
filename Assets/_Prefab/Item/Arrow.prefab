@@ -117,7 +117,7 @@ MonoBehaviour:
   damage: 20
   speed: 15
   lifeTime: 3
-  hitDelay: 0.25
+  hitDelay: 0.1
 --- !u!61 &1570699280916516370
 BoxCollider2D:
   m_ObjectHideFlags: 0

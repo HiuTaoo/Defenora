@@ -20,9 +20,6 @@ public class ShopItemSlotUI : MonoBehaviour, IPoolable
     public ItemData ItemData => _itemData;
     public GameObject UnitPrefab => _unitPrefab;
 
-    /// <summary>
-    /// Setup slot dành cho loại bán VẬT PHẨM / TÀI NGUYÊN (Sử dụng ItemData)
-    /// </summary>
     public void SetupAsItem(ItemData itemData, int price, Action<ShopItemSlotUI> onBuyClick)
     {
         if (itemData == null) return;

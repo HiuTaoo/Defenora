@@ -43,6 +43,14 @@ public class WalletManager : MonoBehaviour
         return false;
     }
 
+    public bool CanSpendCoins(int amount)
+    {
+        if (amount <= 0) return false;
+        if (currentCoins >= amount) return true;
+
+        return false;
+    }
+
     public void ForceSpendCoins(int amount)
     {
         currentCoins -= amount;

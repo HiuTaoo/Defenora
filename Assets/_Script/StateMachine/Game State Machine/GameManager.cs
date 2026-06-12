@@ -5,12 +5,10 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("Survival Settings")] [Tooltip("Số ngày người chơi cần vượt qua để giành chiến thắng")]
-    public int daysToSurviveToWin = 5;
-    
     public static GameManager Instance { get; private set; }
     public GameStateMachine StateMachine { get; private set; }
     public GameStateContext gameContext { get; private set; }
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -24,7 +22,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1;
         InitializeStateMachine();
 
-        if (TimeOfDaySystem.Instance != null) TimeOfDaySystem.Instance.OnDayChanged += HandleDayChanged;
+        SpawnManager.OnAllSpawnPointsDestroyed += HandleAllSpawnPointsDestroyed;
 
         yield return StartCoroutine(StartGameCoroutine());
     }
@@ -48,7 +46,6 @@ public class GameManager : MonoBehaviour
         StateMachine.RegisterState(GameStateType.Editor, new EditorState());
         StateMachine.RegisterState(GameStateType.Win, new WinState());
         StateMachine.RegisterState(GameStateType.GameOver, new GameOverState());
-        
     }
 
     private void Update()
@@ -59,7 +56,6 @@ public class GameManager : MonoBehaviour
     #region Method
     public void QuitGame()
     {
-        //Application.Quit();
         SceneManager.LoadScene(0);
     }
 
@@ -164,7 +160,7 @@ public class GameManager : MonoBehaviour
                         var pLayer = PlayerController.Instance.GetCurrentLayerIndex();
 
                         Debug.Log(
-                            $"[GameManager] [Lần thử {generationRetries + 1}] Đang quét tìm đường đặt 3 cổng quái liên thông...");
+                            $"[GameManager] [Lần thử {generationRetries + 1}] Đang quét tìm đường đặt cổng quái liên thông...");
 
                         var spawnSuccess = SpawnManager.Instance.GenerateSpawnPointsWithSafeZone(2, pPos, pLayer);
 
@@ -266,18 +262,15 @@ public class GameManager : MonoBehaviour
 
     #region Win-Lose
 
-    private void HandleDayChanged(int newDay)
+    private void HandleAllSpawnPointsDestroyed()
     {
         if (StateMachine.CurrentStateType != GameStateType.Playing) return;
 
-        Debug.Log($"[GameManager] ☀️ Đã bước sang ngày thứ {newDay} / {daysToSurviveToWin}");
-
-        if (newDay >= daysToSurviveToWin)
-        {
-            Debug.Log($"[GameManager] 🏆 Chúc mừng! Bạn đã sinh tồn thành công {daysToSurviveToWin} ngày!");
-            TriggerGameWin();
-        }
+        Debug.Log(
+            "[GameManager] 🏆 ĐIỀU KIỆN THẮNG ĐÃ ĐẠT! Toàn bộ cổng quái vật trên bản đồ đã bị san phẳng hoàn toàn!");
+        TriggerGameWin();
     }
+
     public void HandleCoinChange(int currentCoins)
     {
         if (StateMachine.CurrentStateType != GameStateType.Playing) return;
@@ -314,6 +307,7 @@ public class GameManager : MonoBehaviour
     private void OnDestroy()
     {
         WalletManager.OnCoinChanged -= HandleCoinChange;
-        if (TimeOfDaySystem.Instance != null) TimeOfDaySystem.Instance.OnDayChanged -= HandleDayChanged;
+
+        SpawnManager.OnAllSpawnPointsDestroyed -= HandleAllSpawnPointsDestroyed;
     }
 }

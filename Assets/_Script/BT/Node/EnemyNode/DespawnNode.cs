@@ -7,6 +7,8 @@
         public override BTStatus Tick()
         {
             PoolManager.Instance.Despawn(unit.gameObject);
+            if (UnitManager.Instance.enemies.Contains(unit))
+                UnitManager.Instance.enemies.Remove(unit);
             return BTStatus.Success;
         }
     }

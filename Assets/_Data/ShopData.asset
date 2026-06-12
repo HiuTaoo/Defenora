@@ -28,6 +28,16 @@ MonoBehaviour:
       type: 3}
     unitIcon: {fileID: 21300000, guid: 8fd2d0449599e4f7a9a1f1f170b6a2b0, type: 3}
     price: 10
+  - unitName: Warrior
+    unitPrefab: {fileID: 2417399181293632922, guid: 104b85fde5291614d81761bda79257dc,
+      type: 3}
+    unitIcon: {fileID: 21300000, guid: 2334fa2b3b6b3492281b0993c123cfac, type: 3}
+    price: 10
+  - unitName: Monk
+    unitPrefab: {fileID: 6602815683075122701, guid: 07ea391a267d1724ca46c8d9052f2190,
+      type: 3}
+    unitIcon: {fileID: 21300000, guid: f846c6072ceb0445bbcb59c41b57a5cb, type: 3}
+    price: 10
   availableResources:
   - itemData: {fileID: 11400000, guid: ed7fcc6379564164ead4e778f84be2fe, type: 2}
     price: 1

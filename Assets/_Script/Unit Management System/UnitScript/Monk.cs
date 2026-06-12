@@ -67,6 +67,11 @@ public class Monk : Unit
 
     private BehaviourTree CreateBehaviorTree(Monk monk)
     {
+        var raidCampaignSequence = new SequenceNode(
+            new IsInRaidCampaignNode(monk),
+            new RaidCampaignExecutionNode(monk),
+            new MonkRaidCombatActionNode(monk)
+        );
         // =================================================================
         // 🚑 PHÂN HỆ CẤP CỨU ĐỒNG ĐỘI (ƯU TIÊN TỐI CAO)
         // =================================================================
@@ -88,6 +93,7 @@ public class Monk : Unit
             new WaitNode(monk));
 
         var root = new SelectorNode(
+            raidCampaignSequence,
             healAllySequence,
             idleSequence      
         );
@@ -104,7 +110,7 @@ public class Monk : Unit
 
         foreach (var ally in monkBlackBoard.aoeHealTargets)
         {
-            if (ally == null) continue;
+            if (ally == null || ally.CompareTag("Enemy")) continue;
 
             var healEffect = PoolManager.Instance.Spawn(PrefabConfig.Instance.healEffectPrefab,
                 ally.transform.position, Quaternion.identity);

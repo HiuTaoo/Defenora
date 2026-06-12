@@ -18,6 +18,7 @@ TagManager:
   - Door
   - Bridge
   - Item
+  - SpawnPoint
   layers:
   - Default
   - TransparentFX
@@ -35,7 +36,7 @@ TagManager:
   - Coin
   - VisionBlocker
   - Projectile
-  - 
+  - SpawnPoint
   - 
   - 
   - 

@@ -15,11 +15,10 @@ public class PlayerInteraction : MonoBehaviour
     public Vector2 direction;
     private int layerIndex = -1;
     private int playerLayerIndex = -1;
-    
-    [Header("Non-Alloc Arrays (Tối ưu Memory)")]
-    // Khởi tạo sẵn các mảng với kích thước cố định (ví dụ 10 phần tử là quá đủ cho vùng gần player)
-    private Collider2D[] interactResults = new Collider2D[10];
-    private Collider2D[] playerResults = new Collider2D[10];
+
+    [Header("Non-Alloc Arrays (Tối ưu Memory - Đã rút gọn)")]
+    // Đã loại bỏ mảng playerResults vì không còn cần thiết nữa!
+    public Collider2D[] interactResults = new Collider2D[10];
     private RaycastHit2D[] raycastResults = new RaycastHit2D[5];
 
     public Action<GameObject, InteractButtonState> OnInteractButtonPressed;
@@ -96,21 +95,21 @@ public class PlayerInteraction : MonoBehaviour
         currentObject = null;
 
         #region Raycast Building (Đã tối ưu NonAlloc)
-        if(GameManager.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
+
+        if (GameManager.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
             direction = GameManager.Instance.gameContext.InputManager.GetMovementInput();
 
         if (direction != Vector2.zero)
         {
             Vector2 origin = transform.position;
-            float rayDistance = interactionCollider.radius * 0.65f;
+            var rayDistance = interactionCollider.radius * 0.65f;
 
-            // Dùng RaycastNonAlloc thay vì RaycastAll
-            int hitCount = Physics2D.RaycastNonAlloc(origin, direction, raycastResults, rayDistance, LayerMask.GetMask("Default"));
+            var hitCount = Physics2D.RaycastNonAlloc(origin, direction, raycastResults, rayDistance,
+                LayerMask.GetMask("Default"));
 
-            // Dùng vòng lặp for dựa trên hitCount
-            for (int i = 0; i < hitCount; i++)
+            for (var i = 0; i < hitCount; i++)
             {
-                RaycastHit2D hit = raycastResults[i];
+                var hit = raycastResults[i];
                 if (hit.collider != null && hit.collider.gameObject.CompareTag("Door"))
                 {
                     currentObject = hit.collider.transform.parent?.gameObject ?? hit.collider.gameObject;
@@ -119,7 +118,7 @@ public class PlayerInteraction : MonoBehaviour
                     {
                         interactButtonScript.ChangeInteractButtonState(InteractButtonState.Enter);
                         interactButtonState = InteractButtonState.Enter;
-                        break; 
+                        break;
                     }
                     else
                     {
@@ -128,65 +127,79 @@ public class PlayerInteraction : MonoBehaviour
                 }
             }
         }
+
         #endregion
 
-        #region Raycast Other Objects 
+        #region Raycast Other Objects (SỬA LỖI: Dùng Bounds.Intersects để xuyên ma trận vật lý)
+
         if (currentObject == null)
         {
-            int interactCount = Physics2D.OverlapCircleNonAlloc(transform.position, interactionCollider.radius, interactResults);
-            int playerCount = Physics2D.OverlapCircleNonAlloc(transform.position, playerCollider.radius * 1.25f, playerResults);
+            // Quét tất cả vật thể nằm trong phạm vi vòng tròn tương tác
+            var interactCount =
+                Physics2D.OverlapCircleNonAlloc(transform.position, interactionCollider.radius, interactResults);
 
-            for (int i = 0; i < interactCount; i++)
+            for (var i = 0; i < interactCount; i++)
             {
-                Collider2D interactCol = interactResults[i];
+                var interactCol = interactResults[i];
+                if (interactCol == null || interactCol == playerCollider) continue;
 
-                for (int j = 0; j < playerCount; j++)
+                // GIẢI PHÁP SỬA LỖI CHÍ MẠNG: 
+                // Kiểm tra xem hộp giới hạn (Bounds) của vật thể quét được có giao với vùng tương tác của Player không.
+                // Phép toán này bỏ qua hoàn toàn việc bạn có tắt tích va chạm trong Project Settings hay không!
+                if (interactionCollider.bounds.Intersects(interactCol.bounds))
                 {
-                    Collider2D pCol = playerResults[j];
+                    // 1. Kiểm tra Cổng quái (SpawnPoint)
+                    if (interactCol.CompareTag("SpawnPoint") &&
+                        interactCol.gameObject.layer == LayerMask.NameToLayer("SpawnPoint"))
+                {
+                    currentObject = interactCol.gameObject;
+                    LookUpLayerIndex();
 
-                    if (interactCol != playerCollider && interactCol == pCol)
+                    if (layerIndex == playerLayerIndex)
                     {
-                        if (interactCol.CompareTag("Tree"))
-                        {
-                            GameObject candidateTreeGO = interactCol.gameObject;
-                            var tree = candidateTreeGO.GetComponent<Tree>();
-                            
-                            if (tree != null && tree.treeState != TreeState.Chopped)
-                            {
-                                currentObject = candidateTreeGO;
-                                LookUpLayerIndex();
-                                
-                                var task = tree.GetTask();
-                                
-                                // KIỂM TRA BẢO HIỂM: Thắt chặt điều kiện nhận diện Task hợp lệ
-                                // Một cái cây ĐƯỢC PHÉP chặt khi:
-                                // 1. Nó không có Task nào gắn vào (task == null)
-                                // 2. Hoặc Task gắn vào nó đã bị hủy mục tiêu (targetGameObject == null)
-                                // 3. Hoặc Task gắn vào nó ĐÃ HOÀN THÀNH (TaskStatus.Completed) nhưng chưa được dọn dẹp
-                                bool isTaskAvailable = (task == null) 
-                                                       || (task.targetGameObject == null) 
-                                                       || (task.taskStatus == TaskStatus.Completed);
+                        interactButtonScript.ChangeInteractButtonState(InteractButtonState.Attack);
+                        interactButtonState = InteractButtonState.Attack;
+                        break;
+                    }
+                    else
+                    {
+                        currentObject = null;
+                    }
+                }
 
-                                if (layerIndex == playerLayerIndex && isTaskAvailable)
-                                {
-                                    interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
-                                    interactButtonState = InteractButtonState.Cut;
-                                    break; 
-                                }
-                                else
-                                {
-                                    // Nếu cây thuộc tầng khác hoặc đang có một Builder thực sự làm việc (TaskStatus.InProgress)
-                                    currentObject = null;
-                                }
+                    // 2. Kiểm tra Cây cối (Tree)
+                    if (interactCol.CompareTag("Tree"))
+                    {
+                        var candidateTreeGO = interactCol.gameObject;
+                        var tree = candidateTreeGO.GetComponent<Tree>();
+
+                        if (tree != null && tree.treeState != TreeState.Chopped)
+                        {
+                            currentObject = candidateTreeGO;
+                            LookUpLayerIndex();
+
+                            var task = tree.GetTask();
+
+                            var isTaskAvailable = task == null
+                                                  || task.targetGameObject == null
+                                                  || task.taskStatus == TaskStatus.Completed;
+
+                            if (layerIndex == playerLayerIndex && isTaskAvailable)
+                            {
+                                interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
+                                interactButtonState = InteractButtonState.Cut;
+                                break;
+                            }
+                            else
+                            {
+                                currentObject = null;
                             }
                         }
                     }
                 }
-
-                if (currentObject != null)
-                    break;
             }
         }
+
         #endregion
 
         interactButton?.SetActive(currentObject != null);
@@ -204,16 +217,27 @@ public class PlayerInteraction : MonoBehaviour
 
     private void LookUpLayerIndex()
     {
+        if (currentObject == null) return;
+
         var building = currentObject.GetComponent<Building>();
         var tree = currentObject.GetComponent<Tree>();
+        var spawnPoint = currentObject.GetComponent<SpawnPoint>();
+
+        if (spawnPoint != null)
+        {
+            layerIndex = spawnPoint.layerIndex;
+            return;
+        }
         if (building != null && tree == null)
         {
             layerIndex = building.LayerIndex;
+            return;
         }
         if (tree != null && building == null)
         {
             layerIndex = tree.layerIndex;
         }
+
     }
 
     private void GetInteractButton()

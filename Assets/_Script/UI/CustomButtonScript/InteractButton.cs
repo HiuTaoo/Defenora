@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using _Script.Task;
 using UnityEngine;
 
@@ -22,11 +21,13 @@ public class InteractButton : MonoBehaviour
         var openText = transform.Find("Text/Open Text");
         var cutText = transform.Find("Text/Cut Text");
         var enterText = transform.Find("Text/Enter Text");
+        var attackText = transform.Find("Text/Attack Text");
 
         interactableText.Add(InteractButtonState.Collect, collectText?.gameObject);
         interactableText.Add(InteractButtonState.Open, openText?.gameObject);
         interactableText.Add(InteractButtonState.Cut, cutText?.gameObject);
         interactableText.Add(InteractButtonState.Enter, enterText?.gameObject);
+        interactableText.Add(InteractButtonState.Attack, attackText?.gameObject);
     }
 
     public void ChangeInteractButtonState(InteractButtonState state)
@@ -72,14 +73,14 @@ public class InteractButton : MonoBehaviour
                 {
                     if (buildingComponent is TrainingBuilding trainingBuilding)
                     {
-                        // Gọi UIManager bật cửa sổ Training lên màn hình
                         UIManager.Instance.ShowUI(GameStateType.Playing, UINames.TrainingWindow);
                         
-                        // Tìm kiếm và ra lệnh cho Component UI bắt đầu nạp + làm mới dữ liệu lính của nhà này
                         TrainingWindowUI.Instance.OpenWindow(trainingBuilding);
                     }
                     Debug.Log($"Entering building: {buildingComponent.name}");
                 }
+                break;
+            case InteractButtonState.Attack:
                 break;
         }
     }
@@ -91,5 +92,6 @@ public enum InteractButtonState
     Collect,
     Open,
     Cut,
-    Enter
+    Enter,
+    Attack
 }
