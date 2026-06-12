@@ -539,7 +539,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         return best;
     }
 
-    public Vector3Int FindPatrolPosition(Vector3Int buildingCell, int minRadius = 2, int maxRadius = 4)
+    public Vector3Int FindPatrolPosition(Vector3Int buildingCell, int minRadius, int maxRadius, int targetLayerIndex)
     {
         const int maxTries = 20;
 
@@ -547,9 +547,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         {
             var angle = Random.Range(0f, Mathf.PI * 2);
             var dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-
             float radius = Random.Range(minRadius, maxRadius + 1);
-
             var offset = dir * radius;
 
             var candidate = new Vector3Int(
@@ -558,7 +556,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
                 0
             );
 
-            var node = GraphNode.Instance.GetNode(candidate, assignedBuilding.layerIndex);
+            var node = GraphNode.Instance.GetNode(candidate, targetLayerIndex);
 
             if (node == null)
                 continue;
@@ -591,7 +589,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         animState = AnimState.Idle;
     }
 
-    public void ResetAnim()
+    public virtual void ResetAnim()
     {
         animState = AnimState.Idle;
         currentState = UnitState.Idle;
@@ -837,7 +835,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
         {
             int randomIndex = Random.Range(0, validBuildings.Count);
         
-            Debug.Log($"[AI Random] Quét được {validBuildings.Count} nhà hợp lệ ở gần. Đã bốc ngẫu nhiên công trình: {validBuildings[randomIndex].gameObject.name}");
             return validBuildings[randomIndex];
         }
 

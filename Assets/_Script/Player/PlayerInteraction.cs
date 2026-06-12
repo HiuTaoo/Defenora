@@ -130,11 +130,10 @@ public class PlayerInteraction : MonoBehaviour
 
         #endregion
 
-        #region Raycast Other Objects (SỬA LỖI: Dùng Bounds.Intersects để xuyên ma trận vật lý)
+        #region Raycast Other Objects
 
         if (currentObject == null)
         {
-            // Quét tất cả vật thể nằm trong phạm vi vòng tròn tương tác
             var interactCount =
                 Physics2D.OverlapCircleNonAlloc(transform.position, interactionCollider.radius, interactResults);
 
@@ -143,31 +142,29 @@ public class PlayerInteraction : MonoBehaviour
                 var interactCol = interactResults[i];
                 if (interactCol == null || interactCol == playerCollider) continue;
 
-                // GIẢI PHÁP SỬA LỖI CHÍ MẠNG: 
-                // Kiểm tra xem hộp giới hạn (Bounds) của vật thể quét được có giao với vùng tương tác của Player không.
-                // Phép toán này bỏ qua hoàn toàn việc bạn có tắt tích va chạm trong Project Settings hay không!
                 if (interactionCollider.bounds.Intersects(interactCol.bounds))
                 {
-                    // 1. Kiểm tra Cổng quái (SpawnPoint)
                     if (interactCol.CompareTag("SpawnPoint") &&
                         interactCol.gameObject.layer == LayerMask.NameToLayer("SpawnPoint"))
-                {
-                    currentObject = interactCol.gameObject;
-                    LookUpLayerIndex();
-
-                    if (layerIndex == playerLayerIndex)
                     {
-                        interactButtonScript.ChangeInteractButtonState(InteractButtonState.Attack);
-                        interactButtonState = InteractButtonState.Attack;
-                        break;
-                    }
-                    else
-                    {
-                        currentObject = null;
-                    }
-                }
+                        if(RaidManager.Instance.activeRaidTarget == interactCol.gameObject)
+                            continue;
+                        
+                        currentObject = interactCol.gameObject;
+                        LookUpLayerIndex();
 
-                    // 2. Kiểm tra Cây cối (Tree)
+                        if (layerIndex == playerLayerIndex)
+                        {
+                            interactButtonScript.ChangeInteractButtonState(InteractButtonState.Attack);
+                            interactButtonState = InteractButtonState.Attack;
+                            break;
+                        }
+                        else
+                        {
+                            currentObject = null;
+                        }
+                    }
+
                     if (interactCol.CompareTag("Tree"))
                     {
                         var candidateTreeGO = interactCol.gameObject;

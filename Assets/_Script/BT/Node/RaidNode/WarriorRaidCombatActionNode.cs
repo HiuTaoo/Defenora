@@ -1,28 +1,46 @@
 ﻿using _Script.BT.Node;
+using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
+using _Script.BT; // Đảm bảo nạp đúng namespace chứa định nghĩa BTStatus của bạn
 
 public class WarriorRaidCombatActionNode : BTActionNode
 {
     private readonly Warrior warrior;
+    private Health warriorHealth;
+
+    // Các biến quản lý Cooldown phòng thủ riêng biệt (Block Cooldown)
+    private float defendCooldownDuration = 2.0f; // Thời gian hồi khiên thủ (giây)
+    private float lastDefendTriggerTime = -999f;
+    private float lastFrameHealth;
+    private bool isDefendCooldownActive = false;
 
     public WarriorRaidCombatActionNode(Unit unit) : base(unit)
     {
         warrior = unit as Warrior;
+        if (warrior != null)
+        {
+            warriorHealth = warrior.GetComponentInChildren<Health>();
+        }
     }
 
     public override BTStatus Tick()
     {
         if (warrior == null) return BTStatus.Failure;
-
-        // 0. KIỂM TRA ĐIỀU KIỆN AN TOÀN TRƯỚC (Bị đẩy lùi thì ngắt đòn ngay)
-        if (warrior.isKnockedBack)
+        
+        if (RaidManager.Instance == null || RaidManager.Instance.activeRaidTarget == null)
         {
             ResetInternalState();
-            return BTStatus.Running; // Trong chế độ Raid, giữ Running để không gãy luồng cây BT
+            return BTStatus.Failure;
         }
 
-        // ĐOẠN BẢO VỆ AGGRO: Nếu Raid đang diễn ra mà mất dấu mục tiêu, ép nạp lại Cổng quái
-        if (RaidManager.Instance != null && RaidManager.Instance.IsRaidActive)
+        if (warrior.isKnockedBack)
+        {
+            isDefendCooldownActive = false; 
+            return BTStatus.Running;
+        }
+
+        if (RaidManager.Instance.IsRaidActive)
+        {
             if (warrior.currentTarget == null || warrior.warriorBlackBoard.detectedEnemy == null)
             {
                 var gate = RaidManager.Instance.activeRaidTarget;
@@ -35,6 +53,7 @@ public class WarriorRaidCombatActionNode : BTActionNode
                 warrior.aggroTimer = 9999f;
                 warrior.isAlerted = true;
             }
+        }
 
         var raidGate = RaidManager.Instance.activeRaidTarget;
         if (raidGate == null || !raidGate.activeInHierarchy)
@@ -43,59 +62,92 @@ public class WarriorRaidCombatActionNode : BTActionNode
             return BTStatus.Success;
         }
 
-        // 1. QUẢN LÝ QUAY MẶT HƯỚNG VỀ PHÍA CỔNG QUÁI (Giữ vững phòng tuyến)
         Vector2 dirToGate = (raidGate.transform.position - warrior.transform.position).normalized;
         warrior.warriorBlackBoard.lastDirection = dirToGate.x > 0 ? Vector2.right : Vector2.left;
         warrior.UpdateFacing(warrior.warriorBlackBoard.lastDirection);
 
-        // 2. QUÉT VÀ PHÂN LOẠI MỤC TIÊU ÁP SÁT
         var facingDir = warrior.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
         var closeEnemies = warrior.DetectEnemies(warrior.attackRange, facingDir);
         var priorityEnemy = warrior.SelectClosestTarget(closeEnemies);
 
-        // 3. THỰC THI LOGIC TẤN CÔNG CHUẨN THAM KHẢO TỪ WARRIORATTACKNODE
-        if (priorityEnemy != null)
+        if (warriorHealth != null && !isDefendCooldownActive && warrior.currentState == UnitState.Defend)
         {
-            // Cập nhật Blackboard nhắm vào con quái áp sát
-            warrior.warriorBlackBoard.detectedEnemy = priorityEnemy;
-            warrior.currentTarget = priorityEnemy.transform;
-
-            // Nếu hoạt ảnh chém đang diễn ra (Animation Event chưa báo kết thúc), giữ nguyên trạng thái
-            if (warrior.isAttacking)
+            if (warriorHealth.CurrentHealth < lastFrameHealth && warriorHealth.CurrentHealth > 0)
             {
-                warrior.currentState = UnitState.Defend;
-                warrior.animState = AnimState.Attacking;
+                float damageTaken = lastFrameHealth - warriorHealth.CurrentHealth;
+                
+                warriorHealth.Heal(damageTaken); 
+
+                Debug.LogWarning($"[🛡️ WARRIOR BLOCK] Đỡ thành công {damageTaken} sát thương! Khiên vỡ -> Chuyển sang trạng thái hồi chiêu.");
+
+                isDefendCooldownActive = true;
+                lastDefendTriggerTime = Time.time;
+
+                warrior.currentState = UnitState.Idle;
+                warrior.animState = AnimState.Idle;
+                
+                if (warrior.isAttacking) warrior.EndAttackSignal();
+
+                lastFrameHealth = warriorHealth.CurrentHealth;
                 return BTStatus.Running;
             }
+        }
 
-            // KIỂM TRA COOLDOWN ĐÒN ĐÁNH (Y hệt node Attack mẫu)
-            if (Time.time >= warrior.lastAttackTime + warrior.attackCooldown)
+        if (isDefendCooldownActive)
+        {
+            if (Time.time >= lastDefendTriggerTime + defendCooldownDuration)
             {
-                if (warrior.characterMovement.moving) warrior.StopMove();
-
-                warrior.lastAttackTime = Time.time;
-
-                warrior.currentState = UnitState.Defend;
-                warrior.animState = AnimState.Attacking;
+                isDefendCooldownActive = false; 
             }
             else
             {
-                // Đang đợi hồi chiêu chém: Đứng thủ thế (Defend - Idle) hướng về địch
-                warrior.currentState = UnitState.Defend;
-                warrior.animState = AnimState.Idle;
+                if (priorityEnemy != null)
+                {
+                    warrior.warriorBlackBoard.detectedEnemy = priorityEnemy;
+                    warrior.currentTarget = priorityEnemy.transform;
+
+                    if (warrior.isAttacking)
+                    {
+                        warrior.currentState = UnitState.Idle; 
+                        warrior.animState = AnimState.Attacking;
+                        if (warriorHealth != null) lastFrameHealth = warriorHealth.CurrentHealth;
+                        return BTStatus.Running;
+                    }
+
+                    if (Time.time >= warrior.lastAttackTime + warrior.attackCooldown)
+                    {
+                        if (warrior.characterMovement.moving) warrior.StopMove();
+
+                        warrior.lastAttackTime = Time.time;
+                        warrior.StartAttackSignal();
+
+                        warrior.currentState = UnitState.Idle;
+                        warrior.animState = AnimState.Attacking;
+                    }
+                    else
+                    {
+                        warrior.currentState = UnitState.Idle;
+                        warrior.animState = AnimState.Idle;
+                    }
+                }
+                else
+                {
+                    warrior.currentState = UnitState.Idle;
+                    warrior.animState = AnimState.Idle;
+                }
+
+                if (warriorHealth != null) lastFrameHealth = warriorHealth.CurrentHealth;
+                return BTStatus.Running;
             }
         }
-        else
-        {
-            // KHÔNG CÓ ĐỊCH ÁP SÁT: Đứng im thủ thế phòng tuyến nhìn về phía cổng quái
-            warrior.warriorBlackBoard.detectedEnemy = null;
-            warrior.currentTarget = null;
 
-            if (warrior.isAttacking) warrior.EndAttackSignal();
+        warrior.warriorBlackBoard.detectedEnemy = null;
+        if (warrior.isAttacking) warrior.EndAttackSignal();
 
-            warrior.currentState = UnitState.Idle;
-            warrior.animState = AnimState.Idle;
-        }
+        warrior.currentState = UnitState.Defend;
+        warrior.animState = AnimState.Defending; 
+
+        if (warriorHealth != null) lastFrameHealth = warriorHealth.CurrentHealth;
 
         return BTStatus.Running;
     }
@@ -108,6 +160,7 @@ public class WarriorRaidCombatActionNode : BTActionNode
 
     private void ResetInternalState()
     {
+        isDefendCooldownActive = false;
         if (warrior != null)
         {
             warrior.EndAttackSignal();

@@ -36,7 +36,6 @@ public class PanicFleeActionNode : BTActionNode
 
             if (!enemyStillAround)
             {
-                Debug.Log($"[{builder.gameObject.name}] 🛡️ Đã an toàn sau 5s chạy trốn. Tiến hành giải phóng cây BT!");
                 builder.characterMovement.RequestStopMoving();
                 builder.ResetState();
                 builder.GetBT()?.ClearState();

@@ -19,6 +19,12 @@ public class MonkRaidCombatActionNode : BTActionNode
     public override BTStatus Tick()
     {
         if (monk == null) return BTStatus.Failure;
+        
+        if (RaidManager.Instance == null || RaidManager.Instance.activeRaidTarget == null)
+        {
+            ResetInternal();
+            return BTStatus.Failure; 
+        }
 
         if (monk.currentTarget != null)
         {

@@ -141,6 +141,7 @@ public static class SoundNames
 {
     public const string DayTheme = "DayTheme";
     public const string NightTheme = "NightTheme";
+    public const string BattleTheme = "BattleTheme";
     public const string VictoryTheme = "VictoryTheme";
     public const string GameOverTheme = "GameOverTheme";
     public const string MainMenuTheme = "MainMenuTheme";
@@ -162,6 +163,5 @@ public static class SoundNames
     public const string SfxSuccess = "SFX_Success";
     public const string SfxBuildConfirm = "SFX_BuildConfirm";
     public const string SfxWarning = "SFX_Warning";
-    public const string BGM_Playing = "BGM_Playing";
-    public const string SFX_CoinChanged = "SFX_CoinChanged";
+    public const string SfxTing = "SFX_Ting";
 }

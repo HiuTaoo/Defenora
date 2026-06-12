@@ -100,7 +100,6 @@ public class Warrior : Unit
                 //holdBorderSequence,
                 chaseSequence,
                 searchLastSeenPositionSequence
-                //, new WarriorDefendNode(warrior)
             )
         );
 
@@ -116,8 +115,6 @@ public class Warrior : Unit
         );
         
         var root = new SelectorNode(
-            //death sequence,
-            //hurt/stun sequence,
             raidCampaignSequence,
             combatBranch,
             responseBranchWithGuard,
@@ -367,7 +364,7 @@ public class Warrior : Unit
     }
         
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    /*private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
@@ -388,7 +385,7 @@ public class Warrior : Unit
         
         DrawVisionCone();
         DrawAttackCone();
-    }
+    }*/
     private void DrawVisionCone()
     {
         Vector3 origin = transform.position;

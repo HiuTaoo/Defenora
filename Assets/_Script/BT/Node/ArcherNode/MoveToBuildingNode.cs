@@ -54,8 +54,6 @@ public class MoveToBuildingNode : BTActionNode
 
         if (!archer.characterMovement.moving)
         {
-            Debug.Log(
-                $"[🏰 RETURN HOME] ✨ {archer.gameObject.name} đã hành quân quay trở về tháp gác {archer.assignedBuilding.gameObject.name} an toàn!");
             ResetMoveState();
             return BTStatus.Success;
         }

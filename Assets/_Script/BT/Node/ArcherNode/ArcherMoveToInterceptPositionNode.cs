@@ -76,8 +76,6 @@ public class ArcherMoveToInterceptPositionNode : BTActionNode
 
         if (hasStartedMove && !archer.characterMovement.moving)
         {
-            Debug.Log(
-                $"[{archer.gameObject.name}] 🛡️ Đã hành quân ra điểm nóng trinh sát, thực tế trống trải. Tự động gạt cờ giải tán báo động.");
             ClearAlarmState();
             ResetNode();
             return BTStatus.Success;

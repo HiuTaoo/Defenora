@@ -198,7 +198,7 @@ MonoBehaviour:
   speed: 3
   arcHeight: 2
   rotationSpeed: 720
-  explosionRadius: 1
+  explosionRadius: 0.5
 --- !u!1 &5855380103440440949
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,7 @@ namespace _Script.ItemScript
         public float lifeTime = 3f;
 
         [Tooltip("Thời gian chờ bốc hơi sau khi cắm vào mục tiêu")]
-        public float hitDelay = 0.1f; // Tăng nhẹ lên một chút để kịp diễn hoạt ảnh nếu có
+        public float hitDelay = 0.1f; 
         
         private Vector2 direction;
         private float hitTimer;
@@ -19,18 +19,16 @@ namespace _Script.ItemScript
         private float lifeTimer;
 
         private Collider2D projectileCollider;
-        private int combinedTargetLayerMask; // Gom layer mask cố định để tối ưu
+        private int combinedTargetLayerMask; 
 
         private void Awake()
         {
             projectileCollider = GetComponent<Collider2D>();
-            // Bổ sung đầy đủ các Layer có thể chặn mũi tên vào đây
             combinedTargetLayerMask = LayerMask.GetMask("NPC", "SpawnPoint");
         }
 
         private void Update()
         {
-            // Nếu đã trúng mục tiêu, CHỈ chạy đếm ngược thời gian biến mất, tuyệt đối KHÔNG di chuyển hay quét sát thương nữa
             if (isHit)
             {
                 HandleHitState();
@@ -93,11 +91,8 @@ namespace _Script.ItemScript
 
                 if (hit.collider.CompareTag("NPC"))
                 {
-                    return;
                 }
-
-                if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Animal") ||
-                    hit.collider.CompareTag("SpawnPoint"))
+                else if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Animal") || hit.collider.CompareTag("SpawnPoint"))
                 {
                     transform.position = hit.point;
                     lastPosition = hit.point;
@@ -106,7 +101,6 @@ namespace _Script.ItemScript
                     return; 
                 }
             }
-
             transform.position = end;
             lastPosition = end;
         }

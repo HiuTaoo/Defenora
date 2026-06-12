@@ -58,34 +58,6 @@ public class Lancer : Unit
 
     #region Behaviour Tree
 
-    /*private BehaviourTree CreateBehaviourTree(Lancer lancer)
-    {
-        var idleSequence = new SequenceNode(
-            new LancerHasNoEnemyInSight(lancer),
-            new LancerFindNextPatrolPositionNode(lancer),
-            new LancerMoveToNextPatrolPositionNode(lancer),
-            new WaitNode(lancer));
-
-        var attackSequence = new SequenceNode(
-            new LancerIsEnemyInAttackRangeNode(lancer),
-            new LancerAttackNode(lancer));
-        
-        var combatSequence = new SequenceNode(
-            new SelectorNode(
-                attackSequence,
-                new LancerDefendNode(lancer)
-            )
-        );
-        
-        var root = new SelectorNode(
-            new SequenceNode(
-                new LancerSelectTargetNode(lancer),
-                combatSequence
-            ),
-            idleSequence
-        );
-        return new BehaviourTree(root);
-    }*/
     
     private BehaviourTree CreateBehaviourTree(Lancer lancer)
     {
@@ -276,33 +248,31 @@ public class Lancer : Unit
         if (detectTimer >= detectInterval)
         {
             detectTimer = 0f;
-            var enemyLayer = -1;
+            var enemyLayerindex = -1;
 
             if (lancerBlackBoard.detectedEnemy != null)
-        {
-            var currentEnemy = lancerBlackBoard.detectedEnemy;
-            var targetHealth = currentEnemy.GetComponentInChildren<Health>();
-
-            if (!currentEnemy.activeInHierarchy || (targetHealth != null && targetHealth.IsDead))
             {
-                Debug.Log($"[{gameObject.name}] 🚨 Kẻ địch đã chết hoặc biến mất về Pool. Hủy trạng thái Aggro!");
+                var currentEnemy = lancerBlackBoard.detectedEnemy;
+                var targetHealth = currentEnemy.GetComponentInChildren<Health>();
 
-                lancerBlackBoard.detectedEnemy = null;
+                if (!currentEnemy.activeInHierarchy || (targetHealth != null && targetHealth.IsDead))
+                {
+                    lancerBlackBoard.detectedEnemy = null;
 
-                currentTarget = null;
-                isAlerted = false;
+                    currentTarget = null;
+                    isAlerted = false;
 
-                bt?.ClearState();
+                    bt?.ClearState();
+                }
             }
-        }
 
             if (lancerBlackBoard.detectedEnemy != null)
             {
-                enemyLayer = lancerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+                enemyLayerindex = lancerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
                 if (CheckEnemyStillInRange(lancerBlackBoard.detectedEnemy, viewDistance))
                 {
                     GlobalAlarmSystem.TriggerAlarm(lancerBlackBoard.detectedEnemy,
-                        lancerBlackBoard.detectedEnemy.transform.position, enemyLayer);
+                        lancerBlackBoard.detectedEnemy.transform.position, enemyLayerindex);
                     return;
                 }
             }
@@ -315,8 +285,8 @@ public class Lancer : Unit
             if (newTarget != null)
             {
                 lancerBlackBoard.detectedEnemy = newTarget;
-                enemyLayer = lancerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
-                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position, enemyLayer);
+                enemyLayerindex = lancerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+                GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position, enemyLayerindex);
             }
         }
     }
@@ -409,7 +379,7 @@ public class Lancer : Unit
     #endregion
     
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    /*private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
@@ -430,7 +400,7 @@ public class Lancer : Unit
         
         DrawVisionCone();
         DrawAttackCone();
-    }
+    }*/
     private void DrawVisionCone()
     {
         Vector3 origin = transform.position;

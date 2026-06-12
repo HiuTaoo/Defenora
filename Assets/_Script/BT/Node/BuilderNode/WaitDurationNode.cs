@@ -22,13 +22,11 @@ namespace _Script.BT.Node.BuilderNode
                 startTime = Time.realtimeSinceStartup;
                 isWaiting = true;
         
-                // Chỉ cần dừng di chuyển và đưa trạng thái thể xác về Idle để đứng chờ
                 if (builder.characterMovement != null)
                 {
                     builder.characterMovement.StopMoving(); 
                 }
         
-                // CHỈ ĐỔI TRẠNG THÁI HOẠT ĐỘNG, KHÔNG GỌI ResetState() LÀM MẤT DATA KHÁC!
                 builder.currentState = UnitState.Idle;
                 builder.animState = AnimState.Idle;
                 builder.UpdateAnim();
@@ -38,8 +36,8 @@ namespace _Script.BT.Node.BuilderNode
 
             if (Time.realtimeSinceStartup - startTime >= duration)
             {
-                isWaiting = false; 
-                return BTStatus.Success; // Đợi xong xuôi, trả quyền điều khiển cho cây BT
+                isWaiting = false;
+                return BTStatus.Success; 
             }
 
             return BTStatus.Running;

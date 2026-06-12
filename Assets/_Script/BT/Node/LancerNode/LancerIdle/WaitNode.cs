@@ -15,6 +15,11 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
         public WaitNode(Unit unit) : base(unit)
         { }
 
+        public WaitNode(Unit unit, float duration) : base(unit)
+        {
+            waitDuration = duration;
+        }
+
         public override BTStatus Tick()
         {
             if (!isInitialized)
@@ -23,7 +28,12 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
                 flipTimer = 0f;
                 SetNextFlipTime();
                 isInitialized = true;
-                unit.animState = AnimState.Idle;
+
+                if (unit != null)
+                {
+                    unit.currentState = UnitState.Idle;
+                    unit.animState = AnimState.Idle;
+                }
             }
 
             waitTimer += Time.deltaTime;
@@ -31,7 +41,15 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
 
             if (flipTimer >= nextFlipTime)
             {
-                unit.UpdateFacing(-unit.transform.position);
+                if (unit != null)
+                {
+                    var currentXScaleDirection = unit.transform.localScale.x;
+
+                    var reverseDirection = currentXScaleDirection > 0 ? Vector3.left : Vector3.right;
+
+                    unit.UpdateFacing(reverseDirection);
+                }
+
                 flipTimer = 0f;
                 SetNextFlipTime();
             }
@@ -54,6 +72,5 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
         {
             nextFlipTime = Random.Range(1f, 5f);
         }
-        
     }
 }

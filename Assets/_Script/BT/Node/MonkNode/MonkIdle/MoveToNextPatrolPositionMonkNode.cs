@@ -32,18 +32,14 @@ namespace _Script.BT.Node.MonkNode.MonkIdle
                 if (allyHealth != null && allyHealth.CurrentHealth < allyHealth.maxHealth &&
                     allyHealth.CurrentHealth > 0)
                 {
-                    // 🚨 CÓ BIẾN: Đồng đội dính sát thương! Hủy lộ trình đi tuần ngay lập tức!
                     Debug.Log(
                         $"[{monk.gameObject.name}] 🚑 Phát hiện {hit.name} đang yếu máu khi đang đi tuần! Hủy tuần tra để đi hồi máu!");
                     FinishMove();
                     return
-                        BTStatus.Failure; // Trả về Failure để ngắt gãy Sequence hòa bình, ép Root Selector chuyển sang nhánh cứu thương
+                        BTStatus.Failure;
                 }
             }
 
-            // ------------------------------------------------------------------------
-            // LOGIC DI CHUYỂN BỘ HÀNH HÒA BÌNH CŨ CỦA ÔNG (Giữ nguyên vẹn mượt mà)
-            // ------------------------------------------------------------------------
             Vector3Int targetCell = monk.monkBlackBoard.patrolTarget;
             targetWorldPos = new Vector3(targetCell.x + 0.5f, targetCell.y + 0.5f, 0f);
 

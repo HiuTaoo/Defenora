@@ -35,10 +35,14 @@ public class RaidManager : MonoBehaviour
     private void HandlePlayerRaidCommand(GameObject targetObj, InteractButtonState state)
     {
         if (state == InteractButtonState.Attack && targetObj != null && targetObj.CompareTag("SpawnPoint"))
+        {
+            AudioManager.Instance.PlaySFX(SoundNames.SfxTing);
             LaunchRaid(targetObj);
+            AudioManager.Instance.PlayMusic(SoundNames.BattleTheme);
+        }
     }
 
-    public void LaunchRaid(GameObject spawnPointTarget)
+    private void LaunchRaid(GameObject spawnPointTarget)
     {
         activeRaidTarget = spawnPointTarget;
         isAssembleComplete = false;
@@ -113,7 +117,7 @@ public class RaidManager : MonoBehaviour
                 $"[Raid System] 👑 Chọn [{leaderUnit.unitType}] {leaderUnit.unitName} làm Trung tâm tập kết! Toàn quân bắt đầu tìm đường hội quân...");
     }
 
-    public void CheckAssembleProgress()
+    private void CheckAssembleProgress()
     {
         if (isAssembleComplete || leaderUnit == null) return;
 
@@ -130,7 +134,8 @@ public class RaidManager : MonoBehaviour
         }
 
         var arrivedCount = 0;
-        var assembleRadius = 2.5f;
+
+        var assembleRadius = 3.0f; 
 
         foreach (var unit in currentAliveUnits)
             if (unit == leaderUnit || Vector2.Distance(unit.transform.position, leaderUnit.transform.position) <=
@@ -138,7 +143,8 @@ public class RaidManager : MonoBehaviour
                 arrivedCount++;
 
         var assembleRatio = (float)arrivedCount / currentAliveUnits.Count;
-        var requiredRatio = 1f;
+
+        var requiredRatio = 0.85f; 
 
         if (assembleRatio >= requiredRatio)
         {
@@ -150,11 +156,10 @@ public class RaidManager : MonoBehaviour
         }
     }
 
-    public void TerminateCurrentRaid()
+    private void TerminateCurrentRaid()
     {
-        Debug.LogWarning(
-            "[Raid System] 💥 Phát hiện Cổng quái đã bị phá hủy hoặc thu hồi về Pool! Tiến hành giải tán chiến dịch Raid...");
-
+        PlayTheme();
+  
         foreach (var unit in raidSubscribedUnits)
         {
             if (unit == null || !unit.gameObject.activeInHierarchy) continue;
@@ -183,6 +188,14 @@ public class RaidManager : MonoBehaviour
         leaderUnit = null;
         isAssembleComplete = false;
         raidSubscribedUnits.Clear();
+    }
+
+    private void PlayTheme()
+    {
+        if(TimeOfDaySystem.Instance.IsNightTime())
+            AudioManager.Instance.PlayMusic(SoundNames.NightTheme);
+        else
+            AudioManager.Instance.PlayMusic(SoundNames.DayTheme);
     }
 
     private void Update()

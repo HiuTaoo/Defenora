@@ -222,8 +222,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 654229}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -99.90282, y: 9.20454, z: 1.6836551}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9222,6 +9222,8 @@ MonoBehaviour:
     type: 3}
   healEffectPrefab: {fileID: 7192455100553882867, guid: f6522e39dea506f48b264ea176d5842c,
     type: 3}
+  explodeEffectPrefab: {fileID: 3669596223533130403, guid: cb5e1c6dc526b4c4b8984d6cd0ef23ad,
+    type: 3}
   treePrefabs:
   - {fileID: 5697450924608689214, guid: 7c2fe03ab850967418e7136975dfb126, type: 3}
   - {fileID: 5276064107349130557, guid: 2529afe1a7cb22248bc4d6412437fcf7, type: 3}
@@ -11022,6 +11024,9 @@ MonoBehaviour:
   - prefab: {fileID: 2377145582588641821, guid: 83751d64cfe56d346a0a9a838b40766b,
       type: 3}
     prewarmCount: 5
+  - prefab: {fileID: 3669596223533130403, guid: cb5e1c6dc526b4c4b8984d6cd0ef23ad,
+      type: 3}
+    prewarmCount: 10
 --- !u!4 &1820596698
 Transform:
   m_ObjectHideFlags: 0
@@ -11030,8 +11035,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1820596696}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -99.90282, y: 9.204541, z: 1.6836551}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

@@ -72,9 +72,7 @@ public class Monk : Unit
             new RaidCampaignExecutionNode(monk),
             new MonkRaidCombatActionNode(monk)
         );
-        // =================================================================
-        // 🚑 PHÂN HỆ CẤP CỨU ĐỒNG ĐỘI (ƯU TIÊN TỐI CAO)
-        // =================================================================
+        
         var healAllySequence = new SequenceNode(
             new IsAllyNeedHealNode(monk),
             new SelectorNode(
@@ -83,9 +81,6 @@ public class Monk : Unit
             )
         );
 
-        // =================================================================
-        // 🌲 PHÂN HỆ ĐI DẠO HÒA BÌNH (MOBILE IDLE)
-        // =================================================================
         var idleSequence = new SequenceNode(
             new IsIdleMonkNode(monk),
             new FindNextPatrolPositionMonkNode(monk),
@@ -193,9 +188,7 @@ public class Monk : Unit
                 }
                 else
                 {
-                    Debug.Log($"[🧘 MONK SENSOR] 🛡️ Sạch bóng quân thù trong tầm rada! Tự động hạ cờ báo động khẩn cấp.");
-                    
-                    isAlerted = false; // Hạ cờ an toàn!
+                    isAlerted = false; 
                     lastSeenPosition = Vector2.zero;
                     lastSeenLayerIndex = -1;
                     monkBlackBoard.detectedEnemy = null;
@@ -210,7 +203,7 @@ public class Monk : Unit
     #endregion
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    /*private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, viewDistance);
@@ -227,7 +220,7 @@ public class Monk : Unit
         }
 
         DrawVisionCone();
-    }
+    }*/
 
     private void DrawVisionCone()
     {

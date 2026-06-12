@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using _Script.Object_Pooling;
 using _Script.Unit_Management_System.HealthComponent;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -163,6 +164,8 @@ public class SpawnPoint : MonoBehaviour, IPoolable
             SpawnManager.Instance.spawnPoints.Remove(this);
 
         SpawnManager.Instance.RemoveSpawnPoint(this);
+        PoolManager.Instance.Spawn(PrefabConfig.Instance.explodeEffectPrefab, transform.position, Quaternion.identity);
+        AudioManager.Instance.PlaySFX(SoundNames.SfxExplode);
         PoolManager.Instance.Despawn(gameObject);
     }
 

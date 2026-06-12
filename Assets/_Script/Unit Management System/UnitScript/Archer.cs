@@ -46,10 +46,29 @@ public class Archer : Unit
     {
         base.Awake();
         unitType = UnitType.Archer;
-        attackRange = viewDistance;
+        
+        SyncAttackRangeWithViewDistance();
 
         archerBlackBoard = new ArcherBlackBoard();
         bt = CreateBehaviourTree(this);
+    }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        SyncAttackRangeWithViewDistance();
+    }
+
+    private void SyncAttackRangeWithViewDistance()
+    {
+        if (unitStatsManager != null && unitStatsManager.GetBaseData() != null)
+        {
+            attackRange = viewDistance;
+        }
+        else
+        {
+            attackRange = viewDistance > 0 ? viewDistance : 5f; 
+        }
     }
 
     protected override void Update()
@@ -196,9 +215,6 @@ public class Archer : Unit
             freeWandererPeacefulSelector 
         );
 
-        // =================================================================
-        // 🌳 TRỤC ĐIỀU PHỐI GỐC (ROOT TREE) TỐI CAO 
-        // =================================================================
         var root = new SelectorNode(
             raidCampaignSequence,
             stationedBranchSequence,
@@ -466,10 +482,10 @@ public class Archer : Unit
         firePoint.position = firePos;
     }
 
-    public void ResetAnim()
+    public override void ResetAnim()
     {
         archerBlackBoard.fireDirection = ArcherFireDirection.None;
-        animState = AnimState.Idle;
+        base.ResetAnim();
     }
 
     private void UpdateSensors()
@@ -478,17 +494,16 @@ public class Archer : Unit
         if (detectTimer >= detectInterval)
         {
             detectTimer = 0f;
-            var enemyLayer = -1;
 
             if (archerBlackBoard.detectedEnemy != null)
             {
                 if (CheckEnemyStillInRange(archerBlackBoard.detectedEnemy, viewDistance))
                 {
-                    enemyLayer = archerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+                    var enemyLayerIndex = archerBlackBoard.detectedEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
                     if (archerBlackBoard.detectedEnemy.CompareTag("Enemy"))
                         GlobalAlarmSystem.TriggerAlarm(archerBlackBoard.detectedEnemy,
                             archerBlackBoard.detectedEnemy.transform.position,
-                            enemyLayer);
+                            enemyLayerIndex);
                     return;
                 }
             }
@@ -526,8 +541,9 @@ public class Archer : Unit
     #endregion
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    /*private void OnDrawGizmos()
     {
+        // Bật lại OnDrawGizmos bằng attackRange mới đồng bộ để test trong Scene chuẩn xác hơn
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, attackRange);
 
@@ -543,7 +559,7 @@ public class Archer : Unit
         }
 
         DrawVisionCone();
-    }
+    }*/
 
     private void DrawVisionCone()
     {

@@ -19,15 +19,17 @@ public class RaidCampaignExecutionNode : BTActionNode
         }
 
         var targetGate = RaidManager.Instance.activeRaidTarget;
+
         if (!targetGate.activeInHierarchy)
         {
             ResetNode();
-            return BTStatus.Success;
+            return BTStatus.Success; 
         }
 
-        if (RaidManager.Instance.isAssembleComplete && currentState == RaidState.Assemble)
+        if (currentState == RaidState.Assemble && RaidManager.Instance.isAssembleComplete)
         {
             currentState = RaidState.March;
+            RaidManager.Instance.raidState = currentState;
             hasCalculatedPath = false;
             unit.StopMove();
         }
@@ -37,38 +39,23 @@ public class RaidCampaignExecutionNode : BTActionNode
             var distanceToGate = Vector2.Distance(unit.transform.position, targetGate.transform.position);
             var leader = RaidManager.Instance.leaderUnit;
 
-            var strategicStoppingDistance = unit.viewDistance;
+            if (unit.unitType == leader.unitType)
 
-            if (unit == leader)
-            {
-                strategicStoppingDistance = unit.attackRange > 0 ? unit.attackRange : 1.5f;
-            }
-            else
-            {
-                if (unit.unitType == UnitType.Warrior)
+                if (distanceToGate <= unit.viewDistance - 1f)
                 {
-                    strategicStoppingDistance = unit.attackRange > 0 ? unit.attackRange : 1.5f;
+                    unit.StopMove();
+                    ResetNode();
+                    return BTStatus.Success;
                 }
-                else if (unit.unitType == UnitType.Archer)
-                {
-                    strategicStoppingDistance = unit.attackRange * 0.85f;
-                }
-                else if (unit.unitType == UnitType.Monk)
-                {
-                    var archerRange = 5f;
-                    strategicStoppingDistance = archerRange + 2.0f;
-                }
-            }
 
-            if (distanceToGate <= strategicStoppingDistance)
-            {
-                unit.StopMove();
-                hasCalculatedPath = false;
-
-                return BTStatus.Success;
-            }
+            if (unit.unitType != leader.unitType)
+                if (distanceToGate <= leader.viewDistance + 1f)
+                {
+                    unit.StopMove();
+                    ResetNode();
+                    return BTStatus.Success;
+                }
         }
-
         switch (currentState)
         {
             case RaidState.Assemble:
@@ -76,11 +63,12 @@ public class RaidCampaignExecutionNode : BTActionNode
 
                 if (unit == RaidManager.Instance.leaderUnit)
                 {
-                    if (unit.characterMovement.moving) unit.StopMove();
+                    unit.StopMove();
                     unit.currentState = UnitState.Idle;
                     unit.animState = AnimState.Idle;
                 }
-                else
+
+                else // Lính thường, tìm đường đi bộ đến bám quanh người Trưởng đoàn
                 {
                     var distToLeader = Vector2.Distance(unit.transform.position,
                         RaidManager.Instance.leaderUnit.transform.position);
@@ -90,6 +78,7 @@ public class RaidCampaignExecutionNode : BTActionNode
                         if (!hasCalculatedPath || !unit.characterMovement.moving)
                         {
                             var leaderGrid = Vector3Int.FloorToInt(RaidManager.Instance.leaderUnit.transform.position);
+
                             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
                                 Vector3Int.FloorToInt(unit.transform.position), unit.layerIndex,
                                 leaderGrid, RaidManager.Instance.leaderUnit.layerIndex);
@@ -97,18 +86,19 @@ public class RaidCampaignExecutionNode : BTActionNode
                             if (path != null && path.segments.Count > 0)
                             {
                                 unit.MoveToTargetPosition(path);
+
                                 hasCalculatedPath = true;
                             }
                         }
                     }
-                    else
+
+                    else 
                     {
                         if (unit.characterMovement.moving) unit.StopMove();
                         unit.currentState = UnitState.Idle;
                         unit.animState = AnimState.Idle;
                     }
                 }
-
                 return BTStatus.Running;
 
             case RaidState.March:
@@ -121,10 +111,8 @@ public class RaidCampaignExecutionNode : BTActionNode
                         hasCalculatedPath = true;
                     }
                 }
-
                 return BTStatus.Running;
         }
-
         return BTStatus.Running;
     }
 
@@ -134,9 +122,11 @@ public class RaidCampaignExecutionNode : BTActionNode
         ResetNode();
     }
 
+
     private void ResetNode()
     {
         currentState = RaidState.Assemble;
         hasCalculatedPath = false;
     }
-}
+} 
+
