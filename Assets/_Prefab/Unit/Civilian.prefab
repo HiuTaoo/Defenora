@@ -254,6 +254,7 @@ MonoBehaviour:
   obstacleLayer: 0
   enemyLayer: 0
   results: []
+  animalResult: []
   currentTarget: {fileID: 0}
   currentTargetLayerIndex: 0
   lastSeenPosition: {x: 0, y: 0}
@@ -265,21 +266,21 @@ MonoBehaviour:
   detectInterval: 0.25
   hearRange: 15
   animFSM: {fileID: 0}
-  statsManager: {fileID: 0}
+  unitStatsManager: {fileID: 0}
   enemySpawnPoint: {fileID: 0}
   sortingYX: {fileID: 0}
   health: {fileID: 0}
-  unitStatsManager: {fileID: 0}
   spriteRenderer: {fileID: 0}
   characterMovement: {fileID: 0}
   floorAgent: {fileID: 0}
+  audioSource: {fileID: 0}
   attackRange: 0
-  attackCooldown: 1
   lastAttackTime: -999
   isKnockedBack: 0
   hitStunDuration: 0.1
   knockbackCooldown: 3
   viewAngle: 0
+  stuckCheckInterval: 5
 --- !u!1 &2470967106588221803
 GameObject:
   m_ObjectHideFlags: 0

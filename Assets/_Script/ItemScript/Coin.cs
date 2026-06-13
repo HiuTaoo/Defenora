@@ -75,32 +75,35 @@ public class Coin : MonoBehaviour, IPoolable
         var centerNode = GraphNode.Instance.GetNode(centerGridPos, targetLayerIndex);
         if (centerNode != null && centerNode.isWalkable) return centerGridPos;
 
+        Vector3Int bestCell = centerGridPos;
+        float minDistance = Mathf.Infinity;
+        bool foundValidCell = false;
+
         for (var radius = 1; radius <= maxSearchRadius; radius++)
         {
-            var bestCell = centerGridPos;
-            var minDistance = Mathf.Infinity;
-            var foundInThisRadius = false;
-
             for (var x = -radius; x <= radius; x++)
             {
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(x, radius, 0), targetLayerIndex, ref bestCell,
-                        ref minDistance)) foundInThisRadius = true;
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(x, -radius, 0), targetLayerIndex, ref bestCell,
-                        ref minDistance)) foundInThisRadius = true;
+                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(x, radius, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
+                    foundValidCell = true;
+                    
+                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(x, -radius, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
+                    foundValidCell = true;
             }
 
-            for (var y = -radius + 1; y < radius; y++)
+            for (var y = -radius; y <= radius; y++)
             {
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(radius, y, 0), targetLayerIndex, ref bestCell,
-                        ref minDistance)) foundInThisRadius = true;
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(-radius, y, 0), targetLayerIndex, ref bestCell,
-                        ref minDistance)) foundInThisRadius = true;
+                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(radius, y, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
+                    foundValidCell = true;
+                    
+                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(-radius, y, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
+                    foundValidCell = true;
             }
 
-            if (foundInThisRadius) return bestCell;
+            if (foundValidCell) 
+                return bestCell;
         }
 
-        return centerGridPos;
+        return foundValidCell ? bestCell : centerGridPos;
     }
 
     private bool CheckAndEvaluateNode(Vector3Int checkGridPos, int targetLayerIndex, ref Vector3Int bestCell,
