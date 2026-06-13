@@ -6,6 +6,7 @@
         {
             context.UIManager.HideAllUIs();
             context.UIManager.ShowStateUI(GameStateType.Win);
+            AudioManager.Instance.PlaySFX(SoundNames.SfxLevelWin);
             context.AudioManager.PlayMusic(SoundNames.VictoryTheme);
         }
 

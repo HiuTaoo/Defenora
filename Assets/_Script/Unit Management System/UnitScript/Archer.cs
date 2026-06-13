@@ -218,6 +218,7 @@ public class Archer : Unit
         var root = new SelectorNode(
             raidCampaignSequence,
             stationedBranchSequence,
+            detectedSequence,
             assignedBuildingBranchSequence,
             freeWandererTotalSelector      
         );
@@ -509,6 +510,7 @@ public class Archer : Unit
             }
 
             var dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+            
             var enemies = DetectEnemies(viewDistance, dir);
 
             var newTarget = SelectClosestTarget(enemies);
@@ -518,11 +520,25 @@ public class Archer : Unit
                 if (newTarget.CompareTag("Enemy"))
                 {
                     archerBlackBoard.detectedEnemy = newTarget;
-                    enemyLayer = newTarget.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
-                    GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position, enemyLayer);
-                }
 
-                archerBlackBoard.detectedEnemy = newTarget;
+                    currentTarget = newTarget.transform;
+                    currentTargetLayerIndex = newTarget.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+
+                    isAlerted = true;
+                    aggroTimer = aggroDuration;
+
+                    var targetFloorIndex = currentTargetLayerIndex;
+                    GlobalAlarmSystem.TriggerAlarm(newTarget, newTarget.transform.position, targetFloorIndex);
+
+                    bt?.ClearState();
+
+                    Debug.LogWarning(
+                        $"[🚨 SENSOR TRIGGER] Archer {gameObject.name} phát hiện quái [{newTarget.name}] theo hướng mặt. Đã gán Target và ép Reset cây BT!");
+                }
+                else
+                {
+                    archerBlackBoard.detectedEnemy = newTarget;
+                }
             }
         }
     }

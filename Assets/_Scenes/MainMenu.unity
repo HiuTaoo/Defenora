@@ -256,6 +256,8 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 85149c31940e8e347ad7760f226cef4d, type: 3}
   - key: VictoryTheme
     clip: {fileID: 8300000, guid: 3f83c4aefa456ff49938c418489fdb19, type: 3}
+  - key: BattleTheme
+    clip: {fileID: 8300000, guid: f5d55cad42dd48445ac4da7caf37d25c, type: 3}
   - key: GameOverTheme
     clip: {fileID: 8300000, guid: 28c6c4efd1efa4c4881ba5e1ee71ceda, type: 3}
   - key: MainMenuTheme
@@ -296,6 +298,8 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: ebf78bcb5e7d4484ab4a4b9b40f97532, type: 3}
   - key: SFX_Warning
     clip: {fileID: 8300000, guid: 1772ae91e0d01bf4a83a6c61d231f185, type: 3}
+  - key: SFX_Ting
+    clip: {fileID: 8300000, guid: d6997b1043282194892b851abea58db3, type: 3}
 --- !u!1001 &19599877
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -7,6 +7,7 @@ public class GameOverState : IGameState
         Debug.Log("You Lose");
         context.UIManager.HideAllUIs();
         context.UIManager.ShowStateUI(GameStateType.GameOver);
+        AudioManager.Instance.PlaySFX(SoundNames.SfxLevelLose);
         context.AudioManager.PlayMusic(SoundNames.GameOverTheme);
     }
 

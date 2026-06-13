@@ -2,11 +2,11 @@
 using System.Globalization;
 using _Script.BT;
 using _Script.BT.BlackBoard;
+using _Script.BT.GlobalAlarm;
 using _Script.BT.Node.LancerNode.LancerIdle;
 using _Script.BT.Node.MonkNode.MonkIdle;
 using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
-using UnityEditor;
 using UnityEngine;
 
 public class Monk : Unit
@@ -44,6 +44,8 @@ public class Monk : Unit
         }
     }
 
+    public bool isPanicking { get; set; }
+
     public MonkBlackBoard monkBlackBoard;
 
     protected override void Awake()
@@ -56,14 +58,42 @@ public class Monk : Unit
 
     protected override void Update()
     {
+        if (Mathf.Approximately(Time.timeScale, 0f))
+            return;
+
         base.Update();
-        UpdateSensors();
+
+        if (!isPanicking)
+        {
+            var facingDir = transform.localScale.x >= 0 ? Vector2.right : Vector2.left;
+
+            var enemiesSpotted = DetectEnemies(viewDistance, facingDir);
+
+            if (enemiesSpotted != null && enemiesSpotted.Count > 0)
+            {
+                var firstEnemy = enemiesSpotted[0];
+
+                Debug.LogWarning(
+                    $"[Sensor Update] 🚨 Monk {gameObject.name} nhìn thấy quái vật {firstEnemy.name}! Bật cờ hoảng loạn bỏ chạy!");
+
+                isPanicking = true;
+                characterMovement.RequestStopMoving();
+                bt?.ClearState();
+
+                monkBlackBoard.detectedEnemy = firstEnemy;
+
+                var enemyFloor = firstEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
+                GlobalAlarmSystem.TriggerAlarm(firstEnemy.gameObject, firstEnemy.transform.position, enemyFloor);
+            }
+        }
+
+        if (!isPanicking) CheckEnemyDirection();
+
         bt?.Tick();
         animFSM.ChangeState(currentState, animState);
-        CheckEnemyDirection();
     }
 
-    #region Behaviout Tree
+    #region Behaviour Tree
 
     private BehaviourTree CreateBehaviorTree(Monk monk)
     {
@@ -89,8 +119,9 @@ public class Monk : Unit
 
         var root = new SelectorNode(
             raidCampaignSequence,
+            new MonkPanicFleeActionNode(monk),
             healAllySequence,
-            idleSequence      
+            idleSequence                 
         );
         
         return new BehaviourTree(root);
@@ -164,65 +195,30 @@ public class Monk : Unit
     {
         currentState = UnitState.Idle;
         animState = AnimState.Idle;
+        isPanicking = false;
     }
-    
-    private void UpdateSensors()
+
+    protected override void HandleGlobalAlarm(GameObject enemy, Vector3 spottedPosition, int layerIndex)
     {
-        detectTimer += Time.deltaTime; 
-        if (detectTimer >= detectInterval) 
-        {
-            detectTimer = 0f;
+        if (isPanicking) return;
 
-            if (isAlerted)
-            {
-                var dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-                var enemies = DetectEnemies(viewDistance, dir);
+        if (Vector2.Distance(transform.position, spottedPosition) > hearRange) return;
 
-                var closestEnemy = SelectClosestTarget(enemies);
+        Debug.LogWarning(
+            $"[Global Alarm Event] 🚨 Monk {gameObject.name} nhận được báo động SOS! Có {enemy.name} tại {spottedPosition}! Bật cờ hoảng loạn bỏ chạy!");
 
-                if (closestEnemy != null)
-                {
-                    monkBlackBoard.detectedEnemy = closestEnemy;
-                    
-                    lastSeenPosition = closestEnemy.transform.position; 
-                }
-                else
-                {
-                    isAlerted = false; 
-                    lastSeenPosition = Vector2.zero;
-                    lastSeenLayerIndex = -1;
-                    monkBlackBoard.detectedEnemy = null;
-                    
-                    bt?.ClearState(); 
-                    ResetState();
-                }
-            }
-        }
+        isPanicking = true;
+        monkBlackBoard.detectedEnemy = enemy;
+
+        if (characterMovement != null) characterMovement.RequestStopMoving();
+
+        bt?.ClearState();
     }
 
     #endregion
 
 #if UNITY_EDITOR
-    /*private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, viewDistance);
-
-        if (monkBlackBoard == null)
-            return;
-
-        if (monkBlackBoard.detectedEnemy != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, monkBlackBoard.detectedEnemy.transform.position);
-
-            Gizmos.DrawSphere(monkBlackBoard.detectedEnemy.transform.position, 0.1f);
-        }
-
-        DrawVisionCone();
-    }*/
-
-    private void DrawVisionCone()
+    /*private void DrawVisionCone()
     {
         var origin = transform.position;
         var direction = transform.localScale.x > 0 ? Vector3.right : Vector3.left;
@@ -243,7 +239,6 @@ public class Monk : Unit
 
         Gizmos.DrawLine(origin, origin + leftBoundary * viewDistance);
         Gizmos.DrawLine(origin, origin + rightBoundary * viewDistance);
-    }
-
+    }*/
 #endif
 }

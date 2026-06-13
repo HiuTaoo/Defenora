@@ -29,14 +29,11 @@ public abstract class Animal : MonoBehaviour, IPoolable
     public float runSpeed = 5f;
     public float panicTime = 3f;
 
-    // ======================================================================
-    // 🟢 THÊM CẤU HÌNH HỆ THỐNG CHỐNG KẸT LƯỚI (UNSTUCK SYSTEM)
-    // ======================================================================
     [Header("Unstuck System")] [SerializeField]
-    private float stuckCheckInterval = 5.0f; // 5 giây quét kiểm tra 1 lần
+    private float stuckCheckInterval = 5.0f;
 
-    private Vector3 _lastPosition; // Lưu vị trí frame trước đó để đo khoảng cách
-    private float _stuckTimer; // Bộ đếm tích lũy thời gian kẹt đứng im
+    private Vector3 _lastPosition;
+    private float _stuckTimer;
 
     protected Coroutine panicCoroutine;
     protected System.Random random;
@@ -65,12 +62,11 @@ public abstract class Animal : MonoBehaviour, IPoolable
         }
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         currentHealth = health.CurrentHealth;
-        layerIndex = floorAgent.currentFloorIndex; // Luôn đồng bộ layer Index chính xác từ tầng đang đứng
+        layerIndex = floorAgent.currentFloorIndex;
 
-        // 🟢 Thực hiện quét chống kẹt liên tục mỗi frame
         HandleAnimalUnstuck();
     }
 

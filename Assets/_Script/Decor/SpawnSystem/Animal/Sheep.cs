@@ -15,6 +15,7 @@ public class Sheep : Animal
 
     protected void Update()
     {
+        base.Update();
         if (!isDangerous)
         {
             if (randomAnimationCoroutine == null)

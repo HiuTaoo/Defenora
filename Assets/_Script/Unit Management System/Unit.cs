@@ -26,7 +26,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
     [HideInInspector] public int enemyLayer;
 
-    [Header("Array Non Alloc")] [HideInInspector]
+    [Header("Array Non Alloc")] /* [HideInInspector]*/
     public Collider2D[] results;
 
     [HideInInspector] public Collider2D[] animalResult;
@@ -104,7 +104,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         enemyLayer = LayerMask.GetMask("NPC");
         obstacleLayer = LayerMask.GetMask("VisionBlocker");
-        results = new Collider2D[20];
+        results = new Collider2D[50];
 
         if (rb == null)
             rb = gameObject.AddComponent<Rigidbody2D>();
@@ -120,11 +120,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
         layerIndex = floorAgent.currentFloorIndex;
         currentHealth = health.CurrentHealth;
 
-        if (this is Archer archer)
-        {
-            if (archer.isStationed)
-                return;
-        }
+        if (this is Archer { isStationed: true }) return;
         HandleGridUnstuck();
     }
 
@@ -1291,4 +1287,5 @@ public abstract class Unit : MonoBehaviour, IPoolable
         _stuckTimer = 0f;
         bt?.ClearState();
     }
+
 }

@@ -164,4 +164,6 @@ public static class SoundNames
     public const string SfxBuildConfirm = "SFX_BuildConfirm";
     public const string SfxWarning = "SFX_Warning";
     public const string SfxTing = "SFX_Ting";
+    public const string SfxLevelWin = "SFX_LevelWin";
+    public const string SfxLevelLose = "SFX_LevelLose";
 }
