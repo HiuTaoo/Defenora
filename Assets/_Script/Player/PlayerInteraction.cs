@@ -93,29 +93,24 @@ public class PlayerInteraction : MonoBehaviour
     {
         currentObject = null;
 
-        #region Raycast Building 
-
+        #region Raycast Building
         if (GameManager.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
             direction = GameManager.Instance.gameContext.InputManager.GetMovementInput();
 
         if (direction != Vector2.zero)
         {
             Vector2 origin = transform.position;
-            
-            var rayDistance = interactionCollider.radius * 1.35f; 
-
+            var rayDistance = interactionCollider.radius * 1.35f;
             var hitCount = Physics2D.RaycastNonAlloc(origin, direction, raycastResults, rayDistance,
                 LayerMask.GetMask("Default"));
-
+            
             for (var i = 0; i < hitCount; i++)
             {
                 var hit = raycastResults[i];
-                
                 if (hit.collider != null && hit.collider.gameObject.CompareTag("Door"))
                 {
                     currentObject = hit.collider.transform.parent?.gameObject ?? hit.collider.gameObject;
                     LookUpLayerIndex();
-                    
                     if (layerIndex == playerLayerIndex)
                     {
                         interactButtonScript.ChangeInteractButtonState(InteractButtonState.Enter);
@@ -129,7 +124,6 @@ public class PlayerInteraction : MonoBehaviour
                 }
             }
         }
-
         #endregion
 
         #region Raycast Other Objects

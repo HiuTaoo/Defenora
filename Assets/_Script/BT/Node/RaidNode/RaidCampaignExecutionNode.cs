@@ -97,16 +97,9 @@ public class RaidCampaignExecutionNode : BTActionNode
                     {
                         if (!hasCalculatedPath || !unit.characterMovement.moving)
                         {
-                            // ❌ XÓA DÒNG CŨ: var rawLeaderGrid = Vector3Int.FloorToInt(leader.transform.position);
-                            
-                            //  SỬA THÀNH: Sử dụng hàm quy đổi Grid chuẩn của hệ thống để không bị lỗi số âm
-                            // Nếu trong dự án của bạn dùng ObjectSpawner.Instance.WorldToGrid thì thay vào đây:
-                            Vector3Int rawLeaderGrid = Vector3Int.FloorToInt(leader.transform.position);
-                            
-                            // Nếu hệ thống tìm đường có hàm quy đổi riêng, hãy dùng hàm đó để triệt tiêu việc FloorToInt sai số âm:
-                            // Ví dụ: Vector3Int rawLeaderGrid = GraphNode.Instance.WorldToGridPos(leader.transform.position);
-
-                            Vector3Int startGrid = Vector3Int.FloorToInt(unit.transform.position);
+                            var rawLeaderGrid =
+                                GraphNode.Instance.WorldToGridPos(leader.transform.position, leader.layerIndex);
+                            var startGrid = GraphNode.Instance.WorldToGridPos(unit.transform.position, unit.layerIndex);
 
                             Vector3Int targetAssembleGrid = unit.FindAdjacentWalkableCell(rawLeaderGrid, leader.layerIndex);
 
@@ -121,11 +114,9 @@ public class RaidCampaignExecutionNode : BTActionNode
                             }
                             else
                             {
-                                // Sửa lại chuỗi cách viết string Log để không bị dính ký tự sát nhau gây nhìn nhầm thành dấu trừ
                                 Debug.LogError($"[Raid Path Error] [{unit.gameObject.name}] KHÔNG TÌM THẤY ĐƯỜNG TẬP KẾT! " +
-                                               $"| Start: {startGrid} (Layer {unit.layerIndex}) " +
-                                               $"| Target (Leader): {targetAssembleGrid} (Layer {leader.layerIndex})");
-                                
+                                               $"| Start Grid: {startGrid} (Layer {unit.layerIndex}) " +
+                                               $"| Target (Leader Grid): {targetAssembleGrid} (Layer {leader.layerIndex})");
                                 hasCalculatedPath = false; 
                             }
                         }

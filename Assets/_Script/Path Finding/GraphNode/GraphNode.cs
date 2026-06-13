@@ -390,6 +390,24 @@ public class GraphNode : MonoBehaviour
 
     #region Method
 
+    /// <summary>
+    ///     Quy đổi tọa độ thế giới (World Position) sang tọa độ ô lưới (Grid Position) chuẩn xác theo cấu trúc Tilemap của
+    ///     tầng.
+    /// </summary>
+    public Vector3Int WorldToGridPos(Vector3 worldPos, int layerIndex)
+    {
+        if (layerIndex >= 0 && layerIndex < layerDatas.Length)
+        {
+            var layerData = layerDatas[layerIndex];
+            if (layerData.walkableTilemap != null && layerData.walkableTilemap.Length > 0)
+            {
+                var targetTilemap = layerData.walkableTilemap[0];
+                if (targetTilemap != null) return targetTilemap.WorldToCell(worldPos);
+            }
+        }
+
+        return new Vector3Int(Mathf.FloorToInt(worldPos.x), Mathf.FloorToInt(worldPos.y), 0);
+    }
     public Node GetRandomWalkableNode()
     {
         if (!isGraphBuilt || layerGraphs.Count == 0)

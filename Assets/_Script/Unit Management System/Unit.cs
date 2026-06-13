@@ -410,7 +410,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
         var currentGridPos = Vector3Int.FloorToInt(transform.position);
         currentGridPos.z = 0;
 
-        // Front direction cố định
         var frontDir = new Vector3Int(0, -1, 0);
 
         var bestCost = float.MaxValue;
@@ -420,7 +419,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
         {
             var localCell = new Vector3Int(cell.x, cell.y, 0);
 
-            // Tính cell phía trước
             var frontOffset = localCell + frontDir;
 
             var frontWorld = targetWorld + frontOffset;
