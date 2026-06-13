@@ -46,11 +46,19 @@ namespace _Script.BT.Node.BuilderNode.Idle
                     ExecuteMovementToTarget();
                 }
 
-                Vector3Int currentGridPos = Vector3Int.FloorToInt(builder.transform.position);
+                var currentGridPos = GraphNode.Instance.WorldToGridPos(builder.transform.position,
+                    builder.floorAgent._currentFloorIndex);
+                
                 if (currentGridPos == targetGridPos)
                 {
                     ClearState();
                     return BTStatus.Success; 
+                }
+
+                if (!builder.characterMovement.moving)
+                {
+                    ClearState();
+                    return BTStatus.Failure;
                 }
 
                 return BTStatus.Running; 
@@ -61,8 +69,13 @@ namespace _Script.BT.Node.BuilderNode.Idle
 
         private bool EvaluateNextItem()
         {
-            while (true)
+            var safetyCounter = 0;
+            const int maxSafetyRetries = 10;
+
+            while (safetyCounter < maxSafetyRetries)
             {
+                safetyCounter++;
+
                 targetItem = ItemManager.Instance.FindNearestItem(
                     builder.transform.position,
                     builder.floorAgent._currentFloorIndex, builder
@@ -71,7 +84,9 @@ namespace _Script.BT.Node.BuilderNode.Idle
                 if (targetItem == null)
                     return false;
 
-                Vector3Int itemGridPos = Vector3Int.FloorToInt(targetItem.transform.position);
+                var itemGridPos =
+                    GraphNode.Instance.WorldToGridPos(targetItem.transform.position, targetItem.layerIndex);
+                
                 targetGridPos = builder.FindAdjacentWalkableCell(itemGridPos, targetItem.layerIndex);
 
                 if (!builder.CanCalculatePathToTarget(targetGridPos, targetItem.layerIndex))
@@ -83,6 +98,8 @@ namespace _Script.BT.Node.BuilderNode.Idle
                 targetItem.assignBuilder = builder;
                 return true;
             }
+
+            return false;
         }
 
         private void ExecuteMovementToTarget()

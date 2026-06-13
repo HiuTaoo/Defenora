@@ -55,7 +55,7 @@ namespace _Script.BT.Node.EnemyNode
 
             if (!hasStartedMove)
             {
-                var targetGridPos = Vector3Int.FloorToInt(goblin.currentTarget.position);
+                var targetGridPos = GraphNode.Instance.WorldToGridPos(goblin.currentTarget.position, goblin.layerIndex);
                 targetGridPos.z = 0;
 
                 PathFinding path = null;

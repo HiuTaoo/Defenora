@@ -45,10 +45,10 @@ public class ArcherMoveToInterceptPositionNode : BTActionNode
 
             var targetPos = buildingPos + vectorToEnemy.normalized * Mathf.Min(vectorToEnemy.magnitude, guardRadius);
             var targetLayer = building.layerIndex;
-            var baseTargetCell = Vector3Int.FloorToInt(targetPos);
+            var baseTargetCell = GraphNode.Instance.WorldToGridPos(targetPos, targetLayer);
             baseTargetCell.z = 0;
 
-            var startCell = Vector3Int.FloorToInt(archer.transform.position);
+            var startCell = GraphNode.Instance.WorldToGridPos(archer.transform.position, archer.layerIndex);
             startCell.z = 0;
 
             if (startCell == baseTargetCell)

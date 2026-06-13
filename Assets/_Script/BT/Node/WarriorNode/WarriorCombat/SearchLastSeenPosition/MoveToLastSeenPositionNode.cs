@@ -17,16 +17,17 @@ namespace _Script.BT.Node.unitNode.unitCombat.SearchLastSeenPosition
                 return BTStatus.Failure;
             }
 
-            Vector3Int targetCell = Vector3Int.FloorToInt(unit.lastSeenPosition);
+            var targetCell = GraphNode.Instance.WorldToGridPos(unit.lastSeenPosition, unit.lastSeenLayerIndex);
             targetCell.z = 0;
 
             targetWorldPos = new Vector3(targetCell.x + 0.5f, targetCell.y + 0.5f, 0f);
 
             if (!hasStartedMove)
             {
+                var pos = GraphNode.Instance.WorldToGridPos(unit.transform.position, unit.layerIndex);
                 var floorAgent = unit.GetComponentInChildren<FloorAgent>();
                 var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-                    Vector3Int.FloorToInt(unit.transform.position), 
+                    pos, 
                     floorAgent._currentFloorIndex
                     ,targetCell, 
                     unit.lastSeenLayerIndex);

@@ -16,10 +16,16 @@ public class ReachedLastSeenPositionNode : BTActionNode
 
     public override BTStatus Tick()
     {
-        Vector3Int targetCell = Vector3Int.FloorToInt(warrior.lastSeenPosition);
-        targetCell.z = 0;
-        var targetWorldPos = new Vector3(targetCell.x + 0.5f, targetCell.y + 0.5f, 0f);
-        
+        var targetCell = GraphNode.Instance.WorldToGridPos(warrior.lastSeenPosition, warrior.lastSeenLayerIndex);
+
+        var targetNode = GraphNode.Instance.GetNode(targetCell, warrior.lastSeenLayerIndex);
+        Vector3 targetWorldPos;
+
+        if (targetNode != null)
+            GraphNode.Instance.GetNodeWorldData(targetNode, out targetWorldPos, out _);
+        else
+            targetWorldPos = new Vector3(targetCell.x + 0.5f, targetCell.y + 0.5f, 0f);
+
         float dist = Vector2.Distance(
             warrior.transform.position,
             targetWorldPos
@@ -27,12 +33,13 @@ public class ReachedLastSeenPositionNode : BTActionNode
         
         if (!hasArrived)
         {
-            if (dist > 0.1f)
+            if (dist > 0.2f)
                 return BTStatus.Running;
 
             hasArrived = true;
             timer = 0f;
-            
+
+            warrior.StopMove();
             warrior.currentState = UnitState.Idle;
             warrior.animState = AnimState.Idle;
         }
@@ -42,10 +49,16 @@ public class ReachedLastSeenPositionNode : BTActionNode
         if (timer >= waitTime)
         {
             ResetNode();
-            return BTStatus.Success;
+            return BTStatus.Success; 
         }
 
         return BTStatus.Running;
+    }
+
+    public override void ClearState()
+    {
+        base.ClearState();
+        ResetNode();
     }
 
     private void ResetNode()

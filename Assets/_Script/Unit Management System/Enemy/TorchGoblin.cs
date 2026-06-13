@@ -122,36 +122,6 @@ namespace _Script.Unit_Management_System.Enemy
             enemyDirection = dir;
             animFSM.SetEnemyDirection(enemyDirection);
         }
-        
-        public bool IsInAttackPosition()
-        {
-            if (currentTarget == null) 
-                return false;
-
-            var buildingFP = currentTarget.GetComponent<ObjectFootprint>();
-            if (buildingFP == null) 
-                return false;
-
-            Vector3Int targetGridPos = Vector3Int.FloorToInt(currentTarget.transform.position);
-            targetGridPos.z = 0;
-
-            Vector3Int currentGridPos = Vector3Int.FloorToInt(transform.position);
-            currentGridPos.z = 0;
-
-            var attackOffsets = BuildOrthogonalPerimeterOffsets(buildingFP);
-
-            foreach (var offset in attackOffsets)
-            {
-                Vector3Int validAttackPos = targetGridPos + offset;
-                validAttackPos.z = 0; 
-
-                if (currentGridPos == validAttackPos)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
 
         private void UpdateFaceToTarget()
         {

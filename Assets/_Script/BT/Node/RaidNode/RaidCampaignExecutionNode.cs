@@ -135,7 +135,7 @@ public class RaidCampaignExecutionNode : BTActionNode
                 {
                     var spawnPoint = targetGate.GetComponent<SpawnPoint>();
                     int gateLayer = spawnPoint != null ? spawnPoint.layerIndex : 0;
-                    Vector3Int startGrid = Vector3Int.FloorToInt(unit.transform.position);
+                    var startGrid = GraphNode.Instance.WorldToGridPos(unit.transform.position, unit.layerIndex);
 
                     var marchPath = unit.FindBestPathToTarget(targetGate, gateLayer);
                     if (marchPath != null && marchPath.segments.Count > 0)
@@ -146,7 +146,7 @@ public class RaidCampaignExecutionNode : BTActionNode
                     else
                     {
                         // 🔥 ADD LOG: Báo lỗi khi không tìm thấy đường hành quân đến Cổng quái
-                        Vector3Int gateGrid = Vector3Int.FloorToInt(targetGate.transform.position);
+                        var gateGrid = GraphNode.Instance.WorldToGridPos(targetGate.transform.position, gateLayer);
                         Debug.LogError($"[Raid Path Error] [{unit.gameObject.name}] KHÔNG TÌM THẤY ĐƯỜNG HÀNH QUÂN (March)! " +
                                        $"➔ Start: {startGrid} (Layer {unit.layerIndex}) " +
                                        $"➔ Target (Gate): {gateGrid} (Layer {gateLayer})");

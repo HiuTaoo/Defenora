@@ -24,8 +24,10 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
                 if (targetBuilding == null) return BTStatus.Failure;
             }
 
+            var buildingPos =
+                GraphNode.Instance.WorldToGridPos(targetBuilding.transform.position, targetBuilding.layerIndex);
             var nextPosition = lancer.FindPatrolPosition(
-                Vector3Int.FloorToInt(targetBuilding.transform.position),
+                buildingPos,
                 lancer.minRadius,
                 lancer.maxRadius,
                 targetBuilding.layerIndex
@@ -36,8 +38,8 @@ namespace _Script.BT.Node.LancerNode.LancerIdle
 
             lancer.lancerBlackBoard.patrolTarget = nextPosition;
 
-            var startPosition = lancer.transform.position;
-            var worldPosition = Vector3Int.FloorToInt(startPosition);
+            var startPosition = GraphNode.Instance.WorldToGridPos(lancer.transform.position, lancer.layerIndex);
+            var worldPosition = startPosition;
             worldPosition.z = 0;
 
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(

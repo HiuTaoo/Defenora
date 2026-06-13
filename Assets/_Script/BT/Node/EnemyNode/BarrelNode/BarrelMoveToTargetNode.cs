@@ -1,6 +1,4 @@
-﻿using _Script.BT.Node.EnemyNode.unitNode;
-using _Script.Enum;
-using _Script.Unit_Management_System.Enemy;
+﻿using _Script.Unit_Management_System.Enemy;
 using UnityEngine;
 
 namespace _Script.BT.Node.EnemyNode.BarrelNode
@@ -69,7 +67,7 @@ namespace _Script.BT.Node.EnemyNode.BarrelNode
 
             if (!hasStartedMove)
             {
-                var targetGridPos = Vector3Int.FloorToInt(barrel.currentTarget.position);
+                var targetGridPos = GraphNode.Instance.WorldToGridPos(barrel.currentTarget.position, barrel.layerIndex);
                 targetGridPos.z = 0;
 
                 PathFinding path = null;

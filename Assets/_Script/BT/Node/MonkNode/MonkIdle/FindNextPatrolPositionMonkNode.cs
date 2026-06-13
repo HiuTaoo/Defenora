@@ -23,8 +23,9 @@ namespace _Script.BT.Node.MonkNode.MonkIdle
                 if (targetBuilding == null) return BTStatus.Failure;
             }
 
+            var pos = GraphNode.Instance.WorldToGridPos(targetBuilding.transform.position, targetBuilding.layerIndex);
             var nextPosition = monk.FindPatrolPosition(
-                Vector3Int.FloorToInt(targetBuilding.transform.position),
+                pos,
                 1, 2,
                 targetBuilding.layerIndex
             ); 
@@ -34,8 +35,8 @@ namespace _Script.BT.Node.MonkNode.MonkIdle
 
             monk.monkBlackBoard.patrolTarget = nextPosition;
 
-            var startPosition = monk.transform.position;
-            var worldPosition = Vector3Int.FloorToInt(startPosition);
+            var startPosition = GraphNode.Instance.WorldToGridPos(monk.transform.position, monk.layerIndex);
+            var worldPosition = startPosition;
             worldPosition.z = 0;
 
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(

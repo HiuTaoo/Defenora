@@ -50,7 +50,7 @@ public class PanicFleeActionNode : BTActionNode
 
         if (!_hasDestination || (builder.characterMovement != null && !builder.characterMovement.moving))
         {
-            var currentGridPos = Vector3Int.FloorToInt(builder.transform.position);
+            var currentGridPos = GraphNode.Instance.WorldToGridPos(builder.transform.position, builder.layerIndex);
             var randomOffset = new Vector3Int(Random.Range(-4, 5), Random.Range(-4, 5), 0);
             var targetGridPos = currentGridPos + randomOffset;
 

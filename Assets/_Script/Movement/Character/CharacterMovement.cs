@@ -52,8 +52,6 @@ public class CharacterMovement : MonoBehaviour
 
         Vector3 mouseWorldPos = cam.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos.z = 0;
-        Vector3Int targetPosition = Vector3Int.FloorToInt(mouseWorldPos);
-        targetPosition.z = 0;
 
         if (GraphNode.Instance == null)
         {
@@ -65,13 +63,18 @@ public class CharacterMovement : MonoBehaviour
         int layer = 0;
         bool canMove = false;
 
+        var targetPosition = Vector3Int.zero;
+
         for (int i = layerCount - 1; i >= 0; i--)
         {
+            var calculatedGrid = GraphNode.Instance.WorldToGridPos(mouseWorldPos, i);
+            
             var graph = GraphNode.Instance.layerGraphs[i];
-            if (graph.nodes.TryGetValue(targetPosition, out Node node))
+            if (graph.nodes.TryGetValue(calculatedGrid, out var node))
             {
                 if (node != null && node.isWalkable)
                 {
+                    targetPosition = calculatedGrid;
                     layer = i;
                     canMove = true;
                     break;
@@ -85,15 +88,13 @@ public class CharacterMovement : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"Không tìm thấy vị trí hợp lệ để di chuyển tới: {targetPosition}");
+            Debug.LogWarning($"Không tìm thấy vị trí hợp lệ để di chuyển tới tại tọa độ thế giới: {mouseWorldPos}");
         }
     }
 
     public void MoveToPosition(Vector3Int position, int layer)
     {
-        Vector3 worldPosition = transform.position;
-        Vector3Int gridPosition = Vector3Int.FloorToInt(worldPosition);
-        gridPosition.z = 0;
+        var gridPosition = GraphNode.Instance.WorldToGridPos(transform.position, floorAgent.currentFloorIndex);
 
         currentPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(gridPosition, floorAgent.currentFloorIndex, position, layer);
 

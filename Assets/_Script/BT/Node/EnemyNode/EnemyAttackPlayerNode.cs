@@ -26,7 +26,7 @@ namespace _Script.BT.Node.EnemyNode
             {
                 if (unit.characterMovement != null && unit.characterMovement.moving)
                 {
-                    unit.characterMovement.RequestStopMoving();
+                    unit.StopMove();
                     var rb2d = unit.GetComponent<Rigidbody2D>();
                     if (rb2d != null) rb2d.velocity = Vector2.zero;
                 }
@@ -57,8 +57,8 @@ namespace _Script.BT.Node.EnemyNode
                 return BTStatus.Running;
             }
 
-            var playerGridPos = Vector3Int.FloorToInt(unit.currentTarget.position);
-            playerGridPos.z = 0;
+            var playerGridPos =
+                GraphNode.Instance.WorldToGridPos(unit.currentTarget.position, unit.currentTargetLayerIndex);
 
             var isPlayerFledFar = Vector3Int.Distance(playerGridPos, lastTargetGridPos) > 2;
 
@@ -74,6 +74,10 @@ namespace _Script.BT.Node.EnemyNode
                     unit.animState = AnimState.Moving;
                     unit.MoveToTargetPosition(path);
                     hasStartedMove = true;
+                }
+                else
+                {
+                    hasStartedMove = false;
                 }
 
                 return BTStatus.Running;
@@ -96,7 +100,7 @@ namespace _Script.BT.Node.EnemyNode
             lastTargetGridPos = new Vector3Int(-999, -999, -999);
 
             unit.EndAttackSignal();
-            if (unit.characterMovement != null) unit.characterMovement.RequestStopMoving();
+            if (unit.characterMovement != null) unit.StopMove(); 
             unit.currentState = UnitState.Idle;
             unit.animState = AnimState.Idle;
         }

@@ -48,10 +48,10 @@ public class MonkMoveToSafeRangeNode : BTActionNode
             float escapeDistance = building.range * 0.6f;
             Vector2 targetWorldPos = buildingPos + fleeDirection * escapeDistance;
 
-            _targetGridCell = Vector3Int.FloorToInt(targetWorldPos);
+            _targetGridCell = GraphNode.Instance.WorldToGridPos(targetWorldPos, building.layerIndex);
             _targetGridCell.z = 0;
 
-            var startGridCell = Vector3Int.FloorToInt(monk.transform.position);
+            var startGridCell = GraphNode.Instance.WorldToGridPos(monk.transform.position, monk.layerIndex);
             startGridCell.z = 0;
 
             if (startGridCell == _targetGridCell)

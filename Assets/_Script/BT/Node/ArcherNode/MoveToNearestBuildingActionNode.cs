@@ -56,7 +56,8 @@ namespace _Script.BT.Node.ArcherNode.ArcherIdle
 
                 archer.currentState = UnitState.Move;
                 archer.animState = AnimState.Moving;
-                archer.characterMovement.MoveToPosition(Vector3Int.FloorToInt(targetGridPos), targetLayer);
+                var pos = GraphNode.Instance.WorldToGridPos(targetGridPos, targetLayer);
+                archer.characterMovement.MoveToPosition(pos, targetLayer);
 
                 hasStartedMove = true;
                 return BTStatus.Running;

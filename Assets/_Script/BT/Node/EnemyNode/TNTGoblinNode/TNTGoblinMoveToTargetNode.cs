@@ -1,5 +1,4 @@
 ﻿using _Script.Unit_Management_System.Enemy;
-using UnityEngine;
 
 namespace _Script.BT.Node.EnemyNode.TNTtntGoblinNode
 {
@@ -53,7 +52,8 @@ namespace _Script.BT.Node.EnemyNode.TNTtntGoblinNode
 
             if (!hasStartedMove)
             {
-                var targetGridPos = Vector3Int.FloorToInt(tntGoblin.currentTarget.position);
+                var targetGridPos =
+                    GraphNode.Instance.WorldToGridPos(tntGoblin.currentTarget.position, tntGoblin.layerIndex);
                 targetGridPos.z = 0;
 
                 PathFinding path = null;

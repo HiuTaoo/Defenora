@@ -112,7 +112,6 @@ namespace _Script.ItemScript
             var isPlayer = target.CompareTag("Player");
             if (isPlayer)
                 HandlePlayerHit(target.transform.position);
-            
         }
 
         public void ResetProjectile()
@@ -132,8 +131,11 @@ namespace _Script.ItemScript
 
             var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, playerPosition,
                 Quaternion.identity);
+                
             if (coinObj != null && coinObj.TryGetComponent(out Coin coin))
+            {
                 coin.StartDrop(coinObj.transform.position, transform.position, CheckTargetLayer(transform.position));
+            }
         }
 
         private int CheckTargetLayer(Vector3 targetPosition)
@@ -143,8 +145,10 @@ namespace _Script.ItemScript
 
             for (var i = layerCount - 1; i >= 0; i--)
             {
+                var convertedGrid = GraphNode.Instance.WorldToGridPos(targetPosition, i);
+                
                 var graph = GraphNode.Instance.layerGraphs[i];
-                if (graph.nodes.TryGetValue(Vector3Int.FloorToInt(targetPosition), out var node))
+                if (graph.nodes.TryGetValue(convertedGrid, out var node))
                     if (node != null && node.isWalkable)
                     {
                         layer = i;

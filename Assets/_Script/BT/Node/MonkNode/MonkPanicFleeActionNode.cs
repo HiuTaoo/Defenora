@@ -116,7 +116,7 @@ public class MonkPanicFleeActionNode : BTActionNode
         {
             if (monk.isAttacking) monk.EndAttackSignal();
 
-            var currentGridPos = Vector3Int.FloorToInt(monk.transform.position);
+            var currentGridPos = GraphNode.Instance.WorldToGridPos(monk.transform.position, monk.layerIndex);
             var randomOffset = new Vector3Int(Random.Range(-4, 5), Random.Range(-4, 5), 0);
             var targetGridPos = currentGridPos + randomOffset;
 

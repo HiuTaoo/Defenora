@@ -1127,7 +1127,6 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         animalObj.transform.SetParent(decorObjectParent);
         animalObj.OverrideId(animalData.id);
 
-        // 1. Ép bật/tắt cẩn thận (Dọn sạch tàn dư của Object Pool)
         var animal = animalObj.GetComponent<Animal>();
         if (animal != null && animal.spriteRenderer != null) animal.spriteRenderer.enabled = !startHidden;
 
@@ -1145,7 +1144,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
             if (floorAgent != null) floorAgent.MoveToFloor(animalData.layerIndex);
         }
 
-        return new SpawnedAnimal(animalObj, Vector3Int.FloorToInt(animalData.currentPosition));
+        var calculatedGridPos = GraphNode.Instance.WorldToGridPos(animalObj.transform.position, animalData.layerIndex);
+
+        return new SpawnedAnimal(animalObj, calculatedGridPos);
     }
 
     #endregion

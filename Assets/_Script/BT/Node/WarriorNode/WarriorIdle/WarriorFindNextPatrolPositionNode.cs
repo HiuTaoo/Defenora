@@ -24,8 +24,11 @@ namespace _Script.BT.Node.WarriorNode.WarriorIdle
                 if (targetBuilding == null) return BTStatus.Failure;
             }
 
+            var buildingGridPos =
+                GraphNode.Instance.WorldToGridPos(targetBuilding.transform.position, targetBuilding.layerIndex);
+
             var nextPosition = warrior.FindPatrolPosition(
-                Vector3Int.FloorToInt(targetBuilding.transform.position),
+                buildingGridPos,
                 1, 2,
                 targetBuilding.layerIndex
             );
@@ -35,12 +38,11 @@ namespace _Script.BT.Node.WarriorNode.WarriorIdle
 
             warrior.warriorBlackBoard.patrolTarget = nextPosition;
 
-            var startPosition = warrior.transform.position;
-            var worldPosition = Vector3Int.FloorToInt(startPosition);
-            worldPosition.z = 0;
+            var startGridPos =
+                GraphNode.Instance.WorldToGridPos(warrior.transform.position, warrior.floorAgent._currentFloorIndex);
 
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-                worldPosition, 
+                startGridPos, 
                 warrior.floorAgent._currentFloorIndex,
                 nextPosition,
                 targetBuilding.layerIndex

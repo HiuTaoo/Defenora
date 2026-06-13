@@ -147,9 +147,8 @@ public abstract class Unit : MonoBehaviour, IPoolable
             health.OnDie -= HandleDeath;
         }
 
-        if (unitStatsManager != null) unitStatsManager.OnLevelUp -= HandleLevelUp;
+        //if (unitStatsManager != null) unitStatsManager.OnDisable -= HandleLevelUp;
     }
-
 
     public abstract void UseSpecialAbility();
 
@@ -158,19 +157,12 @@ public abstract class Unit : MonoBehaviour, IPoolable
         return null;
     }
 
-    // =========================
-    // PATHFINDING
-    // =========================
-
     #region PATHFINDING
 
     private static readonly Vector3Int[] kDirs =
     {
         new(1, 0, 0),
         new(-1, 0, 0)
-        /*,
-        new Vector3Int( 0, 1, 0),
-        new Vector3Int( 0,-1, 0),*/
     };
 
     private static readonly Vector3Int[] OrthogonalDirs =
@@ -224,15 +216,14 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         var graph = GraphNode.Instance.layerGraphs[layerIndex];
         var fp = target.GetComponent<ObjectFootprint>();
-        var targetPosWorld = Vector3Int.FloorToInt(target.transform.position);
-        targetPosWorld.z = 0;
+
+        var targetPosWorld = GraphNode.Instance.WorldToGridPos(target.transform.position, layerIndex);
 
         var neighborOffsets = BuildOrthogonalPerimeterOffsets(fp);
         if (neighborOffsets == null || neighborOffsets.Count == 0)
             return null;
 
-        var currentGridPos = Vector3Int.FloorToInt(transform.position);
-        currentGridPos.z = 0;
+        var currentGridPos = GraphNode.Instance.WorldToGridPos(transform.position, floorAgent.currentFloorIndex);
 
         var sortedValidNeighbors = neighborOffsets
             .Select(off =>
@@ -281,15 +272,15 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         var graph = GraphNode.Instance.layerGraphs[task.layerIndex];
         var fp = task.targetGameObject.GetComponent<ObjectFootprint>();
-        var targetPosWorld = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
-        targetPosWorld.z = 0;
+
+        var targetPosWorld =
+            GraphNode.Instance.WorldToGridPos(task.targetGameObject.transform.position, task.layerIndex);
 
         var neighborOffsets = BuildPerimeterNeighborOffsets(fp);
         if (neighborOffsets == null || neighborOffsets.Count == 0)
             return null;
 
-        var currentGridPos = Vector3Int.FloorToInt(transform.position);
-        currentGridPos.z = 0;
+        var currentGridPos = GraphNode.Instance.WorldToGridPos(transform.position, floorAgent.currentFloorIndex);
 
         var bestCost = float.MaxValue;
         PathFinding bestPath = null;
@@ -301,9 +292,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
             if (!graph.nodes.TryGetValue(neighborWorld, out var node) || !node.isWalkable)
                 continue;
-            /*Debug.Log($"Start pos: {currentGridPos}, layer: {floorAgent.currentFloorIndex}");
-            Debug.Log($"End pos: {neighborWorld}, layer: {task.layerIndex}");
-            Debug.Log($"$Current task: {task.taskType}");*/
+
             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
                 currentGridPos, floorAgent.currentFloorIndex,
                 neighborWorld, task.layerIndex);
@@ -328,15 +317,14 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         var graph = GraphNode.Instance.layerGraphs[layerIndex];
         var fp = target.GetComponent<ObjectFootprint>();
-        var targetPosWorld = Vector3Int.FloorToInt(target.transform.position);
-        targetPosWorld.z = 0;
+
+        var targetPosWorld = GraphNode.Instance.WorldToGridPos(target.transform.position, layerIndex);
 
         var neighborOffsets = BuildPerimeterNeighborOffsets(fp);
         if (neighborOffsets == null || neighborOffsets.Count == 0)
             return null;
 
-        var currentGridPos = Vector3Int.FloorToInt(transform.position);
-        currentGridPos.z = 0;
+        var currentGridPos = GraphNode.Instance.WorldToGridPos(transform.position, floorAgent.currentFloorIndex);
 
         var bestCost = float.MaxValue;
         PathFinding bestPath = null;
@@ -373,13 +361,9 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         var graph = GraphNode.Instance.layerGraphs[layerIndex];
 
-        var targetGridPos = Vector3Int.FloorToInt(target.transform.position);
-        targetGridPos.z = 0;
+        var targetGridPos = GraphNode.Instance.WorldToGridPos(target.transform.position, layerIndex);
+        var currentGridPos = GraphNode.Instance.WorldToGridPos(transform.position, floorAgent.currentFloorIndex);
 
-        var currentGridPos = Vector3Int.FloorToInt(transform.position);
-        currentGridPos.z = 0;
-
-        // Kiểm tra ô target có tồn tại và đi được không
         if (!graph.nodes.TryGetValue(targetGridPos, out var targetNode) || !targetNode.isWalkable)
             return null;
 
@@ -404,11 +388,8 @@ public abstract class Unit : MonoBehaviour, IPoolable
         if (fp == null)
             return null;
 
-        var targetWorld = Vector3Int.FloorToInt(task.targetGameObject.transform.position);
-        targetWorld.z = 0;
-
-        var currentGridPos = Vector3Int.FloorToInt(transform.position);
-        currentGridPos.z = 0;
+        var targetWorld = GraphNode.Instance.WorldToGridPos(task.targetGameObject.transform.position, task.layerIndex);
+        var currentGridPos = GraphNode.Instance.WorldToGridPos(transform.position, floorAgent.currentFloorIndex);
 
         var frontDir = new Vector3Int(0, -1, 0);
 
@@ -483,9 +464,9 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
     #endregion
 
-    // =========================
-    // Method
-    // =========================
+    // =================================================================
+    // ⚙️ BASE UTILITY & LOGIC METHODS 
+    // =================================================================
 
     #region Method
 
@@ -648,9 +629,8 @@ public abstract class Unit : MonoBehaviour, IPoolable
         if (_stuckTimer >= stuckCheckInterval)
         {
             var currentLayer = layerIndex;
-            var gridX = Mathf.FloorToInt(transform.position.x);
-            var gridY = Mathf.FloorToInt(transform.position.y);
-            var currentGridPos = new Vector3Int(gridX, gridY, 0);
+
+            var currentGridPos = GraphNode.Instance.WorldToGridPos(transform.position, currentLayer);
 
             var currentNode = GraphNode.Instance.GetNode(currentGridPos, currentLayer);
 
@@ -726,10 +706,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
         }
     }
 
-    /// <summary>
-    ///     Reset toàn bộ các biến dữ liệu, mục tiêu và bộ đệm trạng thái về giá trị mặc định khi Unit được tái sinh.
-    ///     Tránh lỗi rác bộ nhớ hoặc giữ mục tiêu cũ khi lấy ra từ Object Pool.
-    /// </summary>
     public virtual void ResetUnitVariablesOnSpawn()
     {
         currentState = UnitState.Idle;
@@ -1077,7 +1053,7 @@ public abstract class Unit : MonoBehaviour, IPoolable
     }
 
     #endregion
-
+    
     #endregion
 
     #region Attack Flag
@@ -1267,9 +1243,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
     private void HandleLevelUp()
     {
-        // Ví dụ: Khi lên cấp thì cập nhật lại Max HP và bơm đầy máu
-        // health.SetMaxHealth(statsManager.MaxHealth);
-        // health.HealToFull();
     }
 
     public void Die()
@@ -1288,7 +1261,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
 
         damageEffectCoroutine = null;
     }
-
 
     private IEnumerator HitStunRoutine()
     {
@@ -1323,5 +1295,4 @@ public abstract class Unit : MonoBehaviour, IPoolable
         _stuckTimer = 0f;
         bt?.ClearState();
     }
-
 }

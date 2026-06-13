@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using _Script.BT.BlackBoard;
 
 namespace _Script.BT.Node.LancerNode.LancerIntercept
 {
@@ -41,10 +40,10 @@ namespace _Script.BT.Node.LancerNode.LancerIntercept
                 Vector2 clampedVector = Vector2.ClampMagnitude(vectorToEnemy, guardRadius);
                 Vector2 targetPos = buildingPos + clampedVector;
 
-                Vector3Int targetCell = Vector3Int.FloorToInt(targetPos);
+                var targetCell = GraphNode.Instance.WorldToGridPos(targetPos, lancer.layerIndex);
                 targetCell.z = 0;
-                
-                Vector3Int startCell = Vector3Int.FloorToInt(lancer.transform.position);
+
+                var startCell = GraphNode.Instance.WorldToGridPos(lancer.transform.position, lancer.layerIndex);
                 startCell.z = 0;
 
                 if (startCell == targetCell)

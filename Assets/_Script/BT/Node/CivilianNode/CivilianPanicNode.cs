@@ -40,7 +40,8 @@ namespace _Script.BT.Node.CivilianNode
                 {
                     Debug.Log(
                         $"[{civilian.gameObject.name}] 🛡️ Đã an toàn sau 5s chạy trốn. Tiến hành giải phóng cây BT!");
-                    civilian.characterMovement.RequestStopMoving();
+
+                    civilian.StopMove();
                     civilian.ResetState();
                     civilian.GetBT()?.ClearState();
 
@@ -54,7 +55,9 @@ namespace _Script.BT.Node.CivilianNode
 
             if (!_hasDestination || (civilian.characterMovement != null && !civilian.characterMovement.moving))
             {
-                var currentGridPos = Vector3Int.FloorToInt(civilian.transform.position);
+                var currentGridPos =
+                    GraphNode.Instance.WorldToGridPos(civilian.transform.position, civilian.layerIndex);
+                
                 var randomOffset = new Vector3Int(Random.Range(-4, 5), Random.Range(-4, 5), 0);
                 var targetGridPos = currentGridPos + randomOffset;
 
@@ -63,11 +66,15 @@ namespace _Script.BT.Node.CivilianNode
                 {
                     var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(currentGridPos, civilian.layerIndex,
                         targetGridPos, civilian.layerIndex);
+                        
                     if (path != null && path.segments.Count > 0)
                     {
-                        civilian.characterMovement.RequestStopMoving();
                         civilian.MoveToTargetPosition(path);
                         _hasDestination = true;
+                    }
+                    else
+                    {
+                        _hasDestination = false;
                     }
                 }
             }

@@ -721,8 +721,9 @@ public class Builder : Unit
     {
         if (GraphNode.Instance == null) return false;
 
+        var pos = GraphNode.Instance.WorldToGridPos(transform.position, layerIndex);
         var testPath = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-            Vector3Int.FloorToInt(transform.position),
+            pos,
             layerIndex,
             targetGridPos,
             targetLayerIndex

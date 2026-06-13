@@ -146,16 +146,16 @@ public class SelectUnitSystem : MonoBehaviour
 
     private void MoveByCell(Vector3 worldPos)
     {
-        float cellSize = 1f; 
+        var currentLayer = floorAgent != null ? floorAgent.currentFloorIndex : 0;
+        var gridPos = GraphNode.Instance.WorldToGridPos(worldPos, currentLayer);
 
-        int cellX = Mathf.FloorToInt(worldPos.x / cellSize);
-        int cellY = Mathf.FloorToInt(worldPos.y / cellSize);
+        var node = GraphNode.Instance.GetNode(gridPos, currentLayer);
+        Vector3 snappedPos;
 
-        Vector3 snappedPos = new Vector3(
-            (cellX + 0.5f) * cellSize,
-            (cellY + 0.5f) * cellSize,
-            0f
-        );
+        if (node != null && GraphNode.Instance.GetNodeWorldData(node, out var centerWorld, out _))
+            snappedPos = centerWorld;
+        else
+            snappedPos = new Vector3(gridPos.x + 0.5f, gridPos.y + 0.5f, 0f);
 
         selectedUnit.transform.position = snappedPos;
     }
@@ -242,8 +242,10 @@ public class SelectUnitSystem : MonoBehaviour
 
         for (int i = layerCount - 1; i >= 0; i--)
         {
+            var convertedGrid = GraphNode.Instance.WorldToGridPos(targetPosition, i);
+            
             var graph = GraphNode.Instance.layerGraphs[i];
-            if (graph.nodes.TryGetValue(Vector3Int.FloorToInt(targetPosition), out Node node))
+            if (graph.nodes.TryGetValue(convertedGrid, out var node))
             {
                 if (node != null && node.isWalkable)
                 {
@@ -302,20 +304,18 @@ public class SelectUnitSystem : MonoBehaviour
 
     private void CheckCanMovePlayerTo(Vector3 targetPosition)
     {
-        float cellSize = 1f;
         if (selectedUnit.GetComponent<Building>() != null)
             return;
 
-        int cellX = Mathf.FloorToInt(targetPosition.x / cellSize);
-        int cellY = Mathf.FloorToInt(targetPosition.y / cellSize);
+        var targetGrid = GraphNode.Instance.WorldToGridPos(targetPosition, targetLayerIndexDrag);
 
-        Vector3 snappedPos = new Vector3(
-            (cellX + 0.5f) * cellSize,
-            (cellY + 0.5f) * cellSize,
-            0f
-        );
+        var node = GraphNode.Instance.GetNode(targetGrid, targetLayerIndexDrag);
+        Vector3 snappedPos;
 
-        Node node = GraphNode.Instance.GetNode(Vector3Int.FloorToInt(snappedPos), targetLayerIndexDrag);
+        if (node != null && GraphNode.Instance.GetNodeWorldData(node, out var centerWorld, out _))
+            snappedPos = centerWorld;
+        else
+            snappedPos = new Vector3(targetGrid.x + 0.5f, targetGrid.y + 0.5f, 0f);
 
         if (node != null && node.isWalkable)
         {
