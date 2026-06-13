@@ -329,7 +329,7 @@ public abstract class Animal : MonoBehaviour, IPoolable
             gameObject.transform.position, layerIndex, 1);
         var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, transform.position,
             Quaternion.identity);
-        coinObj.GetComponent<Coin>().StartDrop(coinObj.transform.position, layerIndex);
+        coinObj.GetComponent<Coin>().StartDrop(coinObj.transform.position, transform.position, layerIndex);
         
         PoolManager.Instance.Despawn(transform.gameObject);
     }

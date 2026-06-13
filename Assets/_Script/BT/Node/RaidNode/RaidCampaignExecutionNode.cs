@@ -36,26 +36,47 @@ public class RaidCampaignExecutionNode : BTActionNode
 
         if (currentState == RaidState.March)
         {
-            var distanceToGate = Vector2.Distance(unit.transform.position, targetGate.transform.position);
-            var leader = RaidManager.Instance.leaderUnit;
+            var spawnPoint = targetGate.GetComponent<SpawnPoint>();
+            int gateLayer = spawnPoint != null ? spawnPoint.layerIndex : 0;
 
-            if (unit.unitType == leader.unitType)
+            if (unit.layerIndex == gateLayer)
+            {
+                var distanceToGate = Vector2.Distance(unit.transform.position, targetGate.transform.position);
+                var leader = RaidManager.Instance.leaderUnit;
 
-                if (distanceToGate <= unit.viewDistance - 1f)
+                if (leader != null)
                 {
-                    unit.StopMove();
-                    ResetNode();
-                    return BTStatus.Success;
+                    if (unit.unitType == leader.unitType)
+                    {
+                        if (distanceToGate <= unit.viewDistance - 1f)
+                        {
+                            unit.StopMove();
+                            ResetNode();
+                            return BTStatus.Success;
+                        }
+                    }
+                    else 
+                    {
+                        if (distanceToGate <= leader.viewDistance + 1f)
+                        {
+                            unit.StopMove();
+                            ResetNode();
+                            return BTStatus.Success;
+                        }
+                    }
                 }
-
-            if (unit.unitType != leader.unitType)
-                if (distanceToGate <= leader.viewDistance + 1f)
+                else 
                 {
-                    unit.StopMove();
-                    ResetNode();
-                    return BTStatus.Success;
+                    if (distanceToGate <= unit.viewDistance - 1f)
+                    {
+                        unit.StopMove();
+                        ResetNode();
+                        return BTStatus.Success;
+                    }
                 }
+            }
         }
+
         switch (currentState)
         {
             case RaidState.Assemble:
@@ -67,32 +88,49 @@ public class RaidCampaignExecutionNode : BTActionNode
                     unit.currentState = UnitState.Idle;
                     unit.animState = AnimState.Idle;
                 }
-
-                else // Lính thường, tìm đường đi bộ đến bám quanh người Trưởng đoàn
+                else 
                 {
-                    var distToLeader = Vector2.Distance(unit.transform.position,
-                        RaidManager.Instance.leaderUnit.transform.position);
+                    var leader = RaidManager.Instance.leaderUnit;
+                    var distToLeader = Vector2.Distance(unit.transform.position, leader.transform.position);
 
-                    if (distToLeader > 2.0f)
+                    if (unit.layerIndex != leader.layerIndex || distToLeader > 2.5f)
                     {
                         if (!hasCalculatedPath || !unit.characterMovement.moving)
                         {
-                            var leaderGrid = Vector3Int.FloorToInt(RaidManager.Instance.leaderUnit.transform.position);
+                            // ❌ XÓA DÒNG CŨ: var rawLeaderGrid = Vector3Int.FloorToInt(leader.transform.position);
+                            
+                            //  SỬA THÀNH: Sử dụng hàm quy đổi Grid chuẩn của hệ thống để không bị lỗi số âm
+                            // Nếu trong dự án của bạn dùng ObjectSpawner.Instance.WorldToGrid thì thay vào đây:
+                            Vector3Int rawLeaderGrid = Vector3Int.FloorToInt(leader.transform.position);
+                            
+                            // Nếu hệ thống tìm đường có hàm quy đổi riêng, hãy dùng hàm đó để triệt tiêu việc FloorToInt sai số âm:
+                            // Ví dụ: Vector3Int rawLeaderGrid = GraphNode.Instance.WorldToGridPos(leader.transform.position);
+
+                            Vector3Int startGrid = Vector3Int.FloorToInt(unit.transform.position);
+
+                            Vector3Int targetAssembleGrid = unit.FindAdjacentWalkableCell(rawLeaderGrid, leader.layerIndex);
 
                             var path = PathfindingAlgorithm.Instance.FindMultiLayerPath(
-                                Vector3Int.FloorToInt(unit.transform.position), unit.layerIndex,
-                                leaderGrid, RaidManager.Instance.leaderUnit.layerIndex);
+                                startGrid, unit.layerIndex,
+                                targetAssembleGrid, leader.layerIndex);
 
                             if (path != null && path.segments.Count > 0)
                             {
                                 unit.MoveToTargetPosition(path);
-
                                 hasCalculatedPath = true;
+                            }
+                            else
+                            {
+                                // Sửa lại chuỗi cách viết string Log để không bị dính ký tự sát nhau gây nhìn nhầm thành dấu trừ
+                                Debug.LogError($"[Raid Path Error] [{unit.gameObject.name}] KHÔNG TÌM THẤY ĐƯỜNG TẬP KẾT! " +
+                                               $"| Start: {startGrid} (Layer {unit.layerIndex}) " +
+                                               $"| Target (Leader): {targetAssembleGrid} (Layer {leader.layerIndex})");
+                                
+                                hasCalculatedPath = false; 
                             }
                         }
                     }
-
-                    else 
+                    else
                     {
                         if (unit.characterMovement.moving) unit.StopMove();
                         unit.currentState = UnitState.Idle;
@@ -104,11 +142,25 @@ public class RaidCampaignExecutionNode : BTActionNode
             case RaidState.March:
                 if (!hasCalculatedPath || !unit.characterMovement.moving)
                 {
-                    var marchPath = unit.FindBestPathToTarget(targetGate, unit.currentTargetLayerIndex);
+                    var spawnPoint = targetGate.GetComponent<SpawnPoint>();
+                    int gateLayer = spawnPoint != null ? spawnPoint.layerIndex : 0;
+                    Vector3Int startGrid = Vector3Int.FloorToInt(unit.transform.position);
+
+                    var marchPath = unit.FindBestPathToTarget(targetGate, gateLayer);
                     if (marchPath != null && marchPath.segments.Count > 0)
                     {
                         unit.MoveToTargetPosition(marchPath);
                         hasCalculatedPath = true;
+                    }
+                    else
+                    {
+                        // 🔥 ADD LOG: Báo lỗi khi không tìm thấy đường hành quân đến Cổng quái
+                        Vector3Int gateGrid = Vector3Int.FloorToInt(targetGate.transform.position);
+                        Debug.LogError($"[Raid Path Error] [{unit.gameObject.name}] KHÔNG TÌM THẤY ĐƯỜNG HÀNH QUÂN (March)! " +
+                                       $"➔ Start: {startGrid} (Layer {unit.layerIndex}) " +
+                                       $"➔ Target (Gate): {gateGrid} (Layer {gateLayer})");
+
+                        hasCalculatedPath = false;
                     }
                 }
                 return BTStatus.Running;
@@ -122,11 +174,9 @@ public class RaidCampaignExecutionNode : BTActionNode
         ResetNode();
     }
 
-
     private void ResetNode()
     {
         currentState = RaidState.Assemble;
         hasCalculatedPath = false;
     }
-} 
-
+}

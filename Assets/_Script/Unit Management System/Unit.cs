@@ -1115,6 +1115,44 @@ public abstract class Unit : MonoBehaviour, IPoolable
         isAttacking = false;
         isInWindup = false;
     }
+    
+    public Vector3Int FindAdjacentWalkableCell(Vector3Int targetGridPos, int targetLayerIndex)
+    {
+        var originalNode = GraphNode.Instance.GetNode(targetGridPos, targetLayerIndex);
+        if (originalNode != null && originalNode.isWalkable) return targetGridPos;
+        var adjacentDirections = new[]
+        {
+            new Vector3Int(0, 1, 0),
+            new Vector3Int(0, -1, 0),
+            new Vector3Int(-1, 0, 0),
+            new Vector3Int(1, 0, 0)
+        };
+
+        var bestCell = targetGridPos;
+        var minDistance = Mathf.Infinity;
+        var foundValidCell = false;
+
+        foreach (var dir in adjacentDirections)
+        {
+            var neighborPos = targetGridPos + dir;
+
+            var node = GraphNode.Instance.GetNode(neighborPos, targetLayerIndex);
+
+            if (node != null && node.isWalkable)
+            {
+                var distance = Vector2.Distance(transform.position, (Vector3)neighborPos);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    bestCell = neighborPos;
+                    foundValidCell = true;
+                }
+            }
+        }
+
+        return bestCell;
+    }
 
     #endregion
 

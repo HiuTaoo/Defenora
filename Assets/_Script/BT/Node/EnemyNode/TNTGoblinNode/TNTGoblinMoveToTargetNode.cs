@@ -48,8 +48,6 @@ namespace _Script.BT.Node.EnemyNode.TNTtntGoblinNode
 
             if (currentPathLayerIndex != -1 && currentPathLayerIndex != tntGoblin.currentTargetLayerIndex)
             {
-                Debug.Log(
-                    $"[{tntGoblin.gameObject.name}] 🔄 Phát hiện mục tiêu đổi tầng (Từ Layer {currentPathLayerIndex + 1} sang {tntGoblin.currentTargetLayerIndex + 1}). Tiến hành tính toán lại đường đi đa tầng!");
                 hasStartedMove = false;
             }
 

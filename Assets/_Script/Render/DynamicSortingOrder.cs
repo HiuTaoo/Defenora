@@ -38,9 +38,13 @@ public class DynamicSortingYX : MonoBehaviour
         {
             tagZOffset = 0.1f;    
         }
-        else
+        else if (currentTag == "Decor")
         {
             tagZOffset = 0f;      
+        }
+        else if(currentTag == "SpawnPoint")
+        {
+            tagZOffset = -0.1f;
         }
     }
 

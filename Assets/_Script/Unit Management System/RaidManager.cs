@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using _Script.UI.UI_Script;
 using UnityEngine;
 
 public class RaidManager : MonoBehaviour
@@ -36,9 +37,17 @@ public class RaidManager : MonoBehaviour
     {
         if (state == InteractButtonState.Attack && targetObj != null && targetObj.CompareTag("SpawnPoint"))
         {
-            AudioManager.Instance.PlaySFX(SoundNames.SfxTing);
-            LaunchRaid(targetObj);
-            AudioManager.Instance.PlayMusic(SoundNames.BattleTheme);
+            ConfirmDialog.Instance.Show(
+                "Do you want to initiate an Raid? " +
+                "This can bring many risks, please consider carefully before starting",
+                () =>
+                {
+                    AudioManager.Instance.PlaySFX(SoundNames.SfxTing);
+                    LaunchRaid(targetObj);
+                    AudioManager.Instance.PlayMusic(SoundNames.BattleTheme);
+                },
+                () => { }
+            );
         }
     }
 

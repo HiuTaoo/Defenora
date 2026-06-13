@@ -54,10 +54,6 @@ public class TaskManager : MonoBehaviour
                 }
     }
 
-    // =========================
-    // TASK LIFECYCLE
-    // =========================
-
     public void AddTask(Task task)
     {
         if (task == null)
@@ -91,9 +87,6 @@ public class TaskManager : MonoBehaviour
 
         if (task.taskType == TaskType.TransportItem)
         {
-            Debug.LogWarning(
-                $"[TaskManager] Task vận chuyển [{task.id}] bị kẹt đường! Tiến hành HỦY BỎ hoàn toàn task để giải phóng AI.");
-
             task.taskStatus = TaskStatus.Completed;
             RemoveTask(task);
             return;
@@ -104,14 +97,8 @@ public class TaskManager : MonoBehaviour
         if (!pendingTasks.Any(p => p.task == task))
         {
             pendingTasks.Add(new PendingTaskInfo(task, Time.time + cooldownDuration));
-            Debug.LogWarning(
-                $"[TaskManager] Task {task.taskType} bị kẹt đường! Đã tạm khóa và đưa vào danh sách Pending trong {cooldownDuration}s.");
         }
     }
-
-    // =========================
-    // QUERY
-    // =========================
 
     public IEnumerable<Task> GetAvailableTasks()
     {

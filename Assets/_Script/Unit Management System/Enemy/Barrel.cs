@@ -193,7 +193,7 @@ namespace _Script.Unit_Management_System.Enemy
             var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.goldBagPrefab, playerPosition,
                 Quaternion.identity);
             if (coinObj != null && coinObj.TryGetComponent(out Coin coin))
-                coin.StartDrop(transform.position, layerIndex);
+                coin.StartDrop(transform.position, transform.position, layerIndex);
         }
 
         #region Logic Quét Mục Tiêu

@@ -4,7 +4,8 @@ using Random = UnityEngine.Random;
 
 public class Coin : MonoBehaviour, IPoolable
 {
-    [Header("Drop Settings")] private Vector3 _startPos;
+    [Header("Drop Settings")] 
+    private Vector3 _startPos;
     private Vector3 _endPos;
     private float _dropDuration;
     private float _arcHeight;
@@ -12,27 +13,20 @@ public class Coin : MonoBehaviour, IPoolable
     public bool _isDropping;
     private float _originalZ;
 
-    [Header("Coin Data")] [SerializeField] private int coinValue = 1;
+    [Header("Coin Data")] 
+    [SerializeField] private int coinValue = 1;
     public int layerIndex;
     public bool _isCollected;
 
-    [Header("Grid Search Settings")] [SerializeField]
-    private int maxSearchRadius = 5;
-
-    public void StartDrop(Vector3 start, int currentLayerIndex, float dropDuration = 0.6f, float arcHeight = 1.2f)
+    public void StartDrop(Vector3 start, Vector3 targetPos, int currentLayerIndex, float dropDuration = 0.6f, float arcHeight = 1.2f)
     {
         _startPos = start;
         _originalZ = start.z;
         layerIndex = currentLayerIndex;
 
-        var randomOffset = Random.insideUnitCircle * 2f;
-        var rawTargetPos = new Vector3(_startPos.x + randomOffset.x, _startPos.y + randomOffset.y, _originalZ);
-
-        var targetGridPos = Vector3Int.FloorToInt(rawTargetPos);
-
-        var walkableGridPos = FindWalkableCellExpanding(targetGridPos, layerIndex);
-
-        _endPos = new Vector3(walkableGridPos.x + 0.5f, walkableGridPos.y + 0.5f, _originalZ);
+        Vector2 smallOffset = Random.insideUnitCircle * 0.3f;
+        
+        _endPos = new Vector3(targetPos.x + smallOffset.x, targetPos.y + smallOffset.y, _originalZ);
 
         _dropDuration = Mathf.Max(0.01f, dropDuration);
         _arcHeight = arcHeight;
@@ -68,63 +62,6 @@ public class Coin : MonoBehaviour, IPoolable
         }
     }
 
-    private Vector3Int FindWalkableCellExpanding(Vector3Int centerGridPos, int targetLayerIndex)
-    {
-        if (GraphNode.Instance == null) return centerGridPos;
-
-        var centerNode = GraphNode.Instance.GetNode(centerGridPos, targetLayerIndex);
-        if (centerNode != null && centerNode.isWalkable) return centerGridPos;
-
-        Vector3Int bestCell = centerGridPos;
-        float minDistance = Mathf.Infinity;
-        bool foundValidCell = false;
-
-        for (var radius = 1; radius <= maxSearchRadius; radius++)
-        {
-            for (var x = -radius; x <= radius; x++)
-            {
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(x, radius, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
-                    foundValidCell = true;
-                    
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(x, -radius, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
-                    foundValidCell = true;
-            }
-
-            for (var y = -radius; y <= radius; y++)
-            {
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(radius, y, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
-                    foundValidCell = true;
-                    
-                if (CheckAndEvaluateNode(centerGridPos + new Vector3Int(-radius, y, 0), targetLayerIndex, ref bestCell, ref minDistance)) 
-                    foundValidCell = true;
-            }
-
-            if (foundValidCell) 
-                return bestCell;
-        }
-
-        return foundValidCell ? bestCell : centerGridPos;
-    }
-
-    private bool CheckAndEvaluateNode(Vector3Int checkGridPos, int targetLayerIndex, ref Vector3Int bestCell,
-        ref float minDistance)
-    {
-        var node = GraphNode.Instance.GetNode(checkGridPos, targetLayerIndex);
-
-        if (node != null && node.isWalkable)
-        {
-            var distance = Vector2.Distance(_startPos, (Vector3)checkGridPos);
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                bestCell = checkGridPos;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public void Collect()
     {
         if (WalletManager.Instance != null)
@@ -142,7 +79,6 @@ public class Coin : MonoBehaviour, IPoolable
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (_isDropping) return;
-
         if (_isCollected) return;
 
         if (other.CompareTag("Player"))
@@ -169,14 +105,10 @@ public class Coin : MonoBehaviour, IPoolable
     {
         _elapsed = 0f;
         _isDropping = false;
-
         _isCollected = false;
-
         enabled = true;
-
         coinValue = 1;
         layerIndex = 0;
-
         _startPos = Vector3.zero;
         _endPos = Vector3.zero;
     }
@@ -184,7 +116,6 @@ public class Coin : MonoBehaviour, IPoolable
     public void OnDespawned()
     {
         _isDropping = false;
-
         if (ItemManager.Instance != null) ItemManager.Instance.UnregisterCoin(this);
     }
 }

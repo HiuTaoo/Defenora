@@ -113,7 +113,23 @@ public class GameManager : MonoBehaviour
 
     public void SaveGame()
     {
-        SaveLoadSystem.Instance.SaveGame();
+        if (RaidManager.Instance != null && RaidManager.Instance.IsRaidActive)
+        {
+            if (UINotificationManager.Instance != null)
+            {
+                UINotificationManager.Instance.ShowNotification(
+                    "Cannot save the game while a Raid campaign is active!", 
+                    NotificationColorType.Warning
+                );
+            }
+            
+            if (AudioManager.Instance != null) 
+                AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
+            return;
+        }
+
+        if (SaveLoadSystem.Instance != null)
+            SaveLoadSystem.Instance.SaveGame();
     }
 
     #endregion

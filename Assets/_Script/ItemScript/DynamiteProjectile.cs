@@ -133,7 +133,7 @@ namespace _Script.ItemScript
             var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, playerPosition,
                 Quaternion.identity);
             if (coinObj != null && coinObj.TryGetComponent(out Coin coin))
-                coin.StartDrop(transform.position, CheckTargetLayer(transform.position));
+                coin.StartDrop(coinObj.transform.position, transform.position, CheckTargetLayer(transform.position));
         }
 
         private int CheckTargetLayer(Vector3 targetPosition)

@@ -86,7 +86,12 @@ public class Builder : Unit
                     $"[Sensor Update] 🚨 {gameObject.name} nhìn thấy quái vật {firstEnemy.name} ở phía trước! Bật cờ hoảng loạn!");
 
                 isPanicking = true;
-                characterMovement.RequestStopMoving();
+                
+                StopMove(); 
+                currentState = UnitState.Idle;
+                animState = AnimState.Idle;
+                animFSM.ChangeState(UnitState.Idle, AnimState.Idle);
+                
                 bt?.ClearState();
 
                 var enemyFloor = firstEnemy.GetComponentInChildren<FloorAgent>()._currentFloorIndex;
@@ -380,7 +385,7 @@ public class Builder : Unit
 
                 var coinObj = PoolManager.Instance.Spawn(PrefabConfig.Instance.coinPrefab, transform.position,
                     Quaternion.identity);
-                coinObj.GetComponent<Coin>().StartDrop(coinObj.transform.position, layerIndex);
+                coinObj.GetComponent<Coin>().StartDrop(coinObj.transform.position, transform.position, layerIndex);
 
                 return true;
             }
@@ -712,51 +717,6 @@ public class Builder : Unit
         return target;
     }
 
-    /// <summary>
-    ///     Thuần túy tìm kiếm và trả về 1 trong 8 ô liền kề hợp lệ (Walkable) xung quanh một vị trí mục tiêu.
-    ///     Ưu tiên chọn ô gần với vị trí hiện tại của Builder nhất.
-    /// </summary>
-    /// <param name="targetGridPos">Vị trí ô Grid của vật phẩm/mục tiêu</param>
-    /// <param name="targetLayerIndex">Tầng (Layer Index) của mục tiêu</param>
-    /// <returns>Tọa độ ô Grid liền kề hợp lệ, hoặc trả về chính targetGridPos nếu bị kẹt hoàn toàn</returns>
-    public Vector3Int FindAdjacentWalkableCell(Vector3Int targetGridPos, int targetLayerIndex)
-    {
-        var originalNode = GraphNode.Instance.GetNode(targetGridPos, targetLayerIndex);
-        if (originalNode != null && originalNode.isWalkable) return targetGridPos;
-        var adjacentDirections = new[]
-        {
-            new Vector3Int(0, 1, 0),
-            new Vector3Int(0, -1, 0),
-            new Vector3Int(-1, 0, 0),
-            new Vector3Int(1, 0, 0)
-        };
-
-        var bestCell = targetGridPos;
-        var minDistance = Mathf.Infinity;
-        var foundValidCell = false;
-
-        foreach (var dir in adjacentDirections)
-        {
-            var neighborPos = targetGridPos + dir;
-
-            var node = GraphNode.Instance.GetNode(neighborPos, targetLayerIndex);
-
-            if (node != null && node.isWalkable)
-            {
-                var distance = Vector2.Distance(transform.position, (Vector3)neighborPos);
-
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    bestCell = neighborPos;
-                    foundValidCell = true;
-                }
-            }
-        }
-
-        return bestCell;
-    }
-
     public bool CanCalculatePathToTarget(Vector3Int targetGridPos, int targetLayerIndex)
     {
         if (GraphNode.Instance == null) return false;
@@ -785,8 +745,14 @@ public class Builder : Unit
             $"[Global Alarm Event] 🚨 {gameObject.name} nhận được tín hiệu báo động! Có {enemy.name} tại {spottedPosition}! Bật cờ hoảng loạn lập tức!");
 
         isPanicking = true;
+        if (characterMovement != null) 
+        {
+            StopMove(); 
+        }
 
-        if (characterMovement != null) characterMovement.RequestStopMoving();
+        currentState = UnitState.Idle;
+        animState = AnimState.Idle;
+        animFSM.ChangeState(UnitState.Idle, AnimState.Idle);
 
         bt?.ClearState();
     }

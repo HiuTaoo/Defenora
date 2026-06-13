@@ -17,7 +17,6 @@ public class PlayerInteraction : MonoBehaviour
     private int playerLayerIndex = -1;
 
     [Header("Non-Alloc Arrays (Tối ưu Memory - Đã rút gọn)")]
-    // Đã loại bỏ mảng playerResults vì không còn cần thiết nữa!
     public Collider2D[] interactResults = new Collider2D[10];
     private RaycastHit2D[] raycastResults = new RaycastHit2D[5];
 
@@ -94,7 +93,7 @@ public class PlayerInteraction : MonoBehaviour
     {
         currentObject = null;
 
-        #region Raycast Building (Đã tối ưu NonAlloc)
+        #region Raycast Building 
 
         if (GameManager.Instance.gameContext.InputManager.GetMovementInput() != Vector2.zero)
             direction = GameManager.Instance.gameContext.InputManager.GetMovementInput();
@@ -102,7 +101,8 @@ public class PlayerInteraction : MonoBehaviour
         if (direction != Vector2.zero)
         {
             Vector2 origin = transform.position;
-            var rayDistance = interactionCollider.radius * 0.65f;
+            
+            var rayDistance = interactionCollider.radius * 1.35f; 
 
             var hitCount = Physics2D.RaycastNonAlloc(origin, direction, raycastResults, rayDistance,
                 LayerMask.GetMask("Default"));
@@ -110,10 +110,12 @@ public class PlayerInteraction : MonoBehaviour
             for (var i = 0; i < hitCount; i++)
             {
                 var hit = raycastResults[i];
+                
                 if (hit.collider != null && hit.collider.gameObject.CompareTag("Door"))
                 {
                     currentObject = hit.collider.transform.parent?.gameObject ?? hit.collider.gameObject;
                     LookUpLayerIndex();
+                    
                     if (layerIndex == playerLayerIndex)
                     {
                         interactButtonScript.ChangeInteractButtonState(InteractButtonState.Enter);
@@ -134,63 +136,57 @@ public class PlayerInteraction : MonoBehaviour
 
         if (currentObject == null)
         {
-            var interactCount =
-                Physics2D.OverlapCircleNonAlloc(transform.position, interactionCollider.radius, interactResults);
+            var interactCount = Physics2D.OverlapCircleNonAlloc(transform.position, interactionCollider.radius, interactResults);
 
             for (var i = 0; i < interactCount; i++)
             {
                 var interactCol = interactResults[i];
-                if (interactCol == null || interactCol == playerCollider) continue;
+                
+                if (interactCol == null || interactCol == playerCollider || interactCol == interactionCollider) 
+                    continue;
 
-                if (interactionCollider.bounds.Intersects(interactCol.bounds))
+                if (interactCol.CompareTag("SpawnPoint") && interactCol.gameObject.layer == LayerMask.NameToLayer("SpawnPoint"))
                 {
-                    if (interactCol.CompareTag("SpawnPoint") &&
-                        interactCol.gameObject.layer == LayerMask.NameToLayer("SpawnPoint"))
+                    if (RaidManager.Instance.activeRaidTarget == interactCol.gameObject)
+                        continue;
+                    
+                    currentObject = interactCol.gameObject;
+                    LookUpLayerIndex();
+
+                    if (layerIndex == playerLayerIndex)
                     {
-                        if(RaidManager.Instance.activeRaidTarget == interactCol.gameObject)
-                            continue;
-                        
-                        currentObject = interactCol.gameObject;
+                        interactButtonScript.ChangeInteractButtonState(InteractButtonState.Attack);
+                        interactButtonState = InteractButtonState.Attack;
+                        break; 
+                    }
+                    else
+                    {
+                        currentObject = null;
+                    }
+                }
+
+                if (interactCol.CompareTag("Tree"))
+                {
+                    var candidateTreeGO = interactCol.gameObject;
+                    var tree = candidateTreeGO.GetComponent<Tree>();
+
+                    if (tree != null && tree.treeState != TreeState.Chopped)
+                    {
+                        currentObject = candidateTreeGO;
                         LookUpLayerIndex();
 
-                        if (layerIndex == playerLayerIndex)
+                        var task = tree.GetTask();
+                        var isTaskAvailable = task == null || task.targetGameObject == null || task.taskStatus == TaskStatus.Completed;
+
+                        if (layerIndex == playerLayerIndex && isTaskAvailable)
                         {
-                            interactButtonScript.ChangeInteractButtonState(InteractButtonState.Attack);
-                            interactButtonState = InteractButtonState.Attack;
-                            break;
+                            interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
+                            interactButtonState = InteractButtonState.Cut;
+                            break; 
                         }
                         else
                         {
                             currentObject = null;
-                        }
-                    }
-
-                    if (interactCol.CompareTag("Tree"))
-                    {
-                        var candidateTreeGO = interactCol.gameObject;
-                        var tree = candidateTreeGO.GetComponent<Tree>();
-
-                        if (tree != null && tree.treeState != TreeState.Chopped)
-                        {
-                            currentObject = candidateTreeGO;
-                            LookUpLayerIndex();
-
-                            var task = tree.GetTask();
-
-                            var isTaskAvailable = task == null
-                                                  || task.targetGameObject == null
-                                                  || task.taskStatus == TaskStatus.Completed;
-
-                            if (layerIndex == playerLayerIndex && isTaskAvailable)
-                            {
-                                interactButtonScript.ChangeInteractButtonState(InteractButtonState.Cut);
-                                interactButtonState = InteractButtonState.Cut;
-                                break;
-                            }
-                            else
-                            {
-                                currentObject = null;
-                            }
                         }
                     }
                 }

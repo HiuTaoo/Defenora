@@ -215,7 +215,7 @@ namespace _Script.Unit_Management_System.Enemy
                 Quaternion.identity);
             if (coinObj != null && coinObj.TryGetComponent(out Coin coin))
             {
-                coin.StartDrop(transform.position, layerIndex);
+                coin.StartDrop(coinObj.transform.position, transform.position, layerIndex);
             }
         }
 

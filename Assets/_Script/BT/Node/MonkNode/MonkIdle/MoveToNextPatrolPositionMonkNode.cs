@@ -32,8 +32,6 @@ namespace _Script.BT.Node.MonkNode.MonkIdle
                 if (allyHealth != null && allyHealth.CurrentHealth < allyHealth.maxHealth &&
                     allyHealth.CurrentHealth > 0)
                 {
-                    Debug.Log(
-                        $"[{monk.gameObject.name}] 🚑 Phát hiện {hit.name} đang yếu máu khi đang đi tuần! Hủy tuần tra để đi hồi máu!");
                     FinishMove();
                     return
                         BTStatus.Failure;
