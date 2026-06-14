@@ -92,9 +92,7 @@ public class Archer : Unit
             new RaidCampaignExecutionNode(archer),
             new ArcherRaidCombatActionNode(archer)
         );
-        // =================================================================
-        // KHO ĐẠN LOGIC CƠ BẢN (HÀNH VI LÕI)
-        // =================================================================
+
         var attackActionSequence = new SequenceNode(
             new IsArcherCooldownReadyNode(archer),
             new ShootArrowNode(archer)
@@ -135,7 +133,7 @@ public class Archer : Unit
         );
 
         var stationedTotalSelector = new SelectorNode(
-            detectedSequence,
+            detectedSequence, 
             new StationedLookAtAlarmNode(archer),
             stationedLookAroundSequence
         );
@@ -146,9 +144,8 @@ public class Archer : Unit
         );
 
         // =================================================================
-        // 🏰 PHÂN HỆ 2: ARCHER ĐÃ ĐƯỢC GÁN VÀO NHÀ (NHƯNG DI ĐỘNG, TUẦN TRA QUANH TÒA NHÀ)
+        // 🏰 PHÂN HỆ 2: ARCHER ĐƯỢC GÁN VÀO NHÀ (TUẦN TRA DI ĐỘNG QUANH TÒA NHÀ)
         // =================================================================
-
         var assignedBuildingReturnHomeSequence = new SequenceNode(
             new IsOutsideBuildingRangeConditionNode(archer),
             new MoveToBuildingNode(archer)
@@ -181,7 +178,7 @@ public class Archer : Unit
             detectedSequence,
             alarmResponseSequence,
             huntAnimalsSequence,
-            assignedBuildingPeacefulSelector
+            assignedBuildingPeacefulSelector 
         );
 
         var assignedBuildingBranchSequence = new SequenceNode(
@@ -211,16 +208,18 @@ public class Archer : Unit
         var freeWandererTotalSelector = new SelectorNode(
             detectedSequence,
             alarmResponseSequence,
-            huntAnimalsSequence,
+            huntAnimalsSequence,      
             freeWandererPeacefulSelector 
         );
 
+        // =================================================================
+        // 🌟 ROOT SELECTOR
+        // =================================================================
         var root = new SelectorNode(
             raidCampaignSequence,
             stationedBranchSequence,
-            detectedSequence,
             assignedBuildingBranchSequence,
-            freeWandererTotalSelector      
+            freeWandererTotalSelector       
         );
 
         return new BehaviourTree(root);

@@ -1,4 +1,5 @@
 ﻿using System;
+using _Script.Enum;
 using _Script.Task;
 using UnityEngine;
 
@@ -107,7 +108,9 @@ public class PlayerInteraction : MonoBehaviour
             for (var i = 0; i < hitCount; i++)
             {
                 var hit = raycastResults[i];
-                if (hit.collider != null && hit.collider.gameObject.CompareTag("Door"))
+                var building = hit.transform.parent.GetComponent<Building>();
+                if (hit.collider != null && hit.collider.gameObject.CompareTag("Door")
+                                         && building != null && building.buildingState == BuildingState.Completed)
                 {
                     currentObject = hit.collider.transform.parent?.gameObject ?? hit.collider.gameObject;
                     LookUpLayerIndex();

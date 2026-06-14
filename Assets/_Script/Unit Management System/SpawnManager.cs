@@ -10,37 +10,26 @@ public class SpawnManager : MonoBehaviour
     public static event Action OnAllSpawnPointsDestroyed;
 
     [Header("Spawn Points Management")]
-    [Tooltip("Kéo tất cả các SpawnPoint trên Map vào đây, hoặc để trống để tự động quét lúc Start")]
     public List<SpawnPoint> spawnPoints = new List<SpawnPoint>();
 
     [Header("Difficulty Curve Settings")]
-    [Tooltip("Số lượng quái cơ bản ở ngày 1")]
     [SerializeField] private int baseSpawnCount = 5;
-
-    [Tooltip("Số lượng quái cộng thêm sau mỗi ngày tăng lên")]
     [SerializeField] private int countMultiplierPerDay = 3;
+    [SerializeField] private float minDistanceFromPlayer = 15f;
+    [SerializeField] private float maxSpawnRadius = 50f;
+    [SerializeField] private int maxPlacementTries = 30;
+    [SerializeField] private float minDistanceBetweenPoints = 10f;
 
-    [Tooltip("Bán kính tối thiểu (Safe Zone) bắt buộc phải tránh xa Player")] [SerializeField]
-    private float minDistanceFromPlayer = 15f;
-
-    [Tooltip("Bán kính tối đa từ tâm map có thể đặt cổng sinh quái")] [SerializeField]
-    private float maxSpawnRadius = 50f;
-
-    [Tooltip("Số lần thử bốc tọa độ tối đa trước khi chấp nhận thất bại (tránh treo game)")] [SerializeField]
-    private int maxPlacementTries = 30;
-
-    [Tooltip("Khoảng cách tối thiểu giữa các cổng SpawnPoint với nhau để tránh tụ tập một chỗ")] [SerializeField]
-    private float minDistanceBetweenPoints = 10f;
+    [Header("Difficulty Gate Settings")] [Tooltip("Số lượng cổng quái muốn sinh ra cố định")]
+    public int targetSpawnPointCount = 2;
 
     private TimeOfDaySystem timeSystem;
     private int _monstersToSpawnTonight; 
 
     private void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     private void Start()
@@ -55,26 +44,17 @@ public class SpawnManager : MonoBehaviour
         if (timeSystem != null)
         {
             timeSystem.OnHourChanged += HandleHourTracking;
-            Debug.Log("[SpawnManager] 🟢 Kết nối hệ thống giờ thành công. Sẵn sàng điều phối quái theo khung giờ đêm!");
-        }
-        else
-        {
-            Debug.LogError("[SpawnManager] ❌ Không tìm thấy TimeOfDaySystem.Instance!");
         }
     }
 
     private void OnDestroy()
     {
-        if (timeSystem != null)
-        {
-            timeSystem.OnHourChanged -= HandleHourTracking;
-        }
+        if (timeSystem != null) timeSystem.OnHourChanged -= HandleHourTracking;
     }
 
     private void HandleHourTracking(int currentHour)
     {
         spawnPoints.RemoveAll(sp => sp == null);
-
         if (spawnPoints.Count == 0) return;
 
         var currentDay = timeSystem.CurrentDay;
@@ -82,75 +62,40 @@ public class SpawnManager : MonoBehaviour
         if (spawnPoints.Count == 1)
         {
             var singleGate = spawnPoints[0];
-
             if (currentHour == 0)
             {
                 _monstersToSpawnTonight = baseSpawnCount + currentDay * countMultiplierPerDay;
                 var countForFirstWave = _monstersToSpawnTonight / 2;
-
-                Debug.LogWarning($"[SpawnManager] ⚠️ CHỈ CÒN 1 CỔNG [{singleGate.gameObject.name}]. " +
-                                 $"🌑 00:00 ĐÊM: Kích hoạt ĐỢT 1 sinh {countForFirstWave} quái.");
-
                 singleGate.OrderSpawnRandomly(countForFirstWave);
             }
             else if (currentHour == 1)
             {
                 var countForSecondWave = _monstersToSpawnTonight - _monstersToSpawnTonight / 2;
-
-                if (countForSecondWave > 0)
-                {
-                    Debug.LogWarning($"[SpawnManager] ⚠️ CHỈ CÒN 1 CỔNG [{singleGate.gameObject.name}]. " +
-                                     $"⚔️ 01:00 ĐÊM: Kích hoạt ĐỢT 2 sinh nốt {countForSecondWave} quái.");
-
-                    singleGate.OrderSpawnRandomly(countForSecondWave);
-                }
+                if (countForSecondWave > 0) singleGate.OrderSpawnRandomly(countForSecondWave);
             }
 
-            return; // Ngắt luồng xử lý tại đây
+            return; 
         }
 
         if (currentHour == 0)
         {
             _monstersToSpawnTonight = baseSpawnCount + currentDay * countMultiplierPerDay;
             var countForFirstGate = _monstersToSpawnTonight / 2;
-
-            var gate1Name = spawnPoints[0].gameObject.name;
-            Debug.Log(
-                $"[SpawnManager] 🌑 00:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 1 [{gate1Name}] MỞ! Sinh trước {countForFirstGate} quái vật.");
-
             spawnPoints[0].OrderSpawnRandomly(countForFirstGate);
         }
         else if (currentHour == 1)
         {
             var countForSecondGate = _monstersToSpawnTonight - _monstersToSpawnTonight / 2;
-
-            if (countForSecondGate > 0)
-            {
-                var gate2Name = spawnPoints[1].gameObject.name;
-                Debug.Log(
-                    $"[SpawnManager] ⚔️ 01:00 ĐÊM (Ngày {currentDay}): 🚨 CỔNG 2 [{gate2Name}] MỞ! Sinh nốt {countForSecondGate} quái vật.");
-
-                spawnPoints[1].OrderSpawnRandomly(countForSecondGate);
-            }
+            if (countForSecondGate > 0) spawnPoints[1].OrderSpawnRandomly(countForSecondGate);
         }
     }
 
     public void RemoveSpawnPoint(SpawnPoint spawnPoint)
     {
         if (spawnPoint == null) return;
+        if (spawnPoints.Contains(spawnPoint)) spawnPoints.Remove(spawnPoint);
 
-        if (spawnPoints.Contains(spawnPoint))
-        {
-            spawnPoints.Remove(spawnPoint);
-            Debug.LogWarning(
-                $"[SpawnManager] 💥 Đã gỡ bỏ [{spawnPoint.gameObject.name}] khỏi danh sách. Còn lại: {spawnPoints.Count} cổng.");
-        }
-
-        if (spawnPoints.Count == 0)
-        {
-            Debug.LogError("[SpawnManager] 🏆 HOÀN THÀNH CHIẾN DỊCH! Tất cả cổng quái trên hành tinh đã bị dọn sạch!");
-            OnAllSpawnPointsDestroyed?.Invoke();
-        }
+        if (spawnPoints.Count == 0) OnAllSpawnPointsDestroyed?.Invoke();
     }
 
     private void DistributeMonstersToPoints(int totalCount)
@@ -165,41 +110,59 @@ public class SpawnManager : MonoBehaviour
         {
             int countForThisPoint = baseShare;
             if (i == 0) countForThisPoint += remainder;
-
-            if (countForThisPoint > 0)
-            {
-                spawnPoints[i].OrderSpawnRandomly(countForThisPoint);
-            }
+            if (countForThisPoint > 0) spawnPoints[i].OrderSpawnRandomly(countForThisPoint);
         }
     }
 
-    public bool GenerateSpawnPointsWithSafeZone(int numberOfPoints, Vector3 playerPosition, int playerLayerIndex)
+    public bool GenerateSpawnPointsWithSafeZone(Vector3 playerPosition, int playerLayerIndex)
     {
+        foreach (var existingSP in spawnPoints)
+            if (existingSP != null)
+                PoolManager.Instance.Despawn(existingSP.gameObject);
+
+        spawnPoints.Clear();
+        
         var prefabToUse = PrefabConfig.Instance.spawnPointPrefab;
         if (prefabToUse == null) return false;
 
+        var playerGridPos = GraphNode.Instance.WorldToGridPos(playerPosition, playerLayerIndex);
         var pointsSpawnedSuccessfully = 0;
-        var playerGridPos = new Vector3Int(Mathf.FloorToInt(playerPosition.x), Mathf.FloorToInt(playerPosition.y), 0);
-        var angleStep = Mathf.PI * 2f / numberOfPoints;
+        var angleStep = Mathf.PI * 2f / targetSpawnPointCount;
 
-        for (var i = 0; i < numberOfPoints; i++)
+        var alternateLayers = new List<int>();
+        if (GraphNode.Instance != null && GraphNode.Instance.layerDatas != null)
+        {
+            var totalLayers = GraphNode.Instance.layerDatas.Length;
+            for (var layer = 0; layer < totalLayers; layer++)
+                if (layer != playerLayerIndex)
+                    alternateLayers.Add(layer);
+        }
+
+        if (alternateLayers.Count == 0) alternateLayers.Add(playerLayerIndex);
+
+        var currentMinDistBetweenPoints = minDistanceBetweenPoints;
+
+        for (var i = 0; i < targetSpawnPointCount; i++)
         {
             var foundValidPosition = false;
             var finalSpawnPos = Vector3.zero;
-            var targetLayerIndex = playerLayerIndex;
+            var targetLayerIndex = alternateLayers[Random.Range(0, alternateLayers.Count)];
+            
             var minAngleForThisPoint = i * angleStep;
             var maxAngleForThisPoint = (i + 1) * angleStep;
 
             for (var tryCount = 0; tryCount < maxPlacementTries; tryCount++)
             {
+                if (tryCount > maxPlacementTries / 2)
+                    currentMinDistBetweenPoints = Mathf.Max(3f, currentMinDistBetweenPoints - 1f);
+
                 var angle = Random.Range(minAngleForThisPoint, maxAngleForThisPoint);
                 var radius = Random.Range(minDistanceFromPlayer, maxSpawnRadius);
 
                 float posX = Mathf.RoundToInt(playerPosition.x + Mathf.Cos(angle) * radius);
                 float posY = Mathf.RoundToInt(playerPosition.y + Mathf.Sin(angle) * radius);
                 var candidatePos = new Vector3(posX + 0.5f, posY + 0.5f, 0f);
-                var candidateGridPos =
-                    new Vector3Int(Mathf.FloorToInt(candidatePos.x), Mathf.FloorToInt(candidatePos.y), 0);
+                var candidateGridPos = GraphNode.Instance.WorldToGridPos(candidatePos, targetLayerIndex);
 
                 if (targetLayerIndex == playerLayerIndex)
                 {
@@ -214,7 +177,7 @@ public class SpawnManager : MonoBehaviour
                     if (existingSP.layerIndex == targetLayerIndex)
                     {
                         var distanceToOtherSP = Vector3.Distance(candidatePos, existingSP.transform.position);
-                        if (distanceToOtherSP < minDistanceBetweenPoints)
+                        if (distanceToOtherSP < currentMinDistBetweenPoints)
                         {
                             tooCloseToOtherSpawnPoint = true;
                             break;
@@ -261,8 +224,11 @@ public class SpawnManager : MonoBehaviour
                     }
                 }
             }
+
+            currentMinDistBetweenPoints = minDistanceBetweenPoints;
         }
-        return pointsSpawnedSuccessfully == numberOfPoints;
+
+        return pointsSpawnedSuccessfully == targetSpawnPointCount;
     }
 
     public int CalculateEnemySpawnTonight()
@@ -272,11 +238,8 @@ public class SpawnManager : MonoBehaviour
         return _monstersToSpawnTonight;
     }
 
-    #region Cheat / Test Methods
     public void ForceSpawnWave(int customTotalCount)
     {
-        Debug.Log($"[SpawnManager] 🛠️ Ép sinh đợt quái test với số lượng: {customTotalCount}");
         DistributeMonstersToPoints(customTotalCount);
     }
-    #endregion
 }

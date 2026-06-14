@@ -81,7 +81,7 @@ namespace _Script.ItemScript
             pendingItems.Clear();
         }
 
-        public Item FindNearestItem(Vector3 position, int layerIndex, Builder requestingBuilder)
+        public Item FindNearestItem(Vector3 position, Builder requestingBuilder)
         {
             Item nearestItem = null;
             var minDistance = Mathf.Infinity;
@@ -96,8 +96,6 @@ namespace _Script.ItemScript
                     continue;
                 }
 
-                if (item.layerIndex != layerIndex) continue;
-
                 if (item.assignBuilder == null || item.assignBuilder == requestingBuilder)
                 {
                     var distance = Vector2.Distance(position, item.transform.position);
@@ -108,7 +106,6 @@ namespace _Script.ItemScript
                     }
                 }
             }
-
             return nearestItem;
         }
 
@@ -217,7 +214,6 @@ namespace _Script.ItemScript
                             var crComp = customRender.GetComponent<CustomRender>();
                             if (crComp != null) crComp.layerIndex = itemComp.layerIndex;
                         }
-
                         RegisterItem(itemComp);
                     }
                 }

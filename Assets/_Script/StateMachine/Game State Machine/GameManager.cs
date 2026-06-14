@@ -178,7 +178,7 @@ public class GameManager : MonoBehaviour
                         Debug.Log(
                             $"[GameManager] [Lần thử {generationRetries + 1}] Đang quét tìm đường đặt cổng quái liên thông...");
 
-                        var spawnSuccess = SpawnManager.Instance.GenerateSpawnPointsWithSafeZone(2, pPos, pLayer);
+                        var spawnSuccess = SpawnManager.Instance.GenerateSpawnPointsWithSafeZone(pPos, pLayer);
 
                         if (spawnSuccess)
                         {
@@ -215,7 +215,7 @@ public class GameManager : MonoBehaviour
         ChangeToPlayingState();
 
         yield return new WaitForEndOfFrame();
-        SaveLoadSystem.Instance.SaveGame();
+        //SaveLoadSystem.Instance.SaveGame();
     }
 
     public void StartGame()

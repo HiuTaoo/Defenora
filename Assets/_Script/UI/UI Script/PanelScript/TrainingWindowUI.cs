@@ -257,7 +257,7 @@ public class TrainingWindowUI : MonoBehaviour
         }
     }
 
-    public void RefreshLeftPage()
+    private void RefreshLeftPage()
     {
         if (currentActiveBuilding == null) return;
 
@@ -305,7 +305,7 @@ public class TrainingWindowUI : MonoBehaviour
         }
     }
 
-    public void RefreshRightPage()
+    private void RefreshRightPage()
     {
         foreach (var slotUI in activeSlotUIs)
         {
@@ -326,32 +326,62 @@ public class TrainingWindowUI : MonoBehaviour
             slotObj.gameObject.SetActive(true);
 
             TrainingQueueSlotUI slotUI = slotObj.GetComponent<TrainingQueueSlotUI>();
-            Unit unitEntity = UnitManager.Instance.allUnits.FirstOrDefault(u => u.GetId() == trainee.unitID);
+
+            var unitEntity =
+                UnitManager.Instance.allUnits.FirstOrDefault(u => u != null && u.GetId() == trainee.unitID);
+
+            if (unitEntity == null)
+                unitEntity = Resources.FindObjectsOfTypeAll<Unit>()
+                    .FirstOrDefault(u => u != null && u.GetId() == trainee.unitID);
+
             TrainingConfig config = currentActiveBuilding.GetAvailableConfigs().FirstOrDefault(c => c.targetType == trainee.targetType);
 
-            if (unitEntity != null)
+            activeSlotUIs.Add(slotUI);
+
+            if (slotUI != null)
             {
-                activeSlotUIs.Add(slotUI);
-                slotUI.SetupSlot(unitEntity, config, currentActiveBuilding);
+                if (unitEntity != null)
+                {
+                    slotUI.SetupSlot(unitEntity, config, currentActiveBuilding);
+                }
+                else
+                {
+                    var anyCivilianInScene = Resources.FindObjectsOfTypeAll<Unit>()
+                        .FirstOrDefault(u => u != null && u.unitType == UnitType.Civilian);
+
+                    slotUI.SetupSlot(anyCivilianInScene, config, currentActiveBuilding);
+
+                    slotUI.UpdateSliderProgress(trainee.currentTrainingHours);
+                }
             }
         }
     }
 
     private void Update()
     {
-        if (currentActiveBuilding == null || !trainingPageContent.gameObject.activeSelf) return;
+        if (currentActiveBuilding == null || trainingPageContent == null ||
+            !trainingPageContent.gameObject.activeInHierarchy) return;
 
         var currentDataList = currentActiveBuilding.GetTraineesSaveData();
         
         if (currentDataList.Count != activeSlotUIs.Count)
         {
+            if (currentDataList.Count == 0)
+            {
+                foreach (var slotUI in activeSlotUIs)
+                    if (slotUI != null)
+                        PoolManager.Instance.Despawn(slotUI.gameObject);
+                activeSlotUIs.Clear();
+                return;
+            }
+
             ForceRefreshFullWindow();
             return;
         }
 
         for (int i = 0; i < activeSlotUIs.Count; i++)
         {
-            if (activeSlotUIs[i] == null) continue;
+            if (activeSlotUIs[i] == null || i >= currentDataList.Count) continue;
             activeSlotUIs[i].UpdateSliderProgress(currentDataList[i].currentTrainingHours);
         }
     }
@@ -363,7 +393,7 @@ public class TrainingWindowUI : MonoBehaviour
         
         ClearTargetClassView();
         ClearCivilianListView();
-        ClearRequirementResourcesView(); // 🌟 THÊM: Xóa sạch ô tài nguyên khi đóng UI
+        ClearRequirementResourcesView(); 
 
         foreach (var slotUI in activeSlotUIs)
         {

@@ -37,7 +37,9 @@ public class RaidCampaignExecutionNode : BTActionNode
         if (currentState == RaidState.March)
         {
             var spawnPoint = targetGate.GetComponent<SpawnPoint>();
-            int gateLayer = spawnPoint != null ? spawnPoint.layerIndex : 0;
+
+            var gateLayer = spawnPoint != null ? spawnPoint.layerIndex :
+                targetGate.layer == LayerMask.NameToLayer("SpawnPoint") ? unit.layerIndex : 0;
 
             if (unit.layerIndex == gateLayer)
             {
@@ -74,6 +76,10 @@ public class RaidCampaignExecutionNode : BTActionNode
                         return BTStatus.Success;
                     }
                 }
+            }
+            else
+            {
+                if (!unit.characterMovement.moving) hasCalculatedPath = false;
             }
         }
 
@@ -114,10 +120,21 @@ public class RaidCampaignExecutionNode : BTActionNode
                             }
                             else
                             {
-                                Debug.LogError($"[Raid Path Error] [{unit.gameObject.name}] KHÔNG TÌM THẤY ĐƯỜNG TẬP KẾT! " +
-                                               $"| Start Grid: {startGrid} (Layer {unit.layerIndex}) " +
-                                               $"| Target (Leader Grid): {targetAssembleGrid} (Layer {leader.layerIndex})");
-                                hasCalculatedPath = false; 
+                                Debug.LogError(
+                                    $"[Raid Kẹt Đường] [{unit.gameObject.name}] Không tìm thấy đường tập kết! " +
+                                    "Tự động gỡ khỏi RaidManager để không ảnh hưởng tổng đội. " +
+                                    $"| Start Grid: {startGrid} (Layer {unit.layerIndex}) ➔ Target (Leader): {targetAssembleGrid}");
+
+                                if (RaidManager.Instance.raidSubscribedUnits.Contains(unit))
+                                    RaidManager.Instance.raidSubscribedUnits.Remove(unit);
+
+                                unit.StopMove();
+                                unit.currentState = UnitState.Idle;
+                                unit.animState = AnimState.Idle;
+                                unit.GetBT()?.ClearState();
+
+                                ResetNode();
+                                return BTStatus.Failure; 
                             }
                         }
                     }
@@ -135,6 +152,7 @@ public class RaidCampaignExecutionNode : BTActionNode
                 {
                     var spawnPoint = targetGate.GetComponent<SpawnPoint>();
                     int gateLayer = spawnPoint != null ? spawnPoint.layerIndex : 0;
+                    
                     var startGrid = GraphNode.Instance.WorldToGridPos(unit.transform.position, unit.layerIndex);
 
                     var marchPath = unit.FindBestPathToTarget(targetGate, gateLayer);
@@ -145,7 +163,6 @@ public class RaidCampaignExecutionNode : BTActionNode
                     }
                     else
                     {
-                        // 🔥 ADD LOG: Báo lỗi khi không tìm thấy đường hành quân đến Cổng quái
                         var gateGrid = GraphNode.Instance.WorldToGridPos(targetGate.transform.position, gateLayer);
                         Debug.LogError($"[Raid Path Error] [{unit.gameObject.name}] KHÔNG TÌM THẤY ĐƯỜNG HÀNH QUÂN (March)! " +
                                        $"➔ Start: {startGrid} (Layer {unit.layerIndex}) " +

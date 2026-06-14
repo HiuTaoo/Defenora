@@ -77,8 +77,7 @@ namespace _Script.BT.Node.BuilderNode.Idle
                 safetyCounter++;
 
                 targetItem = ItemManager.Instance.FindNearestItem(
-                    builder.transform.position,
-                    builder.floorAgent._currentFloorIndex, builder
+                    builder.transform.position, builder
                 );
 
                 if (targetItem == null)

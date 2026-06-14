@@ -167,8 +167,8 @@ public class Builder : Unit
         );
 
         var walkAndBuild = new SequenceNode(
-            new CheckPathToAdjacentTargetNode(builder),
             clearObstacleLoop,
+            new CheckPathToAdjacentTargetNode(builder),
             new MoveToTargetNode(builder),
             new BuildNode(builder),
             waitAfterWork
@@ -184,8 +184,8 @@ public class Builder : Unit
             new HasBuildTaskNode(builder),
             new FindBuildTaskNode(builder),
             new AssignTaskNode(builder),
-            new CheckPathToAdjacentTargetNode(builder),
             clearObstacleLoop,
+            new CheckPathToAdjacentTargetNode(builder),
             new MoveToTargetNode(builder),
             new BuildNode(builder),
             waitAfterWork
@@ -324,6 +324,7 @@ public class Builder : Unit
         {
             itemComponent.layerIndex = currentLayerIndex;
             itemComponent.amount = amount;
+            itemComponent.assignBuilder = null;
         }
 
         itemComponent.assignBuilder = this;

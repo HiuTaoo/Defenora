@@ -455,6 +455,9 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                     }
                 }
 
+                // -----------------------------------------------------------------
+                // KHÔI PHỤC LIÊN KẾT NHÀ CỦA UNIT (GÁC Đ M VÀ HỌC VIÊN ĐANG TRAIN)
+                // -----------------------------------------------------------------
                 foreach (var building in unitManager.buildings)
                 {
                     if (building.GetId() != unitDatum.assignedBuilding)
@@ -481,12 +484,15 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                                 trainingBuilding.ForceAddTraineeOnLoad(unit, traineeData.currentTrainingHours,
                                     traineeData.targetType);
                                 isAssignedAsTrainee = true;
+
+                                Debug.Log(
+                                    $"[SaveLoad-Trainee] Đã khôi phục học viên [{unit.unitName}] đang train dở tại [{building.name}] ({traineeData.currentTrainingHours}h).");
                             }
                         }
                     }
 
                     // ------------------------------------------------------------
-                    // NHÁNH 2: Nếu KHÔNG phải học viên, tiến hành gán vào lính gác (stationedUnits)
+                    // NHÁNH 2: Nếu KHÔNG phải học viên, tiến hành gán vào lính gác thông thường (stationedUnits)
                     // ------------------------------------------------------------
                     if (!isAssignedAsTrainee)
                     {
@@ -526,7 +532,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
                         }
                     }
 
-                    break;
+                    break; 
                 }
             }
 

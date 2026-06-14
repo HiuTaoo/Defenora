@@ -37,6 +37,14 @@ public class RaidManager : MonoBehaviour
     {
         if (state == InteractButtonState.Attack && targetObj != null && targetObj.CompareTag("SpawnPoint"))
         {
+            if (activeRaidTarget != null)
+            {
+                UINotificationManager.Instance.ShowNotification(
+                    "A Raid campaign is already in progress! You cannot initiate another one until the current Raid is finished.",
+                    NotificationColorType.Warning);
+                return;
+            }
+
             ConfirmDialog.Instance.Show(
                 "Do you want to initiate an Raid? " +
                 "This can bring many risks, please consider carefully before starting",
@@ -50,7 +58,6 @@ public class RaidManager : MonoBehaviour
             );
         }
     }
-
     private void LaunchRaid(GameObject spawnPointTarget)
     {
         activeRaidTarget = spawnPointTarget;
