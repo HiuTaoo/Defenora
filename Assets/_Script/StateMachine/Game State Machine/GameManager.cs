@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.IO;
 using _Script.StateMachine.Game_State_Machine.State;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -144,30 +146,37 @@ public class GameManager : MonoBehaviour
             yield break;
         }
 
-        if (SaveLoadSystem.Instance.HasSaveData())
+        bool isTriggeredByRestart = false;
+        if (PlayerPrefs.HasKey("RestartingLevelSceneName"))
         {
-            Debug.Log("[GameManager] Tìm thấy file dữ liệu cũ! Tiến hành nạp màn chơi từ file save...");
+            string restartedScene = PlayerPrefs.GetString("RestartingLevelSceneName");
+            if (restartedScene == SceneManager.GetActiveScene().name)
+            {
+                isTriggeredByRestart = true;
+            }
+            PlayerPrefs.DeleteKey("RestartingLevelSceneName");
+            PlayerPrefs.Save();
+        }
 
-            if (SaveLoadSystem.Instance.loadAsync)
-                yield return StartCoroutine(SaveLoadSystem.Instance.LoadGameAsync());
-            else
-                SaveLoadSystem.Instance.LoadGame();
+        if (!isTriggeredByRestart && SaveLoadSystem.Instance.HasSaveData())
+        {
+            Debug.Log("[GameManager] Tìm thấy file dữ liệu cũ! Tiến hành kiểm tra và nạp đúng Scene Level...");
+            yield return StartCoroutine(SaveLoadSystem.Instance.LoadGameWithSceneCheckCoroutine());
         }
         else
         {
-            Debug.Log("[GameManager] Không có file save (hoặc vừa bấm RESTART)! Bắt đầu tạo thế giới...");
+            Debug.Log("[GameManager] Luồng sinh mới! Bắt đầu kiến tạo lại cây cối, đá và cổng quái từ đầu...");
 
             var isWorldGenerationValid = false;
             var generationRetries = 0;
-            const int maxGenerationRetries = 5;
 
-            while (!isWorldGenerationValid && generationRetries < maxGenerationRetries)
+            while (!isWorldGenerationValid)
             {
                 if (GraphNode.Instance != null) GraphNode.Instance.ResetAllWalkableNodesOnly();
 
                 if (ObjectSpawner.Instance != null)
                 {
-                    ApplyStartGameSettings();
+                    ApplyStartGameSettings(); 
                     yield return null;
 
                     if (SpawnManager.Instance != null && PlayerController.Instance != null)
@@ -175,50 +184,56 @@ public class GameManager : MonoBehaviour
                         var pPos = PlayerController.Instance.transform.position;
                         var pLayer = PlayerController.Instance.GetCurrentLayerIndex();
 
-                        Debug.Log(
-                            $"[GameManager] [Lần thử {generationRetries + 1}] Đang quét tìm đường đặt cổng quái liên thông...");
-
                         var spawnSuccess = SpawnManager.Instance.GenerateSpawnPointsWithSafeZone(pPos, pLayer);
 
                         if (spawnSuccess)
                         {
-                            Debug.Log(
-                                "[GameManager] 🟢 Tạo bản đồ và các cổng quái thành công! Bản đồ hợp lệ hoàn toàn.");
+                            Debug.Log($"[GameManager] 🟢 Kiên tạo bản đồ thành công sau {generationRetries + 1} lần thử!");
                             isWorldGenerationValid = true;
                         }
                         else
                         {
                             generationRetries++;
-                            Debug.LogWarning(
-                                $"[GameManager] ⚠️ Thất bại khi tìm vị trí đặt cổng thông suốt tới Player. Tiến hành dọn dẹp và RE-BAKE lại map lần {generationRetries}...");
-
-                            SaveLoadSystem.Instance.ClearCurrentSceneObjects();
+                            Debug.LogWarning($"[GameManager] ⚠️ Thất bại lần {generationRetries} khi tìm vị trí đặt cổng quái liên thông. Tiến hành thu hồi toàn cục và load lại từ đầu...");
+                            
+                            SaveLoadSystem.Instance.ClearCurrentSceneObjects(); 
                         }
-                    }
-                    else
-                    {
-                        Debug.LogError("[GameManager] ❌ Thiếu cấu phần hệ thống quan trọng để check sinh cổng!");
-                        yield break;
                     }
                 }
             }
-
-            if (!isWorldGenerationValid)
-            {
-                Debug.LogError(
-                    "[GameManager] 🛑 LỖI CHÍ MẠNG: Đã thử tái tạo map 5 lần nhưng không thể đặt cổng quái hợp lệ liên thông tới Player! Chặn không cho StartGame.");
-                SaveLoadSystem.Instance.ClearCurrentSceneObjects();
-                QuitGame();
-                yield break; 
-            }
         }
+        
         ChangeToPlayingState();
-
         yield return new WaitForEndOfFrame();
-        //SaveLoadSystem.Instance.SaveGame();
     }
 
-    public void StartGame()
+    public void LoadNextLevelScene()
+    {
+        if (SaveLoadSystem.Instance != null)
+        {
+            SaveLoadSystem.Instance.DeleteSaveData();
+            SaveLoadSystem.Instance.ClearCurrentSceneObjects();
+        }
+
+        var currentSceneBuildIndex = SceneManager.GetActiveScene().buildIndex;
+        var nextSceneBuildIndex = currentSceneBuildIndex + 1;
+
+        if (nextSceneBuildIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            Debug.Log($"[GameManager] 🏆 Tiến vào Level tiếp theo! Tải Scene có Index: {nextSceneBuildIndex}");
+            Time.timeScale = 1f;
+
+            SceneManager.LoadScene(nextSceneBuildIndex);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[GameManager] 🎉 Bạn đã phá đảo toàn bộ các Level hiện có trong Build Settings! Quay về Main Menu.");
+            QuitGame();
+        }
+    }
+
+    private void StartGame()
     {
         Time.timeScale = 1;
         StartCoroutine(StartGameCoroutine());
@@ -229,17 +244,23 @@ public class GameManager : MonoBehaviour
     {
         if (SaveLoadSystem.Instance == null) return;
 
-        Debug.Log("[GameManager] 🚨 Yêu cầu khởi động lại! Bắt đầu thiết lập lại State Machine khẩn cấp...");
+        Debug.Log("[GameManager] 🚨 Khởi động lại Level hiện tại! Xóa dữ liệu cũ và chuẩn bị re-gen thế giới...");
 
         Time.timeScale = 1f;
 
-        ChangeToPlayingState();
+        string currentSceneName = SceneManager.GetActiveScene().name;
 
-        if (SaveLoadSystem.Instance.HasSaveData()) SaveLoadSystem.Instance.DeleteSaveData();
+        if (SaveLoadSystem.Instance.HasSaveData())
+        {
+            SaveLoadSystem.Instance.DeleteSaveData();
+        }
+
+        PlayerPrefs.SetString("RestartingLevelSceneName", currentSceneName);
+        PlayerPrefs.Save();
 
         SaveLoadSystem.Instance.ClearCurrentSceneObjects();
 
-        StartGame();
+        SceneManager.LoadScene(currentSceneName);
     }
 
     private void ApplyStartGameSettings()

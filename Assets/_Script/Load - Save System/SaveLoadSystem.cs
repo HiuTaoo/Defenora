@@ -9,6 +9,7 @@ using _Script.Object_Pooling;
 using _Script.ScriptableObjectScript;
 using _Script.Unit_Management_System.Building;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SaveLoadSystem : MonoBehaviour, ISaveable
 {
@@ -173,6 +174,7 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
     public void PopulateSaveData(GameSaveData saveData)
     {
+        saveData.currentLevelSceneName = SceneManager.GetActiveScene().name;
         saveData.totalCoins = WalletManager.Instance.CurrentCoins;
         saveData.isWin = GameManager.Instance != null &&
                          GameManager.Instance.StateMachine.CurrentStateType == GameStateType.Win;
@@ -1180,18 +1182,12 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
 
             if (temporaryData != null && (temporaryData.isWin || temporaryData.isGameOver))
             {
-                if (temporaryData.isWin)
-                    Debug.LogWarning(
-                        "[SaveLoadSystem] 🏆 Phát hiện file save cũ đã CHIẾN THẮNG. Tiến hành dọn sạch Scene để lập map mới tinh từ MainMenu!");
-                else
-                    Debug.LogWarning(
-                        "[SaveLoadSystem] 💀 Phát hiện file save cũ đã GAME OVER. Tiến hành dọn sạch Scene để lập map mới tinh từ MainMenu!");
-
                 ClearCurrentSceneObjects(); 
-                
                 DeleteSaveData();
                 return false;
             }
+
+            if (temporaryData == null || string.IsNullOrEmpty(temporaryData.currentLevelSceneName)) return false;
         }
         catch (Exception e)
         {
@@ -1297,6 +1293,31 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         if (EditBuildingManager.Instance != null) EditBuildingManager.Instance.ResetEditorManager();
     }
 
+    public IEnumerator LoadGameWithSceneCheckCoroutine()
+    {
+        if (!File.Exists(saveFilePath)) yield break;
+
+        var json = File.ReadAllText(saveFilePath);
+        var saveData = JsonUtility.FromJson<GameSaveData>(json);
+
+        var activeSceneName = SceneManager.GetActiveScene().name;
+
+        if (activeSceneName != saveData.currentLevelSceneName)
+        {
+            Debug.Log(
+                $"[SaveLoadSystem] 🔄 Phát hiện file Save thuộc Level [{saveData.currentLevelSceneName}]. Đang tiến hành chuyển Scene...");
+
+            var asyncLoad = SceneManager.LoadSceneAsync(saveData.currentLevelSceneName);
+            while (!asyncLoad.isDone) yield return null;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        if (loadAsync)
+            yield return StartCoroutine(LoadGameAsync());
+        else
+            LoadGame();
+    }
     #endregion
 
     #endregion

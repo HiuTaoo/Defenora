@@ -10,9 +10,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// Cần thiết để dùng Coroutine
-// Cần thiết để dùng UI Slider
-
 public class MainMenuManager : MonoBehaviour
 {
     [Header("Cài đặt Transition Trắng")]
@@ -52,6 +49,8 @@ public class MainMenuManager : MonoBehaviour
     [Header("Confirm Dialog")] public ConfirmDialog confirmDialog;
 
     private bool isTransitioning = false;
+
+    private string saveFilePath => Path.Combine(Application.persistentDataPath, "savegame.json");
 
     private void Awake()
     {
@@ -114,15 +113,54 @@ public class MainMenuManager : MonoBehaviour
             });
     }
 
-    /// <summary>
-    /// Coroutine xử lý tải Scene ngầm và cập nhật thanh tiến độ
-    /// </summary>
     private IEnumerator LoadSceneAsync()
     {
         if (loadingGroup != null) loadingGroup.SetActive(true);
 
-        AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(nextSceneIndex);
+        var sceneToLoadName = "";
 
+        if (PlayerPrefs.HasKey("RestartingLevelSceneName"))
+        {
+            sceneToLoadName = PlayerPrefs.GetString("RestartingLevelSceneName");
+        }
+        else if (File.Exists(saveFilePath))
+        {
+            try
+            {
+                var json = File.ReadAllText(saveFilePath);
+                var temporaryData = JsonUtility.FromJson<GameSaveData>(json);
+
+                if (temporaryData != null && !temporaryData.isWin && !temporaryData.isGameOver
+                    && !string.IsNullOrEmpty(temporaryData.currentLevelSceneName))
+                    sceneToLoadName = temporaryData.currentLevelSceneName;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Main Menu] Lỗi đọc nhanh file save để check màn: {e.Message}");
+            }
+        }
+
+        if (!string.IsNullOrEmpty(sceneToLoadName))
+        {
+            Debug.Log($"[Main Menu] Tải Scene Level: {sceneToLoadName}");
+
+            var asyncOpSave = SceneManager.LoadSceneAsync(sceneToLoadName);
+            asyncOpSave.allowSceneActivation = false;
+
+            while (!asyncOpSave.isDone)
+            {
+                var progress = Mathf.Clamp01(asyncOpSave.progress / 0.9f);
+                if (progressBar != null) progressBar.value = progress;
+                if (progressText != null) progressText.text = "Loading... " + (progress * 100f).ToString("F0") + "%";
+
+                if (asyncOpSave.progress >= 0.9f) asyncOpSave.allowSceneActivation = true;
+                yield return null;
+            }
+
+            yield break;
+        }
+
+        AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(nextSceneIndex);
         asyncOperation.allowSceneActivation = false;
 
         while (!asyncOperation.isDone)
@@ -153,41 +191,82 @@ public class MainMenuManager : MonoBehaviour
 #if UNITY_EDITOR
         EditorApplication.isPlaying = false;
 #else
-    Application.Quit();
+        Application.Quit();
 #endif
     }
 
     public void RestartGame()
     {
+        if (isTransitioning) return;
+
         confirmDialog.Show(
-            "Do you want to restart the game?",
-            Restart,
-            () => { }
+            "Do you want to RESTART THIS LEVEL only? \n(Press YES to replay current level / Press NO to reset full game progress)",
+            RestartCurrentLevel,
+            RestartFullGame
         );
     }
 
-    private void Restart()
+    private void RestartCurrentLevel()
     {
-        if (isTransitioning) return;
-
-        var saveFilePath = Path.Combine(Application.persistentDataPath, "savegame.json");
+        if (!File.Exists(saveFilePath))
+        {
+            Debug.Log("[Main Menu] Không có file save cũ để restart level, tiến hành vào game mặc định.");
+            TriggerTransitionToGame();
+            return;
+        }
 
         try
         {
-            if (File.Exists(saveFilePath))
+            var json = File.ReadAllText(saveFilePath);
+            var saveData = JsonUtility.FromJson<GameSaveData>(json);
+
+            if (saveData != null && !string.IsNullOrEmpty(saveData.currentLevelSceneName))
             {
+                var preservedSceneName = saveData.currentLevelSceneName;
+
+                PlayerPrefs.SetString("RestartingLevelSceneName", preservedSceneName);
+                PlayerPrefs.Save();
+
                 File.Delete(saveFilePath);
-                Debug.Log("[Main Menu] 🚨 Đã xóa dữ liệu file save cũ thành công để chuẩn bị chơi mới!");
-            }
-            else
-            {
-                Debug.Log("[Main Menu] Không tìm thấy file save cũ, tiến hành tạo mới hoàn toàn.");
+
+                Debug.Log($"[Main Menu] 🔄 Đã xóa save cũ. Gửi tín hiệu tái tạo từ đầu Level: {preservedSceneName}");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Main Menu] Lỗi khi xóa file save: {e.Message}");
+            Debug.LogError($"[Main Menu] Lỗi khi xử lý trích xuất tên màn để Restart Level: {e.Message}");
         }
+
+        TriggerTransitionToGame();
+    }
+
+    private void RestartFullGame()
+    {
+        try
+        {
+            PlayerPrefs.DeleteKey("RestartingLevelSceneName");
+            PlayerPrefs.Save();
+
+            if (File.Exists(saveFilePath))
+            {
+                File.Delete(saveFilePath);
+                Debug.Log("[Main Menu] 🚨 Đã XÓA TOÀN BỘ FILE SAVE. Chơi lại từ đầu game!");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[Main Menu] Lỗi khi xóa toàn bộ file save: {e.Message}");
+        }
+
+        TriggerTransitionToGame();
+    }
+
+    private void TriggerTransitionToGame()
+    {
+        if (hideUI != null) hideUI.gameObject.SetActive(false);
+        AudioManager.Instance.PauseMusic();
+        StartWhiteWipeTransition();
+        AudioManager.Instance.PlaySFX(SoundNames.SfxChangeScene);
     }
 
     public void OpenAudioSettingUI()
@@ -199,5 +278,4 @@ public class MainMenuManager : MonoBehaviour
     {
         audioSettingUI.SetActive(false);
     }
- 
 }
