@@ -594,7 +594,14 @@ public abstract class Unit : MonoBehaviour, IPoolable
         spriteRenderer.color = c;
     }
 
-    protected void DisableAll()
+    private void EnableAll()
+    {
+        var col = GetComponent<Collider2D>();
+        col.enabled = true;
+        foreach (Transform child in transform) child.gameObject.SetActive(true);
+    }
+
+    private void DisableAll()
     {
         var col = GetComponent<Collider2D>();
         col.enabled = false;
@@ -1294,5 +1301,6 @@ public abstract class Unit : MonoBehaviour, IPoolable
     {
         _stuckTimer = 0f;
         bt?.ClearState();
+        EnableAll();
     }
 }

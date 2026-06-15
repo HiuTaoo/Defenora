@@ -21,6 +21,7 @@ public class AgentPhysics2D : MonoBehaviour
         {
             stairDetector.OnEnterStair += HandleEnterStair;
             stairDetector.OnExitStair += HandleExitStair;
+            stairDetector.OnExitStair += HandleExitStair;
         }
     }
 
@@ -257,41 +258,40 @@ public class AgentPhysics2D : MonoBehaviour
 
     private void HandleExitStair()
     {
-        #region Character Exit Stair
+        if (GraphNode.Instance == null || GraphNode.Instance.layerDatas == null) return;
+
+        var currentPosition = transform.position;
+        var detectedLayerIndex = -1;
+        var totalLayers = GraphNode.Instance.layerDatas.Length;
+
+        for (var targetLayer = totalLayers - 1; targetLayer >= 0; targetLayer--)
+        {
+            var gridPos = GraphNode.Instance.WorldToGridPos(currentPosition, targetLayer);
+            var node = GraphNode.Instance.GetNode(gridPos, targetLayer);
+
+            if (node != null && node.isWalkable)
+            {
+                detectedLayerIndex = targetLayer;
+                break;
+            }
+        }
+
+        if (detectedLayerIndex == -1) detectedLayerIndex = floorAgent.currentFloorIndex;
+
+        floorAgent.MoveToFloor(detectedLayerIndex);
+
         if (characterMovement != null)
         {
             characterMovement.UpdateLayerIndex();
-
-            Vector2 movementInput = GameManager.Instance.gameContext.InputManager.GetMovementInput();
-
-            if (movementInput.y > 0.1f && intoStairDirection == Vector2.up)
-            {
-                floorAgent.MoveToFloor(floorAgent.currentFloorIndex + 1);
-
-            }
-            else if (movementInput.y < -0.1f && intoStairDirection == Vector2.down)
-            {
-                floorAgent.MoveToFloor(floorAgent.currentFloorIndex - 1);
-            }
-
-            characterMovement.CurrentLayer = floorAgent.currentFloorIndex;
+            characterMovement.CurrentLayer = detectedLayerIndex;
         }
-        #endregion
 
-        #region Sheep Exit Stair
-        if (transform.GetComponentInParent<Sheep>() != null){
-            var sheep = transform.GetComponentInParent<Sheep>();
-            if(sheep.runDirection.y > 0.1f && intoStairDirection == Vector2.up)
-            {
-                sheep.floorAgent.MoveToFloor(sheep.floorAgent.currentFloorIndex + 1);
-            }
-            else if(sheep.runDirection.y < -0.1f && intoStairDirection == Vector2.down)
-            {
-                sheep.floorAgent.MoveToFloor(sheep.floorAgent.currentFloorIndex - 1);
-            }
-            sheep.layerIndex = sheep.floorAgent.currentFloorIndex;
+        var sheep = transform.GetComponentInParent<Sheep>();
+        if (sheep != null)
+        {
+            sheep.floorAgent.MoveToFloor(detectedLayerIndex);
+            sheep.layerIndex = detectedLayerIndex;
         }
-        #endregion
     }
 
     private float GetMoveSpeed() {

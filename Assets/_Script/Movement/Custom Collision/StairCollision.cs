@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class StairCollision : MonoBehaviour
@@ -8,14 +7,24 @@ public class StairCollision : MonoBehaviour
 
     public bool IsOnStair { get; private set; } = false;
 
-    public System.Action OnEnterStair;
-    public System.Action OnExitStair;
+    public Action OnEnterStair;
+    public Action OnExitStair;
 
     private bool wasOnStair = false;
+
+    private LayerMask stairLayerMask;
+    private float calculatedRadius;
+
+    private readonly Collider2D[] hitResults = new Collider2D[1];
 
     private void Awake()
     {
         circleCollider = GetComponentInParent<CircleCollider2D>();
+
+        stairLayerMask = LayerMask.GetMask("Stair");
+
+        if (circleCollider != null)
+            calculatedRadius = circleCollider.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y);
     }
 
     private void Update()
@@ -40,21 +49,9 @@ public class StairCollision : MonoBehaviour
         if (circleCollider == null) return false;
 
         Vector2 origin = transform.position;
-        float radius = circleCollider.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y);
 
-        Collider2D hit = Physics2D.OverlapCircle(origin, radius , LayerMask.GetMask("Stair"));
-        return hit != null;
+        var hitCount = Physics2D.OverlapCircleNonAlloc(origin, calculatedRadius, hitResults, stairLayerMask);
+
+        return hitCount > 0;
     }
-
-    /*private void OnDrawGizmos()
-    {
-        if (circleCollider == null) return;
-
-        float radius = circleCollider.radius * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y);
-
-        // Màu tùy vào trạng thái
-        Gizmos.color = IsOnStair ? new Color(0, 1, 0, 0.3f) : new Color(1, 0, 0, 0.3f);
-        Gizmos.DrawWireSphere(transform.position, radius);
-        Gizmos.DrawSphere(transform.position, 0.5f); // chấm tâm
-    }*/
 }
