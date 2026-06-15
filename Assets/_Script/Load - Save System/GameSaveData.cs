@@ -6,6 +6,7 @@ using UnityEngine;
 [Serializable]
 public class GameSaveData
 {
+    public string currentLevelSceneName;
     public int totalCoins;
     public bool isWin;
     public bool isGameOver;

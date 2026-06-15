@@ -10908,16 +10908,16 @@ MonoBehaviour:
   poolsToPrewarm:
   - prefab: {fileID: 5697450924608689214, guid: 7c2fe03ab850967418e7136975dfb126,
       type: 3}
-    prewarmCount: 100
+    prewarmCount: 150
   - prefab: {fileID: 5276064107349130557, guid: 2529afe1a7cb22248bc4d6412437fcf7,
       type: 3}
-    prewarmCount: 100
+    prewarmCount: 150
   - prefab: {fileID: 5100034286511634508, guid: bd456f67041267c47a13bfcffcce041d,
       type: 3}
-    prewarmCount: 100
+    prewarmCount: 150
   - prefab: {fileID: 3411453609490766746, guid: 8cb819f8d3e44f74ab35f5e47d39eaa4,
       type: 3}
-    prewarmCount: 100
+    prewarmCount: 150
   - prefab: {fileID: 5158490374402420867, guid: 33efe4c4b3fdca041a3ddab410d0cdd9,
       type: 3}
     prewarmCount: 25
