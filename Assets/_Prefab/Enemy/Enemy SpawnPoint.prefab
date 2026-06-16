@@ -59,6 +59,7 @@ GameObject:
   - component: {fileID: 3895555905384127079}
   - component: {fileID: 3673562370237335952}
   - component: {fileID: 1427554070954577299}
+  - component: {fileID: 4401430364643962817}
   m_Layer: 16
   m_Name: Enemy SpawnPoint
   m_TagString: SpawnPoint
@@ -225,6 +226,35 @@ MonoBehaviour:
   - {fileID: 2449667762679695024, guid: 42998f509faf51a4a8d9856093e59d9d, type: 3}
   - {fileID: 7382410964993336613, guid: b4fdd7064c1094d4182e481ef6a3158e, type: 3}
   - {fileID: 6674349452014316173, guid: 23ddce4cddb80cb49b36dbb6ccd6d4d3, type: 3}
-  defenseSpawnCount: 3
+  baseDefenseSpawnCount: 5
+  daysToIncrementDifficulty: 3
+  spawnMultiplierPerStep: 3
   currentHealth: 0
   isAttacked: 0
+--- !u!50 &4401430364643962817
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2377145582588641821}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4

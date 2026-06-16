@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 923117026244740957}
   - component: {fileID: 8391888400523060542}
-  m_Layer: 12
+  m_Layer: 10
   m_Name: StatManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -140,7 +140,7 @@ GameObject:
   - component: {fileID: 7168366781338832354}
   - component: {fileID: 8920342483767949588}
   - component: {fileID: 2426809125888630144}
-  m_Layer: 12
+  m_Layer: 10
   m_Name: Builder Movement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -536,7 +536,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4529321241409971695}
   - component: {fileID: 1287960773851700773}
-  m_Layer: 12
+  m_Layer: 10
   m_Name: Finding Target Object Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -603,7 +603,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2996283553820869325}
   - component: {fileID: 9001087790412517113}
-  m_Layer: 12
+  m_Layer: 10
   m_Name: Inventory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -649,7 +649,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8060712465209299380}
   - component: {fileID: 1329483314330567465}
-  m_Layer: 12
+  m_Layer: 10
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -664,9 +664,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8488806960564834416}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -7.5751333, y: 12.49328, z: -0.02259548}
-  m_LocalScale: {x: 1.5384616, y: 1.5384616, z: 1.5384616}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3994323704272870010}

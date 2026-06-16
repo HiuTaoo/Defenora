@@ -78,6 +78,15 @@ public class SelectUnitSystem : MonoBehaviour
             if (selectedUnit.gameObject.CompareTag("Enemy"))
                 return;
             
+            var unitComp = selectedUnit.GetComponent<Unit>();
+            if (unitComp != null && unitComp.currentState != UnitState.Idle)
+            {
+                isDragging = false;
+                canMoveSelectedUnit = false;
+                OnDragUnit?.Invoke(false);
+                return;
+            }
+            
             Vector2 currentMousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             float dragDistance = Vector2.Distance(initialMousePosition, currentMousePosition);
 
@@ -204,6 +213,16 @@ public class SelectUnitSystem : MonoBehaviour
         {
             if (clickedObj.layer == LayerMask.NameToLayer("NPC") && clickedObj.CompareTag("NPC"))
             {
+                var unitComp = clickedObj.GetComponent<Unit>();
+                if (unitComp != null && unitComp.currentState != UnitState.Idle)
+                {
+                    Debug.Log($"[SelectUnitSystem] Không thể kéo {clickedObj.name} vì đang trong trạng thái: {unitComp.currentState}");
+                    selectedUnit = null;
+                    targetBuilding = null;
+                    isBuilding = false;
+                    return; 
+                }
+                
                 selectedUnit = clickedObj;
                 targetBuilding = null; 
                 isBuilding = false;

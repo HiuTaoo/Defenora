@@ -245,18 +245,29 @@ public class EditBuildingManager : MonoBehaviour
 
     private void ExecuteConstruction(Dictionary<ItemData, int> inventoryCosts, int coinCost)
     {
+        if (listPlacedBuilding.Count == 0)
+            return;
         if (coinCost > 0)
         {
-            WalletManager.Instance.TrySpendCoins(coinCost);
+            bool spendSuccess = WalletManager.Instance.TrySpendCoins(coinCost);
+            if (!spendSuccess)
+            {
+                Debug.LogWarning("[EditBuildingManager] Thất bại khi trừ vàng quy đổi tài nguyên. Hủy lệnh xây dựng!");
+                UINotificationManager.Instance.ShowNotification("Transaction failed! Not enough coins.", NotificationColorType.Error);
+                AudioManager.Instance.PlaySFX(SoundNames.SfxWarning);
+                return; 
+            }
             Debug.Log($"[EditBuildingManager] Khấu trừ thành công {coinCost} Vàng quy đổi tài nguyên.");
         }
 
         foreach (var kvp in inventoryCosts)
+        {
             if (kvp.Value > 0)
             {
                 Inventory.Instance.Remove(kvp.Key, kvp.Value);
                 Debug.Log($"[EditBuildingManager] Khấu trừ {kvp.Value}x {kvp.Key.itemName} trong kho.");
             }
+        }
 
         UpdateGraphNode();
         ChangeBuildingState();

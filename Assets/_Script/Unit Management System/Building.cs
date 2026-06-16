@@ -145,15 +145,20 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
             case BuildingState.UnderConstruction:
                 ChangeTransparent(1f);
                 customRenderer?.gameObject.SetActive(false);
+                if (buildingCollider != null) buildingCollider.enabled = false; 
                 break;
+            
             case BuildingState.Completed:
                 customRenderer?.gameObject.SetActive(true);
                 foreach (Transform child in transform)
                     child.gameObject.SetActive(true);
+                if (buildingCollider != null) buildingCollider.enabled = true; 
                 break;
+            
             case BuildingState.Destroyed:
                 customRenderer?.gameObject.SetActive(false);
                 break;
+            
             case BuildingState.Pending:
                 ChangeTransparent(0.5f);
                 break;
@@ -168,7 +173,7 @@ public abstract class Building : MonoBehaviour, IBuildable, IPoolable
 
             foreach (Transform child in transform) child.gameObject.SetActive(false);
         }
-        else
+        else if (buildingState != BuildingState.UnderConstruction) 
         {
             var c = spriteRenderer.color;
             c.a = 1f;

@@ -5,7 +5,8 @@ namespace _Script.ItemScript
 {
     public class ArrowProjectile : MonoBehaviour, IProjectile, IPoolable
     {
-        [Header("Projectile Settings")] public float damage;
+        [Header("Projectile Settings")] 
+        public float damage;
         public float speed = 5f;
         public float lifeTime = 3f;
 
@@ -15,16 +16,13 @@ namespace _Script.ItemScript
         private Vector2 direction;
         private float hitTimer;
         private bool isHit;
-        private Vector2 lastPosition;
         private float lifeTimer;
 
         private Collider2D projectileCollider;
-        private int combinedTargetLayerMask; 
 
         private void Awake()
         {
             projectileCollider = GetComponent<Collider2D>();
-            combinedTargetLayerMask = LayerMask.GetMask("NPC", "SpawnPoint");
         }
 
         private void Update()
@@ -45,7 +43,6 @@ namespace _Script.ItemScript
             transform.position = startPos;
 
             direction = shootDir.normalized;
-            lastPosition = startPos;
 
             SetRotation(direction);
         }
@@ -80,29 +77,19 @@ namespace _Script.ItemScript
 
         private void Move()
         {
-            var start = lastPosition;
-            var end = start + direction * (speed * Time.deltaTime);
+            transform.Translate(direction * (speed * Time.deltaTime), Space.World);
+        }
 
-            var hit = Physics2D.Linecast(start, end, combinedTargetLayerMask);
+        private void OnTriggerEnter2D(Collider2D collision)
+        {
+            if (isHit) return;
 
-            if (hit.collider != null)
+            if (collision.isTrigger) return;
+
+            if (collision.CompareTag("Enemy") || collision.CompareTag("Animal") || collision.CompareTag("SpawnPoint"))
             {
-                if (hit.collider.isTrigger) return;
-
-                if (hit.collider.CompareTag("NPC"))
-                {
-                }
-                else if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Animal") || hit.collider.CompareTag("SpawnPoint"))
-                {
-                    transform.position = hit.point;
-                    lastPosition = hit.point;
-
-                    OnHit(hit.collider.gameObject);
-                    return; 
-                }
+                OnHit(collision.gameObject);
             }
-            transform.position = end;
-            lastPosition = end;
         }
 
         private void HandleLifeTime()

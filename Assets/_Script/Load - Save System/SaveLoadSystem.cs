@@ -1228,7 +1228,15 @@ public class SaveLoadSystem : MonoBehaviour, ISaveable
         var activeUnits = UnitManager.Instance.allUnits.ToList();
         foreach (var unit in activeUnits)
             if (unit != null && unit.gameObject != null)
+            {
+                if (unit.unitType == UnitType.Builder) 
+                {
+                    var unitInv = unit.GetComponentInChildren<UnitInventory>();
+                    if (unitInv != null)
+                        unitInv.Clear();
+                }
                 PoolManager.Instance.Despawn(unit.gameObject);
+            }
 
         UnitManager.Instance.allUnits.Clear();
 

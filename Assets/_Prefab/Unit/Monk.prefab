@@ -184,7 +184,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7931293986641207638}
   - component: {fileID: 8327656051733954794}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: StatManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
